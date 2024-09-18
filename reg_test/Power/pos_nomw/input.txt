@@ -1,0 +1,5 @@
+P
+1
+n
+trajectory_shorter.xyz
+0.5
