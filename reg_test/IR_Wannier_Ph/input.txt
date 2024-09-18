@@ -1,9 +1,0 @@
-MD-IR
-1
-1
-2
-n
-2
-wannier_free_COF-1_sc_1250.xyz
-2.5
-n
