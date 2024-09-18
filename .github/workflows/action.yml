@@ -40,3 +40,8 @@ jobs:
           cd build
           cmake ..
           make -j$(nproc)
+        
+      - name: Run Regression Tests
+        run: |
+          cd build
+          ctest --output-on-failure
