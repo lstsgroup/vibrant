@@ -3,6 +3,6 @@ MD-IR
 2
 2
 n
-berry_dipole_free_5000_sc.xyz
+berry_dipole_free_sc.xyz
 2.5
 n

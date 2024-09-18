@@ -66,3 +66,31 @@ target_link_libraries(${PROJECT_NAME} ${LIBS})
 add_dependencies(${PROJECT_NAME} fftw greenx)
 
 
+option(ENABLE_REGRESSION_TESTS "Enable vibrant regreesion tests" On)
+if (${ENABLE_REGRESSION_TESTS})
+    # Python required for application testing
+    include(cmake/python3.cmake)
+    find_package(Python3 3.10 COMPONENTS Interpreter Development)
+    if (Python3_FOUND)
+        message("-- Python 3 interpreter version: " ${Python3_VERSION})
+    else()
+        message("-- Python 3 interpreter not found")
+    endif()
+
+    # Enable ctest
+    enable_testing()
+
+    # copy the test to build directory
+    add_custom_command(
+	    TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+                ${CMAKE_CURRENT_SOURCE_DIR}/test
+                ${PROJECT_BINARY_DIR}/test)
+
+    add_test(
+        NAME IR_Berry
+        COMMAND pytest test_IR_Berry.py
+        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test/IR_Berry
+    )
+endif()
+
