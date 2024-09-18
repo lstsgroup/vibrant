@@ -1,4 +1,4 @@
-name: CI Tests
+name: Regression Tests
 
 on: [push, pull_request]
 
@@ -30,9 +30,6 @@ jobs:
 
       - name: Install python dependencies
         run: pip3 install numpy pytest
-
-      - name: Install blas, lapack and other dependencies
-        run: sudo apt-get install libgmp10 libgmpxx4ldbl libgmp-dev 
 
       - name: Build
         run: |
