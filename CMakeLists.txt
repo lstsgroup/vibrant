@@ -87,10 +87,21 @@ if (${ENABLE_REGRESSION_TESTS})
                 ${CMAKE_CURRENT_SOURCE_DIR}/test
                 ${PROJECT_BINARY_DIR}/test)
 
+    # adding test to ctest
     add_test(
         NAME IR_Berry
         COMMAND pytest test_IR_Berry.py
         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test/IR_Berry
+    )
+    add_test(
+        NAME IR_Wannier_Ph
+        COMMAND pytest test_IR_Wannier_Ph.py
+        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test/IR_Wannier_Ph
+    )
+    add_test(
+        NAME IR_Wannier_whole
+        COMMAND pytest test_IR_Wannier_whole.py
+        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test/IR_Wannier_whole
     )
 endif()
 
