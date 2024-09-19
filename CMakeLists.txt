@@ -36,6 +36,7 @@ ExternalProject_Add(greenx
     BUILD_COMMAND make -j 
     INSTALL_COMMAND make install && rm -rf ${CMAKE_BINARY_DIR}/external/greenx/src/greenx/.git/
     GIT_SUBMODULES ""
+    UPDATE_COMMAND ""
 )
 set(GREENX_INCLUDE_DIR ${CMAKE_BINARY_DIR}/external/greenx/install/include/modules)
 set(GREENX_LIBRARY_DIR ${CMAKE_BINARY_DIR}/external/greenx/install/lib)
