@@ -8,9 +8,9 @@ mkdir build && cd build
 cmake ..
 make -j 10
 ```
-To change to a specific compiler, run the above CMake command like this:
+The default compiler is `gfortran`. To change to a specific compiler, run the above CMake command like this:
 ```bash 
-FC=gfortran cmake .. 
+cmake -DCMAKE_Fortran_COMPILER=f90 .. 
 ```
 
 ## Regression test 

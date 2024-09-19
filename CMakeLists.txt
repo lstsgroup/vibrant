@@ -1,5 +1,11 @@
 cmake_minimum_required(VERSION 3.18)
 
+# set default fortran compiler to gfortran
+if(NOT CMAKE_Fortran_COMPILER)
+    set(CMAKE_Fortran_COMPILER gfortran)
+endif()
+
+
 # Project name and Fortran standard
 project(vibrant Fortran)
 
@@ -28,7 +34,7 @@ ExternalProject_Add(greenx
                -DPAW_COMPONENT=OFF
                -DCOMPILE_SUBMODULES=OFF
     BUILD_COMMAND make -j 
-    INSTALL_COMMAND make install
+    INSTALL_COMMAND make install && rm -rf ${CMAKE_BINARY_DIR}/external/greenx/src/greenx/.git/
     GIT_SUBMODULES ""
 )
 set(GREENX_INCLUDE_DIR ${CMAKE_BINARY_DIR}/external/greenx/install/include/modules)
@@ -107,6 +113,21 @@ if (${ENABLE_REGRESSION_TESTS})
         NAME Power_pos_mw
         COMMAND pytest test_Power_pos_mv.py
         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test/Power/pos_mw
+    )
+    add_test(
+        NAME Power_pos_nomw
+        COMMAND pytest test_Power_pos_nomw.py
+        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test/Power/pos_nomw
+    )
+    add_test(
+        NAME Power_vel_mw
+        COMMAND pytest test_Power_vel_mw.py
+        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test/Power/vel_mw
+    )
+    add_test(
+        NAME Power_vel_nomw
+        COMMAND pytest test_Power_vel_nomw.py
+        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test/Power/vel_nomw
     )
     #add_test(
     #    NAME Raman_DFPT
