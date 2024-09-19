@@ -110,6 +110,11 @@ if (${ENABLE_REGRESSION_TESTS})
         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test/IR_Wannier_whole
     )
     add_test(
+        NAME Raman_Berry
+        COMMAND pytest test_Raman_Berry.py
+        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test/Raman_Berry
+    )
+    add_test(
         NAME Power_pos_mw
         COMMAND pytest test_Power_pos_mv.py
         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test/Power/pos_mw
