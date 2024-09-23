@@ -12,6 +12,9 @@ endif()
 # Project name and Fortran standard
 project(vibrant Fortran)
 
+# cmake module path
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+
 # external dependencies
 include(ExternalProject)
 include(cmake/fftw_dependency.cmake)
@@ -47,5 +50,12 @@ option(ENABLE_REGRESSION_TESTS "Enable vibrant regression tests" ON)
 message(STATUS "Enable regression tests: ${ENABLE_REGRESSION_TESTS}")
 if (${ENABLE_REGRESSION_TESTS})
     include(cmake/regression_tests.cmake)
+endif()
+
+# Website 
+option(ENABLE_DOCS "enable website generation" OFF)
+message(STATUS "Enable website generation: ${ENABLE_DOCS}")
+if (${ENABLE_DOCS})
+    include(cmake/website.cmake)
 endif()
 
