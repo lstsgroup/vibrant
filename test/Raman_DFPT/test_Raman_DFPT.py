@@ -35,14 +35,14 @@ def parse_spectrum_from_file(fname:str):
 
 
 def test_Raman_DFPT(vibrant_binary_path):
-    """ run test case IR Berry """
+    """ run test case """
     # run vibrant calculation and test for successfull exit
     returncode, stdout = run_vibrant(vibrant_binary_path, "input.txt")
     assert returncode == 0
     
     # file names
     reference = "output/COF-1_Raman_solv_DFPT.txt"
-    test = "IR_spectrum.txt"
+    test = "result_fft_water_lib_unpol.txt"
     
     # parse filenames
     x_ref, y_ref = parse_spectrum_from_file(reference)

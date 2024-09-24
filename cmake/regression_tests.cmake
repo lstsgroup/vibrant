@@ -37,11 +37,11 @@ add_test(
     COMMAND pytest test_Raman_Berry.py
     WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test/Raman_Berry
 )
-#add_test(
-#    NAME Raman_DFPT
-#    COMMAND pytest test_Raman_DFPT.py
-#    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test/Raman_DFPT 
-#)
+add_test(
+    NAME Raman_DFPT
+    COMMAND pytest test_Raman_DFPT.py
+    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test/Raman_DFPT 
+)
 add_test(
     NAME Power_pos_mw
     COMMAND pytest test_Power_pos_mv.py
