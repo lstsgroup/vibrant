@@ -42,7 +42,7 @@ ENDDO
 998 CONTINUE
 CLOSE(51)
 
-IF (type_dipole=='2') THEN !!gas phase
+IF (type_dipole=='2' .OR. type_dipole=='3') THEN !!gas phase
     mol_num=1
 ELSEIF ((periodic=='n' .AND. system=='1') .OR. type_dipole=='1') THEN !!fragment approach
     mol_num=44 !20 !! fix later to 20
