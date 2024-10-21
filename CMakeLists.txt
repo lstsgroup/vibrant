@@ -58,4 +58,3 @@ message(STATUS "Enable website generation: ${ENABLE_DOCS}")
 if (${ENABLE_DOCS})
     include(cmake/website.cmake)
 endif()
-

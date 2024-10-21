@@ -394,11 +394,11 @@ DO
         !  static_dip_x_file='o-NP_RTP_dipoles_static_X.xyz'
         !  static_dip_y_file='o-NP_RTP_dipoles_static_Y.xyz'
         !  static_dip_z_file='o-NP_RTP_dipoles_static_Z.xyz'
-        static_dip_x_file='r-met_RTP_dipoles_static_X.xyz'
-        static_dip_y_file='r-met_RTP_dipoles_static_Y.xyz'
-        static_dip_z_file='r-met_RTP_dipoles_static_Z.xyz'
+        static_dip_x_file='r-met_RTP_dipoles_static_X_10000.xyz'
+        static_dip_y_file='r-met_RTP_dipoles_static_Y_10000.xyz'
+        static_dip_z_file='r-met_RTP_dipoles_static_Z_10000.xyz'
         !framecount_rtp=1280
-        framecount_rtp=50000
+        framecount_rtp=10000
         ! framecount_rtp=256
         !dt_rtp=0.0125d0
         dt_rtp=0.00242d0
@@ -406,9 +406,9 @@ DO
         !WRITE(*,*)'What is the wavenumber of the incident laser (cm^-1)?'
         !READ(*,*) laser_in_resraman
         laser_in_resraman=15797.788309636651d0
-        !WRITE(*,*) 'Do you want to apply Pade approximants? (y/n)'
-        !READ(*,*) check_pade
-        check_pade='n'
+        WRITE(*,*) 'Do you want to apply Pade approximants? (y/n)'
+        READ(*,*) check_pade
+       ! check_pade='n'
     ENDIF
     EXIT
 ENDDO

@@ -41,7 +41,8 @@ module pade
             end do
             last_important = num_ref_points
             do i = num_ref_points, 1, -1
-                if (y_ref(i) .eq. complex(0.0d0, 0.0d0)) then
+                if (y_ref(i) .eq. complex(0.0d0, 0.0d0) .AND. i>int(num_ref_points/2)) then
+                !if (y_ref(i) .eq. complex(0.0d0, 0.0d0)) then
                     last_important = i -1
                     x_last_important = real(x_ref_complx(i-1), kind=8)
                 end if 

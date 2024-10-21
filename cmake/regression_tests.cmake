@@ -62,3 +62,8 @@ add_test(
     COMMAND pytest test_Power_vel_nomw.py
     WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test/Power/vel_nomw
 )
+add_test(
+    NAME Absorption
+    COMMAND pytest test_Absorption.py
+    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test/Absorption
+)
