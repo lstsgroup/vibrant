@@ -5,7 +5,7 @@ import pytest
 
 @pytest.fixture
 def vibrant_binary_path():
-    return "../../vibrant"
+    return "../../../vibrant"
 
 def run_vibrant(binary_path:str, input_file:str, omp_threads:int=1):
     """ run vibrant using the specified input file """
@@ -41,7 +41,7 @@ def test_Raman_Berry(vibrant_binary_path):
     assert returncode == 0
     
     # file names
-    reference = "output/absorption_spectra.txt"
+    reference = "output/absorption_spectra_pade.txt"
     test = "absorption_spectra_pade.txt"
     
     # parse filenames

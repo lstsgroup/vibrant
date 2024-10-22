@@ -65,5 +65,10 @@ add_test(
 add_test(
     NAME Absorption
     COMMAND pytest test_Absorption.py
-    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test/Absorption
+    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test/Absorption/normal
+)
+add_test(
+    NAME Absorption_Pade
+    COMMAND pytest test_Absorption_Pade.py
+    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test/Absorption/Pade
 )

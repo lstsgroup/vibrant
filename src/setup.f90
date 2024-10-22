@@ -40,7 +40,7 @@ fs2s=1.0E-15
 ang=1.0E-10  !!angstrom to cm^-1
 at_u=1.6605390666E-27 !!atomic mass unit-kilogram relationship
 hessian_factor=REAL(const_charge/(at_u*ang*ang),KIND=8)
-framecount_rtp_pade=80000
+framecount_rtp_pade=500
 !laser_in=9398.50d0  !cm^-1       
 !laser_in=200000.0d0  !cm^-1       
 !laser_in=15797.78d0 !cm^-1
@@ -398,7 +398,6 @@ DO
         static_dip_y_file='r-met_RTP_dipoles_static_Y_1000.xyz'
         static_dip_z_file='r-met_RTP_dipoles_static_Z_1000.xyz'
         !framecount_rtp=1280
-        framecount_rtp=1000
         ! framecount_rtp=256
         !dt_rtp=0.0125d0
         dt_rtp=0.00242d0
@@ -408,6 +407,11 @@ DO
         laser_in_resraman=15797.788309636651d0
         WRITE(*,*) 'Do you want to apply Pade approximants? (y/n)'
         READ(*,*) check_pade
+        framecount_rtp=1000
+        IF (check_pade=='y') THEN
+         framecount_rtp=100
+        ENDIF
+       
        ! check_pade='n'
     ENDIF
     EXIT
