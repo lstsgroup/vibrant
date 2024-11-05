@@ -587,22 +587,32 @@ END SUBROUTINE spec_raman
 !....................................................................................................................!
 !....................................................................................................................!
 
-SUBROUTINE normal_mode_analysis(natom,force,dx,hartreebohr2evang,hessian_factor,mass_mat)
+SUBROUTINE normal_mode_analysis(natom,force,dx,hartreebohr2evang,hessian_factor,mass_mat,pi,speed_light)
 
 INTEGER,INTENT(IN)                                          :: natom
-REAL(KIND=8),INTENT(IN)                                     :: dx,hartreebohr2evang,hessian_factor
+REAL(KIND=8),INTENT(IN)                                     :: dx,hartreebohr2evang,hessian_factor,pi,speed_light
 REAL(KIND=8),DIMENSION(:,:),ALLOCATABLE,INTENT(IN)          :: mass_mat
 REAL(KIND=8),DIMENSION(:,:,:,:,:),ALLOCATABLE,INTENT(INOUT) :: force
 
-INTEGER                                                     :: i,j,m,n,p,k
+INTEGER                                                     :: i,j,m,n,p,k,info,lwork,lwmax,ix,lda,nmodes
 REAL(KIND=8)                                                :: factor
+REAL(KIND=8),DIMENSION(:),ALLOCATABLE                       :: w,work,w_new,freq
+REAL(KIND=8),DIMENSION(:,:),ALLOCATABLE                     :: hessian_new,atomic_displacements
+REAL(KIND=8),DIMENSION(:,:,:),ALLOCATABLE                   :: normal_displacements
 REAL(KIND=8),DIMENSION(:,:,:,:),ALLOCATABLE                 :: hessian
-REAL(KIND=8),DIMENSION(:,:),ALLOCATABLE                     :: hessian_new
+LOGICAL,DIMENSION(9)                                        :: mk = .TRUE.
+
+lwmax=1000
+lda=natom*3
+nmodes=3*natom-6 !only for non-linear atoms
+
+ALLOCATE(work(lwmax),w(natom*3),w_new(natom*3))
 
 factor=REAL(1.0d0/(2.0d0*dx),KIND=8)
 
 ALLOCATE(hessian(0:natom-1,0:2,0:natom-1,0:2),hessian_new(0:natom*3-1,0:natom*3-1))
 
+!hessian=factor*hessian_factor*(force(2,:,:,:,:)-force(1,:,:,:,:))
 hessian=hartreebohr2evang*factor*hessian_factor*(force(2,:,:,:,:)-force(1,:,:,:,:))
 
 p=0
@@ -621,10 +631,53 @@ ENDDO
 
 !hessian_new(:,:)=RESHAPE(hessian(:,:,:,:), (/3*natom, 3*natom/))
 hessian_new(:,:)=REAL((hessian_new(:,:)+TRANSPOSE(hessian_new(:,:)))/2.0d0,KIND=8)
+n=SIZE(hessian_new,1)
 
-print*,hessian_new(2,8)
-print*,hessian_new(4,5)
+! work size query
+lwork = -1
+CALL DSYEV( 'V', 'U', n, hessian_new, lda, w, work, lwork, info )
+lwork = MIN(lwmax, INT(work(1)))
+print*,"ekin"
 
+! get eigenvalues and eigenvectors
+CALL dsyev('V', 'U', n, hessian_new, lda, w, work, lwork, info)
+
+hessian_new=TRANSPOSE(hessian_new)
+
+w=REAL(w*SQRT(ABS(w))/ABS(w),KIND=8)
+w=REAL(w/(2.0d0*pi*speed_light),KIND=8)
+
+ALLOCATE(freq(natom*3-6),atomic_displacements(natom*3-6,natom*3),normal_displacements(3,3,3))
+
+DO i=7,natom*3
+  freq(i-6)=w(i)
+ENDDO
+
+atomic_displacements(1:natom*3-6,1:natom*3)=hessian_new(6:3*natom-1,:)
+!print*,atomic_displacements(1,1:9)
+!print*,atomic_displacements(2,1:9)
+!print*,atomic_displacements(3,1:9)
+
+m=0
+DO j=0,2
+ DO k=0,2
+  normal_displacements(1:3,j+1,k+1)=atomic_displacements(1:3,j+k+1+m)
+ ENDDO
+ m=m+2
+ENDDO
+
+!normal_displacements=RESHAPE(atomic_displacements,[3,3,3])
+print*,normal_displacements(2,2,3)
+
+!RESHAPE(atomic_displacements(1:natom*3-6,:),(/natom,3/))=normal_displacements(1:nmodes,:,:)
+print*,freq(1:3)
+!print*,hessian_new(3,2),hessian_new(6,5)
+!print*,normal_displacements(1,1,1),normal_displacements(3,3,3),normal_displacements(2,3,1)
+!print*,normal_displacements
+
+!call sort( w )
+
+!print*,size(w)
 END SUBROUTINE normal_mode_analysis
 
 !....................................................................................................................!

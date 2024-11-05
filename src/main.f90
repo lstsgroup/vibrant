@@ -132,13 +132,13 @@ ELSEIF (read_function=='MD-R') THEN
     DEALLOCATE(coord,coord_v,mass_atom,element)
 
 ELSEIF (read_function=='NMA') THEN
-!    CALL read_coord(natom,framecount,element,coord,filename,periodic,mol_num,system,read_function,&
-!         framecount_rtp,type_dipole)
-!    CALL masses_charges(natom,mass_atom,atom_mass_inv_sqrt,mass_mat,element,mass_tot,charge)
-!    CALL read_static(natom,element,normal_freq_file,normal_displ_file,static_pol,pol,freq,disp,&
- !        nmodes,static_dip_free_file,static_dip_x_file,static_dip_y_file,static_dip_z_file,type_dipole,&
- !        static_dipole_x,static_dipole_y,static_dipole_z,static_dipole_free,read_function,type_static,force_file,force)
- !   CALL normal_mode_analysis(natom,force,dx,hartreebohr2evang,hessian_factor,mass_mat)
+    CALL read_coord(natom,framecount,element,coord,filename,periodic,mol_num,system,read_function,&
+         framecount_rtp,type_dipole)
+    CALL masses_charges(natom,mass_atom,atom_mass_inv_sqrt,mass_mat,element,mass_tot,charge)
+    CALL read_static(natom,element,normal_freq_file,normal_displ_file,static_pol,pol,freq,disp,&
+         nmodes,static_dip_free_file,static_dip_x_file,static_dip_y_file,static_dip_z_file,type_dipole,&
+         static_dipole_x,static_dipole_y,static_dipole_z,static_dipole_free,read_function,type_static,force_file,force)
+    CALL normal_mode_analysis(natom,force,dx,hartreebohr2evang,hessian_factor,mass_mat,pi,speed_light)
         
 ELSEIF (read_function=='R') THEN
     CALL read_coord(natom,framecount,element,coord,filename,periodic,mol_num,system,read_function,framecount_rtp,type_dipole)

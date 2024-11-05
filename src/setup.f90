@@ -18,8 +18,8 @@ REAL(KIND=8),INTENT(OUT)                            :: speed_light,const_boltz,t
 REAL(KIND=8),INTENT(OUT)                            :: damping_constant,joule_unit,ev_unit,action_unit
 REAL(KIND=8),INTENT(OUT)                            :: hartreebohr2evang,hessian_factor,at_u,ang
 
-dx=0.00265d0  !!for r-met
-!dx=0.001d0  !!for COF-1... etc
+!dx=0.00265d0  !!for r-met
+dx=0.001d0  !!for COF-1... etc
 const_charge=1.602176565E-19  
 bohr2ang=0.5291772109d0 !!bohr two angstrom
 hartreebohr2evang=51.42208619083232d0 !!hartree/bohr to eV/angstrom
@@ -312,8 +312,8 @@ ENDDO
 
 DO 
     IF (read_function=='NMA' .OR. type_static=='1') THEN
-        force_file='BDBA-force.data3'
-        filename='BDBA.xyz'
+        force_file='water-force.data3'
+        filename='water.xyz'
     ENDIF
     EXIT
 ENDDO
