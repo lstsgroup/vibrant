@@ -40,3 +40,8 @@ build the website with:
 make docs
 ```
 Display the website by opening the file `vibrant/build/html/index.html` in a browser.
+
+
+## Contributing
+
+Contributions to vibrant are highly appreciated! If you consider contributing [check out CONTRIBUTING.md]()
