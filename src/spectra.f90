@@ -741,6 +741,7 @@ INTEGER(KIND=8)                                               :: plan
 REAL(KIND=8)                                                  :: rtp_freq_range
 REAL(KIND=8),DIMENSION(:,:,:,:),ALLOCATABLE                   :: trace,abs_intens
 COMPLEX(KIND=8),DIMENSION(:,:,:,:,:,:),ALLOCATABLE            :: y_out,zhat_pol_rtp
+COMPLEX(KIND=8)            :: tmp(framecount_rtp_pade)
 
 ALLOCATE(zhat_pol_rtp(natom,3,2,3,3,framecount_rtp))
 ALLOCATE(y_out(natom,3,2,3,3,framecount_rtp_pade)) 
@@ -765,19 +766,21 @@ ENDDO
 
 IF (check_pade=='y') THEN
 !!Call Pade
- !$OMP PARALLEL DO COLLAPSE(5)
+ !!$OMP PARALLEL DO COLLAPSE(5)
  DO j=1,natom !!natom
   DO i=1,3 !!dims
    DO k=1,2 !!disp
     DO m=1,3
      DO o=1,3
-      CALL interpolate(framecount_rtp,zhat_pol_rtp(j,i,k,m,o,1:framecount_rtp),framecount_rtp_pade,y_out(j,i,k,m,o,:))
+      print *, "test moritz",y_out(1,1,1,1,1,:)
+      CALL interpolate(framecount_rtp,zhat_pol_rtp(j,i,k,m,o,1:framecount_rtp),framecount_rtp_pade, y_out(j,i,k,m,o,:))
+     ! y_out(j,i,k,m,o,:) = tmp(:)
      ENDDO
     ENDDO
    ENDDO 
   ENDDO 
  ENDDO
- !$OMP END PARALLEL DO
+! !$OMP END PARALLEL DO
 framecount_rtp=framecount_rtp_pade
 ENDIF
 print*,framecount_rtp,"checkpoint"

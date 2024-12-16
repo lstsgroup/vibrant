@@ -8,8 +8,8 @@ module pade
 
         !> @brief interpolate n_parameter function values on a evenly 
         !!        spaced grid of n_points using the thiele pade model  
-        !!        (only halve of the given y values are used, zeros 
-        !!        in other halve)
+        !!        (only half of the given y values are used, zeros 
+        !!        in other half)
         !!
         !! @parameter[in]  n_parameter -- number of points y is tabulated
         !! @parameter[in]  y_ref       -- tabulated y values of a complex function
@@ -28,9 +28,9 @@ module pade
             real(kind=8) :: first, last, step, x_last_important
             complex(kind=8), dimension(:), allocatable :: x_ref_complx
             complex(kind=8), dimension(:), allocatable :: x_out_complx
-
+            print*,"testing"
             ! convert x to complex type 
-            ! use only halve of the array (other halve filled with zeros)
+            ! use only half of the array (other half filled with zeros)
             num_ref_points = size(y_ref)
             allocate(x_ref_complx(num_ref_points))
             first = 1.0d0
@@ -39,6 +39,7 @@ module pade
             do i = 1, num_ref_points
                 x_ref_complx(i) = complex(first + (i-1.0d0)*step, 0.0d0)
             end do
+            print*,"testing2"
             last_important = num_ref_points
             do i = num_ref_points, 1, -1
                 if (y_ref(i) .eq. complex(0.0d0, 0.0d0) .AND. i>int(num_ref_points/2)) then
@@ -48,6 +49,7 @@ module pade
                 end if 
             end do
 
+            print*,"testing3"
             ! create model
             pade_params = create_thiele_pade(last_important, x_ref_complx(1:last_important), &
                                              y_ref(1:last_important),      &
@@ -63,16 +65,22 @@ module pade
                     last_important_out = i
                 end if 
             end do 
+            print*,"testing4",n_points,num_ref_points
 
-            ! evaluate model at given x for halve the points (other halve zero)
+            ! evaluate model at given x for half the points (other half zero)
             y_out = evaluate_thiele_pade_at(pade_params, x_out_complx)
             y_out(last_important_out:) = complex(0.0d0, 0.0d0)
 
             ! deallocation 
+            print*,"testing5",n_points,num_ref_points
             call free_params(pade_params)
+            print*,"testing6",n_points,num_ref_points
+            print*,x_ref_complx(1)
             deallocate(x_ref_complx)
+            print*,x_out_complx(1)
             deallocate(x_out_complx)
 
+            print*,"testing7",n_points,num_ref_points
         end subroutine interpolate
 
 end module pade
