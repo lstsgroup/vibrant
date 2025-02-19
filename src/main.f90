@@ -8,6 +8,7 @@ USE vel_cor,            ONLY: cvv,cvv_iso,cvv_aniso,cvv_only_x,cvv_resraman
 USE fin_diff,           ONLY: central_diff,forward_diff,finite_diff_static,finite_diff_static_resraman
 USE calc_spectra,       ONLY: spec_power,spec_ir,spec_raman,normal_mode_analysis,spec_static_raman,spec_abs,&
                               spec_static_resraman,spec_resraman
+USE config_info,        ONLY: output_config_info
 
 
 IMPLICIT NONE
@@ -65,6 +66,8 @@ REAL(KIND=8),DIMENSION(:,:,:),ALLOCATABLE       :: alpha_diff_x,alpha_diff_y,alp
 
 CALL SYSTEM_CLOCK(count_0, count_rate, count_max) !Starting time
 time_init = count_0*1.0d0/count_rate
+
+CALL output_config_info()
 
 CALL constants(const_charge,debye,t_cor,const_planck,const_permit,speed_light,const_boltz,temp,pi,dx,bohr2ang,fs2s,&
      damping_constant,joule_unit,ev_unit,action_unit,hartreebohr2evang,hessian_factor,at_u,ang,framecount_rtp_pade,reccm2ev)
