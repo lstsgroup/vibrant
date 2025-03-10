@@ -766,13 +766,12 @@ ENDDO
 
 IF (check_pade=='y') THEN
 !!Call Pade
- !!$OMP PARALLEL DO COLLAPSE(5)
+ !$OMP PARALLEL DO COLLAPSE(5)
  DO j=1,natom !!natom
   DO i=1,3 !!dims
    DO k=1,2 !!disp
     DO m=1,3
      DO o=1,3
-      print *, "test moritz",y_out(1,1,1,1,1,:)
       CALL interpolate(framecount_rtp,zhat_pol_rtp(j,i,k,m,o,1:framecount_rtp),framecount_rtp_pade, y_out(j,i,k,m,o,:))
      ! y_out(j,i,k,m,o,:) = tmp(:)
      ENDDO
@@ -780,10 +779,10 @@ IF (check_pade=='y') THEN
    ENDDO 
   ENDDO 
  ENDDO
-! !$OMP END PARALLEL DO
+ !$OMP END PARALLEL DO
 framecount_rtp=framecount_rtp_pade
 ENDIF
-print*,framecount_rtp,"checkpoint"
+
 !!!Finding laser frequency
 rtp_freq_range=REAL(dom_rtp/framecount_rtp,KIND=8)
 
@@ -848,13 +847,11 @@ COMPLEX(KIND=8),DIMENSION(:,:,:,:,:,:),ALLOCATABLE            :: y_out,zhat_pol_
 
 ALLOCATE(zhat_pol_rtp(natom,3,2,3,3,framecount_rtp))
 ALLOCATE(y_out(natom,3,2,3,3,framecount_rtp_pade)) 
-
+print*,"TEST"
 zhat_pol_rtp=COMPLEX(0.d0,0.0d0)
+print*,"TEST"
 omega=5.0D0
-data1=0.0d0
-data2=0.0d0
 broad=0.0d0
-zhat_pol_dq_rtp=0.0d0
 factor=1.d0/(2.0d0*dx)
 start_freq=1.0d0
 end_freq=INT(MAXVAL(freq)+1000.0D0)
@@ -862,7 +859,10 @@ freq_range=INT(end_freq-start_freq)
 !mass_inv_sqrt(:)=REAL(1.0d0/SQRT(mass_atom(:)),KIND=8)
 
 ALLOCATE(data1(freq_range*nmodes),data2(freq_range*nmodes))
+data1=0.0d0
+data2=0.0d0
 
+print*,"TEST"
 !!!FFT of the RTP polarizabilities
 DO j=1,natom
  DO i=1,3
@@ -901,6 +901,7 @@ ALLOCATE(zhat_pol_dxyz_rtp(natom,3,3,3,framecount_rtp))
 ALLOCATE(zhat_pol_dq_rtp(nmodes,3,3,framecount_rtp))
 ALLOCATE(iso_sq(nmodes,framecount_rtp),aniso_sq(nmodes,framecount_rtp))
 ALLOCATE(raman_int(nmodes,framecount_rtp))
+zhat_pol_dq_rtp=0.0d0
 
 !!!Finding laser frequency
 rtp_freq_range=REAL(dom_rtp/framecount_rtp,KIND=8)
@@ -956,6 +957,7 @@ ENDDO
 
 !!!Broadening the spectrum!!
 DO x=start_freq,end_freq
+ broad=0.0d0
  DO i=1,nmodes
   broad=broad+(raman_int(i,rtp_point)*(1.0d0/(omega*SQRT(2.0d0*pi)))*EXP(-0.50d0*((x-freq(i))/omega)**2.0d0))
  ENDDO
