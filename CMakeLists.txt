@@ -22,10 +22,11 @@ include(cmake/greenx_dependency.cmake)
 set(LIBS fftw3 gx_ac)
 
 # Compiler flags
-set(CMAKE_Fortran_FLAGS "-Og -g -fopenmp -fcheck=bounds,do,recursion,pointer")
+set(CMAKE_Fortran_FLAGS "-Og -g -fopenmp -fcheck=bounds,do,recursion,pointer -cpp -I${CMAKE_BINARY_DIR}")
 
 # Source files
 set(SOURCES
+    src/config_info.f90
     src/setup.f90
     src/pade_interpolation.f90
     src/read_traj.f90
@@ -58,3 +59,6 @@ message(STATUS "Enable website generation: ${ENABLE_DOCS}")
 if (${ENABLE_DOCS})
     include(cmake/website.cmake)
 endif()
+
+# save cmake variables in f90 file to make them accesseble from fortran
+configure_file(src/cmake_info.f90.in ${CMAKE_BINARY_DIR}/cmake_info.f90)

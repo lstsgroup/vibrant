@@ -9,6 +9,7 @@ USE fin_diff,           ONLY: central_diff,forward_diff,finite_diff_static,finit
 USE calc_spectra,       ONLY: spec_power,spec_ir,spec_raman,normal_mode_analysis,spec_static_raman,spec_abs,&
                               spec_static_resraman,spec_resraman
 USE omp_lib,            ONLY: omp_get_num_threads
+USE config_info,        ONLY: output_config_info
 
 IMPLICIT NONE
 
@@ -75,6 +76,7 @@ time_init = count_0*1.0d0/count_rate
 
 CALL constants(const_charge,debye,t_cor,const_planck,const_permit,speed_light,const_boltz,temp,pi,bohr2ang,fs2s,&
      damping_constant,joule_unit,ev_unit,action_unit,hartreebohr2evang,hessian_factor,at_u,ang,reccm2ev)
+CALL output_config_info()
 
 CALL read_input(filename,static_pol,static_dip_free_file,static_dip_x_file,static_dip_y_file,static_dip_z_file,normal_freq_file,&
      normal_displ_file,read_function,system,length,box_all,box_x,box_y,box_z,dt,type_input,wannier_free,wannier_x,wannier_y,&
