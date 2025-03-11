@@ -1,2 +1,11 @@
 ABS
+r-met.xyz
+normal_freqs_r-met.dat
+normal_displacements_r-met.dat
+0.00265
+r-met_RTP_dipoles_static_X_1000.xyz
+r-met_RTP_dipoles_static_Y_1000.xyz
+r-met_RTP_dipoles_static_Z_1000.xyz
+0.00242
+1000
 n
