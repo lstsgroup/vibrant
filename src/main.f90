@@ -8,7 +8,8 @@ USE vel_cor,            ONLY: cvv,cvv_iso,cvv_aniso,cvv_only_x,cvv_resraman
 USE fin_diff,           ONLY: central_diff,forward_diff,finite_diff_static,finite_diff_static_resraman
 USE calc_spectra,       ONLY: spec_power,spec_ir,spec_raman,normal_mode_analysis,spec_static_raman,spec_abs,&
                               spec_static_resraman,spec_resraman
-
+USE omp_lib,            ONLY: omp_get_num_threads
+USE config_info,        ONLY: output_config_info
 
 IMPLICIT NONE
 
@@ -16,7 +17,7 @@ INCLUDE 'fftw3.f03'
 
 INTEGER                                         :: b,i,j,k,natom,framecount,framecount_rtp_pade,t0,t1
 INTEGER                                         :: frm,t_cor,nu,tau,stat,mol_num,nmodes,framecount_rtp,nfrag
-INTEGER                                         :: count_0, count_1, count_rate, count_max
+INTEGER                                         :: count_0, count_1, count_rate, count_max, num_threads
 INTEGER(KIND=8)                                 :: plan
 INTEGER,DIMENSION(:),ALLOCATABLE                :: natom_frag,natom_frag_x,natom_frag_free,nfrag_BO,nfrag_BC,nfrag_Ph
 INTEGER,DIMENSION(:,:,:),ALLOCATABLE            :: fragment
@@ -63,16 +64,24 @@ REAL(KIND=8),DIMENSION(:,:,:),ALLOCATABLE       :: coord_v, coord_dip,coord_f,co
 REAL(KIND=8),DIMENSION(:,:,:),ALLOCATABLE       :: coord_v_free,alpha_x,alpha_y,alpha_z,v
 REAL(KIND=8),DIMENSION(:,:,:),ALLOCATABLE       :: alpha_diff_x,alpha_diff_y,alpha_diff_z
 
+!$omp parallel
+num_threads = omp_get_num_threads()
+!$omp end parallel
+print*,  "number of threads: ", num_threads
+
+
+
 CALL SYSTEM_CLOCK(count_0, count_rate, count_max) !Starting time
 time_init = count_0*1.0d0/count_rate
 
-CALL constants(const_charge,debye,t_cor,const_planck,const_permit,speed_light,const_boltz,temp,pi,dx,bohr2ang,fs2s,&
-     damping_constant,joule_unit,ev_unit,action_unit,hartreebohr2evang,hessian_factor,at_u,ang,framecount_rtp_pade,reccm2ev)
+CALL constants(const_charge,debye,t_cor,const_planck,const_permit,speed_light,const_boltz,temp,pi,bohr2ang,fs2s,&
+     damping_constant,joule_unit,ev_unit,action_unit,hartreebohr2evang,hessian_factor,at_u,ang,reccm2ev)
+CALL output_config_info()
 
 CALL read_input(filename,static_pol,static_dip_free_file,static_dip_x_file,static_dip_y_file,static_dip_z_file,normal_freq_file,&
      normal_displ_file,read_function,system,length,box_all,box_x,box_y,box_z,dt,type_input,wannier_free,wannier_x,wannier_y,&
      wannier_z,input_mass,periodic,direction,averaging,type_dipole,cell_type,rtp_dipole_x,rtp_dipole_y,rtp_dipole_z,&
-     framecount_rtp,dt_rtp,laser_in_resraman,frag_type,type_static,force_file,laser_in,check_pade)
+     framecount_rtp,dt_rtp,laser_in_resraman,frag_type,type_static,force_file,laser_in,check_pade,dx,framecount_rtp_pade)
 
 CALL conversion(dt,dom,dt_rtp,dom_rtp,speed_light,freq_range,t_cor,sinc_const)
 

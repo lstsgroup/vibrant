@@ -8,8 +8,8 @@ module pade
 
         !> @brief interpolate n_parameter function values on a evenly 
         !!        spaced grid of n_points using the thiele pade model  
-        !!        (only halve of the given y values are used, zeros 
-        !!        in other halve)
+        !!        (only half of the given y values are used, zeros 
+        !!        in other half)
         !!
         !! @parameter[in]  n_parameter -- number of points y is tabulated
         !! @parameter[in]  y_ref       -- tabulated y values of a complex function
@@ -28,9 +28,8 @@ module pade
             real(kind=8) :: first, last, step, x_last_important
             complex(kind=8), dimension(:), allocatable :: x_ref_complx
             complex(kind=8), dimension(:), allocatable :: x_out_complx
-
             ! convert x to complex type 
-            ! use only halve of the array (other halve filled with zeros)
+            ! use only half of the array (other half filled with zeros)
             num_ref_points = size(y_ref)
             allocate(x_ref_complx(num_ref_points))
             first = 1.0d0
@@ -64,7 +63,7 @@ module pade
                 end if 
             end do 
 
-            ! evaluate model at given x for halve the points (other halve zero)
+            ! evaluate model at given x for half the points (other half zero)
             y_out = evaluate_thiele_pade_at(pade_params, x_out_complx)
             y_out(last_important_out:) = complex(0.0d0, 0.0d0)
 
@@ -72,7 +71,6 @@ module pade
             call free_params(pade_params)
             deallocate(x_ref_complx)
             deallocate(x_out_complx)
-
         end subroutine interpolate
 
 end module pade

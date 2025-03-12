@@ -9,17 +9,15 @@ PUBLIC :: constants,read_input,masses_charges,conversion,pbc_orthorombic,pbc_hex
 CONTAINS
         
 SUBROUTINE constants(const_charge,debye,t_cor,const_planck,const_permit,speed_light,const_boltz,&
-           temp,pi,dx,bohr2ang,fs2s,damping_constant,joule_unit,ev_unit,action_unit,hartreebohr2evang,&
-           hessian_factor,at_u,ang,framecount_rtp_pade,reccm2ev)
+           temp,pi,bohr2ang,fs2s,damping_constant,joule_unit,ev_unit,action_unit,hartreebohr2evang,&
+           hessian_factor,at_u,ang,reccm2ev)
 
-INTEGER,INTENT(OUT)                                 :: t_cor,framecount_rtp_pade
+INTEGER,INTENT(OUT)                                 :: t_cor
 REAL(KIND=8),INTENT(OUT)                            :: debye,const_planck,const_permit,pi,const_charge,fs2s
-REAL(KIND=8),INTENT(OUT)                            :: speed_light,const_boltz,temp,dx,bohr2ang,reccm2ev
+REAL(KIND=8),INTENT(OUT)                            :: speed_light,const_boltz,temp,bohr2ang,reccm2ev
 REAL(KIND=8),INTENT(OUT)                            :: damping_constant,joule_unit,ev_unit,action_unit
 REAL(KIND=8),INTENT(OUT)                            :: hartreebohr2evang,hessian_factor,at_u,ang
 
-!dx=0.00265d0  !!for r-met
-dx=0.001d0  !!for COF-1... etc
 const_charge=1.602176565E-19  
 bohr2ang=0.5291772109d0 !!bohr two angstrom
 hartreebohr2evang=51.42208619083232d0 !!hartree/bohr to eV/angstrom
@@ -40,7 +38,6 @@ fs2s=1.0E-15
 ang=1.0E-10  !!angstrom to cm^-1
 at_u=1.6605390666E-27 !!atomic mass unit-kilogram relationship
 hessian_factor=REAL(const_charge/(at_u*ang*ang),KIND=8)
-framecount_rtp_pade=500
 !laser_in=9398.50d0  !cm^-1       
 !laser_in=200000.0d0  !cm^-1       
 !laser_in=15797.78d0 !cm^-1
@@ -54,7 +51,8 @@ SUBROUTINE read_input(filename,static_pol,static_dip_free_file,static_dip_x_file
         static_dip_z_file,normal_freq_file,normal_displ_file,read_function,system,&
         length,box_all,box_x,box_y,box_z,dt,type_input,wannier_free,wannier_x,wannier_y,wannier_z,&
         input_mass,periodic,direction,averaging,type_dipole,cell_type,rtp_dipole_x,rtp_dipole_y,&
-        rtp_dipole_z,framecount_rtp,dt_rtp,laser_in_resraman,frag_type,type_static,force_file,laser_in,check_pade)
+        rtp_dipole_z,framecount_rtp,dt_rtp,laser_in_resraman,frag_type,type_static,force_file,&
+        laser_in,check_pade,dx,framecount_rtp_pade)
 
 CHARACTER(LEN=40),INTENT(OUT)                       :: filename,static_pol,read_function,length,system,type_input,periodic
 CHARACTER(LEN=40),INTENT(OUT)                       :: wannier_free,wannier_x,wannier_y,wannier_z,input_mass,type_static
@@ -62,8 +60,8 @@ CHARACTER(LEN=40),INTENT(OUT)                       :: direction,averaging,type_
 CHARACTER(LEN=40),INTENT(OUT)                       :: static_dip_free_file,static_dip_x_file,static_dip_y_file,static_dip_z_file
 CHARACTER(LEN=40),INTENT(OUT)                       :: normal_freq_file,normal_displ_file,frag_type
 CHARACTER(LEN=40),INTENT(OUT)                       :: rtp_dipole_x,rtp_dipole_y,rtp_dipole_z,check_pade
-REAL(KIND=8),INTENT(OUT)                            :: dt,dt_rtp,box_all,box_x,box_y,box_z,laser_in,laser_in_resraman
-INTEGER,INTENT(OUT)                                 :: framecount_rtp
+REAL(KIND=8),INTENT(OUT)                            :: dt,dt_rtp,box_all,box_x,box_y,box_z,laser_in,laser_in_resraman,dx
+INTEGER,INTENT(OUT)                                 :: framecount_rtp,framecount_rtp_pade
 
 laser_in=9398.50d0  !cm^-1       
 DO 
@@ -77,11 +75,11 @@ DO
     read_function.NE.'RR') THEN
   WRITE(*,*) 'Please type P, MD-IR, MD-R, MD-RR, NMA, IR, R, ABS or RR!'
   CYCLE
- ENDIF
+ENDIF
 EXIT
 ENDDO
 
-!read_function='MD-R'
+!read_function='RR'
 
 DO
     IF (read_function=='P') THEN
@@ -387,31 +385,60 @@ DO
     IF (read_function=='RR' .OR. read_function=='ABS') THEN
         ! normal_freq_file='normal_freqs_o-NP.dat'
         ! normal_displ_file='normal_displacements_o-NP.dat'
-        normal_freq_file='normal_freqs_r-met.dat'
-        normal_displ_file='normal_displacements_r-met.dat'
+      !  normal_freq_file='normal_freqs_PCU2.dat'
+      !  normal_displ_file='normal_displacements_PCU2.dat'
+        WRITE(*,*)'Enter the name of the geometry file:'
+        READ(*,*) filename
+        WRITE(*,*)'Enter the name of the normal mode frequency file:'
+        READ(*,*) normal_freq_file
+        WRITE(*,*)'Enter the name of the normal mode coordinates file:'
+        READ(*,*) normal_displ_file
+        WRITE(*,*)'What is the normal mode displacement in Angstrom?'
+        READ(*,*) dx 
+        WRITE(*,*)'Enter the name of the static dipoles file (X-Field):'
+        READ(*,*) static_dip_x_file
+        WRITE(*,*)'Enter the name of the static dipoles file (Y-Field):'
+        READ(*,*) static_dip_y_file
+        WRITE(*,*)'Enter the name of the static dipoles file (Z-Field):'
+        READ(*,*) static_dip_z_file
+        WRITE(*,*)'Enter the RT-TDDFT time step:'
+        READ(*,*) dt_rtp
+        WRITE(*,*)'Enter the total number of RT-TDDFT steps:'
+        READ(*,*) framecount_rtp
+        WRITE(*,*) 'Do you want to apply Pade approximants? (y/n)'
+        READ(*,*) check_pade
+        IF (check_pade=='y') THEN
+        WRITE(*,*) 'Enter the final number of RT-TDDFT steps after the application of Pade interpolation:'
+        READ(*,*) framecount_rtp_pade
+        ENDIF
+      !  normal_freq_file='normal_freqs_r-met.dat'
+      !  normal_displ_file='normal_displacements_r-met.dat'
         ! filename='o-nitrophenol.xyz'
-        filename='r-met.xyz'
+        !filename='PCU2.xyz'
+       ! filename='r-met.xyz'
         !  static_dip_x_file='o-NP_RTP_dipoles_static_X.xyz'
         !  static_dip_y_file='o-NP_RTP_dipoles_static_Y.xyz'
         !  static_dip_z_file='o-NP_RTP_dipoles_static_Z.xyz'
-        static_dip_x_file='r-met_RTP_dipoles_static_X_1000.xyz'
-        static_dip_y_file='r-met_RTP_dipoles_static_Y_1000.xyz'
-        static_dip_z_file='r-met_RTP_dipoles_static_Z_1000.xyz'
+      !  static_dip_x_file='PCU2_RTP_dipoles_static_X.xyz'
+      !  static_dip_y_file='PCU2_RTP_dipoles_static_Y.xyz'
+       ! static_dip_z_file='PCU2_RTP_dipoles_static_Z.xyz'
+      !  static_dip_x_file='r-met_RTP_dipoles_static_X_80000.xyz'
+      !  static_dip_y_file='r-met_RTP_dipoles_static_Y_80000.xyz'
+      !  static_dip_z_file='r-met_RTP_dipoles_static_Z_80000.xyz'
         !framecount_rtp=1280
         ! framecount_rtp=256
         !dt_rtp=0.0125d0
-        dt_rtp=0.00242d0
+       !  dt_rtp=0.00242d0
+       ! dt_rtp=0.001d0
         !  dt_rtp=0.0625d0
         !WRITE(*,*)'What is the wavenumber of the incident laser (cm^-1)?'
         !READ(*,*) laser_in_resraman
-        laser_in_resraman=15797.788309636651d0
-        WRITE(*,*) 'Do you want to apply Pade approximants? (y/n)'
-        READ(*,*) check_pade
-        framecount_rtp=1000
-        IF (check_pade=='y') THEN
-         framecount_rtp=100
-        ENDIF
-       
+       ! laser_in_resraman=15797.788309636651d0
+       ! laser_in_resraman=15808.596424d0 !r-met NR
+         laser_in_resraman=57346.490087d0 !r-met RR
+       ! laser_in_resraman=41860.518081d0i
+       ! check_pade='n'
+       ! framecount_rtp=80000
        ! check_pade='n'
     ENDIF
     EXIT
