@@ -67,9 +67,6 @@ REAL(KIND=8),DIMENSION(:,:,:),ALLOCATABLE       :: alpha_diff_x,alpha_diff_y,alp
 !$omp parallel
 num_threads = omp_get_num_threads()
 !$omp end parallel
-print*,  "number of threads: ", num_threads
-
-
 
 CALL SYSTEM_CLOCK(count_0, count_rate, count_max) !Starting time
 time_init = count_0*1.0d0/count_rate

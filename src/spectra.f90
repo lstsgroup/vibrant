@@ -594,7 +594,7 @@ REAL(KIND=8),INTENT(IN)                                     :: dx,hartreebohr2ev
 REAL(KIND=8),DIMENSION(:,:),ALLOCATABLE,INTENT(IN)          :: mass_mat
 REAL(KIND=8),DIMENSION(:,:,:,:,:),ALLOCATABLE,INTENT(INOUT) :: force
 
-INTEGER                                                     :: i,j,m,n,p,k,info,lwork,lwmax,ix,lda,nmodes
+INTEGER                                                     :: stat,i,j,m,n,p,k,info,lwork,lwmax,ix,lda,nmodes
 REAL(KIND=8)                                                :: factor
 REAL(KIND=8),DIMENSION(:),ALLOCATABLE                       :: w,work,w_new,freq
 REAL(KIND=8),DIMENSION(:,:),ALLOCATABLE                     :: hessian_new,atomic_displacements
@@ -633,6 +633,8 @@ ENDDO
 hessian_new(:,:)=REAL((hessian_new(:,:)+TRANSPOSE(hessian_new(:,:)))/2.0d0,KIND=8)
 n=SIZE(hessian_new,1)
 
+print*,hessian_new(1,1),"hess"
+
 ! work size query
 lwork = -1
 CALL DSYEV( 'V', 'U', n, hessian_new, lda, w, work, lwork, info )
@@ -647,21 +649,21 @@ hessian_new=TRANSPOSE(hessian_new)
 w=REAL(w*SQRT(ABS(w))/ABS(w),KIND=8)
 w=REAL(w/(2.0d0*pi*speed_light),KIND=8)
 
-ALLOCATE(freq(natom*3-6),atomic_displacements(natom*3-6,natom*3),normal_displacements(3,3,3))
+ALLOCATE(freq(nmodes),atomic_displacements(nmodes,natom*3),normal_displacements(nmodes,natom,3))
 
 DO i=7,natom*3
   freq(i-6)=w(i)
 ENDDO
 
-atomic_displacements(1:natom*3-6,1:natom*3)=hessian_new(6:3*natom-1,:)
+atomic_displacements(1:nmodes,1:natom*3)=hessian_new(6:3*natom-1,:)
 !print*,atomic_displacements(1,1:9)
 !print*,atomic_displacements(2,1:9)
 !print*,atomic_displacements(3,1:9)
 
 m=0
-DO j=0,2
- DO k=0,2
-  normal_displacements(1:3,j+1,k+1)=atomic_displacements(1:3,j+k+1+m)
+DO j=0,natom-1 !natom
+ DO k=0,2 !dims
+  normal_displacements(1:nmodes,j+1,k+1)=atomic_displacements(1:nmodes,j+k+1+m)
  ENDDO
  m=m+2
 ENDDO
@@ -671,6 +673,18 @@ print*,normal_displacements(2,2,3)
 
 !RESHAPE(atomic_displacements(1:natom*3-6,:),(/natom,3/))=normal_displacements(1:nmodes,:,:)
 print*,freq(1:3)
+
+OPEN(UNIT=13,FILE='normal_mode_freq.txt',STATUS='unknown',IOSTAT=stat)
+DO i=1,nmodes !!atom_num: 1st atom
+  WRITE(13,*) freq(i)
+ENDDO
+
+OPEN(UNIT=14,FILE='normal_mode_displ.txt',STATUS='unknown',IOSTAT=stat)
+DO i=1,nmodes !!atom_num: 1st atom
+ DO j=1,natom !!dims: x dimension
+   WRITE(14,*) normal_displacements(i,j,1:3)
+ ENDDO
+ENDDO
 !print*,hessian_new(3,2),hessian_new(6,5)
 !print*,normal_displacements(1,1,1),normal_displacements(3,3,3),normal_displacements(2,3,1)
 !print*,normal_displacements

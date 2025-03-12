@@ -310,8 +310,14 @@ ENDDO
 
 DO 
     IF (read_function=='NMA' .OR. type_static=='1') THEN
-        force_file='water-force.data3'
-        filename='water.xyz'
+        WRITE(*,*)'Enter the name of the geometry file:'
+        READ(*,*) filename
+        WRITE(*,*)'Enter the name of the force file:'
+        READ(*,*) force_file
+        WRITE(*,*)'What is the normal mode displacement in Angstrom?'
+        READ(*,*) dx 
+        !force_file='water-force.data3'
+        !dx=0.001d0
     ENDIF
     EXIT
 ENDDO

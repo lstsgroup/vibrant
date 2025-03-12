@@ -72,3 +72,8 @@ add_test(
     COMMAND pytest test_Absorption_Pade.py
     WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test/Absorption/Pade
 )
+add_test(
+    NAME Normal_Modes
+    COMMAND pytest test_Normal_Modes.py
+    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test/Normal_Modes
+)
