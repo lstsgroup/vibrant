@@ -28,7 +28,7 @@ def run_vibrant(binary_path:str, input_file:str, omp_threads:int=1):
 def parse_normal_freq_from_file(fname:str):
     """ parse the generated normal mode frequencies """
     data = np.loadtxt(fname)
-    x = data[:, 0]
+    x = data[:]
     return x
 
 def parse_normal_displ_from_file(fname:str):
@@ -41,7 +41,7 @@ def parse_normal_displ_from_file(fname:str):
 
 
 def test_Normal_Modes(vibrant_binary_path):
-    """ run test case normal mode displacements """
+    """ run test case normal modes """
     # run vibrant calculation and test for successfull exit
     returncode, stdout = run_vibrant(vibrant_binary_path, "input.txt")
     assert returncode == 0
@@ -54,8 +54,8 @@ def test_Normal_Modes(vibrant_binary_path):
     test2 = "normal_mode_displ.txt"
 
     # parse filenames
-    x_ref1 = parse_normal_displ_from_file(reference1)
-    x_test1 = parse_normal_displ_from_file(test1)
+    x_ref1 = parse_normal_freq_from_file(reference1)
+    x_test1 = parse_normal_freq_from_file(test1)
 
     x_ref2, y_ref2, z_ref2 = parse_normal_displ_from_file(reference2)
     x_test2, y_test2, z_test2 = parse_normal_displ_from_file(test2)
