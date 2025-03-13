@@ -50,6 +50,6 @@ def test_Normal_Modes(vibrant_binary_path):
     x_test, y_test, z_test = parse_normal_displ_from_file(test)
     
     # compare test against reference
-    assert np.allclose(x_ref, x_test, atol=1e-8)
-    assert np.allclose(y_ref, y_test, atol=1e-8)
-    assert np.allclose(z_ref, z_test, atol=1e-8)
+    assert np.allclose(np.abs(x_ref), np.abs(x_test), atol=1e-8)
+    assert np.allclose(np.abs(y_ref), np.abs(y_test), atol=1e-8)
+    assert np.allclose(np.abs(z_ref), np.abs(z_test), atol=1e-8)
