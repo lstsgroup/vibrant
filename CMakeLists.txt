@@ -26,6 +26,7 @@ set(CMAKE_Fortran_FLAGS "-Og -g -fopenmp -fcheck=bounds,do,recursion,pointer -cp
 
 # Source files
 set(SOURCES
+    src/kinds.f90
     src/config_info.f90
     src/setup.f90
     src/pade_interpolation.f90

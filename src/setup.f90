@@ -1,5 +1,7 @@
 MODULE setup
 
+    USE kinds, only: dp
+
 IMPLICIT NONE
 
 PRIVATE
@@ -13,34 +15,34 @@ SUBROUTINE constants(const_charge,debye,t_cor,const_planck,const_permit,speed_li
            hessian_factor,at_u,ang,reccm2ev)
 
 INTEGER,INTENT(OUT)                                 :: t_cor
-REAL(KIND=8),INTENT(OUT)                            :: debye,const_planck,const_permit,pi,const_charge,fs2s
-REAL(KIND=8),INTENT(OUT)                            :: speed_light,const_boltz,temp,bohr2ang,reccm2ev
-REAL(KIND=8),INTENT(OUT)                            :: damping_constant,joule_unit,ev_unit,action_unit
-REAL(KIND=8),INTENT(OUT)                            :: hartreebohr2evang,hessian_factor,at_u,ang
+REAL(kind=dp),INTENT(OUT)                            :: debye,const_planck,const_permit,pi,const_charge,fs2s
+REAL(kind=dp),INTENT(OUT)                            :: speed_light,const_boltz,temp,bohr2ang,reccm2ev
+REAL(kind=dp),INTENT(OUT)                            :: damping_constant,joule_unit,ev_unit,action_unit
+REAL(kind=dp),INTENT(OUT)                            :: hartreebohr2evang,hessian_factor,at_u,ang
 
-const_charge=1.602176565E-19  
-bohr2ang=0.5291772109d0 !!bohr two angstrom
-hartreebohr2evang=51.42208619083232d0 !!hartree/bohr to eV/angstrom
-damping_constant=0.10d0 !! ev
+const_charge=1.602176565E-19_dp  
+bohr2ang=0.5291772109_dp !!bohr two angstrom
+hartreebohr2evang=51.42208619083232_dp !!hartree/bohr to eV/angstrom
+damping_constant=0.10_dp !! ev
 joule_unit=4.359744722E-18 !! J
-ev_unit=27.211386d0 !! ev
-action_unit=1.054571817E-34 !J.s
-reccm2ev=0.000124d0 !cm^-1 to eV
-pi=3.14159d0        
-temp=300.0d0        !K
-debye=0.393456d0
+ev_unit=27.211386_dp !! ev
+action_unit=1.054571817E-34_dp !J.s
+reccm2ev=0.000124_dp !cm^-1 to eV
+pi=3.14159_dp        
+temp=300.0_dp        !K
+debye=0.393456_dp
 t_cor=1024
-const_planck=6.62607015E-34 !m^2*kg/s or J.s
+const_planck=6.62607015E-34_dp !m^2*kg/s or J.s
 const_permit=8.8541878128E-12 !F*m^−1        
-speed_light=2.9979246E+10  !cm/s
-const_boltz=1.380649E-23 !m^2*kg*s^-2*K-1 or J/K
-fs2s=1.0E-15
-ang=1.0E-10  !!angstrom to cm^-1
-at_u=1.6605390666E-27 !!atomic mass unit-kilogram relationship
-hessian_factor=REAL(const_charge/(at_u*ang*ang),KIND=8)
-!laser_in=9398.50d0  !cm^-1       
-!laser_in=200000.0d0  !cm^-1       
-!laser_in=15797.78d0 !cm^-1
+speed_light=2.9979246E+10_dp  !cm/s
+const_boltz=1.380649E-23_dp !m^2*kg*s^-2*K-1 or J/K
+fs2s=1.0E-15_dp
+ang=1.0E-10_dp  !!angstrom to cm^-1
+at_u=1.6605390666E-27_dp !!atomic mass unit-kilogram relationship
+hessian_factor=REAL(const_charge/(at_u*ang*ang),kind=dp)
+!laser_in=9398.50_dp  !cm^-1       
+!laser_in=200000.0_dp  !cm^-1       
+!laser_in=15797.78_dp !cm^-1
 !laser_in=18796.99 
 END SUBROUTINE constants
 
@@ -60,10 +62,10 @@ CHARACTER(LEN=40),INTENT(OUT)                       :: direction,averaging,type_
 CHARACTER(LEN=40),INTENT(OUT)                       :: static_dip_free_file,static_dip_x_file,static_dip_y_file,static_dip_z_file
 CHARACTER(LEN=40),INTENT(OUT)                       :: normal_freq_file,normal_displ_file,frag_type
 CHARACTER(LEN=40),INTENT(OUT)                       :: rtp_dipole_x,rtp_dipole_y,rtp_dipole_z,check_pade
-REAL(KIND=8),INTENT(OUT)                            :: dt,dt_rtp,box_all,box_x,box_y,box_z,laser_in,laser_in_resraman,dx
+REAL(kind=dp),INTENT(OUT)                            :: dt,dt_rtp,box_all,box_x,box_y,box_z,laser_in,laser_in_resraman,dx
 INTEGER,INTENT(OUT)                                 :: framecount_rtp,framecount_rtp_pade
 
-laser_in=9398.50d0  !cm^-1       
+laser_in=9398.50_dp  !cm^-1       
 DO 
  WRITE(*,*)'Enter which function you want to calculate (type "P" for Power spectrum , "MD-IR" for MD-based IR spectrum, &
          "MD-R" for MD-based Raman spectrum, "MD-RR" for MD-based resonance Raman, "NMA" for normal mode analysis, &
@@ -372,11 +374,11 @@ DO
         ! READ(*,*) framecount_rtp
         ! framecount_rtp=1280
         framecount_rtp=256
-        ! dt_rtp=0.0125d0
-        dt_rtp=0.0625d0
+        ! dt_rtp=0.0125_dp
+        dt_rtp=0.0625_dp
         WRITE(*,*)'What is the wavenumber of the incident laser (cm^-1)?'
         READ(*,*) laser_in_resraman
-        !laser_in_resraman=15797.788309636651d0
+        !laser_in_resraman=15797.788309636651_dp
     ENDIF
     EXIT
 ENDDO
@@ -427,16 +429,16 @@ DO
       !  static_dip_z_file='r-met_RTP_dipoles_static_Z_80000.xyz'
         !framecount_rtp=1280
         ! framecount_rtp=256
-        !dt_rtp=0.0125d0
-       !  dt_rtp=0.00242d0
-       ! dt_rtp=0.001d0
-        !  dt_rtp=0.0625d0
+        !dt_rtp=0.0125_dp
+       !  dt_rtp=0.00242_dp
+       ! dt_rtp=0.001_dp
+        !  dt_rtp=0.0625_dp
         !WRITE(*,*)'What is the wavenumber of the incident laser (cm^-1)?'
         !READ(*,*) laser_in_resraman
-       ! laser_in_resraman=15797.788309636651d0
-       ! laser_in_resraman=15808.596424d0 !r-met NR
-         laser_in_resraman=57346.490087d0 !r-met RR
-       ! laser_in_resraman=41860.518081d0i
+       ! laser_in_resraman=15797.788309636651_dp
+       ! laser_in_resraman=15808.596424_dp !r-met NR
+         laser_in_resraman=57346.490087_dp !r-met RR
+       ! laser_in_resraman=41860.518081_dpi
        ! check_pade='n'
        ! framecount_rtp=80000
        ! check_pade='n'
@@ -460,17 +462,17 @@ DO
                 READ(*,*) box_all
             ELSEIF (length=='n') THEN
                 IF (cell_type=='1') THEN
-                    box_x=15.100d0
-                    box_y=15.100d0
-                    box_z=13.448d0
+                    box_x=15.100_dp
+                    box_y=15.100_dp
+                    box_z=13.448_dp
                 ELSEIF (cell_type=='2') THEN
-                    box_x=15.100d0
-                    box_y=15.101d0
-                    box_z=13.457d0
+                    box_x=15.100_dp
+                    box_y=15.101_dp
+                    box_z=13.457_dp
                 ELSEIF (cell_type=='3') THEN
-                    box_x=15.100d0
-                    box_y=15.100d0
-                    box_z=20.172d0
+                    box_x=15.100_dp
+                    box_y=15.100_dp
+                    box_z=20.172_dp
                 ENDIF    
                !         WRITE(*,*)'Enter the cell vector for X direction (in Armstrong)'
                !         READ(*,*) box_x
@@ -499,42 +501,42 @@ SUBROUTINE masses_charges(natom,mass_atom,atom_mass_inv_sqrt,mass_mat,element,ma
 
 CHARACTER(LEN=2),DIMENSION(:),ALLOCATABLE,INTENT(IN)   :: element
 INTEGER,INTENT(INOUT)                                  :: natom
-REAL(KIND=8),INTENT(INOUT)                             :: mass_tot
-REAL(KIND=8),DIMENSION(:),ALLOCATABLE,INTENT(OUT)      :: atom_mass_inv_sqrt,mass_atom,charge
-REAL(KIND=8),DIMENSION(:,:),ALLOCATABLE,INTENT(OUT)    :: mass_mat
+REAL(kind=dp),INTENT(INOUT)                             :: mass_tot
+REAL(kind=dp),DIMENSION(:),ALLOCATABLE,INTENT(OUT)      :: atom_mass_inv_sqrt,mass_atom,charge
+REAL(kind=dp),DIMENSION(:,:),ALLOCATABLE,INTENT(OUT)    :: mass_mat
 
 INTEGER                                                :: i,j,stat
-REAL(KIND=8),DIMENSION(:,:),ALLOCATABLE                :: mat1,mat2
+REAL(kind=dp),DIMENSION(:,:),ALLOCATABLE                :: mat1,mat2
 
 ALLOCATE(atom_mass_inv_sqrt(natom),mass_mat(natom,natom),mass_atom(natom),charge(natom))
 ALLOCATE(mat1(natom,1),mat2(1,natom))
 
-mass_atom=0.0d0
-mass_tot=0.0d0
+mass_atom=0.0_dp
+mass_tot=0.0_dp
 DO i=1,natom
     IF (element(i)=='O') THEN
-        mass_atom(i)=15.999d0
-        charge(i)=6.0d0
+        mass_atom(i)=15.999_dp
+        charge(i)=6.0_dp
     ELSEIF (element(i)=='H') THEN
-        mass_atom(i)=1.00784d0
-        charge(i)=1.0d0
+        mass_atom(i)=1.00784_dp
+        charge(i)=1.0_dp
     ELSEIF (element(i)=='C') THEN
-        mass_atom(i)=12.011d0
-        charge(i)=4.0d0
+        mass_atom(i)=12.011_dp
+        charge(i)=4.0_dp
     ELSEIF (element(i)=='B') THEN
-        mass_atom(i)=10.811d0
-        charge(i)=3.0d0
+        mass_atom(i)=10.811_dp
+        charge(i)=3.0_dp
     ELSEIF (element(i)=='N') THEN
-        mass_atom(i)=14.0067d0
-        charge(i)=5.0d0
+        mass_atom(i)=14.0067_dp
+        charge(i)=5.0_dp
     ELSEIF (element(i)=='X') THEN
-        mass_atom(i)=0.00d0
-        charge(i)=-2.0d0
+        mass_atom(i)=0.00_dp
+        charge(i)=-2.0_dp
     ENDIF         
     mass_tot=mass_tot+mass_atom(i)
 ENDDO
 
-atom_mass_inv_sqrt(:)=SQRT(REAL(1.0d0/mass_atom(:),KIND=8))
+atom_mass_inv_sqrt(:)=SQRT(REAL(1.0_dp/mass_atom(:),kind=dp))
 
 mat1(:,:)=RESHAPE(atom_mass_inv_sqrt(:),(/natom,1/))
 mat2(:,:)=RESHAPE(atom_mass_inv_sqrt(:),(/1,natom/))
@@ -551,16 +553,16 @@ END SUBROUTINE masses_charges
 SUBROUTINE conversion(dt,dom,dt_rtp,dom_rtp,speed_light,freq_range,t_cor,sinc_const)
 
 INTEGER,INTENT(IN)                    :: t_cor
-REAL(KIND=8),INTENT(OUT)              :: dom,dom_rtp,freq_range,sinc_const
-REAL(KIND=8),INTENT(IN)               :: speed_light,dt,dt_rtp
+REAL(kind=dp),INTENT(OUT)              :: dom,dom_rtp,freq_range,sinc_const
+REAL(kind=dp),INTENT(IN)               :: speed_light,dt,dt_rtp
 
 INTEGER                               :: stat   ! error status of OPEN statements
 INTEGER                               :: i, j, k
 
-dom=REAL((1.0d0/(dt*1E-15))/speed_light,KIND=8)
-dom_rtp=REAL((1.0d0/(dt_rtp*1E-15))/speed_light,KIND=8)
+dom=REAL((1.0_dp/(dt*1E-15))/speed_light,kind=dp)
+dom_rtp=REAL((1.0_dp/(dt_rtp*1E-15))/speed_light,kind=dp)
 
-freq_range=REAL(dom/(2.0d0*t_cor),KIND=8)
+freq_range=REAL(dom/(2.0_dp*t_cor),kind=dp)
 sinc_const=freq_range*dt*1.883652d-4 !!for sinc function
 
 END SUBROUTINE conversion
@@ -570,8 +572,8 @@ END SUBROUTINE conversion
 
 SUBROUTINE pbc_orthorombic(coord2,coord1,vec,vec_pbc,box_all,box_x,box_y,box_z)
 
-REAL(KIND=8),DIMENSION(3),INTENT(INOUT)                :: vec,vec_pbc,coord2,coord1
-REAL(KIND=8),INTENT(IN)                                :: box_all,box_x,box_y,box_z
+REAL(kind=dp),DIMENSION(3),INTENT(INOUT)                :: vec,vec_pbc,coord2,coord1
+REAL(kind=dp),INTENT(IN)                                :: box_all,box_x,box_y,box_z
 
 vec(:)=coord2(:)-coord1(:)
      
@@ -586,20 +588,20 @@ END SUBROUTINE pbc_orthorombic
 
 SUBROUTINE pbc_hexagonal(coord2,coord1,vec,vec_pbc,box_all,box_x,box_y,box_z)
 
-REAL(KIND=8),DIMENSION(3),INTENT(INOUT)                :: vec,vec_pbc,coord2,coord1
-REAL(KIND=8),INTENT(IN)                                :: box_all,box_x,box_y,box_z
+REAL(kind=dp),DIMENSION(3),INTENT(INOUT)                :: vec,vec_pbc,coord2,coord1
+REAL(kind=dp),INTENT(IN)                                :: box_all,box_x,box_y,box_z
 
-REAL(KIND=8)                                           :: h_inv(3,3),a,s(3),hmat(3,3)
-REAL(KIND=8)                                           :: acosa,asina,sqrt3,det_a
+REAL(kind=dp)                                           :: h_inv(3,3),a,s(3),hmat(3,3)
+REAL(kind=dp)                                           :: acosa,asina,sqrt3,det_a
 
-sqrt3=1.73205080756887729352744634d0
+sqrt3=1.73205080756887729352744634_dp
 
-a = 0.5d0*(box_x + box_y)
-acosa = 0.5d0*a
+a = 0.5_dp*(box_x + box_y)
+acosa = 0.5_dp*a
 asina = sqrt3*acosa
-hmat(1, 1) = a; hmat(1, 2) = acosa; hmat(1, 3) = 0.0d0
-hmat(2, 1) = 0.0d0; hmat(2, 2) = asina; hmat(2, 3) = 0.0d0
-hmat(3, 1) = 0.0d0; hmat(3, 2) = 0.0d0; hmat(3, 3) = box_z
+hmat(1, 1) = a; hmat(1, 2) = acosa; hmat(1, 3) = 0.0_dp
+hmat(2, 1) = 0.0_dp; hmat(2, 2) = asina; hmat(2, 3) = 0.0_dp
+hmat(3, 1) = 0.0_dp; hmat(3, 2) = 0.0_dp; hmat(3, 3) = box_z
 
 
 det_a = hmat(1, 1)*(hmat(2, 2)*hmat(3, 3) - hmat(2, 3)*hmat(3, 2)) - &
