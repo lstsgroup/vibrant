@@ -1,5 +1,6 @@
 MODULE dipole_calc
 
+USE kinds,           ONLY: dp
 USE setup,           ONLY: pbc_orthorombic, pbc_hexagonal 
 
 IMPLICIT NONE
@@ -20,23 +21,23 @@ INTEGER,INTENT(INOUT)                                       :: natom,framecount,
 INTEGER,INTENT(OUT)                                         :: nfrag
 INTEGER,DIMENSION(:),ALLOCATABLE,INTENT(OUT)                :: natom_frag
 INTEGER,DIMENSION(:,:,:),ALLOCATABLE,INTENT(OUT)            :: fragment
-REAL(KIND=8),INTENT(INOUT)                                  :: box_all,box_x,box_y,box_z,vec(3),vec_pbc(3)
-REAL(KIND=8),INTENT(OUT)                                    :: mass_tot_cell
-REAL(KIND=8),DIMENSION(:),ALLOCATABLE,INTENT(INOUT)         :: mass_atom
-REAL(KIND=8),DIMENSION(:,:),ALLOCATABLE,INTENT(OUT)         :: mass_tot_frag
-REAL(KIND=8),DIMENSION(:,:,:),ALLOCATABLE,INTENT(OUT)       :: refpoint
-REAL(KIND=8),DIMENSION(:,:,:),ALLOCATABLE,INTENT(INOUT)     :: coord_v
+REAL(kind=dp),INTENT(INOUT)                                  :: box_all,box_x,box_y,box_z,vec(3),vec_pbc(3)
+REAL(kind=dp),INTENT(OUT)                                    :: mass_tot_cell
+REAL(kind=dp),DIMENSION(:),ALLOCATABLE,INTENT(INOUT)         :: mass_atom
+REAL(kind=dp),DIMENSION(:,:),ALLOCATABLE,INTENT(OUT)         :: mass_tot_frag
+REAL(kind=dp),DIMENSION(:,:,:),ALLOCATABLE,INTENT(OUT)       :: refpoint
+REAL(kind=dp),DIMENSION(:,:,:),ALLOCATABLE,INTENT(INOUT)     :: coord_v
 
 CHARACTER(LEN=40)                                           :: length
 CHARACTER(LEN=2),DIMENSION(:,:),ALLOCATABLE                 :: element_shifted
 INTEGER                                                     :: stat   ! error status of OPEN statements
 INTEGER                                                     :: r,m,p,q, i, j, k, n, l, o,s,t
-REAL(KIND=8)                                                :: bec(5000,3),bec_pbc(5000,3)
-REAL(KIND=8)                                                :: hmat(3,3),sqrt3,acosa,asina,a 
-REAL(KIND=8)                                                :: pox_x,pox_y,pox_z,mass_tot
-REAL(KIND=8),DIMENSION(3)                                   :: coord3
-REAL(KIND=8),DIMENSION(:,:,:),ALLOCATABLE                   :: com2,coord_shifted
-REAL(KIND=8),DIMENSION(:,:,:,:),ALLOCATABLE                 :: com
+REAL(kind=dp)                                                :: bec(5000,3),bec_pbc(5000,3)
+REAL(kind=dp)                                                :: hmat(3,3),sqrt3,acosa,asina,a 
+REAL(kind=dp)                                                :: pox_x,pox_y,pox_z,mass_tot
+REAL(kind=dp),DIMENSION(3)                                   :: coord3
+REAL(kind=dp),DIMENSION(:,:,:),ALLOCATABLE                   :: com2,coord_shifted
+REAL(kind=dp),DIMENSION(:,:,:,:),ALLOCATABLE                 :: com
  
 mol_num=44
 ALLOCATE(com(framecount,mol_num,35,3))
@@ -48,27 +49,27 @@ ALLOCATE(fragment(framecount,mol_num,32))
 ALLOCATE(natom_frag(mol_num))
 ALLOCATE(element_shifted(framecount,natom))
 
-coord3(1)=0.00d0
-coord3(2)=0.00d0
-coord3(3)=0.00d0
+coord3(1)=0.00_dp
+coord3(2)=0.00_dp
+coord3(3)=0.00_dp
 nfrag=0
 fragment=0
 natom_frag=0
-refpoint=0.00d0
-com=0.0d0
-com2=0.0d0
-mass_tot_frag=0.0d0
+refpoint=0.00_dp
+com=0.0_dp
+com2=0.0_dp
+mass_tot_frag=0.0_dp
 n=0
 l=0
 q=0
-sqrt3=1.73205080756887729352744634d0
+sqrt3=1.73205080756887729352744634_dp
 
-a = 0.5d0*(box_x + box_y)
-acosa = 0.5d0*a
+a = 0.5_dp*(box_x + box_y)
+acosa = 0.5_dp*a
 asina = sqrt3*acosa
-hmat(1, 1) = a; hmat(1, 2) = acosa; hmat(1, 3) = 0.0d0
-hmat(2, 1) = 0.0d0; hmat(2, 2) = asina; hmat(2, 3) = 0.0d0
-hmat(3, 1) = 0.0d0; hmat(3, 2) = 0.0d0; hmat(3, 3) = box_z
+hmat(1, 1) = a; hmat(1, 2) = acosa; hmat(1, 3) = 0.0_dp
+hmat(2, 1) = 0.0_dp; hmat(2, 2) = asina; hmat(2, 3) = 0.0_dp
+hmat(3, 1) = 0.0_dp; hmat(3, 2) = 0.0_dp; hmat(3, 3) = box_z
 
 !Assign fragments for the B-O ring!
 n=0
@@ -86,7 +87,7 @@ DO i=1,natom
     IF (ANY(k==fragment(m,:,:))) CYCLE
     IF (element(k).NE.'O') CYCLE
      CALL pbc_hexagonal(coord_v(m,i,:),coord_v(m,k,:),vec,vec_pbc,box_all,box_x,box_y,box_z)
-    IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<1.551835d0) THEN
+    IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<1.551835_dp) THEN
     IF (ANY(k==fragment(m,:,:))) CYCLE
              n=n+1
              fragment(m,j,n+1)=k
@@ -95,7 +96,7 @@ DO i=1,natom
      IF (i==l) CYCLE
      IF (element(l).NE.'B') CYCLE
      CALL pbc_hexagonal(coord_v(m,k,:),coord_v(m,l,:),vec,vec_pbc,box_all,box_x,box_y,box_z)
-     IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<1.551835d0) THEN
+     IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<1.551835_dp) THEN
      IF (ANY(l==fragment(m,:,:))) CYCLE
              n=n+1
              fragment(m,j,n+1)=l
@@ -105,7 +106,7 @@ DO i=1,natom
        IF (k==o) CYCLE
        IF (element(o).NE.'O') CYCLE
        CALL pbc_hexagonal(coord_v(m,l,:),coord_v(m,o,:),vec,vec_pbc,box_all,box_x,box_y,box_z)
-       IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<1.551835d0) THEN
+       IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<1.551835_dp) THEN
        IF (ANY(o==fragment(m,:,:))) CYCLE
               n=n+1
               fragment(m,j,n+1)=o
@@ -132,49 +133,49 @@ DO i=1,natom
     IF (i==k) CYCLE
     IF (element(k).NE.'C') CYCLE
     CALL pbc_hexagonal(coord_v(m,i,:),coord_v(m,k,:),vec,vec_pbc,box_all,box_x,box_y,box_z)
-    IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<1.31835d0) THEN
+    IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<1.31835_dp) THEN
     IF (ANY(k==fragment(m,:,:))) CYCLE
              n=n+1
              fragment(m,j,n+1)=k
      DO l=1,natom
     IF (element(l).NE.'C') CYCLE
     CALL pbc_hexagonal(coord_v(m,k,:),coord_v(m,l,:),vec,vec_pbc,box_all,box_x,box_y,box_z)
-    IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<1.55835d0) THEN
+    IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<1.55835_dp) THEN
     IF (ANY(l==fragment(m,:,:))) CYCLE
              n=n+1
              fragment(m,j,n+1)=l
      DO o=1,natom
     IF (element(o)=='X') CYCLE
     CALL pbc_hexagonal(coord_v(m,l,:),coord_v(m,o,:),vec,vec_pbc,box_all,box_x,box_y,box_z)
-    IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<1.55835d0) THEN
+    IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<1.55835_dp) THEN
     IF (ANY(o==fragment(m,:,:))) CYCLE
              n=n+1
              fragment(m,j,n+1)=o
      DO p=1,natom
     IF (element(p)=='X') CYCLE
     CALL pbc_hexagonal(coord_v(m,o,:),coord_v(m,p,:),vec,vec_pbc,box_all,box_x,box_y,box_z)
-    IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<1.55835d0) THEN
+    IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<1.55835_dp) THEN
     IF (ANY(p==fragment(m,:,:))) CYCLE
              n=n+1
              fragment(m,j,n+1)=p
      DO r=1,natom
     IF (element(r)=='X') CYCLE
     CALL pbc_hexagonal(coord_v(m,p,:),coord_v(m,r,:),vec,vec_pbc,box_all,box_x,box_y,box_z)
-    IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<1.55835d0) THEN
+    IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<1.55835_dp) THEN
     IF (ANY(r==fragment(m,:,:))) CYCLE
              n=n+1
              fragment(m,j,n+1)=r
      DO s=1,natom
     IF (element(s)=='X') CYCLE
     CALL pbc_hexagonal(coord_v(m,r,:),coord_v(m,s,:),vec,vec_pbc,box_all,box_x,box_y,box_z)
-    IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<1.55835d0) THEN
+    IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<1.55835_dp) THEN
     IF (ANY(s==fragment(m,:,:))) CYCLE
              n=n+1
              fragment(m,j,n+1)=s
      DO t=1,natom
     IF (element(t)=='X') CYCLE
     CALL pbc_hexagonal(coord_v(m,s,:),coord_v(m,t,:),vec,vec_pbc,box_all,box_x,box_y,box_z)
-    IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<1.55835d0) THEN
+    IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<1.55835_dp) THEN
     IF (ANY(t==fragment(m,:,:))) CYCLE
              n=n+1
              fragment(m,j,n+1)=t
@@ -206,7 +207,7 @@ DO m=1,framecount
   DO k=1,natom
    IF (element(k).NE.'C') CYCLE
    CALL pbc_hexagonal(coord_v(m,i,:),coord_v(m,k,:),vec,vec_pbc,box_all,box_x,box_y,box_z)
-   IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<2.0d0) THEN
+   IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<2.0_dp) THEN
     n=n+1
     fragment(m,j,n+1)=k
    ENDIF
@@ -226,7 +227,7 @@ DO m=1,framecount
     IF (j==k) CYCLE
      IF (element(k).NE.'X') CYCLE
      CALL pbc_hexagonal(coord_v(m,fragment(m,i,j),:),coord_v(m,k,:),vec,vec_pbc,box_all,box_x,box_y,box_z)
-     IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<0.7d0) THEN
+     IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<0.7_dp) THEN
        IF (ANY(k==fragment(m,:,:))) CYCLE
              n=n+1
              fragment(m,i,n+6)=k
@@ -246,12 +247,12 @@ DO m=1,framecount
    outer: DO k=1,natom
     IF (element(k).NE.'X') CYCLE
     CALL pbc_hexagonal(coord_v(m,fragment(m,i,j),:),coord_v(m,k,:),vec,vec_pbc,box_all,box_x,box_y,box_z)
-    IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<1.0d0) THEN
+    IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<1.0_dp) THEN
      IF (system=='1') THEN
      inner: DO l=1,natom
       IF (element(l).NE.'B') CYCLE
       CALL pbc_hexagonal(coord_v(m,k,:),coord_v(m,l,:),vec,vec_pbc,box_all,box_x,box_y,box_z)
-      IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<1.1d0) CYCLE outer
+      IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<1.1_dp) CYCLE outer
      ENDDO inner
      ENDIF
      IF (ANY(k==fragment(m,:,:))) CYCLE       
@@ -271,7 +272,7 @@ DO m=1,framecount
     IF (element(k).NE.'X') CYCLE
     IF (ANY(k==fragment(m,:,:))) CYCLE 
     CALL pbc_hexagonal(coord_v(m,fragment(m,i,j),:),coord_v(m,k,:),vec,vec_pbc,box_all,box_x,box_y,box_z)
-    IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<1.0d0) THEN
+    IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<1.0_dp) THEN
      fragment(m,i,3)=k
     ENDIF
    ENDDO
@@ -313,39 +314,39 @@ DO m=1,framecount
  DO i=1,20
   DO j=2,natom_frag(i)
    CALL pbc_hexagonal(coord_v(m,fragment(m,i,j),:),coord_v(m,fragment(m,i,1),:),vec,vec_pbc,box_all,box_x,box_y,box_z)
-   IF (vec(1)>3.0d0 .AND. vec(2)>5.2d0) THEN
+   IF (vec(1)>3.0_dp .AND. vec(2)>5.2_dp) THEN
     coord_v(m,fragment(m,i,j),1)=coord_v(m,fragment(m,i,j),1)-hmat(1,2)
     coord_v(m,fragment(m,i,j),2)=coord_v(m,fragment(m,i,j),2)-hmat(2,2)
    CALL pbc_hexagonal(coord_v(m,fragment(m,i,j),:),coord_v(m,fragment(m,i,1),:),vec,vec_pbc,box_all,box_x,box_y,box_z)
    ENDIF
-   IF (vec(1)<-3.0d0 .AND. vec(2)>5.2d0) THEN
+   IF (vec(1)<-3.0_dp .AND. vec(2)>5.2_dp) THEN
     coord_v(m,fragment(m,i,j),1)=coord_v(m,fragment(m,i,j),1)+hmat(1,2)
     coord_v(m,fragment(m,i,j),2)=coord_v(m,fragment(m,i,j),2)-hmat(2,2)
    CALL pbc_hexagonal(coord_v(m,fragment(m,i,j),:),coord_v(m,fragment(m,i,1),:),vec,vec_pbc,box_all,box_x,box_y,box_z)
    ENDIF
-   IF (vec(1)>3.0d0 .AND. vec(2)<-5.2d0) THEN
+   IF (vec(1)>3.0_dp .AND. vec(2)<-5.2_dp) THEN
     coord_v(m,fragment(m,i,j),1)=coord_v(m,fragment(m,i,j),1)-hmat(1,2)
     coord_v(m,fragment(m,i,j),2)=coord_v(m,fragment(m,i,j),2)+hmat(2,2)
    CALL pbc_hexagonal(coord_v(m,fragment(m,i,j),:),coord_v(m,fragment(m,i,1),:),vec,vec_pbc,box_all,box_x,box_y,box_z)
    ENDIF
-   IF (vec(1)<-3.0d0 .AND. vec(2)<-5.2d0) THEN
+   IF (vec(1)<-3.0_dp .AND. vec(2)<-5.2_dp) THEN
     coord_v(m,fragment(m,i,j),1)=coord_v(m,fragment(m,i,j),1)+hmat(1,2)
     coord_v(m,fragment(m,i,j),2)=coord_v(m,fragment(m,i,j),2)+hmat(2,2)
    CALL pbc_hexagonal(coord_v(m,fragment(m,i,j),:),coord_v(m,fragment(m,i,1),:),vec,vec_pbc,box_all,box_x,box_y,box_z)
    ENDIF
-   IF (vec(1)>4.9d0 .AND. vec(2)<5.2d0 .AND. vec(2)>-5.2d0) THEN
+   IF (vec(1)>4.9_dp .AND. vec(2)<5.2_dp .AND. vec(2)>-5.2_dp) THEN
     coord_v(m,fragment(m,i,j),1)=coord_v(m,fragment(m,i,j),1)-hmat(1,1)
    CALL pbc_hexagonal(coord_v(m,fragment(m,i,j),:),coord_v(m,fragment(m,i,1),:),vec,vec_pbc,box_all,box_x,box_y,box_z)
    ENDIF
-   IF (vec(1)<-4.9d0 .AND. vec(2)<5.2d0 .AND. vec(2)>-5.2d0) THEN
+   IF (vec(1)<-4.9_dp .AND. vec(2)<5.2_dp .AND. vec(2)>-5.2_dp) THEN
     coord_v(m,fragment(m,i,j),1)=coord_v(m,fragment(m,i,j),1)+hmat(1,1)
    CALL pbc_hexagonal(coord_v(m,fragment(m,i,j),:),coord_v(m,fragment(m,i,1),:),vec,vec_pbc,box_all,box_x,box_y,box_z)
    ENDIF
-   IF (vec(3)<-4.9d0) THEN
+   IF (vec(3)<-4.9_dp) THEN
     coord_v(m,fragment(m,i,j),3)=coord_v(m,fragment(m,i,j),3)+hmat(3,3)
    CALL pbc_hexagonal(coord_v(m,fragment(m,i,j),:),coord_v(m,fragment(m,i,1),:),vec,vec_pbc,box_all,box_x,box_y,box_z)
    ENDIF
-   IF (vec(3)>5.0d0) THEN
+   IF (vec(3)>5.0_dp) THEN
     coord_v(m,fragment(m,i,j),3)=coord_v(m,fragment(m,i,j),3)-hmat(3,3)
    CALL pbc_hexagonal(coord_v(m,fragment(m,i,j),:),coord_v(m,fragment(m,i,1),:),vec,vec_pbc,box_all,box_x,box_y,box_z)
    ENDIF
@@ -357,16 +358,16 @@ ENDDO
 DO m=1,framecount
  DO i=1,20
   DO j=1,natom_frag(i)
-   IF (coord_v(m,fragment(m,i,j),3)>6.0d0) THEN
+   IF (coord_v(m,fragment(m,i,j),3)>6.0_dp) THEN
     coord_v(m,fragment(m,i,j),3)=coord_v(m,fragment(m,i,j),3)-hmat(3,3)
    ENDIF
-   IF (coord_v(m,fragment(m,i,j),3)>0.0d0 .AND. coord_v(m,fragment(m,i,j),3)<2.0d0) THEN
-    IF (coord_v(m,fragment(m,i,j),2)<-3.0d0 .AND. coord_v(m,fragment(m,i,j),1)<-6.2d0) THEN
+   IF (coord_v(m,fragment(m,i,j),3)>0.0_dp .AND. coord_v(m,fragment(m,i,j),3)<2.0_dp) THEN
+    IF (coord_v(m,fragment(m,i,j),2)<-3.0_dp .AND. coord_v(m,fragment(m,i,j),1)<-6.2_dp) THEN
      coord_v(m,fragment(m,i,1:natom_frag(i)),1)=coord_v(m,fragment(m,i,1:natom_frag(i)),1)+hmat(1,2)
      coord_v(m,fragment(m,i,1:natom_frag(i)),2)=coord_v(m,fragment(m,i,1:natom_frag(i)),2)+hmat(2,2)
     ENDIF
    ENDIF
-   IF (coord_v(m,fragment(m,i,j),1)<-8.0d0) THEN
+   IF (coord_v(m,fragment(m,i,j),1)<-8.0_dp) THEN
     coord_v(m,fragment(m,i,1:natom_frag(i)),1)=coord_v(m,fragment(m,i,1:natom_frag(i)),1)+hmat(1,1)
    ENDIF
   ENDDO
@@ -378,39 +379,39 @@ DO m=1,framecount
  DO i=21,mol_num
   DO j=2,natom_frag(i)
    CALL pbc_hexagonal(coord_v(m,fragment(m,i,j),:),coord_v(m,fragment(m,i,1),:),vec,vec_pbc,box_all,box_x,box_y,box_z)
-   IF (vec(1)>3.0d0 .AND. vec(2)>5.2d0) THEN
+   IF (vec(1)>3.0_dp .AND. vec(2)>5.2_dp) THEN
     coord_v(m,fragment(m,i,j),1)=coord_v(m,fragment(m,i,j),1)-hmat(1,2)
     coord_v(m,fragment(m,i,j),2)=coord_v(m,fragment(m,i,j),2)-hmat(2,2)
    CALL pbc_hexagonal(coord_v(m,fragment(m,i,j),:),coord_v(m,fragment(m,i,1),:),vec,vec_pbc,box_all,box_x,box_y,box_z)
    ENDIF
-   IF (vec(1)<-3.0d0 .AND. vec(2)>5.2d0) THEN
+   IF (vec(1)<-3.0_dp .AND. vec(2)>5.2_dp) THEN
     coord_v(m,fragment(m,i,j),1)=coord_v(m,fragment(m,i,j),1)+hmat(1,2)
     coord_v(m,fragment(m,i,j),2)=coord_v(m,fragment(m,i,j),2)-hmat(2,2)
    CALL pbc_hexagonal(coord_v(m,fragment(m,i,j),:),coord_v(m,fragment(m,i,1),:),vec,vec_pbc,box_all,box_x,box_y,box_z)
    ENDIF
-   IF (vec(1)>3.0d0 .AND. vec(2)<-5.2d0) THEN
+   IF (vec(1)>3.0_dp .AND. vec(2)<-5.2_dp) THEN
     coord_v(m,fragment(m,i,j),1)=coord_v(m,fragment(m,i,j),1)-hmat(1,2)
     coord_v(m,fragment(m,i,j),2)=coord_v(m,fragment(m,i,j),2)+hmat(2,2)
    CALL pbc_hexagonal(coord_v(m,fragment(m,i,j),:),coord_v(m,fragment(m,i,1),:),vec,vec_pbc,box_all,box_x,box_y,box_z)
    ENDIF
-   IF (vec(1)<-3.0d0 .AND. vec(2)<-5.2d0) THEN
+   IF (vec(1)<-3.0_dp .AND. vec(2)<-5.2_dp) THEN
     coord_v(m,fragment(m,i,j),1)=coord_v(m,fragment(m,i,j),1)+hmat(1,2)
     coord_v(m,fragment(m,i,j),2)=coord_v(m,fragment(m,i,j),2)+hmat(2,2)
    CALL pbc_hexagonal(coord_v(m,fragment(m,i,j),:),coord_v(m,fragment(m,i,1),:),vec,vec_pbc,box_all,box_x,box_y,box_z)
    ENDIF
-   IF (vec(1)>4.9d0 .AND. vec(2)<5.2d0 .AND. vec(2)>-5.2d0) THEN
+   IF (vec(1)>4.9_dp .AND. vec(2)<5.2_dp .AND. vec(2)>-5.2_dp) THEN
     coord_v(m,fragment(m,i,j),1)=coord_v(m,fragment(m,i,j),1)-hmat(1,1)
    CALL pbc_hexagonal(coord_v(m,fragment(m,i,j),:),coord_v(m,fragment(m,i,1),:),vec,vec_pbc,box_all,box_x,box_y,box_z)
    ENDIF
-   IF (vec(1)<-4.9d0 .AND. vec(2)<5.2d0 .AND. vec(2)>-5.2d0) THEN
+   IF (vec(1)<-4.9_dp .AND. vec(2)<5.2_dp .AND. vec(2)>-5.2_dp) THEN
     coord_v(m,fragment(m,i,j),1)=coord_v(m,fragment(m,i,j),1)+hmat(1,1)
    CALL pbc_hexagonal(coord_v(m,fragment(m,i,j),:),coord_v(m,fragment(m,i,1),:),vec,vec_pbc,box_all,box_x,box_y,box_z)
    ENDIF
-   IF (vec(3)<-4.9d0) THEN
+   IF (vec(3)<-4.9_dp) THEN
     coord_v(m,fragment(m,i,j),3)=coord_v(m,fragment(m,i,j),3)+hmat(3,3)
    CALL pbc_hexagonal(coord_v(m,fragment(m,i,j),:),coord_v(m,fragment(m,i,1),:),vec,vec_pbc,box_all,box_x,box_y,box_z)
    ENDIF
-   IF (vec(3)>5.0d0) THEN
+   IF (vec(3)>5.0_dp) THEN
     coord_v(m,fragment(m,i,j),3)=coord_v(m,fragment(m,i,j),3)-hmat(3,3)
    CALL pbc_hexagonal(coord_v(m,fragment(m,i,j),:),coord_v(m,fragment(m,i,1),:),vec,vec_pbc,box_all,box_x,box_y,box_z)
    ENDIF
@@ -422,16 +423,16 @@ ENDDO
 DO m=1,framecount
  DO i=21,mol_num
   DO j=1,natom_frag(i)
-   IF (coord_v(m,fragment(m,i,j),3)>6.0d0) THEN
+   IF (coord_v(m,fragment(m,i,j),3)>6.0_dp) THEN
     coord_v(m,fragment(m,i,j),3)=coord_v(m,fragment(m,i,j),3)-hmat(3,3)
    ENDIF
-   IF (coord_v(m,fragment(m,i,j),3)>0.0d0 .AND. coord_v(m,fragment(m,i,j),3)<2.0d0) THEN
-    IF (coord_v(m,fragment(m,i,j),2)<-3.0d0 .AND. coord_v(m,fragment(m,i,j),1)<-6.2d0) THEN
+   IF (coord_v(m,fragment(m,i,j),3)>0.0_dp .AND. coord_v(m,fragment(m,i,j),3)<2.0_dp) THEN
+    IF (coord_v(m,fragment(m,i,j),2)<-3.0_dp .AND. coord_v(m,fragment(m,i,j),1)<-6.2_dp) THEN
      coord_v(m,fragment(m,i,1:natom_frag(i)),1)=coord_v(m,fragment(m,i,1:natom_frag(i)),1)+hmat(1,2)
      coord_v(m,fragment(m,i,1:natom_frag(i)),2)=coord_v(m,fragment(m,i,1:natom_frag(i)),2)+hmat(2,2)
     ENDIF
    ENDIF
-   IF (coord_v(m,fragment(m,i,j),1)<-8.0d0) THEN
+   IF (coord_v(m,fragment(m,i,j),1)<-8.0_dp) THEN
     coord_v(m,fragment(m,i,1:natom_frag(i)),1)=coord_v(m,fragment(m,i,1:natom_frag(i)),1)+hmat(1,1)
    ENDIF
   ENDDO
@@ -440,7 +441,7 @@ ENDDO
 
 ENDIF
 
-bec_pbc=0.0d0
+bec_pbc=0.0_dp
 coord_shifted=0.
 l=0
 
@@ -451,9 +452,9 @@ ENDIF
 DO m=1,framecount  
  DO i=1,mol_num
   DO j=1,natom_frag(i)
-   pox_x=50.0d0 
-   pox_y=50.0d0  
-   pox_z=50.0d0
+   pox_x=50.0_dp 
+   pox_y=50.0_dp  
+   pox_z=50.0_dp
    bec(m,:)=coord_v(m,fragment(m,i,j),:)
    bec_pbc(m,1)=bec(m,1) - pox_x*ANINT((1./pox_x)*bec(m,1))
    bec_pbc(m,2)=bec(m,2) - pox_y*ANINT((1./pox_y)*bec(m,2))
@@ -468,7 +469,7 @@ DO m=1,framecount
  ENDDO
 ENDDO
 
-mass_tot_cell=0.0d0
+mass_tot_cell=0.0_dp
 
 !!get total mass of the cell
 DO j=1,natom
@@ -524,25 +525,25 @@ SUBROUTINE solv_frag_index(natom,coord_v,filename,element,box_all,vec,vec_pbc,&
            box_x,box_y,box_z,mass_atom,framecount,cell_type,refpoint,natom_frag,fragment,mass_tot_frag)
 
 INTEGER,INTENT(INOUT)                                       :: natom,framecount
-REAL(KIND=8),DIMENSION(:,:,:),ALLOCATABLE,INTENT(INOUT)     :: coord_v
-REAL(KIND=8),DIMENSION(:),ALLOCATABLE,INTENT(INOUT)         :: mass_atom
+REAL(kind=dp),DIMENSION(:,:,:),ALLOCATABLE,INTENT(INOUT)     :: coord_v
+REAL(kind=dp),DIMENSION(:),ALLOCATABLE,INTENT(INOUT)         :: mass_atom
 CHARACTER(LEN=40),INTENT(INOUT)                             :: filename,cell_type
 CHARACTER(LEN=2),DIMENSION(:),ALLOCATABLE,INTENT(INOUT)     :: element
-REAL(KIND=8),INTENT(INOUT)                                  :: box_all,box_x,box_y,box_z
-REAL(KIND=8),INTENT(INOUT)                                  :: vec(3),vec_pbc(3)
-REAL(KIND=8),DIMENSION(:,:,:),ALLOCATABLE,INTENT(OUT)       :: refpoint
+REAL(kind=dp),INTENT(INOUT)                                  :: box_all,box_x,box_y,box_z
+REAL(kind=dp),INTENT(INOUT)                                  :: vec(3),vec_pbc(3)
+REAL(kind=dp),DIMENSION(:,:,:),ALLOCATABLE,INTENT(OUT)       :: refpoint
 INTEGER,DIMENSION(:),ALLOCATABLE,INTENT(INOUT)              :: natom_frag
 INTEGER,DIMENSION(:,:,:),ALLOCATABLE,INTENT(INOUT)          :: fragment
-REAL(KIND=8),DIMENSION(:,:),ALLOCATABLE,INTENT(OUT)         :: mass_tot_frag
+REAL(kind=dp),DIMENSION(:,:),ALLOCATABLE,INTENT(OUT)         :: mass_tot_frag
 
 CHARACTER(LEN=40)                                           :: length
 INTEGER                                                     :: stat   ! error status of OPEN statements
 INTEGER                                                     :: r,m,p,q, i, j, k, n, l, o,s,t
-REAL(KIND=8)                                                :: bec(5000,3),bec_pbc(5000,3)
-REAL(KIND=8)                                                :: hmat(3,3),sqrt3,acosa,asina,a 
-REAL(KIND=8)                                                :: pox_x,pox_y,pox_z
-REAL(KIND=8),DIMENSION(3)                                   :: coord3
-REAL(KIND=8),DIMENSION(:,:,:,:),ALLOCATABLE                 :: com
+REAL(kind=dp)                                                :: bec(5000,3),bec_pbc(5000,3)
+REAL(kind=dp)                                                :: hmat(3,3),sqrt3,acosa,asina,a 
+REAL(kind=dp)                                                :: pox_x,pox_y,pox_z
+REAL(kind=dp),DIMENSION(3)                                   :: coord3
+REAL(kind=dp),DIMENSION(:,:,:,:),ALLOCATABLE                 :: com
  
 !ALLOCATE(fragment(framecount,37,32))
 ALLOCATE(refpoint(framecount,37,3))
@@ -551,23 +552,23 @@ ALLOCATE(mass_tot_frag(framecount,37))
 ALLOCATE(com(framecount,37,32,3))
 !ALLOCATE(natom_frag(20))
 
-coord3(1)=0.00d0
-coord3(2)=0.00d0
-coord3(3)=0.00d0
+coord3(1)=0.00_dp
+coord3(2)=0.00_dp
+coord3(3)=0.00_dp
 fragment=0
 natom_frag=0
-refpoint=0.00d0
-com=0.0d0
-mass_tot_frag=0.0d0
+refpoint=0.00_dp
+com=0.0_dp
+mass_tot_frag=0.0_dp
 
-sqrt3=1.73205080756887729352744634d0
+sqrt3=1.73205080756887729352744634_dp
 
-a = 0.5d0*(box_x + box_y)
-acosa = 0.5d0*a
+a = 0.5_dp*(box_x + box_y)
+acosa = 0.5_dp*a
 asina = sqrt3*acosa
-hmat(1, 1) = a; hmat(1, 2) = acosa; hmat(1, 3) = 0.0d0
-hmat(2, 1) = 0.0d0; hmat(2, 2) = asina; hmat(2, 3) = 0.0d0
-hmat(3, 1) = 0.0d0; hmat(3, 2) = 0.0d0; hmat(3, 3) = box_z
+hmat(1, 1) = a; hmat(1, 2) = acosa; hmat(1, 3) = 0.0_dp
+hmat(2, 1) = 0.0_dp; hmat(2, 2) = asina; hmat(2, 3) = 0.0_dp
+hmat(3, 1) = 0.0_dp; hmat(3, 2) = 0.0_dp; hmat(3, 3) = box_z
 
 print*,natom,framecount
 
@@ -586,7 +587,7 @@ IF (ANY(i==fragment(m,:,:))) CYCLE
     IF (ANY(k==fragment(m,:,:))) CYCLE
     IF (element(k).NE.'C') CYCLE
      CALL pbc_hexagonal(coord_v(m,i,:),coord_v(m,k,:),vec,vec_pbc,box_all,box_x,box_y,box_z)
-    IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<1.781835d0) THEN
+    IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<1.781835_dp) THEN
     IF (ANY(k==fragment(m,:,:))) CYCLE
              n=n+1
              fragment(m,j,n+1)=k
@@ -595,7 +596,7 @@ IF (ANY(i==fragment(m,:,:))) CYCLE
      IF (i==l) CYCLE
      IF (element(l)=='H') THEN
      CALL pbc_hexagonal(coord_v(m,k,:),coord_v(m,l,:),vec,vec_pbc,box_all,box_x,box_y,box_z)
-    IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<1.451835d0) THEN
+    IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<1.451835_dp) THEN
     IF (ANY(l==fragment(m,:,:))) CYCLE
              n=n+1
              fragment(m,j,n+1)=l
@@ -603,7 +604,7 @@ IF (ANY(i==fragment(m,:,:))) CYCLE
      ENDIF
      IF (element(l)=='C') THEN
      CALL pbc_hexagonal(coord_v(m,k,:),coord_v(m,l,:),vec,vec_pbc,box_all,box_x,box_y,box_z)
-    IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<1.781835d0) THEN
+    IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<1.781835_dp) THEN
     IF (ANY(l==fragment(m,:,:))) CYCLE
              n=n+1
              fragment(m,j,n+1)=l
@@ -614,7 +615,7 @@ IF (ANY(i==fragment(m,:,:))) CYCLE
      IF (k==o) CYCLE
      IF (element(o)=='H') THEN
      CALL pbc_hexagonal(coord_v(m,l,:),coord_v(m,o,:),vec,vec_pbc,box_all,box_x,box_y,box_z)
-    IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<1.451835d0) THEN
+    IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<1.451835_dp) THEN
     IF (ANY(o==fragment(m,:,:))) CYCLE
              n=n+1
              fragment(m,j,n+1)=o
@@ -622,7 +623,7 @@ IF (ANY(i==fragment(m,:,:))) CYCLE
  ENDIF
      IF (element(o)=='O') THEN
      CALL pbc_hexagonal(coord_v(m,l,:),coord_v(m,o,:),vec,vec_pbc,box_all,box_x,box_y,box_z)
-    IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<1.781835d0) THEN
+    IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<1.781835_dp) THEN
     IF (ANY(o==fragment(m,:,:))) CYCLE
              n=n+1
              fragment(m,j,n+1)=o
@@ -648,7 +649,7 @@ DO m=1,framecount
     IF (element(k).NE.'X') CYCLE
     IF (element(fragment(m,i,j))=='O' .OR. element(fragment(m,i,j))=='C') THEN
      CALL pbc_hexagonal(coord_v(m,fragment(m,i,j),:),coord_v(m,k,:),vec,vec_pbc,box_all,box_x,box_y,box_z)
-     IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<0.99d0) THEN
+     IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<0.99_dp) THEN
           IF (ANY(k==fragment(m,:,:))) CYCLE
            p=p+1
            fragment(m,i,14+p)=k
@@ -677,7 +678,7 @@ DO i=99,natom
     IF (ANY(k==fragment(m,:,:))) CYCLE
     IF (element(k).NE.'O') CYCLE
      CALL pbc_hexagonal(coord_v(m,i,:),coord_v(m,k,:),vec,vec_pbc,box_all,box_x,box_y,box_z)
-    IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<1.551835d0) THEN
+    IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<1.551835_dp) THEN
     IF (ANY(k==fragment(m,:,:))) CYCLE
              n=n+1
              fragment(m,j,n+1)=k
@@ -686,7 +687,7 @@ DO i=99,natom
      IF (i==l) CYCLE
      IF (element(l).NE.'B') CYCLE
      CALL pbc_hexagonal(coord_v(m,k,:),coord_v(m,l,:),vec,vec_pbc,box_all,box_x,box_y,box_z)
-     IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<1.551835d0) THEN
+     IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<1.551835_dp) THEN
      IF (ANY(l==fragment(m,:,:))) CYCLE
              n=n+1
              fragment(m,j,n+1)=l
@@ -696,7 +697,7 @@ DO i=99,natom
        IF (k==o) CYCLE
        IF (element(o).NE.'O') CYCLE
        CALL pbc_hexagonal(coord_v(m,l,:),coord_v(m,o,:),vec,vec_pbc,box_all,box_x,box_y,box_z)
-       IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<1.551835d0) THEN
+       IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<1.551835_dp) THEN
        IF (ANY(o==fragment(m,:,:))) CYCLE
               n=n+1
               fragment(m,j,n+1)=o
@@ -719,7 +720,7 @@ DO m=1,framecount
     IF (j==k) CYCLE
      IF (element(k).NE.'X') CYCLE
      CALL pbc_hexagonal(coord_v(m,fragment(m,i,j),:),coord_v(m,k,:),vec,vec_pbc,box_all,box_x,box_y,box_z)
-     IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<0.7d0) THEN
+     IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<0.7_dp) THEN
        IF (ANY(k==fragment(m,:,:))) CYCLE
              n=n+1
              fragment(m,i,n+6)=k
@@ -747,7 +748,7 @@ DO i=99,natom
    ! IF (ANY(k==fragment(m,:,:))) CYCLE
     IF (element(k).NE.'C') CYCLE
     CALL pbc_hexagonal(coord_v(m,i,:),coord_v(m,k,:),vec,vec_pbc,box_all,box_x,box_y,box_z)
-    IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<1.31835d0) THEN
+    IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<1.31835_dp) THEN
     IF (ANY(k==fragment(m,:,:))) CYCLE
              n=n+1
              fragment(m,j,n+1)=k
@@ -756,7 +757,7 @@ DO i=99,natom
     !IF (ANY(l==fragment(m,:,:))) CYCLE
     IF (element(l).NE.'C') CYCLE
     CALL pbc_hexagonal(coord_v(m,k,:),coord_v(m,l,:),vec,vec_pbc,box_all,box_x,box_y,box_z)
-    IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<1.55835d0) THEN
+    IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<1.55835_dp) THEN
     IF (ANY(l==fragment(m,:,:))) CYCLE
              n=n+1
              fragment(m,j,n+1)=l
@@ -765,7 +766,7 @@ DO i=99,natom
    ! IF (ANY(o==fragment(m,:,:))) CYCLE
     IF (element(o)=='X') CYCLE
     CALL pbc_hexagonal(coord_v(m,l,:),coord_v(m,o,:),vec,vec_pbc,box_all,box_x,box_y,box_z)
-    IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<1.55835d0) THEN
+    IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<1.55835_dp) THEN
     IF (ANY(o==fragment(m,:,:))) CYCLE
              n=n+1
              fragment(m,j,n+1)=o
@@ -774,7 +775,7 @@ DO i=99,natom
    ! IF (ANY(p==fragment(m,:,:))) CYCLE
     IF (element(p)=='X') CYCLE
     CALL pbc_hexagonal(coord_v(m,o,:),coord_v(m,p,:),vec,vec_pbc,box_all,box_x,box_y,box_z)
-    IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<1.55835d0) THEN
+    IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<1.55835_dp) THEN
     IF (ANY(p==fragment(m,:,:))) CYCLE
              n=n+1
              fragment(m,j,n+1)=p
@@ -783,7 +784,7 @@ DO i=99,natom
     !IF (ANY(r==fragment(m,:,:))) CYCLE
     IF (element(r)=='X') CYCLE
     CALL pbc_hexagonal(coord_v(m,p,:),coord_v(m,r,:),vec,vec_pbc,box_all,box_x,box_y,box_z)
-    IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<1.55835d0) THEN
+    IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<1.55835_dp) THEN
     IF (ANY(r==fragment(m,:,:))) CYCLE
              n=n+1
              fragment(m,j,n+1)=r
@@ -792,7 +793,7 @@ DO i=99,natom
     !IF (ANY(s==fragment(m,:,:))) CYCLE
     IF (element(s)=='X') CYCLE
     CALL pbc_hexagonal(coord_v(m,r,:),coord_v(m,s,:),vec,vec_pbc,box_all,box_x,box_y,box_z)
-    IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<1.55835d0) THEN
+    IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<1.55835_dp) THEN
     IF (ANY(s==fragment(m,:,:))) CYCLE
              n=n+1
              fragment(m,j,n+1)=s
@@ -801,7 +802,7 @@ DO i=99,natom
     !IF (ANY(s==fragment(m,:,:))) CYCLE
     IF (element(t)=='X') CYCLE
     CALL pbc_hexagonal(coord_v(m,s,:),coord_v(m,t,:),vec,vec_pbc,box_all,box_x,box_y,box_z)
-    IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<1.55835d0) THEN
+    IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<1.55835_dp) THEN
     IF (ANY(t==fragment(m,:,:))) CYCLE
              n=n+1
              fragment(m,j,n+1)=t
@@ -837,7 +838,7 @@ DO m=1,framecount
     IF (j==k) CYCLE
      IF (element(k).NE.'X') CYCLE
      CALL pbc_hexagonal(coord_v(m,fragment(m,i,j),:),coord_v(m,k,:),vec,vec_pbc,box_all,box_x,box_y,box_z)
-    IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<1.0d0) THEN
+    IF (SQRT(DOT_PRODUCT(vec_pbc,vec_pbc))<1.0_dp) THEN
             IF (ANY(k==fragment(m,i,:))) CYCLE
              n=n+1
              fragment(m,i,n+10)=k
@@ -871,46 +872,46 @@ DO m=1,framecount
   DO j=2,natom_frag(i)
    CALL pbc_hexagonal(coord_v(m,fragment(m,i,j),:),coord_v(m,fragment(m,i,1),:),vec,vec_pbc,box_all,box_x,box_y,box_z)
   ! PRINT*,SQRT(DOT_PRODUCT(vec,vec)),SQRT(DOT_PRODUCT(vec_pbc,vec_pbc)),i,j,'0'
-   IF (vec(1)>3.0d0 .AND. vec(2)>5.2d0) THEN
+   IF (vec(1)>3.0_dp .AND. vec(2)>5.2_dp) THEN
     coord_v(m,fragment(m,i,j),1)=coord_v(m,fragment(m,i,j),1)-hmat(1,2)
     coord_v(m,fragment(m,i,j),2)=coord_v(m,fragment(m,i,j),2)-hmat(2,2)
    CALL pbc_hexagonal(coord_v(m,fragment(m,i,j),:),coord_v(m,fragment(m,i,1),:),vec,vec_pbc,box_all,box_x,box_y,box_z)
   ! PRINT*,SQRT(DOT_PRODUCT(vec,vec)),SQRT(DOT_PRODUCT(vec_pbc,vec_pbc)),i,j,'3'
    ENDIF
-   IF (vec(1)<-3.0d0 .AND. vec(2)>5.2d0) THEN
+   IF (vec(1)<-3.0_dp .AND. vec(2)>5.2_dp) THEN
     coord_v(m,fragment(m,i,j),1)=coord_v(m,fragment(m,i,j),1)+hmat(1,2)
     coord_v(m,fragment(m,i,j),2)=coord_v(m,fragment(m,i,j),2)-hmat(2,2)
    CALL pbc_hexagonal(coord_v(m,fragment(m,i,j),:),coord_v(m,fragment(m,i,1),:),vec,vec_pbc,box_all,box_x,box_y,box_z)
   ! PRINT*,SQRT(DOT_PRODUCT(vec,vec)),SQRT(DOT_PRODUCT(vec_pbc,vec_pbc)),i,j,'4'
    ENDIF
-   IF (vec(1)>3.0d0 .AND. vec(2)<-5.2d0) THEN
+   IF (vec(1)>3.0_dp .AND. vec(2)<-5.2_dp) THEN
     coord_v(m,fragment(m,i,j),1)=coord_v(m,fragment(m,i,j),1)-hmat(1,2)
     coord_v(m,fragment(m,i,j),2)=coord_v(m,fragment(m,i,j),2)+hmat(2,2)
    CALL pbc_hexagonal(coord_v(m,fragment(m,i,j),:),coord_v(m,fragment(m,i,1),:),vec,vec_pbc,box_all,box_x,box_y,box_z)
   ! PRINT*,SQRT(DOT_PRODUCT(vec,vec)),SQRT(DOT_PRODUCT(vec_pbc,vec_pbc)),i,j,'5'
    ENDIF
-   IF (vec(1)<-3.0d0 .AND. vec(2)<-5.2d0) THEN
+   IF (vec(1)<-3.0_dp .AND. vec(2)<-5.2_dp) THEN
     coord_v(m,fragment(m,i,j),1)=coord_v(m,fragment(m,i,j),1)+hmat(1,2)
     coord_v(m,fragment(m,i,j),2)=coord_v(m,fragment(m,i,j),2)+hmat(2,2)
    CALL pbc_hexagonal(coord_v(m,fragment(m,i,j),:),coord_v(m,fragment(m,i,1),:),vec,vec_pbc,box_all,box_x,box_y,box_z)
   ! PRINT*,SQRT(DOT_PRODUCT(vec,vec)),SQRT(DOT_PRODUCT(vec_pbc,vec_pbc)),i,j,'6'
    ENDIF
-   IF (vec(1)>4.9d0 .AND. vec(2)<5.2d0 .AND. vec(2)>-5.2d0) THEN
+   IF (vec(1)>4.9_dp .AND. vec(2)<5.2_dp .AND. vec(2)>-5.2_dp) THEN
     coord_v(m,fragment(m,i,j),1)=coord_v(m,fragment(m,i,j),1)-hmat(1,1)
    CALL pbc_hexagonal(coord_v(m,fragment(m,i,j),:),coord_v(m,fragment(m,i,1),:),vec,vec_pbc,box_all,box_x,box_y,box_z)
   ! PRINT*,SQRT(DOT_PRODUCT(vec,vec)),SQRT(DOT_PRODUCT(vec_pbc,vec_pbc)),i,j,'1'
    ENDIF
-   IF (vec(1)<-4.9d0 .AND. vec(2)<5.2d0 .AND. vec(2)>-5.2d0) THEN
+   IF (vec(1)<-4.9_dp .AND. vec(2)<5.2_dp .AND. vec(2)>-5.2_dp) THEN
     coord_v(m,fragment(m,i,j),1)=coord_v(m,fragment(m,i,j),1)+hmat(1,1)
    CALL pbc_hexagonal(coord_v(m,fragment(m,i,j),:),coord_v(m,fragment(m,i,1),:),vec,vec_pbc,box_all,box_x,box_y,box_z)
   ! PRINT*,SQRT(DOT_PRODUCT(vec,vec)),SQRT(DOT_PRODUCT(vec_pbc,vec_pbc)),i,j,'2'
    ENDIF
-   IF (vec(3)<-4.9d0) THEN
+   IF (vec(3)<-4.9_dp) THEN
     coord_v(m,fragment(m,i,j),3)=coord_v(m,fragment(m,i,j),3)+hmat(3,3)
    CALL pbc_hexagonal(coord_v(m,fragment(m,i,j),:),coord_v(m,fragment(m,i,1),:),vec,vec_pbc,box_all,box_x,box_y,box_z)
   ! PRINT*,SQRT(DOT_PRODUCT(vec,vec)),SQRT(DOT_PRODUCT(vec_pbc,vec_pbc)),i,j,'7'
    ENDIF
-   IF (vec(3)>5.0d0) THEN
+   IF (vec(3)>5.0_dp) THEN
     coord_v(m,fragment(m,i,j),3)=coord_v(m,fragment(m,i,j),3)-hmat(3,3)
    CALL pbc_hexagonal(coord_v(m,fragment(m,i,j),:),coord_v(m,fragment(m,i,1),:),vec,vec_pbc,box_all,box_x,box_y,box_z)
   ! PRINT*,SQRT(DOT_PRODUCT(vec,vec)),SQRT(DOT_PRODUCT(vec_pbc,vec_pbc)),i,j,'8'
@@ -919,14 +920,14 @@ DO m=1,framecount
  ENDDO
 ENDDO
 
-bec_pbc=0.0d0
+bec_pbc=0.0_dp
 
 DO i=1,37
  DO j=1,natom_frag(i)
   DO m=1,framecount  
-   pox_x=40.0d0 
-   pox_y=40.0d0  
-   pox_z=40.0d0
+   pox_x=40.0_dp 
+   pox_y=40.0_dp  
+   pox_z=40.0_dp
    bec(m,:)=coord_v(m,fragment(m,i,j),:)
    bec_pbc(m,1)=bec(m,1) - pox_x*ANINT((1./pox_x)*bec(m,1))
    bec_pbc(m,2)=bec(m,2) - pox_y*ANINT((1./pox_y)*bec(m,2))
@@ -971,50 +972,50 @@ CHARACTER(LEN=2),DIMENSION(:),ALLOCATABLE,INTENT(INOUT)     :: element
 INTEGER,INTENT(INOUT)                                       :: natom,framecount,mol_num
 INTEGER,DIMENSION(:),ALLOCATABLE,INTENT(INOUT)              :: natom_frag
 INTEGER,DIMENSION(:,:,:),ALLOCATABLE,INTENT(INOUT)          :: fragment
-REAL(KIND=8),INTENT(INOUT)                                  :: box_all,box_x,box_y,box_z,mass_tot_cell
-REAL(KIND=8),DIMENSION(3),INTENT(INOUT)                     :: vec,vec_pbc
-REAL(KIND=8),DIMENSION(5000,3)                              :: bec,bec_pbc
-REAL(KIND=8),DIMENSION(:),ALLOCATABLE,INTENT(INOUT)         :: charge
-REAL(KIND=8),DIMENSION(:,:),ALLOCATABLE,INTENT(INOUT)       :: mass_tot_frag
-REAL(KIND=8),DIMENSION(:,:,:),ALLOCATABLE,INTENT(INOUT)     :: coord_v,refpoint
-REAL(KIND=8),DIMENSION(:,:,:),ALLOCATABLE,INTENT(OUT)       :: dipole
+REAL(kind=dp),INTENT(INOUT)                                  :: box_all,box_x,box_y,box_z,mass_tot_cell
+REAL(kind=dp),DIMENSION(3),INTENT(INOUT)                     :: vec,vec_pbc
+REAL(kind=dp),DIMENSION(5000,3)                              :: bec,bec_pbc
+REAL(kind=dp),DIMENSION(:),ALLOCATABLE,INTENT(INOUT)         :: charge
+REAL(kind=dp),DIMENSION(:,:),ALLOCATABLE,INTENT(INOUT)       :: mass_tot_frag
+REAL(kind=dp),DIMENSION(:,:,:),ALLOCATABLE,INTENT(INOUT)     :: coord_v,refpoint
+REAL(kind=dp),DIMENSION(:,:,:),ALLOCATABLE,INTENT(OUT)       :: dipole
 
 CHARACTER(LEN=40)                                           :: length,filename_dip
 INTEGER                                                     :: stat   ! error status of OPEN statements
 INTEGER                                                     :: i, j, l, n,m                                                         
-REAL(KIND=8)                                                :: dist!,mass_tot(20)
-REAL(KIND=8),DIMENSION(:,:),ALLOCATABLE                     :: mass
-REAL(KIND=8),DIMENSION(:),ALLOCATABLE                       :: coord2
-REAL(KIND=8)                                                :: pox_x,pox_y,pox_z,pox_all
-REAL(KIND=8)                                                :: hmat(3,3),sqrt3,acosa,asina,a 
+REAL(kind=dp)                                                :: dist!,mass_tot(20)
+REAL(kind=dp),DIMENSION(:,:),ALLOCATABLE                     :: mass
+REAL(kind=dp),DIMENSION(:),ALLOCATABLE                       :: coord2
+REAL(kind=dp)                                                :: pox_x,pox_y,pox_z,pox_all
+REAL(kind=dp)                                                :: hmat(3,3),sqrt3,acosa,asina,a 
 
 ALLOCATE(dipole(framecount,mol_num,3),coord2(1))
 
-dist=1.2d0
-dipole=0.0d0
+dist=1.2_dp
+dipole=0.0_dp
 
-pox_x=40.0d0
-pox_y=40.0d0
-pox_z=40.0d0
-pox_all=40.0d0
+pox_x=40.0_dp
+pox_y=40.0_dp
+pox_z=40.0_dp
+pox_all=40.0_dp
 
-sqrt3=1.73205080756887729352744634d0
-a = 0.5d0*(box_x + box_y)
-acosa = 0.5d0*a
+sqrt3=1.73205080756887729352744634_dp
+a = 0.5_dp*(box_x + box_y)
+acosa = 0.5_dp*a
 asina = sqrt3*acosa
-hmat(1, 1) = a; hmat(1, 2) = acosa; hmat(1, 3) = 0.0d0
-hmat(2, 1) = 0.0d0; hmat(2, 2) = asina; hmat(2, 3) = 0.0d0
-hmat(3, 1) = 0.0d0; hmat(3, 2) = 0.0d0; hmat(3, 3) = box_z
+hmat(1, 1) = a; hmat(1, 2) = acosa; hmat(1, 3) = 0.0_dp
+hmat(2, 1) = 0.0_dp; hmat(2, 2) = asina; hmat(2, 3) = 0.0_dp
+hmat(3, 1) = 0.0_dp; hmat(3, 2) = 0.0_dp; hmat(3, 3) = box_z
 print*,mol_num,'check mol num'
 DO m=1,framecount
  DO i=1,mol_num
   DO j=1,natom_frag(i)
    IF (system=='1') THEN
      CALL pbc_hexagonal(coord_v(m,fragment(m,i,j),:),refpoint(m,i,:),vec,vec_pbc,box_all,box_x,box_y,box_z) !! If fragment approach!!!
-     dipole(m,i,:)=dipole(m,i,:) +  vec_pbc*1.889725989d0*charge(fragment(m,i,j))
+     dipole(m,i,:)=dipole(m,i,:) +  vec_pbc*1.889725989_dp*charge(fragment(m,i,j))
    ELSEIF (type_dipole=='1' .AND. system=='2') THEN
      CALL pbc_orthorombic(coord_v(m,fragment(m,i,j),:),refpoint(m,1,:),vec,vec_pbc,pox_all,pox_x,pox_y,pox_z) !! IF COM is for whole supercel!!!
-     dipole(m,1,:)=dipole(m,1,:) +  vec_pbc*1.889725989d0*charge(fragment(m,i,j))
+     dipole(m,1,:)=dipole(m,1,:) +  vec_pbc*1.889725989_dp*charge(fragment(m,i,j))
    ENDIF
   ENDDO
  ENDDO
@@ -1029,10 +1030,10 @@ IF (system=='2' .AND. type_dipole=='1') THEN
  ENDIF
 !  dipole(m,1,1)=dipole(m,1,1)-(hmat(1,1)*3*1.889725989)
   dipole(m,1,2)=dipole(m,1,2)+(hmat(2,2)*4*1.889725989)!+(hmat(1,2)*3*1.889725989)
-  dipole(m,1,:)=REAL((dipole(m,1,:)*2.54174622741d0)/mass_tot_cell,KIND=8) !!Dividing by total mass, change it later
+  dipole(m,1,:)=REAL((dipole(m,1,:)*2.54174622741_dp)/mass_tot_cell,kind=dp) !!Dividing by total mass, change it later
 ELSEIF (system=='1') THEN
   DO i=1,mol_num !! define something for this
-  dipole(m,i,:)=REAL((dipole(m,i,:)*2.54174622741d0)/mass_tot_frag(m,i),KIND=8) !!Dividing by total mass, change it later
+  dipole(m,i,:)=REAL((dipole(m,i,:)*2.54174622741_dp)/mass_tot_frag(m,i),kind=dp) !!Dividing by total mass, change it later
  ENDDO
 ENDIF
 ENDDO
@@ -1049,7 +1050,7 @@ ENDDO
 !OPEN(UNIT=68,FILE='dipole_result_final.xyz',STATUS='unknown',IOSTAT=stat)
 !DO m=1,framecount
 !DO j=1,20
- !  WRITE(68,'(2X,A15,4X,I2,6X,F20.12)') "net dipole",j, SQRT(DOT_PRODUCT(dipole(m,j,:),dipole(m,j,:)))*2.54174622741d0
+ !  WRITE(68,'(2X,A15,4X,I2,6X,F20.12)') "net dipole",j, SQRT(DOT_PRODUCT(dipole(m,j,:),dipole(m,j,:)))*2.54174622741_dp
           
 ! ENDDO
 ! ENDDO
@@ -1060,7 +1061,7 @@ ENDDO
 ! DO j=1,20
  ! WRITE(61,'(2X,A15,4X,I2,6X,3F20.12)') "center of mass", j, refpoint(m,j,:)
 
-  !WRITE(61,'(2X,A15,4X,I2,6X,3F20.12)') "com+net dipole", j,  refpoint(m,j,:)+(dipole(m,j,:)*2.541746227414447d0)
+  !WRITE(61,'(2X,A15,4X,I2,6X,3F20.12)') "com+net dipole", j,  refpoint(m,j,:)+(dipole(m,j,:)*2.541746227414447_dp)
 
 ! ENDDO
 ! ENDDO
@@ -1072,7 +1073,7 @@ ENDDO
 !WRITE(51,*) 
 ! DO j=1,20
  ! WRITE(51,*) "draw arrow     ", "{",refpoint(m,j,:)&
-  !        ,"}      ","{",refpoint(m,j,:)+(dipole(m,j,:)*2.541746227414447d0),"}"
+  !        ,"}      ","{",refpoint(m,j,:)+(dipole(m,j,:)*2.541746227414447_dp),"}"
 ! ENDDO
 !ENDDO
 !CLOSE(51)
@@ -1089,23 +1090,23 @@ SUBROUTINE wannier(element,filename,natom,box_all,box_x,box_y,box_z,vec,vec_pbc,
 CHARACTER(LEN=40),INTENT(INOUT)                                  :: filename,periodic
 INTEGER,INTENT(INOUT)                                            :: natom,framecount,mol_num
 CHARACTER(LEN=2),DIMENSION(:),ALLOCATABLE,INTENT(INOUT)          :: element
-REAL(KIND=8),DIMENSION(:,:,:),ALLOCATABLE,INTENT(INOUT)          :: coord_v
-REAL(KIND=8),DIMENSION(:,:,:),ALLOCATABLE,INTENT(OUT)            :: dip
-REAL(KIND=8),INTENT(INOUT)                                       :: box_all,box_x,box_y,box_z
-REAL(KIND=8),INTENT(INOUT)                                       :: debye,mass_tot
-REAL(KIND=8),DIMENSION(3),INTENT(INOUT)                          :: vec,vec_pbc
-REAL(KIND=8),DIMENSION(:),ALLOCATABLE,INTENT(INOUT)              :: mass_atom
+REAL(kind=dp),DIMENSION(:,:,:),ALLOCATABLE,INTENT(INOUT)          :: coord_v
+REAL(kind=dp),DIMENSION(:,:,:),ALLOCATABLE,INTENT(OUT)            :: dip
+REAL(kind=dp),INTENT(INOUT)                                       :: box_all,box_x,box_y,box_z
+REAL(kind=dp),INTENT(INOUT)                                       :: debye,mass_tot
+REAL(kind=dp),DIMENSION(3),INTENT(INOUT)                          :: vec,vec_pbc
+REAL(kind=dp),DIMENSION(:),ALLOCATABLE,INTENT(INOUT)              :: mass_atom
 
 INTEGER                                                          :: stat                            ! error status of OPEN statements
 INTEGER                                                          :: k, i, j, l, n                                                         
-REAL(KIND=8)                                                     :: dist,coord1(3)
+REAL(kind=dp)                                                     :: dist,coord1(3)
 CHARACTER(LEN=40)                                                :: length,chara
 REAL,DIMENSION(:), ALLOCATABLE                                   :: dip_tot !--> in your case of 1 molecule the dimension is one, i.e., it is a simple real
-REAL(KIND=8),DIMENSION(:,:),ALLOCATABLE                          :: refpoint2
+REAL(kind=dp),DIMENSION(:,:),ALLOCATABLE                          :: refpoint2
 REAL,DIMENSION(:,:,:), ALLOCATABLE                               :: com
 
-dist=1.2d0
-coord1(:)=0.00d0
+dist=1.2_dp
+coord1(:)=0.00_dp
 
 ALLOCATE(dip(framecount,mol_num,3))
 ALLOCATE(dip_tot(mol_num))
@@ -1113,7 +1114,7 @@ ALLOCATE(refpoint2(framecount,3))
 ALLOCATE(com(framecount,natom,3))
 
 
-dip=0.0d0
+dip=0.0_dp
 l=0
 
 IF (periodic=='y' .OR. periodic=='yes') THEN  
@@ -1128,9 +1129,9 @@ IF (periodic=='y' .OR. periodic=='yes') THEN
 
     IF(SQRT(DOT_PRODUCT(vec_pbc,vec_pbc)) > dist) CYCLE
        IF(element(j)=="X") THEN
-        dip(k,l,:)=REAL(dip(k,l,:) + vec_pbc*1.889725989d0*(-2.0d0)/debye,KIND=8)
+        dip(k,l,:)=REAL(dip(k,l,:) + vec_pbc*1.889725989_dp*(-2.0_dp)/debye,kind=dp)
        ELSEIF(element(j)=="H") THEN
-        dip(k,l,:)=REAL(dip(k,l,:) + vec_pbc*1.889725989d0*(1.0d0)/debye,KIND=8)
+        dip(k,l,:)=REAL(dip(k,l,:) + vec_pbc*1.889725989_dp*(1.0_dp)/debye,kind=dp)
        ENDIF
       ENDDO
       !dip_tot(l)=SQRT(dipole2(l,1)**2+dipole2(l,2)**2+dipole2(l,3)**2)
@@ -1139,7 +1140,7 @@ IF (periodic=='y' .OR. periodic=='yes') THEN
 
 ELSE IF(periodic=='n' .OR. periodic=='no') THEN
 
-refpoint2=0.0d0
+refpoint2=0.0_dp
 
 DO j=1,natom
 DO k=1,framecount
@@ -1151,7 +1152,7 @@ CALL pbc_orthorombic(coord_v(k,j,:),coord1,vec,vec_pbc,box_all,box_x,box_y,box_z
  ENDDO
  ENDDO
 
- refpoint2=REAL(refpoint2/mass_tot,KIND=8)
+ refpoint2=REAL(refpoint2/mass_tot,kind=dp)
 
 DO j=1,natom
 l=1
@@ -1159,13 +1160,13 @@ l=1
        CALL pbc_orthorombic(coord_v(k,j,:),refpoint2(k,:),vec,vec_pbc,box_all,box_x,box_y,box_z)
 
        IF(element(j)=="X") THEN
-        dip(k,l,:)=REAL(dip(k,l,:) + vec_pbc*1.889725989d0*(-2.0d0)/debye,KIND=8)
+        dip(k,l,:)=REAL(dip(k,l,:) + vec_pbc*1.889725989_dp*(-2.0_dp)/debye,kind=dp)
        ELSEIF(element(j)=="H") THEN
-        dip(k,l,:)=REAL(dip(k,l,:) + vec_pbc*1.889725989d0*(1.0d0)/debye,KIND=8)
+        dip(k,l,:)=REAL(dip(k,l,:) + vec_pbc*1.889725989_dp*(1.0_dp)/debye,kind=dp)
        ELSEIF(element(j)=="O") THEN
-        dip(k,l,:)=REAL(dip(k,l,:) + vec_pbc*1.889725989d0*(6.0d0)/debye,KIND=8)
+        dip(k,l,:)=REAL(dip(k,l,:) + vec_pbc*1.889725989_dp*(6.0_dp)/debye,kind=dp)
        ELSEIF(element(j)=="B") THEN
-        dip(k,l,:)=REAL(dip(k,l,:) + vec_pbc*1.889725989d0*(3.0d0)/debye,KIND=8)
+        dip(k,l,:)=REAL(dip(k,l,:) + vec_pbc*1.889725989_dp*(3.0_dp)/debye,kind=dp)
        ENDIF
     !dip_tot(l)=SQRT(dipole2(l,1)**2+dipole2(l,2)**2+dipole2(l,3)**2)
   ENDDO
