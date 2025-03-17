@@ -1,0 +1,4 @@
+NMA
+water.xyz
+water-force.data3
+0.001

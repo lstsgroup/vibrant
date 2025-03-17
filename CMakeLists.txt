@@ -19,7 +19,9 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 include(ExternalProject)
 include(cmake/fftw_dependency.cmake)
 include(cmake/greenx_dependency.cmake)
-set(LIBS fftw3 gx_ac)
+find_package(BLAS REQUIRED)
+find_package(LAPACK REQUIRED)
+set(LIBS fftw3 gx_ac ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES})
 
 # Compiler flags
 set(CMAKE_Fortran_FLAGS "-Og -g -fopenmp -fcheck=bounds,do,recursion,pointer -cpp -I${CMAKE_BINARY_DIR}")
