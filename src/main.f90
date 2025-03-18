@@ -1,6 +1,7 @@
 PROGRAM vib2d
 
 USE,INTRINSIC           :: iso_c_binding
+USE kinds,              ONLY: dp
 USE setup,              ONLY: constants,read_input,masses_charges,conversion,pbc_orthorombic,pbc_hexagonal      
 USE read_traj,          ONLY: read_coord,read_coord_frame,read_static,read_static_resraman
 USE dipole_calc,        ONLY: center_mass,wannier,wannier_frag,solv_frag_index
@@ -18,7 +19,7 @@ INCLUDE 'fftw3.f03'
 INTEGER                                         :: b,i,j,k,natom,framecount,framecount_rtp_pade,t0,t1
 INTEGER                                         :: frm,t_cor,nu,tau,stat,mol_num,nmodes,framecount_rtp,nfrag
 INTEGER                                         :: count_0, count_1, count_rate, count_max, num_threads
-INTEGER(KIND=8)                                 :: plan
+INTEGER(kind=dp)                                 :: plan
 INTEGER,DIMENSION(:),ALLOCATABLE                :: natom_frag,natom_frag_x,natom_frag_free,nfrag_BO,nfrag_BC,nfrag_Ph
 INTEGER,DIMENSION(:,:,:),ALLOCATABLE            :: fragment
 CHARACTER(LEN=40)                               :: system,filename,static_pol,read_function,length,type_input,output_dip
@@ -31,45 +32,45 @@ CHARACTER(LEN=40)                               :: dipole_free,dipole_x,dipole_y
 CHARACTER(LEN=40)                               :: output_findif_x,output_findif_y,output_findif_z,input_mass
 CHARACTER(LEN=40)                               :: wannier_free,wannier_x,wannier_y,wannier_z,periodic
 CHARACTER(LEN=2),DIMENSION(:),ALLOCATABLE       :: element
-REAL(KIND=8)                                    :: dist,box_all,box_x,box_y,box_z,debye,mass_tot,fs2s,reccm2ev
-REAL(KIND=8)                                    :: freq_range,dom,ce,co,h_kbT,raman_eq,a,dt_rtp,dom_rtp
-REAL(KIND=8)                                    :: const_planck,const_permit,speed_light,const_boltz,temp,laser_in
-REAL(KIND=8)                                    :: f,tmax,omega,theta,sinth,costh,sinsq,const_charge,laser_in_resraman
-REAL(KIND=8)                                    :: cossq,thsq,thcub,alpha,beta,gamma0,dt,pi,multiplier,dx,bohr2ang
-REAL(KIND=8)                                    :: time_init, time_final, elapsed_time
-REAL(KIND=8)                                    :: hessian_factor,ang,at_u,sinc_const,mass_tot_cell
-REAL(KIND=8)                                    :: damping_constant,joule_unit,ev_unit,action_unit,hartreebohr2evang
-REAL(KIND=8),DIMENSION(3)                       :: vec,vec_pbc,coord2,coord1
-REAL(KIND=8),DIMENSION(:,:,:),ALLOCATABLE       :: refpoint,refpoint_free,refpoint_x,refpoint_y,refpoint_z
-REAL(KIND=8),DIMENSION(:,:,:),ALLOCATABLE       :: alpha_resraman_x,alpha_resraman_y,alpha_resraman_z
-REAL(KIND=8),DIMENSION(:),ALLOCATABLE           :: kissfft,z,norm,mass_atom,z_aniso,z_iso,z_ortho,z_para,zhat_depol
-REAL(KIND=8),DIMENSION(:),ALLOCATABLE           :: atom_mass_inv_sqrt,charge
-REAL(KIND=8),DIMENSION(:),ALLOCATABLE           :: zhat_para_all,zhat_depol_x,zhat_unpol_x,freq,raman_int,test_x
-REAL(KIND=8),DIMENSION(:,:),ALLOCATABLE         :: test_x2,mass_mat
-COMPLEX(KIND=8),DIMENSION(:),ALLOCATABLE        :: zhat,zhat_aniso,zhat_iso,zhat_para,zhat_ortho,zhat_unpol,integral,zhat_test
-COMPLEX(KIND=8),DIMENSION(:,:,:),ALLOCATABLE    :: zhat_resraman_x
-!COMPLEX(KIND=8),DIMENSION(:),ALLOCATABLE        :: zhat_resraman_x
-COMPLEX(KIND=8),DIMENSION(:,:),ALLOCATABLE      :: zhat_test2
-COMPLEX(KIND=8),DIMENSION(:,:),ALLOCATABLE      :: z_iso_resraman,z_aniso_resraman
-COMPLEX(KIND=8),DIMENSION(:),ALLOCATABLE        :: y_out
-REAL(KIND=8),DIMENSION(:,:),ALLOCATABLE         :: coord,mass,dipole2,refpoint2,mass_tot_frag
-REAL(KIND=8),DIMENSION(:,:,:),ALLOCATABLE       :: dip,dip_free,dip_x,dip_y,dip_z
-REAL(KIND=8),DIMENSION(:,:,:),ALLOCATABLE       :: disp,pol_dq
-REAL(KIND=8),DIMENSION(:,:,:,:),ALLOCATABLE     :: com,pol_dq_rtp
-REAL(KIND=8),DIMENSION(:,:,:,:),ALLOCATABLE     :: static_dipole_x,static_dipole_y,static_dipole_z,static_dipole_free
-REAL(KIND=8),DIMENSION(:,:,:,:,:),ALLOCATABLE   :: pol,force
-REAL(KIND=8),DIMENSION(:,:,:,:,:),ALLOCATABLE       :: static_dipole_x_rtp,static_dipole_y_rtp,static_dipole_z_rtp
-REAL(KIND=8),DIMENSION(:,:,:,:,:,:),ALLOCATABLE :: pol_rtp
-REAL(KIND=8),DIMENSION(:,:,:),ALLOCATABLE       :: coord_v, coord_dip,coord_f,coord_x,coord_y,coord_z,dipole,coord_v_x
-REAL(KIND=8),DIMENSION(:,:,:),ALLOCATABLE       :: coord_v_free,alpha_x,alpha_y,alpha_z,v
-REAL(KIND=8),DIMENSION(:,:,:),ALLOCATABLE       :: alpha_diff_x,alpha_diff_y,alpha_diff_z
+REAL(kind=dp)                                    :: dist,box_all,box_x,box_y,box_z,debye,mass_tot,fs2s,reccm2ev
+REAL(kind=dp)                                    :: freq_range,dom,ce,co,h_kbT,raman_eq,a,dt_rtp,dom_rtp
+REAL(kind=dp)                                    :: const_planck,const_permit,speed_light,const_boltz,temp,laser_in
+REAL(kind=dp)                                    :: f,tmax,omega,theta,sinth,costh,sinsq,const_charge,laser_in_resraman
+REAL(kind=dp)                                    :: cossq,thsq,thcub,alpha,beta,gamma0,dt,pi,multiplier,dx,bohr2ang
+REAL(kind=dp)                                    :: time_init, time_final, elapsed_time
+REAL(kind=dp)                                    :: hessian_factor,ang,at_u,sinc_const,mass_tot_cell
+REAL(kind=dp)                                    :: damping_constant,joule_unit,ev_unit,action_unit,hartreebohr2evang
+REAL(kind=dp),DIMENSION(3)                       :: vec,vec_pbc,coord2,coord1
+REAL(kind=dp),DIMENSION(:,:,:),ALLOCATABLE       :: refpoint,refpoint_free,refpoint_x,refpoint_y,refpoint_z
+REAL(kind=dp),DIMENSION(:,:,:),ALLOCATABLE       :: alpha_resraman_x,alpha_resraman_y,alpha_resraman_z
+REAL(kind=dp),DIMENSION(:),ALLOCATABLE           :: kissfft,z,norm,mass_atom,z_aniso,z_iso,z_ortho,z_para,zhat_depol
+REAL(kind=dp),DIMENSION(:),ALLOCATABLE           :: atom_mass_inv_sqrt,charge
+REAL(kind=dp),DIMENSION(:),ALLOCATABLE           :: zhat_para_all,zhat_depol_x,zhat_unpol_x,freq,raman_int,test_x
+REAL(kind=dp),DIMENSION(:,:),ALLOCATABLE         :: test_x2,mass_mat
+COMPLEX(kind=dp),DIMENSION(:),ALLOCATABLE        :: zhat,zhat_aniso,zhat_iso,zhat_para,zhat_ortho,zhat_unpol,integral,zhat_test
+COMPLEX(kind=dp),DIMENSION(:,:,:),ALLOCATABLE    :: zhat_resraman_x
+!COMPLEX(kind=dp),DIMENSION(:),ALLOCATABLE        :: zhat_resraman_x
+COMPLEX(kind=dp),DIMENSION(:,:),ALLOCATABLE      :: zhat_test2
+COMPLEX(kind=dp),DIMENSION(:,:),ALLOCATABLE      :: z_iso_resraman,z_aniso_resraman
+COMPLEX(kind=dp),DIMENSION(:),ALLOCATABLE        :: y_out
+REAL(kind=dp),DIMENSION(:,:),ALLOCATABLE         :: coord,mass,dipole2,refpoint2,mass_tot_frag
+REAL(kind=dp),DIMENSION(:,:,:),ALLOCATABLE       :: dip,dip_free,dip_x,dip_y,dip_z
+REAL(kind=dp),DIMENSION(:,:,:),ALLOCATABLE       :: disp,pol_dq
+REAL(kind=dp),DIMENSION(:,:,:,:),ALLOCATABLE     :: com,pol_dq_rtp
+REAL(kind=dp),DIMENSION(:,:,:,:),ALLOCATABLE     :: static_dipole_x,static_dipole_y,static_dipole_z,static_dipole_free
+REAL(kind=dp),DIMENSION(:,:,:,:,:),ALLOCATABLE   :: pol,force
+REAL(kind=dp),DIMENSION(:,:,:,:,:),ALLOCATABLE       :: static_dipole_x_rtp,static_dipole_y_rtp,static_dipole_z_rtp
+REAL(kind=dp),DIMENSION(:,:,:,:,:,:),ALLOCATABLE :: pol_rtp
+REAL(kind=dp),DIMENSION(:,:,:),ALLOCATABLE       :: coord_v, coord_dip,coord_f,coord_x,coord_y,coord_z,dipole,coord_v_x
+REAL(kind=dp),DIMENSION(:,:,:),ALLOCATABLE       :: coord_v_free,alpha_x,alpha_y,alpha_z,v
+REAL(kind=dp),DIMENSION(:,:,:),ALLOCATABLE       :: alpha_diff_x,alpha_diff_y,alpha_diff_z
 
 !$omp parallel
 num_threads = omp_get_num_threads()
 !$omp end parallel
 
 CALL SYSTEM_CLOCK(count_0, count_rate, count_max) !Starting time
-time_init = count_0*1.0d0/count_rate
+time_init = count_0*1.0_dp/count_rate
 
 CALL constants(const_charge,debye,t_cor,const_planck,const_permit,speed_light,const_boltz,temp,pi,bohr2ang,fs2s,&
      damping_constant,joule_unit,ev_unit,action_unit,hartreebohr2evang,hessian_factor,at_u,ang,reccm2ev)
@@ -198,7 +199,7 @@ ELSEIF (read_function=='RR') THEN
 ENDIF
 
 CALL SYSTEM_CLOCK(count_1, count_rate, count_max) !Ending time
-time_final = count_1*1.0d0/count_rate
+time_final = count_1*1.0_dp/count_rate
 elapsed_time = time_final - time_init !Elapsed time
 
 WRITE(*,1003) INT(elapsed_time),elapsed_time-INT(elapsed_time) !Write elapsed time

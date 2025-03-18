@@ -1,7 +1,7 @@
 module pade
 
     use gx_ac, only: create_thiele_pade, evaluate_thiele_pade_at, params, free_params
-
+    USE kinds,              ONLY: dp
     implicit none
 
     contains 
@@ -17,33 +17,33 @@ module pade
         !! @parameter[out] y_out       -- tabulated interpolated values using pade
         subroutine interpolate(n_parameter,y_ref, n_points, y_out)
             integer,                       intent(in)  :: n_parameter
-            complex(kind=8), dimension(:), intent(in)  :: y_ref
+            complex(kind=dp), dimension(:), intent(in)  :: y_ref
             integer,                       intent(in)  :: n_points
-            complex(kind=8), dimension(:), intent(out) :: y_out
+            complex(kind=dp), dimension(:), intent(out) :: y_out
 
             ! internal variables
             type(params) :: pade_params
             integer      :: num_ref_points, i, n_halve_query_points
             integer      :: last_important, last_important_out
-            real(kind=8) :: first, last, step, x_last_important
-            complex(kind=8), dimension(:), allocatable :: x_ref_complx
-            complex(kind=8), dimension(:), allocatable :: x_out_complx
+            real(kind=dp) :: first, last, step, x_last_important
+            complex(kind=dp), dimension(:), allocatable :: x_ref_complx
+            complex(kind=dp), dimension(:), allocatable :: x_out_complx
             ! convert x to complex type 
             ! use only half of the array (other half filled with zeros)
             num_ref_points = size(y_ref)
             allocate(x_ref_complx(num_ref_points))
-            first = 1.0d0
-            last = 2.0d0
+            first = 1.0_dp
+            last = 2.0_dp
             step = (last - first) / (num_ref_points - 1)
             do i = 1, num_ref_points
-                x_ref_complx(i) = complex(first + (i-1.0d0)*step, 0.0d0)
+                x_ref_complx(i) = complex(first + (i-1.0_dp)*step, 0.0_dp)
             end do
             last_important = num_ref_points
             do i = num_ref_points, 1, -1
-                if (y_ref(i) .eq. complex(0.0d0, 0.0d0) .AND. i>int(num_ref_points/2)) then
-                !if (y_ref(i) .eq. complex(0.0d0, 0.0d0)) then
+                if (y_ref(i) .eq. complex(0.0_dp, 0.0_dp) .AND. i>int(num_ref_points/2)) then
+                !if (y_ref(i) .eq. complex(0.0_dp, 0.0_dp)) then
                     last_important = i -1
-                    x_last_important = real(x_ref_complx(i-1), kind=8)
+                    x_last_important = real(x_ref_complx(i-1), kind=dp)
                 end if 
             end do
 
@@ -54,10 +54,10 @@ module pade
 
             ! create points where function is interpolated
             allocate(x_out_complx(n_points))
-            step = (last - first) / (n_points - 1.0d0)
+            step = (last - first) / (n_points - 1.0_dp)
             last_important_out = 1
             do i = 1, n_points
-                x_out_complx(i) = complex(first + (i-1.0d0)*step, 0.0d0)
+                x_out_complx(i) = complex(first + (i-1.0_dp)*step, 0.0_dp)
                 if (x_out_complx(i)%re .le. x_last_important) THEN
                     last_important_out = i
                 end if 
@@ -65,7 +65,7 @@ module pade
 
             ! evaluate model at given x for half the points (other half zero)
             y_out = evaluate_thiele_pade_at(pade_params, x_out_complx)
-            y_out(last_important_out:) = complex(0.0d0, 0.0d0)
+            y_out(last_important_out:) = complex(0.0_dp, 0.0_dp)
 
             ! deallocation 
             call free_params(pade_params)

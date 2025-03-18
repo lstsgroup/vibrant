@@ -1,5 +1,7 @@
 MODULE read_traj
 
+    USE kinds,              ONLY: dp
+
 IMPLICIT NONE
 
 PRIVATE 
@@ -14,7 +16,7 @@ CHARACTER(LEN=40),INTENT(IN)                               :: filename,periodic,
 INTEGER,INTENT(IN)                                         :: framecount_rtp
 INTEGER,INTENT(OUT)                                        :: natom,framecount,mol_num
 CHARACTER(LEN=2),DIMENSION(:),ALLOCATABLE,INTENT(OUT)      :: element
-REAL(KIND=8),DIMENSION(:,:),ALLOCATABLE,INTENT(OUT)        :: coord
+REAL(kind=dp),DIMENSION(:,:),ALLOCATABLE,INTENT(OUT)        :: coord
 
 INTEGER                                                    :: i,j,stat
 
@@ -58,7 +60,7 @@ SUBROUTINE read_coord_frame(natom,framecount,element,filename,coord_v)
 CHARACTER(LEN=40),INTENT(IN)                               :: filename
 INTEGER,INTENT(INOUT)                                      :: natom,framecount
 CHARACTER(LEN=2),DIMENSION(:),ALLOCATABLE,INTENT(INOUT)    :: element
-REAL(KIND=8),DIMENSION(:,:,:),ALLOCATABLE,INTENT(OUT)      :: coord_v
+REAL(kind=dp),DIMENSION(:,:,:),ALLOCATABLE,INTENT(OUT)      :: coord_v
 
 INTEGER                                                    :: i,j,stat
 
@@ -93,11 +95,11 @@ CHARACTER(LEN=40),INTENT(IN)                               :: normal_freq_file,n
 INTEGER,INTENT(INOUT)                                      :: natom
 INTEGER,INTENT(OUT)                                        :: nmodes
 CHARACTER(LEN=2),DIMENSION(:),ALLOCATABLE,INTENT(INOUT)    :: element
-REAL(KIND=8),DIMENSION(:,:,:,:,:),ALLOCATABLE,INTENT(OUT)  :: pol,force
-REAL(KIND=8),DIMENSION(:,:,:,:),ALLOCATABLE,INTENT(OUT)    :: static_dipole_x,static_dipole_free
-REAL(KIND=8),DIMENSION(:,:,:,:),ALLOCATABLE,INTENT(OUT)    :: static_dipole_y,static_dipole_z
-REAL(KIND=8),DIMENSION(:),ALLOCATABLE,INTENT(OUT)          :: freq
-REAL(KIND=8),DIMENSION(:,:,:),ALLOCATABLE,INTENT(OUT)      :: disp
+REAL(kind=dp),DIMENSION(:,:,:,:,:),ALLOCATABLE,INTENT(OUT)  :: pol,force
+REAL(kind=dp),DIMENSION(:,:,:,:),ALLOCATABLE,INTENT(OUT)    :: static_dipole_x,static_dipole_free
+REAL(kind=dp),DIMENSION(:,:,:,:),ALLOCATABLE,INTENT(OUT)    :: static_dipole_y,static_dipole_z
+REAL(kind=dp),DIMENSION(:),ALLOCATABLE,INTENT(OUT)          :: freq
+REAL(kind=dp),DIMENSION(:,:,:),ALLOCATABLE,INTENT(OUT)      :: disp
 
 CHARACTER(LEN=40)                                          :: chara
 INTEGER                                                    :: i,j,k,m,n,data_number
@@ -257,10 +259,10 @@ CHARACTER(LEN=40),INTENT(IN)                               :: normal_freq_file,n
 INTEGER,INTENT(INOUT)                                      :: natom,framecount_rtp
 INTEGER,INTENT(OUT)                                        :: nmodes
 CHARACTER(LEN=2),DIMENSION(:),ALLOCATABLE,INTENT(INOUT)    :: element
-REAL(KIND=8),DIMENSION(:,:,:,:,:),ALLOCATABLE,INTENT(OUT)  :: static_dipole_x_rtp
-REAL(KIND=8),DIMENSION(:,:,:,:,:),ALLOCATABLE,INTENT(OUT)  :: static_dipole_y_rtp,static_dipole_z_rtp
-REAL(KIND=8),DIMENSION(:),ALLOCATABLE,INTENT(OUT)          :: freq
-REAL(KIND=8),DIMENSION(:,:,:),ALLOCATABLE,INTENT(OUT)      :: disp
+REAL(kind=dp),DIMENSION(:,:,:,:,:),ALLOCATABLE,INTENT(OUT)  :: static_dipole_x_rtp
+REAL(kind=dp),DIMENSION(:,:,:,:,:),ALLOCATABLE,INTENT(OUT)  :: static_dipole_y_rtp,static_dipole_z_rtp
+REAL(kind=dp),DIMENSION(:),ALLOCATABLE,INTENT(OUT)          :: freq
+REAL(kind=dp),DIMENSION(:,:,:),ALLOCATABLE,INTENT(OUT)      :: disp
 
 CHARACTER(LEN=40)                                          :: chara
 INTEGER                                                    :: i,j,k,m,data_number,step
