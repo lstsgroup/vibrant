@@ -312,7 +312,7 @@ DO
 ENDDO  
 
 DO 
-    IF (read_function=='NMA' .OR. type_static=='1') THEN
+    IF (read_function=='NMA') THEN
         WRITE(*,*)'Enter the name of the geometry file:'
         READ(*,*) filename
         WRITE(*,*)'Enter the name of the force file:'
@@ -329,10 +329,15 @@ DO
     IF (read_function=='R' ) THEN
         WRITE(*,*)'Enter the name of the geometry file:'
         READ(*,*) filename
-        WRITE(*,*)'Enter the name of the normal mode frequency file:'
-        READ(*,*) normal_freq_file
-        WRITE(*,*)'Enter the name of the normal mode coordinates file:'
-        READ(*,*) normal_displ_file
+        IF (type_static=='1') THEN
+            WRITE(*,*)'Enter the name of the force file:'
+            READ(*,*) force_file
+        ELSEIF (type_static=='2') THEN        
+           WRITE(*,*)'Enter the name of the normal mode frequency file:'
+           READ(*,*) normal_freq_file
+           WRITE(*,*)'Enter the name of the normal mode coordinates file:'
+           READ(*,*) normal_displ_file
+        ENDIF
         IF (type_dipole=='3') THEN
         WRITE(*,*)'Enter the name of the file that contains polarizabilities:'
         READ(*,*) static_pol

@@ -34,7 +34,7 @@ def parse_spectrum_from_file(fname:str):
     return x, y
 
 
-def test_Raman_Static_DFPT(vibrant_binary_path):
+def test_Raman_Static_DFPT_Ext(vibrant_binary_path):
     """ run test case """
     # run vibrant calculation and test for successfull exit
     returncode, stdout = run_vibrant(vibrant_binary_path, "input.txt")

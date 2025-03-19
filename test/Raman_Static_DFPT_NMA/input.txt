@@ -1,0 +1,8 @@
+R
+1
+3
+water.xyz
+water-force.data3
+polarizabilities_water.dat
+0.001
+9398.50
