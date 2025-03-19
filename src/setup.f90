@@ -278,9 +278,10 @@ DO
 ENDDO
 
 DO 
-    IF (read_function=='MD-RR' .OR. read_function=='RR') THEN
-        ! WRITE(*,*) 'What is the wavenumber (cm^-1) of the incident laser?'
-        ! READ(*,*) laser_in
+    IF (read_function=='MD-R') THEN
+    !IF (read_function=='MD-RR' .OR. read_function=='RR') THEN
+         WRITE(*,*) 'What is the wavenumber (cm^-1) of the incident laser?'
+         READ(*,*) laser_in
     ENDIF
     EXIT
 ENDDO
@@ -372,8 +373,6 @@ ENDDO
 
 DO
     IF (read_function=='RR' .OR. read_function=='ABS') THEN
-        ! normal_freq_file='normal_freqs_o-NP.dat'
-        ! normal_displ_file='normal_displacements_o-NP.dat'
       !  normal_freq_file='normal_freqs_PCU2.dat'
       !  normal_displ_file='normal_displacements_PCU2.dat'
         WRITE(*,*)'Enter the name of the geometry file:'
@@ -400,26 +399,6 @@ DO
         WRITE(*,*) 'Enter the final number of RT-TDDFT steps after the application of Pade interpolation:'
         READ(*,*) framecount_rtp_pade
         ENDIF
-      !  normal_freq_file='normal_freqs_r-met.dat'
-      !  normal_displ_file='normal_displacements_r-met.dat'
-        ! filename='o-nitrophenol.xyz'
-        !filename='PCU2.xyz'
-       ! filename='r-met.xyz'
-        !  static_dip_x_file='o-NP_RTP_dipoles_static_X.xyz'
-        !  static_dip_y_file='o-NP_RTP_dipoles_static_Y.xyz'
-        !  static_dip_z_file='o-NP_RTP_dipoles_static_Z.xyz'
-      !  static_dip_x_file='PCU2_RTP_dipoles_static_X.xyz'
-      !  static_dip_y_file='PCU2_RTP_dipoles_static_Y.xyz'
-       ! static_dip_z_file='PCU2_RTP_dipoles_static_Z.xyz'
-      !  static_dip_x_file='r-met_RTP_dipoles_static_X_80000.xyz'
-      !  static_dip_y_file='r-met_RTP_dipoles_static_Y_80000.xyz'
-      !  static_dip_z_file='r-met_RTP_dipoles_static_Z_80000.xyz'
-        !framecount_rtp=1280
-        ! framecount_rtp=256
-        !dt_rtp=0.0125_dp
-       !  dt_rtp=0.00242_dp
-       ! dt_rtp=0.001_dp
-        !  dt_rtp=0.0625_dp
         !WRITE(*,*)'What is the wavenumber of the incident laser (cm^-1)?'
         !READ(*,*) laser_in_resraman
        ! laser_in_resraman=15797.788309636651_dp
