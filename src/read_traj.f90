@@ -120,8 +120,6 @@ IF (read_function=='NMA' .OR. type_static=='1') THEN
     ENDDO
     CLOSE(49)
 
-print*,force(1,1,1,3,2),"force"
-
 ELSEIF (type_static=='2') THEN
     nmodes=0
     OPEN(UNIT=50,FILE=normal_freq_file,STATUS='old',IOSTAT=stat) !Reading normal freqs/coords

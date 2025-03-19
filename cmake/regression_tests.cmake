@@ -77,3 +77,8 @@ add_test(
     COMMAND pytest test_Normal_Modes.py
     WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test/Normal_Modes
 )
+add_test(
+    NAME Raman_Static_DFPT
+    COMMAND pytest test_Raman_Static_DFPT.py
+    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test/Raman_Static_DFPT
+)

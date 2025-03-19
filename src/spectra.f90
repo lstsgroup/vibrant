@@ -717,14 +717,13 @@ REAL(kind=dp)                                             :: omega,broad
 ALLOCATE(iso_sq(nmodes),aniso_sq(nmodes))
 ALLOCATE(raman_int(nmodes))
 
+print*,"ekin"
 start_freq=1.0_dp
 end_freq=INT(MAXVAL(freq)+1000.0_dp)
 freq_range=INT(end_freq-start_freq)
 omega=5.0_dp
-data1=0.0_dp
+ALLOCATE(data2(freq_range+1))
 data2=0.0_dp
-
-ALLOCATE(data1(freq_range*nmodes),data2(freq_range*nmodes))
 
 !!!Isotropic and anisotropic contributions!!
 DO k=1,nmodes
@@ -742,14 +741,14 @@ DO k=1,nmodes
 ENDDO
 
 !!!Broadening the spectrum!!
-DO x=start_freq,end_freq
+DO i=start_freq,end_freq
  broad = 0.0_dp
- DO i=1,nmodes
-  broad=broad+(raman_int(i)*(1.0_dp/(omega*SQRT(2.0_dp*pi)))*EXP(-0.50_dp*((x-freq(i))/omega)**2.0_dp))
+ DO x=1,nmodes
+  broad=broad+(raman_int(x)*(1.0_dp/(omega*SQRT(2.0_dp*pi)))*EXP(-0.50_dp*((i-freq(x))/omega)**2.0_dp))
  ENDDO
- data2(x)=data2(x)+broad
+ data2(i)=data2(i)+broad
 ENDDO
-       
+
 OPEN(UNIT=98,FILE='result_static_raman.txt',STATUS='unknown',IOSTAT=stat)
 DO i=start_freq,end_freq
  WRITE(98,*) i,data2(i)
@@ -789,7 +788,7 @@ DO i=1,nmodes
 ENDDO
 CLOSE(15)
 
-DEALLOCATE(iso_sq,aniso_sq,data1,data2,raman_int)
+DEALLOCATE(iso_sq,aniso_sq,data2,raman_int)
 
 END SUBROUTINE spec_static_raman
 !....................................................................................................................!

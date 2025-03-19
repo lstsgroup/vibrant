@@ -97,7 +97,7 @@ REAL(kind=dp),DIMENSION(:,:,:,:),ALLOCATABLE                  :: pol_dxyz
 ALLOCATE(pol_dxyz(natom,3,3,3))
 ALLOCATE(pol_dq(nmodes,3,3))
 ALLOCATE(mass_inv_sqrt(natom))
-
+print*,mass_atom(1)
 print*,static_dipole_free(1,1,1,1),'free',static_dipole_x(1,1,1,1),'x',"polarizabilities1"
 pol_dq=0.0_dp
 
@@ -121,6 +121,10 @@ ENDIF
 
 print*,static_dipole_free(1,1,1,1),'free',static_dipole_x(1,1,1,1),'x',"polarizabilities1"
 print*,pol(1,1,1,1,1),"polarizabilities"
+print*,pol(2,2,1,1,1),"polarizabilities"
+print*,pol(1,1,1,2,1),"polarizabilities"
+print*,pol(1,1,1,1,3),"polarizabilities"
+print*,pol(1,1,1,1,2),"polarizabilities"
 
 DO j=1,natom
     DO i=1,3
