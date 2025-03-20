@@ -105,6 +105,8 @@ CHARACTER(LEN=40)                                          :: chara
 INTEGER                                                    :: i,j,k,m,n,data_number
 INTEGER                                                    :: stat
 
+ALLOCATE(pol(natom,3,2,3,3),static_dipole_free(natom,3,2,3),static_dipole_x(natom,3,2,3))
+ALLOCATE(static_dipole_y(natom,3,2,3),static_dipole_z(natom,3,2,3))
 
 IF (read_function=='NMA' .OR. type_static=='1') THEN
     ALLOCATE (force(2,natom,3,natom,3))
@@ -120,8 +122,6 @@ IF (read_function=='NMA' .OR. type_static=='1') THEN
     ENDDO
     CLOSE(49)
 
-print*,force(1,1,1,3,2),"force"
-
 ELSEIF (type_static=='2') THEN
     nmodes=0
     OPEN(UNIT=50,FILE=normal_freq_file,STATUS='old',IOSTAT=stat) !Reading normal freqs/coords
@@ -132,9 +132,7 @@ ELSEIF (type_static=='2') THEN
     998 CONTINUE
     CLOSE(50)
     
-    ALLOCATE(freq(nmodes),disp(natom,nmodes,3))
-    ALLOCATE(pol(natom,3,2,3,3),static_dipole_free(natom,3,2,3),static_dipole_x(natom,3,2,3))
-    ALLOCATE(static_dipole_y(natom,3,2,3),static_dipole_z(natom,3,2,3))
+    ALLOCATE(freq(nmodes),disp(nmodes,natom,3))
     
     OPEN(UNIT=51,FILE=normal_freq_file,STATUS='old',IOSTAT=stat) !Reading normal freqs/coords
     DO i=1,nmodes
@@ -144,9 +142,9 @@ ELSEIF (type_static=='2') THEN
     CLOSE(51)
     
     OPEN(UNIT=51,FILE=normal_displ_file,STATUS='old',IOSTAT=stat) !Reading normal freqs/coords
-    DO i=1,nmodes       !look above!!!
-        DO j=1,natom        !changed the order of these two lines for o-NP, for water it is reverse!!
-            READ(51,*,END=996) disp(j,i,1),disp(j,i,2),disp(j,i,3)
+    DO i=1,nmodes       
+        DO j=1,natom        
+            READ(51,*,END=996) disp(i,j,1),disp(i,j,2),disp(i,j,3)
         ENDDO
     ENDDO
     996 CONTINUE

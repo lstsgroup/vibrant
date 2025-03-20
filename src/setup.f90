@@ -65,7 +65,7 @@ CHARACTER(LEN=40),INTENT(OUT)                       :: rtp_dipole_x,rtp_dipole_y
 REAL(kind=dp),INTENT(OUT)                            :: dt,dt_rtp,box_all,box_x,box_y,box_z,laser_in,laser_in_resraman,dx
 INTEGER,INTENT(OUT)                                 :: framecount_rtp,framecount_rtp_pade
 
-laser_in=9398.50_dp  !cm^-1       
+!laser_in=9398.50_dp  !cm^-1       
 DO 
  WRITE(*,*)'Enter which function you want to calculate (type "P" for Power spectrum , "MD-IR" for MD-based IR spectrum, &
          "MD-R" for MD-based Raman spectrum, "MD-RR" for MD-based resonance Raman, "NMA" for normal mode analysis, &
@@ -278,9 +278,10 @@ DO
 ENDDO
 
 DO 
-    IF (read_function=='MD-RR' .OR. read_function=='RR') THEN
-        ! WRITE(*,*) 'What is the wavenumber (cm^-1) of the incident laser?'
-        ! READ(*,*) laser_in
+    IF (read_function=='MD-R') THEN
+    !IF (read_function=='MD-RR' .OR. read_function=='RR') THEN
+         WRITE(*,*) 'What is the wavenumber (cm^-1) of the incident laser?'
+         READ(*,*) laser_in
     ENDIF
     EXIT
 ENDDO
@@ -311,7 +312,7 @@ DO
 ENDDO  
 
 DO 
-    IF (read_function=='NMA' .OR. type_static=='1') THEN
+    IF (read_function=='NMA') THEN
         WRITE(*,*)'Enter the name of the geometry file:'
         READ(*,*) filename
         WRITE(*,*)'Enter the name of the force file:'
@@ -326,44 +327,30 @@ ENDDO
 
 DO
     IF (read_function=='R' ) THEN
-        ! normal_freq_file='normal_freqs_o-NP.dat'
-        ! normal_displ_file='normal_displacements_o-NP.dat'
-        ! normal_freq_file='normal_freqs_2cat_triplet.dat'
-        ! normal_displ_file='normal_displacements_2cat_triplet.dat'
-        normal_freq_file='normal_freqs_2cat_singlet_CS.dat'
-        normal_displ_file='normal_displacements_2cat_singlet_CS.dat'
-        !normal_freq_file='normal_freqs_r-met.dat'
-        !normal_displ_file='normal_displacements_r-met.dat'
-        ! filename='water.xyz'
-        !filename='o-nitrophenol.xyz'
-        !filename='2cat_triplet.xyz'
-        filename='2cat_singlet_CS.xyz'
-        !filename='r-met.xyz'
-        !filename='COF-1.xyz'
+        WRITE(*,*)'Enter the name of the geometry file:'
+        READ(*,*) filename
+        IF (type_static=='1') THEN
+            WRITE(*,*)'Enter the name of the force file:'
+            READ(*,*) force_file
+        ELSEIF (type_static=='2') THEN        
+           WRITE(*,*)'Enter the name of the normal mode frequency file:'
+           READ(*,*) normal_freq_file
+           WRITE(*,*)'Enter the name of the normal mode coordinates file:'
+           READ(*,*) normal_displ_file
+        ENDIF
         IF (type_dipole=='3') THEN
-            static_pol='polarizabilities.dat'
+        WRITE(*,*)'Enter the name of the file that contains polarizabilities:'
+        READ(*,*) static_pol
         ELSEIF (type_dipole=='2') THEN
             static_dip_free_file='dipole_2cat_singlet_CS_free_static.xyz'
             static_dip_x_file='dipole_2cat_singlet_CS_X_static.xyz'
             static_dip_y_file='dipole_2cat_singlet_CS_Y_static.xyz'
             static_dip_z_file='dipole_2cat_singlet_CS_Z_static.xyz'
-            !static_dip_free_file='dipole_r-met_free_static.xyz'
-            ! static_dip_x_file='dipole_r-met_X_static.xyz'
-            ! static_dip_y_file='dipole_r-met_Y_static.xyz'
-            ! static_dip_z_file='dipole_r-met_Z_static.xyz'
-            ! static_dip_free_file='dipole_o-NP_free_static.xyz'
-            ! static_dip_x_file='dipole_o-NP_X_static.xyz'
-            ! static_dip_y_file='dipole_o-NP_Y_static.xyz'
-            ! static_dip_z_file='dipole_o-NP_Z_static.xyz'
-         ENDIF
-        !WRITE(*,*)'Enter the name of the normal frequencies file'
-        !READ(*,*) norma_freq_file
-        !WRITE(*,*)'Enter the name of the normal displacements file'
-        !READ(*,*) norma_displ_file
-        !WRITE(*,*)'Enter the name of the coordinate file'
-        !READ(*,*) filename
-        !WRITE(*,*)'Enter the name of the polarizability file'
-        !READ(*,*) static_pol
+        ENDIF
+        WRITE(*,*)'What is the normal mode displacement in Angstrom?'
+        READ(*,*) dx 
+        WRITE(*,*) 'What is the wavenumber (cm^-1) of the incident laser?'
+        READ(*,*) laser_in
     ENDIF
     EXIT
  ENDDO
@@ -391,8 +378,6 @@ ENDDO
 
 DO
     IF (read_function=='RR' .OR. read_function=='ABS') THEN
-        ! normal_freq_file='normal_freqs_o-NP.dat'
-        ! normal_displ_file='normal_displacements_o-NP.dat'
       !  normal_freq_file='normal_freqs_PCU2.dat'
       !  normal_displ_file='normal_displacements_PCU2.dat'
         WRITE(*,*)'Enter the name of the geometry file:'
@@ -419,26 +404,6 @@ DO
         WRITE(*,*) 'Enter the final number of RT-TDDFT steps after the application of Pade interpolation:'
         READ(*,*) framecount_rtp_pade
         ENDIF
-      !  normal_freq_file='normal_freqs_r-met.dat'
-      !  normal_displ_file='normal_displacements_r-met.dat'
-        ! filename='o-nitrophenol.xyz'
-        !filename='PCU2.xyz'
-       ! filename='r-met.xyz'
-        !  static_dip_x_file='o-NP_RTP_dipoles_static_X.xyz'
-        !  static_dip_y_file='o-NP_RTP_dipoles_static_Y.xyz'
-        !  static_dip_z_file='o-NP_RTP_dipoles_static_Z.xyz'
-      !  static_dip_x_file='PCU2_RTP_dipoles_static_X.xyz'
-      !  static_dip_y_file='PCU2_RTP_dipoles_static_Y.xyz'
-       ! static_dip_z_file='PCU2_RTP_dipoles_static_Z.xyz'
-      !  static_dip_x_file='r-met_RTP_dipoles_static_X_80000.xyz'
-      !  static_dip_y_file='r-met_RTP_dipoles_static_Y_80000.xyz'
-      !  static_dip_z_file='r-met_RTP_dipoles_static_Z_80000.xyz'
-        !framecount_rtp=1280
-        ! framecount_rtp=256
-        !dt_rtp=0.0125_dp
-       !  dt_rtp=0.00242_dp
-       ! dt_rtp=0.001_dp
-        !  dt_rtp=0.0625_dp
         !WRITE(*,*)'What is the wavenumber of the incident laser (cm^-1)?'
         !READ(*,*) laser_in_resraman
        ! laser_in_resraman=15797.788309636651_dp

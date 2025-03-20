@@ -145,18 +145,23 @@ ELSEIF (read_function=='NMA') THEN
     CALL read_static(natom,element,normal_freq_file,normal_displ_file,static_pol,pol,freq,disp,&
          nmodes,static_dip_free_file,static_dip_x_file,static_dip_y_file,static_dip_z_file,type_dipole,&
          static_dipole_x,static_dipole_y,static_dipole_z,static_dipole_free,read_function,type_static,force_file,force)
-    CALL normal_mode_analysis(natom,force,dx,hartreebohr2evang,hessian_factor,mass_mat,pi,speed_light)
+    CALL normal_mode_analysis(natom,force,dx,hartreebohr2evang,hessian_factor,mass_mat,pi,speed_light,nmodes,freq,disp)
         
 ELSEIF (read_function=='R') THEN
     CALL read_coord(natom,framecount,element,coord,filename,periodic,mol_num,system,read_function,framecount_rtp,type_dipole)
+    CALL masses_charges(natom,mass_atom,atom_mass_inv_sqrt,mass_mat,element,mass_tot,charge)
     CALL read_static(natom,element,normal_freq_file,normal_displ_file,static_pol,pol,freq,disp,nmodes,static_dip_free_file,&
          static_dip_x_file,static_dip_y_file,static_dip_z_file,type_dipole,static_dipole_x,static_dipole_y,static_dipole_z,&
          static_dipole_free,read_function,type_static,force_file,force)
+    IF (type_static=='1') THEN
+        CALL normal_mode_analysis(natom,force,dx,hartreebohr2evang,hessian_factor,mass_mat,pi,speed_light,nmodes,freq,disp)
+    ENDIF
+    print*,freq(1), 'freq test'
     CALL finite_diff_static(natom,nmodes,pol,pol_dq,disp,mass_atom,dx,bohr2ang,static_dipole_free,static_dipole_x,&
          static_dipole_y,static_dipole_z,type_dipole)
     CALL spec_static_raman(nmodes,pol_dq,laser_in,freq,temp,raman_int,pi,element,coord,disp,bohr2ang,natom)
     DEALLOCATE(freq,disp)
-    DEALLOCATE(pol,pol_dq,raman_int)
+    DEALLOCATE(pol,pol_dq)
     DEALLOCATE(element,coord,mass_atom)
 
 ELSEIF (read_function=='MD-RR') THEN

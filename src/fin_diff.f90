@@ -79,13 +79,13 @@ END SUBROUTINE forward_diff
 SUBROUTINE finite_diff_static(natom,nmodes,pol,pol_dq,disp,mass_atom,dx,bohr2ang,static_dipole_free,&
           static_dipole_x,static_dipole_y,static_dipole_z,type_dipole)
 
-INTEGER,INTENT(INOUT)                                        :: natom,nmodes
-CHARACTER(LEN=40),INTENT(IN)                                 :: type_dipole
+INTEGER,INTENT(INOUT)                                         :: natom,nmodes
+CHARACTER(LEN=40),INTENT(IN)                                  :: type_dipole
 REAL(kind=dp),DIMENSION(:,:,:,:,:),ALLOCATABLE,INTENT(INOUT)  :: pol
 REAL(kind=dp),DIMENSION(:,:,:,:),ALLOCATABLE,INTENT(INOUT)    :: static_dipole_free,static_dipole_x
 REAL(kind=dp),DIMENSION(:,:,:,:),ALLOCATABLE,INTENT(INOUT)    :: static_dipole_y,static_dipole_z
 REAL(kind=dp),DIMENSION(:,:,:),ALLOCATABLE,INTENT(OUT)        :: pol_dq
-REAL(kind=dp),DIMENSION(:,:,:),ALLOCATABLE,INTENT(INOUT)      :: disp
+REAL(kind=dp),DIMENSION(:,:,:),ALLOCATABLE,INTENT(IN)         :: disp
 REAL(kind=dp),DIMENSION(:),ALLOCATABLE,INTENT(INOUT)          :: mass_atom
 REAL(kind=dp),INTENT(IN)                                      :: dx,bohr2ang
 
@@ -94,10 +94,12 @@ REAL(kind=dp)                                                 :: factor
 REAL(kind=dp),DIMENSION(:),ALLOCATABLE                        :: mass_inv_sqrt
 REAL(kind=dp),DIMENSION(:,:,:,:),ALLOCATABLE                  :: pol_dxyz
 
+
+print*,nmodes,'nmodes',disp(1,1,1)
 ALLOCATE(pol_dxyz(natom,3,3,3))
 ALLOCATE(pol_dq(nmodes,3,3))
 ALLOCATE(mass_inv_sqrt(natom))
-
+print*,mass_atom(1)
 print*,static_dipole_free(1,1,1,1),'free',static_dipole_x(1,1,1,1),'x',"polarizabilities1"
 pol_dq=0.0_dp
 
@@ -121,6 +123,10 @@ ENDIF
 
 print*,static_dipole_free(1,1,1,1),'free',static_dipole_x(1,1,1,1),'x',"polarizabilities1"
 print*,pol(1,1,1,1,1),"polarizabilities"
+print*,pol(2,2,1,1,1),"polarizabilities"
+print*,pol(1,1,1,2,1),"polarizabilities"
+print*,pol(1,1,1,1,3),"polarizabilities"
+print*,pol(1,1,1,1,2),"polarizabilities"
 
 DO j=1,natom
     DO i=1,3
@@ -130,9 +136,9 @@ ENDDO
 
 DO j=1,nmodes
     DO k=1,natom
-        pol_dq(j,:,:)=pol_dq(j,:,:)+(pol_dxyz(k,1,:,:)*disp(k,j,1)*mass_inv_sqrt(k))&
-                      +(pol_dxyz(k,2,:,:)*disp(k,j,2)*mass_inv_sqrt(k))+(pol_dxyz(k,3,:,:)*&
-                      disp(k,j,3)*mass_inv_sqrt(k))
+        pol_dq(j,:,:)=pol_dq(j,:,:)+(pol_dxyz(k,1,:,:)*disp(j,k,1)*mass_inv_sqrt(k))&
+                      +(pol_dxyz(k,2,:,:)*disp(j,k,2)*mass_inv_sqrt(k))+(pol_dxyz(k,3,:,:)*&
+                      disp(j,k,3)*mass_inv_sqrt(k))
     ENDDO
 ENDDO
 

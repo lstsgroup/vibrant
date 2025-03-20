@@ -588,20 +588,23 @@ END SUBROUTINE spec_raman
 !....................................................................................................................!
 !....................................................................................................................!
 
-SUBROUTINE normal_mode_analysis(natom,force,dx,hartreebohr2evang,hessian_factor,mass_mat,pi,speed_light)
+SUBROUTINE normal_mode_analysis(natom,force,dx,hartreebohr2evang,hessian_factor,mass_mat,pi,speed_light,nmodes,&
+           freq,disp)
 
-INTEGER,INTENT(IN)                                          :: natom
+INTEGER,INTENT(IN)                                           :: natom
+INTEGER,INTENT(OUT)                                          :: nmodes
 REAL(kind=dp),INTENT(IN)                                     :: dx,hartreebohr2evang,hessian_factor,pi,speed_light
+REAL(kind=dp),DIMENSION(:),ALLOCATABLE,INTENT(OUT)           :: freq
 REAL(kind=dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN)          :: mass_mat
+REAL(kind=dp),DIMENSION(:,:,:),ALLOCATABLE,INTENT(OUT)       :: disp
 REAL(kind=dp),DIMENSION(:,:,:,:,:),ALLOCATABLE,INTENT(INOUT) :: force
 
-INTEGER                                                     :: stat,i,j,m,n,p,k,info,lwork,lwmax,ix,lda,nmodes
+INTEGER                                                      :: stat,i,j,m,n,p,k,info,lwork,lwmax,ix,lda
 REAL(kind=dp)                                                :: factor
-REAL(kind=dp),DIMENSION(:),ALLOCATABLE                       :: w,work,w_new,freq
+REAL(kind=dp),DIMENSION(:),ALLOCATABLE                       :: w,work,w_new
 REAL(kind=dp),DIMENSION(:,:),ALLOCATABLE                     :: hessian_new,atomic_displacements
-REAL(kind=dp),DIMENSION(:,:,:),ALLOCATABLE                   :: normal_displacements
 REAL(kind=dp),DIMENSION(:,:,:,:),ALLOCATABLE                 :: hessian
-LOGICAL,DIMENSION(9)                                        :: mk = .TRUE.
+LOGICAL,DIMENSION(9)                                         :: mk = .TRUE.
 
 lwmax=1000
 lda=natom*3
@@ -650,29 +653,22 @@ hessian_new=TRANSPOSE(hessian_new)
 w=REAL(w*SQRT(ABS(w))/ABS(w),kind=dp)
 w=REAL(w/(2.0_dp*pi*speed_light),kind=dp)
 
-ALLOCATE(freq(nmodes),atomic_displacements(nmodes,natom*3),normal_displacements(nmodes,natom,3))
+ALLOCATE(freq(nmodes),atomic_displacements(nmodes,natom*3),disp(nmodes,natom,3))
 
 DO i=7,natom*3
   freq(i-6)=w(i)
 ENDDO
 
 atomic_displacements(1:nmodes,1:natom*3)=hessian_new(6:3*natom-1,:)
-!print*,atomic_displacements(1,1:9)
-!print*,atomic_displacements(2,1:9)
-!print*,atomic_displacements(3,1:9)
 
 m=0
 DO j=0,natom-1 !natom
  DO k=0,2 !dims
-  normal_displacements(1:nmodes,j+1,k+1)=atomic_displacements(1:nmodes,j+k+1+m)
+  disp(1:nmodes,j+1,k+1)=atomic_displacements(1:nmodes,j+k+1+m)
  ENDDO
  m=m+2
 ENDDO
 
-!normal_displacements=RESHAPE(atomic_displacements,[3,3,3])
-print*,normal_displacements(2,2,3)
-
-!RESHAPE(atomic_displacements(1:natom*3-6,:),(/natom,3/))=normal_displacements(1:nmodes,:,:)
 print*,freq(1:3)
 
 OPEN(UNIT=13,FILE='normal_mode_freq.txt',STATUS='unknown',IOSTAT=stat)
@@ -683,16 +679,10 @@ ENDDO
 OPEN(UNIT=14,FILE='normal_mode_displ.txt',STATUS='unknown',IOSTAT=stat)
 DO i=1,nmodes !!atom_num: 1st atom
  DO j=1,natom !!dims: x dimension
-   WRITE(14,*) normal_displacements(i,j,1:3)
+   WRITE(14,*) disp(i,j,1:3)
  ENDDO
 ENDDO
-!print*,hessian_new(3,2),hessian_new(6,5)
-!print*,normal_displacements(1,1,1),normal_displacements(3,3,3),normal_displacements(2,3,1)
-!print*,normal_displacements
 
-!call sort( w )
-
-!print*,size(w)
 END SUBROUTINE normal_mode_analysis
 
 !....................................................................................................................!
@@ -717,14 +707,13 @@ REAL(kind=dp)                                             :: omega,broad
 ALLOCATE(iso_sq(nmodes),aniso_sq(nmodes))
 ALLOCATE(raman_int(nmodes))
 
+print*,"ekin"
 start_freq=1.0_dp
 end_freq=INT(MAXVAL(freq)+1000.0_dp)
 freq_range=INT(end_freq-start_freq)
 omega=5.0_dp
-data1=0.0_dp
+ALLOCATE(data2(freq_range+1))
 data2=0.0_dp
-
-ALLOCATE(data1(freq_range*nmodes),data2(freq_range*nmodes))
 
 !!!Isotropic and anisotropic contributions!!
 DO k=1,nmodes
@@ -742,14 +731,14 @@ DO k=1,nmodes
 ENDDO
 
 !!!Broadening the spectrum!!
-DO x=start_freq,end_freq
+DO i=start_freq,end_freq
  broad = 0.0_dp
- DO i=1,nmodes
-  broad=broad+(raman_int(i)*(1.0_dp/(omega*SQRT(2.0_dp*pi)))*EXP(-0.50_dp*((x-freq(i))/omega)**2.0_dp))
+ DO x=1,nmodes
+  broad=broad+(raman_int(x)*(1.0_dp/(omega*SQRT(2.0_dp*pi)))*EXP(-0.50_dp*((i-freq(x))/omega)**2.0_dp))
  ENDDO
- data2(x)=data2(x)+broad
+ data2(i)=data2(i)+broad
 ENDDO
-       
+
 OPEN(UNIT=98,FILE='result_static_raman.txt',STATUS='unknown',IOSTAT=stat)
 DO i=start_freq,end_freq
  WRITE(98,*) i,data2(i)
@@ -784,12 +773,12 @@ WRITE(15,*) "[FR-NORM-COORD]"
 DO i=1,nmodes
  WRITE(15,*) "vibration", i 
  DO j=1,natom
-  WRITE(15,*) disp(j,i,1)/bohr2ang,disp(j,i,2)/bohr2ang,disp(j,i,3)/bohr2ang
+  WRITE(15,*) disp(i,j,1)/bohr2ang,disp(i,j,2)/bohr2ang,disp(i,j,3)/bohr2ang
  ENDDO
 ENDDO
 CLOSE(15)
 
-DEALLOCATE(iso_sq,aniso_sq,data1,data2,raman_int)
+DEALLOCATE(iso_sq,aniso_sq,data2,raman_int)
 
 END SUBROUTINE spec_static_raman
 !....................................................................................................................!
