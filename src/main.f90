@@ -104,48 +104,40 @@ PROGRAM vib2d
                 !        periodic,mass_tot,framecount,mass_atom,coord_v,dip)
                 !    CALL frag_index(natom,filename,element,coord_v,fragment,natom_frag,framecount)
                 CALL center_mass(natom_frag, natom, refpoint, coord_v, filename, element, box_all, box_x, box_y, &
-                                 box_z, vec, vec_pbc, fragment, mass_atom, framecount, cell_type, mass_tot_frag, frag_type, &
-                                 mol_num, nfrag, type_dipole, system, mass_tot_cell)
-                CALL wannier_frag(natom_frag, filename, natom, element, coord_v, box_all, box_x, box_y, box_z, vec, vec_pbc, &
-                                  dipole, refpoint, fragment, framecount, mass_tot_frag, mol_num, system, type_dipole, charge, &
-                                  mass_tot_cell)
-                CALL spec_ir(z, zhat, freq_range, natom, framecount, t_cor, dt, element, filename, coord_v, v, input_mass, &
-                             dom, pi, mol_num, box_all, box_x, box_y, box_z, vec, vec_pbc, debye, periodic, mass_tot, mass_atom, &
-                             type_input, dip, read_function, coord, type_dipole, dipole, system, mass_tot_frag, sinc_const, &
-                             nfrag, frag_type)
+                                 box_z, vec, vec_pbc, fragment, mass_atom, framecount, cell_type, mass_tot_frag, frag_type, mol_num, &
+                                 nfrag, type_dipole, system, mass_tot_cell)
+                CALL wannier_frag(natom_frag, filename, natom, element, coord_v, box_all, box_x, box_y, box_z, vec, vec_pbc, dipole, &
+                                  refpoint, fragment, framecount, mass_tot_frag, mol_num, system, type_dipole, charge, mass_tot_cell)
+                CALL spec_ir(z, zhat, freq_range, natom, framecount, t_cor, dt, element, filename, coord_v, v, input_mass, dom, pi, &
+                             mol_num, box_all, box_x, box_y, box_z, vec, vec_pbc, debye, periodic, mass_tot, mass_atom, type_input, dip, &
+                             read_function, coord, type_dipole, dipole, system, mass_tot_frag, sinc_const, nfrag, frag_type)
             ELSEIF (cell_type=='3') THEN !!SC with solvent
                 CALL read_coord(natom, framecount, element, coord, filename, periodic, mol_num, system, &
                                 read_function, framecount_rtp, type_dipole)
                 CALL read_coord_frame(natom, framecount, element, filename, coord_v)
                 CALL solv_frag_index(natom, coord_v, filename, element, box_all, vec, vec_pbc, &
-                                     box_x, box_y, box_z, mass_atom, framecount, cell_type, refpoint, natom_frag, &
-                                     fragment, mass_tot_frag)
-                CALL wannier_frag(natom_frag, filename, natom, element, coord_v, box_all, box_x, box_y, box_z, vec, vec_pbc, &
-                                  dipole, refpoint, fragment, framecount, mass_tot_frag, mol_num, system, &
-                                  type_dipole, charge, mass_tot_cell)
-                CALL spec_ir(z, zhat, freq_range, natom, framecount, t_cor, dt, element, filename, coord_v, v, input_mass, &
-                             dom, pi, mol_num, box_all, box_x, box_y, box_z, vec, vec_pbc, debye, periodic, mass_tot, mass_atom, &
-                             type_input, dip, read_function, coord, type_dipole, dipole, system, mass_tot_frag, sinc_const, &
-                             nfrag, frag_type)
+                                     box_x, box_y, box_z, mass_atom, framecount, cell_type, refpoint, natom_frag, fragment, mass_tot_frag)
+                CALL wannier_frag(natom_frag, filename, natom, element, coord_v, box_all, box_x, box_y, box_z, vec, vec_pbc, dipole, &
+                                  refpoint, fragment, framecount, mass_tot_frag, mol_num, system, type_dipole, charge, mass_tot_cell)
+                CALL spec_ir(z, zhat, freq_range, natom, framecount, t_cor, dt, element, filename, coord_v, v, input_mass, dom, pi, &
+                             mol_num, box_all, box_x, box_y, box_z, vec, vec_pbc, debye, periodic, mass_tot, mass_atom, type_input, dip, &
+                             read_function, coord, type_dipole, dipole, system, mass_tot_frag, sinc_const, nfrag, frag_type)
             END IF
         ELSEIF (system=='2') THEN !!molecular approach (Berry phase)
             CALL read_coord(natom, framecount, element, coord, filename, periodic, mol_num, system, read_function, &
                             framecount_rtp, type_dipole)
             CALL spec_ir(z, zhat, freq_range, natom, framecount, t_cor, dt, element, filename, coord_v, v, input_mass, dom, pi, &
-                         mol_num, box_all, box_x, box_y, box_z, vec, vec_pbc, debye, periodic, mass_tot, mass_atom, &
-                         type_input, dip, read_function, coord, type_dipole, dipole, system, mass_tot_frag, &
-                         sinc_const, nfrag, frag_type)
+                         mol_num, box_all, box_x, box_y, box_z, vec, vec_pbc, debye, periodic, mass_tot, mass_atom, type_input, dip, &
+                         read_function, coord, type_dipole, dipole, system, mass_tot_frag, sinc_const, nfrag, frag_type)
         END IF
 
     ELSEIF (read_function=='MD-R') THEN
-        CALL read_coord(natom, framecount, element, coord, wannier_free, periodic, mol_num, system, read_function, &
-                        framecount_rtp, type_dipole)
+        CALL read_coord(natom, framecount, element, coord, wannier_free, periodic, mol_num, system, read_function, framecount_rtp, type_dipole)
         CALL masses_charges(natom, mass_atom, atom_mass_inv_sqrt, mass_mat, element, mass_tot, charge)
-        CALL spec_raman(natom, framecount, element, coord, wannier_free, wannier_x, wannier_y, wannier_z, mass_atom, mass_tot, &
-                        periodic, mol_num, dt, dom, t_cor, speed_light, coord_v, v, type_input, box_all, box_x, box_y, box_z, &
-                        vec, vec_pbc, debye, read_function, z_iso, z_aniso, z_ortho, z_para, const_planck, const_boltz, &
-                        const_permit, temp, laser_in, pi, filename, averaging, direction, type_dipole, system, natom_frag, &
-                        fragment, refpoint, dipole, cell_type, mass_tot_frag, frag_type, nfrag, charge, mass_tot_cell)
+        CALL spec_raman(natom, framecount, element, coord, wannier_free, wannier_x, wannier_y, wannier_z, mass_atom, mass_tot, periodic, &
+                        mol_num, dt, dom, t_cor, speed_light, coord_v, v, type_input, box_all, box_x, box_y, box_z, vec, vec_pbc, debye, read_function, &
+                        z_iso, z_aniso, z_ortho, z_para, const_planck, const_boltz, const_permit, temp, laser_in, pi, filename, averaging, direction, &
+                        type_dipole, system, natom_frag, fragment, refpoint, dipole, cell_type, mass_tot_frag, frag_type, nfrag, charge, mass_tot_cell)
         DEALLOCATE (coord, coord_v, mass_atom, element)
 
     ELSEIF (read_function=='NMA') THEN
@@ -154,23 +146,24 @@ PROGRAM vib2d
         CALL masses_charges(natom, mass_atom, atom_mass_inv_sqrt, mass_mat, element, mass_tot, charge)
         CALL read_static(natom, element, normal_freq_file, normal_displ_file, static_pol, pol, freq, disp, &
                          nmodes, static_dip_free_file, static_dip_x_file, static_dip_y_file, static_dip_z_file, type_dipole, &
-                         static_dipole_x, static_dipole_y, static_dipole_z, static_dipole_free, read_function, type_static, &
-                         force_file, force)
-        CALL normal_mode_analysis(natom, force, dx, hartreebohr2evang, hessian_factor, mass_mat, pi, speed_light)
+                         static_dipole_x, static_dipole_y, static_dipole_z, static_dipole_free, read_function, type_static, force_file, force)
+        CALL normal_mode_analysis(natom, force, dx, hartreebohr2evang, hessian_factor, mass_mat, pi, speed_light, nmodes, freq, disp)
 
     ELSEIF (read_function=='R') THEN
-        CALL read_coord(natom, framecount, element, coord, filename, periodic, mol_num, system, &
-                        read_function, framecount_rtp, type_dipole)
-        CALL read_static(natom, element, normal_freq_file, normal_displ_file, static_pol, pol, &
-                         freq, disp, nmodes, static_dip_free_file, &
-                         static_dip_x_file, static_dip_y_file, static_dip_z_file, type_dipole, &
-                         static_dipole_x, static_dipole_y, static_dipole_z, &
+        CALL read_coord(natom, framecount, element, coord, filename, periodic, mol_num, system, read_function, framecount_rtp, type_dipole)
+        CALL masses_charges(natom, mass_atom, atom_mass_inv_sqrt, mass_mat, element, mass_tot, charge)
+        CALL read_static(natom, element, normal_freq_file, normal_displ_file, static_pol, pol, freq, disp, nmodes, static_dip_free_file, &
+                         static_dip_x_file, static_dip_y_file, static_dip_z_file, type_dipole, static_dipole_x, static_dipole_y, static_dipole_z, &
                          static_dipole_free, read_function, type_static, force_file, force)
+        IF (type_static=='1') THEN
+            CALL normal_mode_analysis(natom, force, dx, hartreebohr2evang, hessian_factor, mass_mat, pi, speed_light, nmodes, freq, disp)
+        END IF
+        PRINT *, freq(1), 'freq test'
         CALL finite_diff_static(natom, nmodes, pol, pol_dq, disp, mass_atom, dx, bohr2ang, static_dipole_free, static_dipole_x, &
                                 static_dipole_y, static_dipole_z, type_dipole)
         CALL spec_static_raman(nmodes, pol_dq, laser_in, freq, temp, raman_int, pi, element, coord, disp, bohr2ang, natom)
         DEALLOCATE (freq, disp)
-        DEALLOCATE (pol, pol_dq, raman_int)
+        DEALLOCATE (pol, pol_dq)
         DEALLOCATE (element, coord, mass_atom)
 
     ELSEIF (read_function=='MD-RR') THEN
@@ -181,8 +174,7 @@ PROGRAM vib2d
         !    const_permit,temp,dom_rtp,laser_in_resraman,y_out)
 
     ELSEIF (read_function=='ABS') THEN
-        CALL read_coord(natom, framecount, element, coord, filename, periodic, mol_num, system, read_function, &
-                        framecount_rtp, type_dipole)
+        CALL read_coord(natom, framecount, element, coord, filename, periodic, mol_num, system, read_function, framecount_rtp, type_dipole)
         CALL read_static_resraman(natom, element, normal_freq_file, normal_displ_file, freq, disp, &
                                   nmodes, static_dip_x_file, static_dip_y_file, static_dip_z_file, framecount_rtp, &
                                   static_dipole_x_rtp, static_dipole_y_rtp, static_dipole_z_rtp)

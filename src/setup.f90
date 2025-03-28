@@ -56,29 +56,25 @@ CONTAINS
                           rtp_dipole_z, framecount_rtp, dt_rtp, laser_in_resraman, frag_type, type_static, force_file, &
                           laser_in, check_pade, dx, framecount_rtp_pade)
 
-        CHARACTER(LEN=40), INTENT(OUT)                       :: filename, static_pol, read_function, length, system
-        CHARACTER(LEN=40), INTENT(OUT)                       :: type_input, periodic
-        CHARACTER(LEN=40), INTENT(OUT)                       :: wannier_free, wannier_x, wannier_y, wannier_z
-        CHARACTER(LEN=40), INTENT(OUT)                       :: input_mass, type_static
-        CHARACTER(LEN=40), INTENT(OUT)                       :: direction, averaging, type_dipole, cell_type, force_file
-        CHARACTER(LEN=40), INTENT(OUT)                       :: static_dip_free_file, static_dip_x_file
-        CHARACTER(LEN=40), INTENT(OUT)                       ::  static_dip_y_file, static_dip_z_file
-        CHARACTER(LEN=40), INTENT(OUT)                       :: normal_freq_file, normal_displ_file, frag_type
-        CHARACTER(LEN=40), INTENT(OUT)                       :: rtp_dipole_x, rtp_dipole_y, rtp_dipole_z, check_pade
-        REAL(kind=dp), INTENT(OUT)                            :: dt, dt_rtp, box_all, box_x, box_y, box_z
-        REAL(kind=dp), INTENT(OUT)                            ::  laser_in, laser_in_resraman, dx
-        INTEGER, INTENT(OUT)                                 :: framecount_rtp, framecount_rtp_pade
+        CHARACTER(LEN=40), INTENT(OUT)              :: filename, static_pol, read_function, length, system, type_input, periodic
+        CHARACTER(LEN=40), INTENT(OUT)              :: wannier_free, wannier_x, wannier_y, wannier_z, input_mass, type_static
+        CHARACTER(LEN=40), INTENT(OUT)              :: direction, averaging, type_dipole, cell_type, force_file
+        CHARACTER(LEN=40), INTENT(OUT)              :: static_dip_free_file, static_dip_x_file, static_dip_y_file, static_dip_z_file
+        CHARACTER(LEN=40), INTENT(OUT)              :: normal_freq_file, normal_displ_file, frag_type
+        CHARACTER(LEN=40), INTENT(OUT)              :: rtp_dipole_x, rtp_dipole_y, rtp_dipole_z, check_pade
+        REAL(kind=dp), INTENT(OUT)                  :: dt, dt_rtp, box_all, box_x, box_y, box_z, laser_in, laser_in_resraman, dx
+        INTEGER, INTENT(OUT)                        :: framecount_rtp, framecount_rtp_pade
 
-        laser_in = 9398.50_dp  !cm^-1
+!laser_in=9398.50_dp  !cm^-1
         DO
-            WRITE (*, *) 'Enter which function you want to calculate (type "P" for Power spectrum , &
-            & "MD-IR" for MD-based IR spectrum, "MD-R" for MD-based Raman spectrum, "MD-RR" for MD-based resonance Raman,&
-           &         "NMA" for normal mode analysis,"IR" for static IR spectrum, "R" for static Raman spectrum, &
-           & "ABS" for absorption spectrum,"RR" for static resonance Raman spectrum)'
+            WRITE (*, *) 'Enter which function you want to calculate (type "P" for Power spectrum , "MD-IR" for MD-based IR spectrum, &
+           &         "MD-R" for MD-based Raman spectrum, "MD-RR" for MD-based resonance Raman, "NMA" for normal mode analysis, &
+           &         "IR" for static IR spectrum, "R" for static Raman spectrum, "ABS" for absorption spectrum,"RR" for static &
+           &         resonance Raman spectrum)'
             READ (*, *) read_function
             IF (read_function.NE.'P' .AND. read_function.NE.'MD-IR' .AND. read_function.NE.'MD-R' .AND. read_function.NE.'MD-RR' &
-                .AND. read_function.NE.'NMA' .AND. read_function.NE.'IR' .AND. read_function.NE.'R' .AND. &
-                read_function.NE.'ABS' .AND. read_function.NE.'RR') THEN
+                .AND. read_function.NE.'NMA' .AND. read_function.NE.'IR' .AND. read_function.NE.'R' .AND. read_function.NE.'ABS' .AND. &
+                read_function.NE.'RR') THEN
                 WRITE (*, *) 'Please type P, MD-IR, MD-R, MD-RR, NMA, IR, R, ABS or RR!'
                 CYCLE
             END IF
@@ -282,9 +278,10 @@ CONTAINS
         END DO
 
         DO
-            IF (read_function=='MD-RR' .OR. read_function=='RR') THEN
-                ! WRITE(*,*) 'What is the wavenumber (cm^-1) of the incident laser?'
-                ! READ(*,*) laser_in
+            IF (read_function=='MD-R') THEN
+                !IF (read_function=='MD-RR' .OR. read_function=='RR') THEN
+                WRITE (*, *) 'What is the wavenumber (cm^-1) of the incident laser?'
+                READ (*, *) laser_in
             END IF
             EXIT
         END DO
@@ -314,7 +311,7 @@ CONTAINS
         END DO
 
         DO
-            IF (read_function=='NMA' .OR. type_static=='1') THEN
+            IF (read_function=='NMA') THEN
                 WRITE (*, *) 'Enter the name of the geometry file:'
                 READ (*, *) filename
                 WRITE (*, *) 'Enter the name of the force file:'
@@ -329,44 +326,30 @@ CONTAINS
 
         DO
             IF (read_function=='R') THEN
-                ! normal_freq_file='normal_freqs_o-NP.dat'
-                ! normal_displ_file='normal_displacements_o-NP.dat'
-                ! normal_freq_file='normal_freqs_2cat_triplet.dat'
-                ! normal_displ_file='normal_displacements_2cat_triplet.dat'
-                normal_freq_file = 'normal_freqs_2cat_singlet_CS.dat'
-                normal_displ_file = 'normal_displacements_2cat_singlet_CS.dat'
-                !normal_freq_file='normal_freqs_r-met.dat'
-                !normal_displ_file='normal_displacements_r-met.dat'
-                ! filename='water.xyz'
-                !filename='o-nitrophenol.xyz'
-                !filename='2cat_triplet.xyz'
-                filename = '2cat_singlet_CS.xyz'
-                !filename='r-met.xyz'
-                !filename='COF-1.xyz'
+                WRITE (*, *) 'Enter the name of the geometry file:'
+                READ (*, *) filename
+                IF (type_static=='1') THEN
+                    WRITE (*, *) 'Enter the name of the force file:'
+                    READ (*, *) force_file
+                ELSEIF (type_static=='2') THEN
+                    WRITE (*, *) 'Enter the name of the normal mode frequency file:'
+                    READ (*, *) normal_freq_file
+                    WRITE (*, *) 'Enter the name of the normal mode coordinates file:'
+                    READ (*, *) normal_displ_file
+                END IF
                 IF (type_dipole=='3') THEN
-                    static_pol = 'polarizabilities.dat'
+                    WRITE (*, *) 'Enter the name of the file that contains polarizabilities:'
+                    READ (*, *) static_pol
                 ELSEIF (type_dipole=='2') THEN
                     static_dip_free_file = 'dipole_2cat_singlet_CS_free_static.xyz'
                     static_dip_x_file = 'dipole_2cat_singlet_CS_X_static.xyz'
                     static_dip_y_file = 'dipole_2cat_singlet_CS_Y_static.xyz'
                     static_dip_z_file = 'dipole_2cat_singlet_CS_Z_static.xyz'
-                    !static_dip_free_file='dipole_r-met_free_static.xyz'
-                    ! static_dip_x_file='dipole_r-met_X_static.xyz'
-                    ! static_dip_y_file='dipole_r-met_Y_static.xyz'
-                    ! static_dip_z_file='dipole_r-met_Z_static.xyz'
-                    ! static_dip_free_file='dipole_o-NP_free_static.xyz'
-                    ! static_dip_x_file='dipole_o-NP_X_static.xyz'
-                    ! static_dip_y_file='dipole_o-NP_Y_static.xyz'
-                    ! static_dip_z_file='dipole_o-NP_Z_static.xyz'
                 END IF
-                !WRITE(*,*)'Enter the name of the normal frequencies file'
-                !READ(*,*) norma_freq_file
-                !WRITE(*,*)'Enter the name of the normal displacements file'
-                !READ(*,*) norma_displ_file
-                !WRITE(*,*)'Enter the name of the coordinate file'
-                !READ(*,*) filename
-                !WRITE(*,*)'Enter the name of the polarizability file'
-                !READ(*,*) static_pol
+                WRITE (*, *) 'What is the normal mode displacement in Angstrom?'
+                READ (*, *) dx
+                WRITE (*, *) 'What is the wavenumber (cm^-1) of the incident laser?'
+                READ (*, *) laser_in
             END IF
             EXIT
         END DO
@@ -394,8 +377,6 @@ CONTAINS
 
         DO
             IF (read_function=='RR' .OR. read_function=='ABS') THEN
-                ! normal_freq_file='normal_freqs_o-NP.dat'
-                ! normal_displ_file='normal_displacements_o-NP.dat'
                 !  normal_freq_file='normal_freqs_PCU2.dat'
                 !  normal_displ_file='normal_displacements_PCU2.dat'
                 WRITE (*, *) 'Enter the name of the geometry file:'
@@ -422,26 +403,6 @@ CONTAINS
                     WRITE (*, *) 'Enter the final number of RT-TDDFT steps after the application of Pade interpolation:'
                     READ (*, *) framecount_rtp_pade
                 END IF
-                !  normal_freq_file='normal_freqs_r-met.dat'
-                !  normal_displ_file='normal_displacements_r-met.dat'
-                ! filename='o-nitrophenol.xyz'
-                !filename='PCU2.xyz'
-                ! filename='r-met.xyz'
-                !  static_dip_x_file='o-NP_RTP_dipoles_static_X.xyz'
-                !  static_dip_y_file='o-NP_RTP_dipoles_static_Y.xyz'
-                !  static_dip_z_file='o-NP_RTP_dipoles_static_Z.xyz'
-                !  static_dip_x_file='PCU2_RTP_dipoles_static_X.xyz'
-                !  static_dip_y_file='PCU2_RTP_dipoles_static_Y.xyz'
-                ! static_dip_z_file='PCU2_RTP_dipoles_static_Z.xyz'
-                !  static_dip_x_file='r-met_RTP_dipoles_static_X_80000.xyz'
-                !  static_dip_y_file='r-met_RTP_dipoles_static_Y_80000.xyz'
-                !  static_dip_z_file='r-met_RTP_dipoles_static_Z_80000.xyz'
-                !framecount_rtp=1280
-                ! framecount_rtp=256
-                !dt_rtp=0.0125_dp
-                !  dt_rtp=0.00242_dp
-                ! dt_rtp=0.001_dp
-                !  dt_rtp=0.0625_dp
                 !WRITE(*,*)'What is the wavenumber of the incident laser (cm^-1)?'
                 !READ(*,*) laser_in_resraman
                 ! laser_in_resraman=15797.788309636651_dp

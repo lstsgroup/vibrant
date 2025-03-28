@@ -54,9 +54,7 @@ CONTAINS
 
 !********************************************************************************************
 !********************************************************************************************
-
     SUBROUTINE read_coord_frame(natom, framecount, element, filename, coord_v)
-
         CHARACTER(LEN=40), INTENT(IN)                               :: filename
         INTEGER, INTENT(INOUT)                                      :: natom, framecount
         CHARACTER(LEN=2), DIMENSION(:), ALLOCATABLE, INTENT(INOUT)    :: element
@@ -105,6 +103,9 @@ CONTAINS
         INTEGER                                                    :: i, j, k, m, n, data_number
         INTEGER                                                    :: stat
 
+        ALLOCATE (pol(natom, 3, 2, 3, 3), static_dipole_free(natom, 3, 2, 3), static_dipole_x(natom, 3, 2, 3))
+        ALLOCATE (static_dipole_y(natom, 3, 2, 3), static_dipole_z(natom, 3, 2, 3))
+
         IF (read_function=='NMA' .OR. type_static=='1') THEN
             ALLOCATE (force(2, natom, 3, natom, 3))
             OPEN (UNIT=49, FILE=force_file, STATUS='old', IOSTAT=stat) !Reading forces
@@ -119,8 +120,6 @@ CONTAINS
             END DO
             CLOSE (49)
 
-            PRINT *, force(1, 1, 1, 3, 2), "force"
-
         ELSEIF (type_static=='2') THEN
             nmodes = 0
             OPEN (UNIT=50, FILE=normal_freq_file, STATUS='old', IOSTAT=stat) !Reading normal freqs/coords
@@ -131,9 +130,7 @@ CONTAINS
 998         CONTINUE
             CLOSE (50)
 
-            ALLOCATE (freq(nmodes), disp(natom, nmodes, 3))
-            ALLOCATE (pol(natom, 3, 2, 3, 3), static_dipole_free(natom, 3, 2, 3), static_dipole_x(natom, 3, 2, 3))
-            ALLOCATE (static_dipole_y(natom, 3, 2, 3), static_dipole_z(natom, 3, 2, 3))
+            ALLOCATE (freq(nmodes), disp(nmodes, natom, 3))
 
             OPEN (UNIT=51, FILE=normal_freq_file, STATUS='old', IOSTAT=stat) !Reading normal freqs/coords
             DO i = 1, nmodes
@@ -143,9 +140,9 @@ CONTAINS
             CLOSE (51)
 
             OPEN (UNIT=51, FILE=normal_displ_file, STATUS='old', IOSTAT=stat) !Reading normal freqs/coords
-            DO i = 1, nmodes       !look above!!!
-                DO j = 1, natom        !changed the order of these two lines for o-NP, for water it is reverse!!
-                    READ (51, *, END=996) disp(j, i, 1), disp(j, i, 2), disp(j, i, 3)
+            DO i = 1, nmodes
+                DO j = 1, natom
+                    READ (51, *, END=996) disp(i, j, 1), disp(i, j, 2), disp(i, j, 3)
                 END DO
             END DO
 996         CONTINUE
@@ -183,8 +180,7 @@ CONTAINS
                             DO j = 1, 3
                                 READ (53, *, END=994)
                                 READ (53, *)
-                                READ (53, *) chara, static_dipole_free(i, j, k, 1), static_dipole_free(i, j, k, 2), &
-                                    static_dipole_free(i, j, k, 3)
+                                READ (53, *) chara, static_dipole_free(i, j, k, 1), static_dipole_free(i, j, k, 2), static_dipole_free(i, j, k, 3)
                             END DO
                         END DO
                     END DO
@@ -200,8 +196,7 @@ CONTAINS
                             DO j = 1, 3
                                 READ (54, *, END=993)
                                 READ (54, *)
-                                READ (54, *) chara, static_dipole_x(i, j, k, 1), static_dipole_x(i, j, k, 2), &
-                                    static_dipole_x(i, j, k, 3)
+                                READ (54, *) chara, static_dipole_x(i, j, k, 1), static_dipole_x(i, j, k, 2), static_dipole_x(i, j, k, 3)
                             END DO
                         END DO
                     END DO
