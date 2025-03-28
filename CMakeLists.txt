@@ -24,7 +24,7 @@ find_package(LAPACK REQUIRED)
 set(LIBS fftw3 gx_ac ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES})
 
 # Compiler flags
-set(CMAKE_Fortran_FLAGS "-Og -g -fopenmp -fcheck=bounds,do,recursion,pointer -cpp -I${CMAKE_BINARY_DIR}")
+set(CMAKE_Fortran_FLAGS "-Og -g -fopenmp -ffree-line-length-none -fcheck=bounds,do,recursion,pointer -cpp -I${CMAKE_BINARY_DIR}")
 
 # Source files
 set(SOURCES

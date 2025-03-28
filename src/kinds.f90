@@ -1,12 +1,12 @@
 !> @brief Module containing the kind definitions for the real numbers
-module kinds
+MODULE kinds
 
-  implicit none
+    IMPLICIT NONE
 
-  !> Double precision kind
-  integer, parameter :: dp = selected_real_kind(15)
+    !> Double precision kind
+    INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
 
-  !> Single precision kind
-  integer, parameter :: sp = selected_real_kind(6)
+    !> Single precision kind
+    INTEGER, PARAMETER :: sp = SELECTED_REAL_KIND(6)
 
-end module kinds
+END MODULE kinds

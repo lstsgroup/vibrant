@@ -1,11 +1,11 @@
-! this file is used to pass variables from cmake to fortran. 
-! a new file with the replaced variables will appear after the cmake step 
+! this file is used to pass variables from cmake to fortran.
+! a new file with the replaced variables will appear after the cmake step
 ! in the build directory
-character(len=200), parameter :: compiler = &
-"@CMAKE_Fortran_COMPILER@"
-character(len=200), parameter :: compiler_flags = &
-"@CMAKE_Fortran_FLAGS@"
-character(len=200), parameter :: fft_lib_dir = &
-"@FFTW_LIBRARY_DIR@"
-character(len=200), parameter :: greenx_lib_dir = &
-"@GREENX_LIBRARY_DIR@"
+CHARACTER(len=200), PARAMETER :: compiler = &
+                                 "@CMAKE_Fortran_COMPILER@"
+CHARACTER(len=200), PARAMETER :: compiler_flags = &
+                                 "@CMAKE_Fortran_FLAGS@"
+CHARACTER(len=200), PARAMETER :: fft_lib_dir = &
+                                 "@FFTW_LIBRARY_DIR@"
+CHARACTER(len=200), PARAMETER :: greenx_lib_dir = &
+                                 "@GREENX_LIBRARY_DIR@"
