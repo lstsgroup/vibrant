@@ -325,7 +325,7 @@ CONTAINS
         END DO
 
         DO
-            IF (read_function=='R') THEN
+            IF (read_function=='IR' .OR. read_function=='R') THEN
                 WRITE (*, *) 'Enter the name of the geometry file:'
                 READ (*, *) filename
                 IF (type_static=='1') THEN
@@ -341,15 +341,19 @@ CONTAINS
                     WRITE (*, *) 'Enter the name of the file that contains polarizabilities:'
                     READ (*, *) static_pol
                 ELSEIF (type_dipole=='2') THEN
-                    static_dip_free_file = 'dipole_2cat_singlet_CS_free_static.xyz'
-                    static_dip_x_file = 'dipole_2cat_singlet_CS_X_static.xyz'
-                    static_dip_y_file = 'dipole_2cat_singlet_CS_Y_static.xyz'
-                    static_dip_z_file = 'dipole_2cat_singlet_CS_Z_static.xyz'
-                END IF
+                    static_dip_free_file='dipole_2cat_singlet_CS_free_static.xyz'
+                    IF (read_function=='R') THEN
+                        static_dip_x_file = 'dipole_2cat_singlet_CS_X_static.xyz'
+                        static_dip_y_file = 'dipole_2cat_singlet_CS_Y_static.xyz'
+                        static_dip_z_file = 'dipole_2cat_singlet_CS_Z_static.xyz'
+                    END IF
+                ENDIF
                 WRITE (*, *) 'What is the normal mode displacement in Angstrom?'
                 READ (*, *) dx
-                WRITE (*, *) 'What is the wavenumber (cm^-1) of the incident laser?'
-                READ (*, *) laser_in
+                IF (read_function=='R') THEN
+                    WRITE (*, *) 'What is the wavenumber (cm^-1) of the incident laser?'
+                    READ (*, *) laser_in
+                ENDIF
             END IF
             EXIT
         END DO
