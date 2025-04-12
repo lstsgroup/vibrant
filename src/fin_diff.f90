@@ -77,73 +77,72 @@ CONTAINS
 
 !**************************************************************************************************************!
 !**************************************************************************************************************!
-    SUBROUTINE finite_diff_static(natom, nmodes, pol, pol_dq, disp, mass_atom, dx, bohr2ang, static_dipole_free, &
-                                  static_dipole_x, static_dipole_y, static_dipole_z, type_dipole)
+    SUBROUTINE finite_diff_static(natom, nmodes, pol, pol_dq, disp, atom_mass_inv_sqrt, dx, bohr2ang, static_dipole_free, &
+                                  static_dipole_x, static_dipole_y, static_dipole_z, type_dipole, read_function, dip_dq)
 
         INTEGER, INTENT(INOUT)                                         :: natom, nmodes
-        CHARACTER(LEN=40), INTENT(IN)                                  :: type_dipole
+        CHARACTER(LEN=40), INTENT(IN)                                  :: read_function, type_dipole
         REAL(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE, INTENT(INOUT)  :: pol
         REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE, INTENT(INOUT)    :: static_dipole_free, static_dipole_x
         REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE, INTENT(INOUT)    :: static_dipole_y, static_dipole_z
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(OUT)        :: pol_dq
+        REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE, INTENT(OUT)        :: dip_dq
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(IN)         :: disp
-        REAL(kind=dp), DIMENSION(:), ALLOCATABLE, INTENT(INOUT)          :: mass_atom
+        REAL(kind=dp), DIMENSION(:), ALLOCATABLE, INTENT(IN)           :: atom_mass_inv_sqrt
         REAL(kind=dp), INTENT(IN)                                      :: dx, bohr2ang
 
         INTEGER                                                      :: stat, i, j, k, m
         REAL(kind=dp)                                                 :: factor
-        REAL(kind=dp), DIMENSION(:), ALLOCATABLE                        :: mass_inv_sqrt
         REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE                  :: pol_dxyz
-
-        PRINT *, nmodes, 'nmodes', disp(1, 1, 1)
-        ALLOCATE (pol_dxyz(natom, 3, 3, 3))
-        ALLOCATE (pol_dq(nmodes, 3, 3))
-        ALLOCATE (mass_inv_sqrt(natom))
-        PRINT *, mass_atom(1)
-        PRINT *, static_dipole_free(1, 1, 1, 1), 'free', static_dipole_x(1, 1, 1, 1), 'x', "polarizabilities1"
-        pol_dq = 0.0_dp
+        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                  :: dip_dxyz
 
         factor = REAL(1.0_dp/(2.0_dp*dx), kind=dp)
+ 
+        IF (read_function=='R') THEN 
+            ALLOCATE (pol_dxyz(natom, 3, 3, 3))
+            ALLOCATE (pol_dq(nmodes, 3, 3))
+            
+            pol_dq = 0.0_dp
+            
+            IF (type_dipole=='2') THEN
+                pol(:, :, :, 1, :) = REAL((static_dipole_x(:, :, :, :) - static_dipole_free(:, :, :, :)) / (5.338D-5 * 1.313D-26), kind=dp)
+                pol(:, :, :, 2, :) = REAL((static_dipole_y(:, :, :, :) - static_dipole_free(:, :, :, :)) / (5.338D-5 * 1.313D-26), kind=dp)
+                pol(:, :, :, 3, :) = REAL((static_dipole_z(:, :, :, :) - static_dipole_free(:, :, :, :)) / (5.338D-5 * 1.313D-26), kind=dp)
+            END IF
 
-        mass_inv_sqrt(:) = REAL(1.0_dp/SQRT(mass_atom(:)), kind=dp)
-
-        IF (type_dipole=='2') THEN
-            DO j = 1, natom
-                DO i = 1, 3
-                    DO k = 1, 2
-                        DO m = 1, 3
-                            pol(j, i, k, 1, m) = REAL((static_dipole_x(j, i, k, m) - static_dipole_free(j, i, k, m))/0.005_dp, kind=dp)
-                            pol(j, i, k, 2, m) = REAL((static_dipole_y(j, i, k, m) - static_dipole_free(j, i, k, m))/0.005_dp, kind=dp)
-                            pol(j, i, k, 3, m) = REAL((static_dipole_z(j, i, k, m) - static_dipole_free(j, i, k, m))/0.005_dp, kind=dp)
-                        END DO
-                    END DO
-                END DO
-            END DO
+            pol_dxyz(:, :, :, :) = REAL((pol(:, :, 1, :, :) - pol(:, :, 2, :, :))*factor, kind=dp)
+        
+        ELSEIF (read_function=='IR') THEN
+        
+            ALLOCATE (dip_dxyz(natom, 3, 3))
+            ALLOCATE (dip_dq(nmodes, 3))
+            
+            dip_dq = 0.0_dp
+       
+            dip_dxyz(:, :, :) = REAL((static_dipole_free(:, :, 1, :) - static_dipole_free(:, :, 2, :))*factor, kind=dp)
         END IF
-
-        PRINT *, static_dipole_free(1, 1, 1, 1), 'free', static_dipole_x(1, 1, 1, 1), 'x', "polarizabilities1"
-        PRINT *, pol(1, 1, 1, 1, 1), "polarizabilities"
-        PRINT *, pol(2, 2, 1, 1, 1), "polarizabilities"
-        PRINT *, pol(1, 1, 1, 2, 1), "polarizabilities"
-        PRINT *, pol(1, 1, 1, 1, 3), "polarizabilities"
-        PRINT *, pol(1, 1, 1, 1, 2), "polarizabilities"
-
-        DO j = 1, natom
-            DO i = 1, 3
-                pol_dxyz(j, i, :, :) = REAL((pol(j, i, 1, :, :) - pol(j, i, 2, :, :))*factor, kind=dp)
-            END DO
-        END DO
-
+        
         DO j = 1, nmodes
             DO k = 1, natom
-                pol_dq(j, :, :) = pol_dq(j, :, :) + (pol_dxyz(k, 1, :, :)*disp(j, k, 1)*mass_inv_sqrt(k)) &
-                                  + (pol_dxyz(k, 2, :, :)*disp(j, k, 2)*mass_inv_sqrt(k)) + (pol_dxyz(k, 3, :, :)* &
-                                                                                             disp(j, k, 3)*mass_inv_sqrt(k))
+                IF (read_function=='R') THEN
+                    pol_dq(j, :, :) = pol_dq(j, :, :) + (pol_dxyz(k, 1, :, :)*disp(j, k, 1)*atom_mass_inv_sqrt(k)) &
+                                      + (pol_dxyz(k, 2, :, :)*disp(j, k, 2)*atom_mass_inv_sqrt(k)) + (pol_dxyz(k, 3, :, :)* &
+                                      disp(j, k, 3)*atom_mass_inv_sqrt(k))
+                ELSEIF (read_function=='IR') THEN
+                    dip_dq(j, :) = dip_dq(j, :) + (dip_dxyz(k, 1, :)*disp(j, k, 1)*atom_mass_inv_sqrt(k)) &
+                                      + (dip_dxyz(k, 2, :)*disp(j, k, 2)*atom_mass_inv_sqrt(k)) + (dip_dxyz(k, 3, :)* &
+                                      disp(j, k, 3)*atom_mass_inv_sqrt(k))
+                END IF
             END DO
         END DO
-
-        DEALLOCATE (pol_dxyz, mass_inv_sqrt)
-
+        
+        DEALLOCATE(static_dipole_free,static_dipole_x,static_dipole_y,static_dipole_z)
+        IF (read_function=='R') THEN 
+             DEALLOCATE (pol_dxyz,pol)
+        ELSEIF (read_function=='IR') THEN 
+             DEALLOCATE (dip_dxyz)
+        ENDIF
+    
     END SUBROUTINE finite_diff_static
 
 !**************************************************************************************************************!

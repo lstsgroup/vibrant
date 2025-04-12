@@ -15,7 +15,7 @@ MODULE calc_spectra
 
     INCLUDE 'fftw3.f03'
 
-    PUBLIC :: spec_power, spec_ir, spec_raman, normal_mode_analysis, spec_static_raman, spec_abs, &
+    PUBLIC :: spec_power, spec_ir, spec_raman, normal_mode_analysis, spec_static_ir, spec_static_raman, spec_abs, &
               spec_static_resraman, spec_resraman
 
 CONTAINS
@@ -703,6 +703,64 @@ CONTAINS
 !....................................................................................................................!
 !....................................................................................................................!
 
+    SUBROUTINE spec_static_ir(nmodes, dip_dq, freq, temp, pi, element, coord, disp, bohr2ang, natom)
+        
+        INTEGER, INTENT(INOUT)                                    :: nmodes, natom
+        CHARACTER(LEN=2), DIMENSION(:), ALLOCATABLE, INTENT(INOUT)  :: element
+        REAL(kind=dp), INTENT(INOUT)                               :: temp, pi, bohr2ang
+        REAL(kind=dp), DIMENSION(:), ALLOCATABLE, INTENT(INOUT)      :: freq
+        REAL(kind=dp), DIMENSION(:), ALLOCATABLE        :: ir_int
+        REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE, INTENT(INOUT)    :: coord
+        REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE, INTENT(INOUT)  :: dip_dq
+        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(INOUT)  :: disp
+
+        INTEGER                                                  :: stat, i, j, k, m, x, freq_range
+        INTEGER                                                  :: start_freq, end_freq
+        REAL(kind=dp), DIMENSION(:), ALLOCATABLE                    :: gamma_sq, data2!,broad
+        REAL(kind=dp)                                             :: omega, broad, ir_factor
+
+        ALLOCATE (gamma_sq(nmodes), ir_int(nmodes))
+        
+        start_freq = 1
+        end_freq = INT(MAXVAL(freq) + 1000.0_dp)
+        freq_range = INT(end_freq - start_freq)
+        omega = 5.0_dp
+        
+        ALLOCATE (data2(freq_range + 1))
+        data2 = 0.0_dp
+                
+        DO k = 1, nmodes
+            gamma_sq(k) = SQRT((dip_dq(k,1)**2.0_dp) + (dip_dq(k,2)**2.0_dp) + (dip_dq(k,3)**2.0_dp))
+        ENDDO
+        
+        ir_factor=42.256_dp
+
+!!! To convert debye²angstrom⁻²amu⁻¹ to km/mol (cp2k IR unit)
+        DO k = 1, nmodes
+            ir_int(k) = (gamma_sq(k)**2.0_dp)*ir_factor
+        ENDDO
+print*,ir_int(:)
+!!!Broadening the spectrum!!
+        DO i = start_freq, end_freq
+            broad = 0.0_dp
+            DO x = 1, nmodes
+                broad = broad + (ir_int(x)*(1.0_dp/(omega*SQRT(2.0_dp*pi)))*EXP(-0.50_dp*((i - freq(x))/omega)**2.0_dp))
+            END DO
+            data2(i) = data2(i) + broad
+        END DO
+
+        OPEN (UNIT=98, FILE='result_static_ir.txt', STATUS='unknown', IOSTAT=stat)
+        DO i = start_freq, end_freq
+            WRITE (98, *) i, data2(i)
+        END DO
+        CLOSE (98)
+
+        DEALLOCATE (gamma_sq, data2, ir_int, dip_dq, freq, disp)
+
+    END SUBROUTINE spec_static_ir
+!....................................................................................................................!
+!....................................................................................................................!
+
     SUBROUTINE spec_static_raman(nmodes, pol_dq, laser_in, freq, temp, raman_int, pi, element, coord, disp, bohr2ang, natom)
 
         INTEGER, INTENT(INOUT)                                    :: nmodes, natom
@@ -722,8 +780,7 @@ CONTAINS
         ALLOCATE (iso_sq(nmodes), aniso_sq(nmodes))
         ALLOCATE (raman_int(nmodes))
 
-        PRINT *, "ekin"
-        start_freq = 1.0_dp
+        start_freq = 1
         end_freq = INT(MAXVAL(freq) + 1000.0_dp)
         freq_range = INT(end_freq - start_freq)
         omega = 5.0_dp
@@ -815,7 +872,6 @@ CONTAINS
         REAL(kind=dp)                                                  :: rtp_freq_range
         REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE                   :: trace, abs_intens
         COMPLEX(kind=dp), DIMENSION(:, :, :, :, :, :), ALLOCATABLE            :: y_out, zhat_pol_rtp
-        COMPLEX(kind=dp)            :: tmp(framecount_rtp_pade)
 
         ALLOCATE (zhat_pol_rtp(natom, 3, 2, 3, 3, framecount_rtp))
         ALLOCATE (y_out(natom, 3, 2, 3, 3, framecount_rtp_pade))
@@ -849,7 +905,6 @@ CONTAINS
                             DO o = 1, 3
                                 CALL interpolate(framecount_rtp, zhat_pol_rtp(j, i, k, m, o, 1:framecount_rtp), &
                                                  framecount_rtp_pade, y_out(j, i, k, m, o, :))
-                                ! y_out(j,i,k,m,o,:) = tmp(:)
                             END DO
                         END DO
                     END DO

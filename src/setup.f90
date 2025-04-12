@@ -120,7 +120,7 @@ CONTAINS
         END DO
 
         DO
-            IF (read_function=='MD-R' .OR. read_function=='R') THEN
+            IF (read_function=='MD-R' .OR. read_function=='R' .OR. read_function=='IR') THEN
                 WRITE (*, *) 'Which one do you want to use: Wannier centers (1), Berry phase dipole moments (2)&
         &                    or DFPT polarizabilities (3)?'
                 READ (*, *) type_dipole
@@ -325,7 +325,7 @@ CONTAINS
         END DO
 
         DO
-            IF (read_function=='R') THEN
+            IF (read_function=='IR' .OR. read_function=='R') THEN
                 WRITE (*, *) 'Enter the name of the geometry file:'
                 READ (*, *) filename
                 IF (type_static=='1') THEN
@@ -341,15 +341,23 @@ CONTAINS
                     WRITE (*, *) 'Enter the name of the file that contains polarizabilities:'
                     READ (*, *) static_pol
                 ELSEIF (type_dipole=='2') THEN
-                    static_dip_free_file = 'dipole_2cat_singlet_CS_free_static.xyz'
-                    static_dip_x_file = 'dipole_2cat_singlet_CS_X_static.xyz'
-                    static_dip_y_file = 'dipole_2cat_singlet_CS_Y_static.xyz'
-                    static_dip_z_file = 'dipole_2cat_singlet_CS_Z_static.xyz'
-                END IF
+                    WRITE (*, *) 'Enter the name of the static dipoles file (Field-free):'
+                    READ (*, *) static_dip_free_file
+                    IF (read_function=='R') THEN
+                        WRITE (*, *) 'Enter the name of the static dipoles file (X-Field):'
+                        READ (*, *) static_dip_x_file
+                        WRITE (*, *) 'Enter the name of the static dipoles file (Y-Field):'
+                        READ (*, *) static_dip_y_file
+                        WRITE (*, *) 'Enter the name of the static dipoles file (Z-Field):'
+                        READ (*, *) static_dip_z_file
+                    END IF
+                ENDIF
                 WRITE (*, *) 'What is the normal mode displacement in Angstrom?'
                 READ (*, *) dx
-                WRITE (*, *) 'What is the wavenumber (cm^-1) of the incident laser?'
-                READ (*, *) laser_in
+                IF (read_function=='R') THEN
+                    WRITE (*, *) 'What is the wavenumber (cm^-1) of the incident laser?'
+                    READ (*, *) laser_in
+                ENDIF
             END IF
             EXIT
         END DO
@@ -361,7 +369,7 @@ CONTAINS
                 rtp_dipole_z = 'o-NP_RTP_dipoles_Z_256.xyz'
                 ! rtp_dipole_x='o-NP_RTP_dipoles_X.xyz'
                 ! rtp_dipole_y='o-NP_RTP_dipoles_Y.xyz'
-                ! rtp_dipole_z='o-NP_RTP_dipoles_Z.xyz'
+                 rtp_dipole_z='o-NP_RTP_dipoles_Z.xyz'
                 ! WRITE(*,*)'What is the number of RTP frames?'
                 ! READ(*,*) framecount_rtp
                 ! framecount_rtp=1280

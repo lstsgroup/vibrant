@@ -7,8 +7,8 @@ PROGRAM vib2d
     USE dipole_calc, ONLY: center_mass, wannier, wannier_frag, solv_frag_index
     USE vel_cor, ONLY: cvv, cvv_iso, cvv_aniso, cvv_only_x, cvv_resraman
     USE fin_diff, ONLY: central_diff, forward_diff, finite_diff_static, finite_diff_static_resraman
-    USE calc_spectra, ONLY: spec_power, spec_ir, spec_raman, normal_mode_analysis, spec_static_raman, spec_abs, &
-                            spec_static_resraman, spec_resraman
+    USE calc_spectra, ONLY: spec_power, spec_ir, spec_raman, normal_mode_analysis, spec_static_ir, spec_static_raman, &
+                            spec_abs, spec_static_resraman, spec_resraman
     USE omp_lib, ONLY: omp_get_num_threads
     USE config_info, ONLY: output_config_info
 
@@ -54,7 +54,7 @@ PROGRAM vib2d
     COMPLEX(kind=dp), DIMENSION(:, :), ALLOCATABLE      :: zhat_test2
     COMPLEX(kind=dp), DIMENSION(:, :), ALLOCATABLE      :: z_iso_resraman, z_aniso_resraman
     COMPLEX(kind=dp), DIMENSION(:), ALLOCATABLE        :: y_out
-    REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE         :: coord, mass, dipole2, refpoint2, mass_tot_frag
+    REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE         :: coord, mass, dipole2, refpoint2, mass_tot_frag, dip_dq
     REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE       :: dip, dip_free, dip_x, dip_y, dip_z
     REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE       :: disp, pol_dq
     REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE     :: com, pol_dq_rtp
@@ -149,6 +149,20 @@ PROGRAM vib2d
                          static_dipole_x, static_dipole_y, static_dipole_z, static_dipole_free, read_function, type_static, force_file, force)
         CALL normal_mode_analysis(natom, force, dx, hartreebohr2evang, hessian_factor, mass_mat, pi, speed_light, nmodes, freq, disp)
 
+    ELSEIF (read_function=='IR') THEN
+        CALL read_coord(natom,framecount,element,coord,filename,periodic,mol_num,system,read_function,framecount_rtp,type_dipole)
+        CALL masses_charges(natom,mass_atom,atom_mass_inv_sqrt,mass_mat,element,mass_tot,charge)
+        CALL read_static(natom,element,normal_freq_file,normal_displ_file,static_pol,pol,freq,disp,nmodes,static_dip_free_file,&
+                         static_dip_x_file,static_dip_y_file,static_dip_z_file,type_dipole,static_dipole_x,static_dipole_y,static_dipole_z,&
+                         static_dipole_free,read_function,type_static,force_file,force)
+        IF (type_static=='1') THEN
+            CALL normal_mode_analysis(natom,force,dx,hartreebohr2evang,hessian_factor,mass_mat,pi,speed_light,nmodes,freq,disp)
+        END IF
+    CALL finite_diff_static(natom, nmodes, pol, pol_dq, disp, atom_mass_inv_sqrt, dx, bohr2ang, static_dipole_free, static_dipole_x, &
+                                static_dipole_y, static_dipole_z, type_dipole, read_function, dip_dq)
+    CALL spec_static_ir(nmodes, dip_dq, freq, temp, pi, element, coord, disp, bohr2ang, natom)        
+    DEALLOCATE(element,coord,mass_atom)
+
     ELSEIF (read_function=='R') THEN
         CALL read_coord(natom, framecount, element, coord, filename, periodic, mol_num, system, read_function, framecount_rtp, type_dipole)
         CALL masses_charges(natom, mass_atom, atom_mass_inv_sqrt, mass_mat, element, mass_tot, charge)
@@ -159,11 +173,11 @@ PROGRAM vib2d
             CALL normal_mode_analysis(natom, force, dx, hartreebohr2evang, hessian_factor, mass_mat, pi, speed_light, nmodes, freq, disp)
         END IF
         PRINT *, freq(1), 'freq test'
-        CALL finite_diff_static(natom, nmodes, pol, pol_dq, disp, mass_atom, dx, bohr2ang, static_dipole_free, static_dipole_x, &
-                                static_dipole_y, static_dipole_z, type_dipole)
+        CALL finite_diff_static(natom, nmodes, pol, pol_dq, disp, atom_mass_inv_sqrt, dx, bohr2ang, static_dipole_free, static_dipole_x, &
+                                static_dipole_y, static_dipole_z, type_dipole, read_function, dip_dq)
         CALL spec_static_raman(nmodes, pol_dq, laser_in, freq, temp, raman_int, pi, element, coord, disp, bohr2ang, natom)
         DEALLOCATE (freq, disp)
-        DEALLOCATE (pol, pol_dq)
+        DEALLOCATE (pol_dq)
         DEALLOCATE (element, coord, mass_atom)
 
     ELSEIF (read_function=='MD-RR') THEN
@@ -199,6 +213,7 @@ PROGRAM vib2d
         CALL spec_static_resraman(nmodes, natom, pol_rtp, laser_in_resraman, freq, temp, pi, framecount_rtp, dom_rtp, dx, &
                                   bohr2ang, disp, speed_light, framecount_rtp_pade, check_pade, atom_mass_inv_sqrt)
 
+        
 !ELSEIF (read_function=='7') THEN
         !   CALL read_coord(natom,framecount,element,coord,filename,mass_atom,mass_tot,periodic,mol_num,system,&
         !           read_function,framecount_rtp)
