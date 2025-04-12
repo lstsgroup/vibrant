@@ -1,0 +1,7 @@
+IR
+1
+2
+o-NP.xyz
+o-NP-force.data3
+dipole_o-NP_free_static.xyz
+0.001

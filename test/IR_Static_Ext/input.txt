@@ -1,0 +1,8 @@
+IR
+2
+2
+o-NP.xyz
+normal_mode_freq.txt
+normal_mode_displ.txt
+dipole_o-NP_free_static.xyz
+0.001

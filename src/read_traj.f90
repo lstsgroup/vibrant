@@ -149,10 +149,9 @@ CONTAINS
             CLOSE (51)
         END IF
 
-        IF (read_function=='IR' .OR. read_function=='R') THEN
-            IF (type_dipole=='3') THEN
-                OPEN (UNIT=52, FILE=static_pol, STATUS='old', IOSTAT=stat) !Reading polarizabilties
-                DO
+        IF (type_dipole=='3') THEN
+            OPEN (UNIT=52, FILE=static_pol, STATUS='old', IOSTAT=stat) !Reading polarizabilties
+            DO
                     DO k = 1, 2
                         DO i = 1, natom
                             DO j = 1, 3
@@ -172,7 +171,7 @@ CONTAINS
 995             CONTINUE
                 CLOSE (52)
 
-            ELSEIF (type_dipole=='2') THEN
+        ELSEIF (type_dipole=='2') THEN
                 OPEN (UNIT=53, FILE=static_dip_free_file, STATUS='old', IOSTAT=stat) !Reading dipoles
                 DO
                     DO k = 1, 2
@@ -187,8 +186,10 @@ CONTAINS
                 END DO
 994             CONTINUE
                 CLOSE (53)
-
                 PRINT *, static_dipole_free(1, 1, 1, 1), "dipole free test"
+            
+            ELSEIF (type_dipole=='2' .AND. read_function=='R') THEN
+
                 OPEN (UNIT=54, FILE=static_dip_x_file, STATUS='old', IOSTAT=stat) !Reading dipoles
                 DO
                     DO k = 1, 2
@@ -239,7 +240,6 @@ CONTAINS
                 CLOSE (56)
                 PRINT *, static_dipole_z(1, 1, 1, 1), "dipole z test"
                 PRINT *, static_dipole_z(1, 1, 1, 1), static_dipole_free(1, 2, 2, 2), "dipoles"
-            END IF
         END IF
 
     END SUBROUTINE read_static

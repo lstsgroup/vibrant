@@ -78,6 +78,16 @@ add_test(
     WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test/Normal_Modes
 )
 add_test(
+    NAME IR_Static_Ext
+    COMMAND pytest test_IR_Static_Ext.py
+    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test/IR_Static_Ext
+)
+add_test(
+    NAME IR_Static_NMA
+    COMMAND pytest test_IR_Static_NMA.py
+    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test/IR_Static_NMA
+)
+add_test(
     NAME Raman_Static_DFPT_Ext
     COMMAND pytest test_Raman_Static_DFPT_Ext.py
     WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test/Raman_Static_DFPT_Ext
