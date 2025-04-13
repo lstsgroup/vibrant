@@ -97,3 +97,23 @@ add_test(
     COMMAND pytest test_Raman_Static_DFPT_NMA.py
     WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test/Raman_Static_DFPT_NMA
 )
+add_test(
+    NAME RR_Static_normal_Ext
+    COMMAND pytest test_RR_Static_normal_Ext.py
+    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test/Resonance_Raman_Static_Ext/normal
+)
+add_test(
+    NAME RR_Static_Pade_Ext
+    COMMAND pytest test_RR_Static_Pade_Ext.py
+    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test/Resonance_Raman_Static_Ext/Pade
+)
+add_test(
+    NAME RR_Static_normal_NMA
+    COMMAND pytest test_RR_Static_normal_NMA.py
+    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test/Resonance_Raman_Static_NMA/normal
+)
+add_test(
+    NAME RR_Static_Pade_NMA
+    COMMAND pytest test_RR_Static_Pade_NMA.py
+    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test/Resonance_Raman_Static_NMA/Pade
+)

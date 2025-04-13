@@ -730,16 +730,14 @@ CONTAINS
         data2 = 0.0_dp
                 
         DO k = 1, nmodes
-            gamma_sq(k) = SQRT((dip_dq(k,1)**2.0_dp) + (dip_dq(k,2)**2.0_dp) + (dip_dq(k,3)**2.0_dp))
+            gamma_sq(k) = SQRT(DOT_PRODUCT(dip_dq(k,:),dip_dq(k,:)))
         ENDDO
         
         ir_factor=42.256_dp
 
 !!! To convert debye²angstrom⁻²amu⁻¹ to km/mol (cp2k IR unit)
-        DO k = 1, nmodes
-            ir_int(k) = (gamma_sq(k)**2.0_dp)*ir_factor
-        ENDDO
-print*,ir_int(:)
+        ir_int(:) = (gamma_sq(:)**2.0_dp)*ir_factor
+
 !!!Broadening the spectrum!!
         DO i = start_freq, end_freq
             broad = 0.0_dp
@@ -788,21 +786,17 @@ print*,ir_int(:)
         data2 = 0.0_dp
 
 !!!Isotropic and anisotropic contributions!!
-        DO k = 1, nmodes
-            iso_sq(k) = REAL((pol_dq(k, 1, 1) + pol_dq(k, 2, 2) + pol_dq(k, 3, 3))/3.0_dp, kind=dp)**2.0_dp
+        iso_sq(:) = REAL((pol_dq(:, 1, 1) + pol_dq(:, 2, 2) + pol_dq(:, 3, 3))/3.0_dp, kind=dp)**2.0_dp
 
-            aniso_sq(k) = (0.50_dp*(((pol_dq(k, 1, 1) - pol_dq(k, 2, 2))**2.0_dp) + ((pol_dq(k, 2, 2) - pol_dq(k, 3, 3))**2.0_dp) &
-                                    + ((pol_dq(k, 3, 3) - pol_dq(k, 1, 1))**2.0_dp))) &
-                          + (3.0_dp*((pol_dq(k, 1, 2)**2.0_dp) + (pol_dq(k, 2, 3)**2.0_dp) &
-                                     + (pol_dq(k, 3, 1)**2.0_dp)))
-        END DO
+        aniso_sq(:) = (0.50_dp*(((pol_dq(:, 1, 1) - pol_dq(:, 2, 2))**2.0_dp) + ((pol_dq(:, 2, 2) - pol_dq(:, 3, 3))**2.0_dp) &
+                                    + ((pol_dq(:, 3, 3) - pol_dq(:, 1, 1))**2.0_dp))) &
+                          + (3.0_dp*((pol_dq(:, 1, 2)**2.0_dp) + (pol_dq(:, 2, 3)**2.0_dp) &
+                                     + (pol_dq(:, 3, 1)**2.0_dp)))
 
 !!!Calculation of the intensities!!
-        DO k = 1, nmodes
-            raman_int(k) = REAL(((7.0_dp*aniso_sq(k)) + (45.0_dp*iso_sq(k)))/45.0_dp, kind=dp) &
-                           *REAL(((laser_in - freq(k))**4.0_dp)/freq(k), kind=dp) &
-                           *REAL(1.0_dp/(1.0_dp - EXP(-1.438777_dp*freq(k)/temp)), kind=dp)
-        END DO
+        raman_int(:) = REAL(((7.0_dp*aniso_sq(:)) + (45.0_dp*iso_sq(:)))/45.0_dp, kind=dp) &
+                           *REAL(((laser_in - freq(:))**4.0_dp)/freq(:), kind=dp) &
+                           *REAL(1.0_dp/(1.0_dp - EXP(-1.438777_dp*freq(:)/temp)), kind=dp)
 
 !!!Broadening the spectrum!!
         DO i = start_freq, end_freq
@@ -859,29 +853,38 @@ print*,ir_int(:)
 !....................................................................................................................!
 
     SUBROUTINE spec_abs(nmodes, natom, pol_rtp, freq, pi, framecount_rtp, speed_light, framecount_rtp_pade, reccm2ev, check_pade &
-                        , dom_rtp)
+                        , dom_rtp, read_function, zhat_pol_rtp)
 
         INTEGER, INTENT(INOUT)                                         :: natom, nmodes, framecount_rtp, framecount_rtp_pade
-        CHARACTER(LEN=40), INTENT(IN)                                  :: check_pade
+        CHARACTER(LEN=40), INTENT(IN)                                  :: check_pade, read_function
         REAL(kind=dp), INTENT(IN)                                       :: speed_light, reccm2ev, pi, dom_rtp
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE, INTENT(INOUT)           :: freq
         REAL(kind=dp), DIMENSION(:, :, :, :, :, :), ALLOCATABLE, INTENT(INOUT) :: pol_rtp
+        COMPLEX(kind=dp), DIMENSION(:, :, :, :, :, :), ALLOCATABLE, INTENT(OUT)            :: zhat_pol_rtp
 
-        INTEGER                                                       :: stat, i, j, k, m, x, freq_range, l, o, n, r
+        INTEGER                                                       :: stat, i, j, k, m, x, freq_range, l, o, n, r, dims, dir
         INTEGER(kind=dp)                                               :: plan
         REAL(kind=dp)                                                  :: rtp_freq_range
         REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE                   :: trace, abs_intens
-        COMPLEX(kind=dp), DIMENSION(:, :, :, :, :, :), ALLOCATABLE            :: y_out, zhat_pol_rtp
+        COMPLEX(kind=dp), DIMENSION(:, :, :, :, :, :), ALLOCATABLE            :: y_out
 
-        ALLOCATE (zhat_pol_rtp(natom, 3, 2, 3, 3, framecount_rtp))
-        ALLOCATE (y_out(natom, 3, 2, 3, 3, framecount_rtp_pade))
+       IF (read_function=='RR') THEN
+            dims = 3
+            dir = 2
+       ELSEIF (read_function=='ABS') THEN
+            dims = 1
+            dir = 1
+            natom = 1
+       ENDIF
+       
+        ALLOCATE (zhat_pol_rtp(natom, dims, dir, 3, 3, framecount_rtp))
 
         zhat_pol_rtp = COMPLEX(0._dp, 0.0_dp)
 
 !!!FFT of the RTP polarizabilities
         DO j = 1, natom
-            DO i = 1, 3
-                DO k = 1, 2
+            DO i = 1, dims
+                DO k = 1, dir
                     DO m = 1, 3
                         DO o = 1, 3
                             CALL dfftw_plan_dft_r2c_1d(plan, framecount_rtp, pol_rtp(j, i, k, m, o, 1:framecount_rtp), &
@@ -896,11 +899,13 @@ print*,ir_int(:)
         END DO
 
         IF (check_pade=='y') THEN
+        
+            ALLOCATE (y_out(natom, dims, dir, 3, 3, framecount_rtp_pade))
 !!Call Pade
             !$OMP PARALLEL DO COLLAPSE(5)
-            DO j = 1, natom !!natom
-                DO i = 1, 3 !!dims
-                    DO k = 1, 2 !!disp
+            DO j = 1, natom 
+                DO i = 1, dims 
+                    DO k = 1, dir 
                         DO m = 1, 3
                             DO o = 1, 3
                                 CALL interpolate(framecount_rtp, zhat_pol_rtp(j, i, k, m, o, 1:framecount_rtp), &
@@ -912,34 +917,24 @@ print*,ir_int(:)
             END DO
             !$OMP END PARALLEL DO
             framecount_rtp = framecount_rtp_pade
+            zhat_pol_rtp = y_out
+            DEALLOCATE(y_out)
         END IF
 
-!!!Finding laser frequency
+!!!Finding frequency range
         rtp_freq_range = REAL(dom_rtp/framecount_rtp, kind=dp)
 
-        ALLOCATE (trace(natom, 3, 2, framecount_rtp))
-        ALLOCATE (abs_intens(natom, 3, 2, framecount_rtp))
-        trace = 0.0_dp
 
 !!!Calculate absorption spectra
-        DO j = 1, natom !!atom_num
-            DO i = 1, 3 !!dims
-                DO k = 1, 2 !!direction
-                    DO o = 1, framecount_rtp
-                        IF (check_pade=='n') THEN
-                            trace(j, i, k, o) = DIMAG(zhat_pol_rtp(j, i, k, 1, 1, o)) + DIMAG(zhat_pol_rtp(j, i, k, 2, 2, o)) &
-                                                + DIMAG(zhat_pol_rtp(j, i, k, 3, 3, o))
-                        ELSEIF (check_pade=='y') THEN
-                            trace(j, i, k, o) = DIMAG(y_out(j, i, k, 1, 1, o)) + DIMAG(y_out(j, i, k, 2, 2, o)) &
-                                                + DIMAG(y_out(j, i, k, 3, 3, o))
-                        END IF
-                        abs_intens(j, i, k, o) = (4.0_dp*pi*trace(j, i, k, o))/(3.0_dp*speed_light)
-                    END DO
-                END DO
-            END DO
-        END DO
+        ALLOCATE (trace(natom, dims, dir, framecount_rtp))
+        ALLOCATE (abs_intens(natom, dims, dir, framecount_rtp))
 
-        OPEN (UNIT=13, FILE='absorption_spectra_pade.txt', STATUS='unknown', IOSTAT=stat)
+        trace = 0.0_dp
+        trace(:, :, :, :) = DIMAG(zhat_pol_rtp(:, :, :, 1, 1, :)) + DIMAG(zhat_pol_rtp(:, :, :, 2, 2, :)) &
+                                  + DIMAG(zhat_pol_rtp(:, :, :, 3, 3, :))
+        abs_intens(:, :, :, :) = (4.0_dp*pi*trace(:, :, :, :))/(3.0_dp*speed_light)
+
+        OPEN (UNIT=13, FILE='absorption_spectrum.txt', STATUS='unknown', IOSTAT=stat)
         DO j = 1, 1 !!atom_num: 1st atom
             DO i = 1, 1 !!dims: x dimension
                 DO k = 1, 1 !! + direction
@@ -950,153 +945,86 @@ print*,ir_int(:)
             END DO
         END DO
         CLOSE (13)
-
-        DEALLOCATE (zhat_pol_rtp, trace, abs_intens, y_out)
+        DEALLOCATE (pol_rtp, trace, abs_intens)
 
     END SUBROUTINE spec_abs
 !....................................................................................................................!
 !....................................................................................................................!
-    SUBROUTINE spec_static_resraman(nmodes, natom, pol_rtp, laser_in_resraman, freq, temp, pi, framecount_rtp, dom_rtp, &
-                                    dx, bohr2ang, disp, speed_light, framecount_rtp_pade, check_pade, atom_mass_inv_sqrt)
+    SUBROUTINE spec_static_resraman(nmodes, natom, zhat_pol_rtp, laser_in, freq, temp, pi, framecount_rtp, dom_rtp, &
+                                    dx, bohr2ang, disp, speed_light, check_pade, atom_mass_inv_sqrt)
 
         CHARACTER(LEN=40), INTENT(IN)                                  :: check_pade
-        INTEGER, INTENT(INOUT)                                         :: natom, nmodes, framecount_rtp, framecount_rtp_pade
+        INTEGER, INTENT(INOUT)                                         :: natom, nmodes, framecount_rtp
         REAL(kind=dp), INTENT(IN)                                       :: dx, bohr2ang, speed_light
-        REAL(kind=dp), INTENT(INOUT)                                    :: laser_in_resraman, temp, pi, dom_rtp
+        REAL(kind=dp), INTENT(INOUT)                                    :: laser_in, temp, pi, dom_rtp
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE, INTENT(INOUT)           :: freq, atom_mass_inv_sqrt
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(INOUT)       :: disp
-        REAL(kind=dp), DIMENSION(:, :, :, :, :, :), ALLOCATABLE, INTENT(INOUT) :: pol_rtp
+        COMPLEX(kind=dp), DIMENSION(:, :, :, :, :, :), ALLOCATABLE, INTENT(INOUT)            :: zhat_pol_rtp
 
         INTEGER                                                       :: stat, i, j, k, m, x, freq_range, l, o, n, r
         INTEGER                                                       :: start_freq, end_freq, rtp_point
         INTEGER(kind=dp)                                               :: plan
         REAL(kind=dp)                                                  :: omega, broad, factor
         REAL(kind=dp)                                                  :: rtp_freq_range, pade_freq_range
-        REAL(kind=dp), DIMENSION(:), ALLOCATABLE                         :: data1, data2
+        REAL(kind=dp), DIMENSION(:), ALLOCATABLE                         :: data2
         REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE                       :: iso_sq, aniso_sq, raman_int
         REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE                   :: zhat_pol_dq_rtp
         REAL(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE                 :: zhat_pol_dxyz_rtp
-        COMPLEX(kind=dp), DIMENSION(:, :, :, :, :, :), ALLOCATABLE            :: y_out, zhat_pol_rtp
 
-        ALLOCATE (zhat_pol_rtp(natom, 3, 2, 3, 3, framecount_rtp))
-        ALLOCATE (y_out(natom, 3, 2, 3, 3, framecount_rtp_pade))
-        PRINT *, "TEST"
-        zhat_pol_rtp = COMPLEX(0._dp, 0.0_dp)
-        PRINT *, "TEST"
         omega = 5.0_dp
         broad = 0.0_dp
         factor = 1._dp/(2.0_dp*dx)
         start_freq = 1.0_dp
         end_freq = INT(MAXVAL(freq) + 1000.0_dp)
         freq_range = INT(end_freq - start_freq)
-!mass_inv_sqrt(:)=REAL(1.0_dp/SQRT(mass_atom(:)),kind=dp)
 
-        ALLOCATE (data1(freq_range*nmodes), data2(freq_range*nmodes))
-        data1 = 0.0_dp
-        data2 = 0.0_dp
-
-        PRINT *, "TEST"
-!!!FFT of the RTP polarizabilities
-        DO j = 1, natom
-            DO i = 1, 3
-                DO k = 1, 2
-                    DO m = 1, 3
-                        DO o = 1, 3
-                            CALL dfftw_plan_dft_r2c_1d(plan, framecount_rtp, pol_rtp(j, i, k, m, o, 1:framecount_rtp), &
-                                                       zhat_pol_rtp(j, i, k, m, o, 1:framecount_rtp), FFTW_ESTIMATE)
-                            CALL dfftw_execute_dft_r2c(plan, pol_rtp(j, i, k, m, o, 1:framecount_rtp), &
-                                                       zhat_pol_rtp(j, i, k, m, o, 1:framecount_rtp))
-                            CALL dfftw_destroy_plan(plan)
-                        END DO
-                    END DO
-                END DO
-            END DO
-        END DO
-
-        IF (check_pade=='y') THEN
-!!Call Pade
-            !$OMP PARALLEL DO COLLAPSE(5)
-            DO j = 1, natom !!natom
-                DO i = 1, 3 !!dims
-                    DO k = 1, 2 !!disp
-                        DO m = 1, 3
-                            DO o = 1, 3
-                                CALL interpolate(framecount_rtp, zhat_pol_rtp(j, i, k, m, o, 1:framecount_rtp), &
-                                                 framecount_rtp_pade, y_out(j, i, k, m, o, :))
-                            END DO
-                        END DO
-                    END DO
-                END DO
-            END DO
-            !$OMP END PARALLEL DO
-            framecount_rtp = framecount_rtp_pade
-        END IF
-
+        ALLOCATE (data2(freq_range*nmodes))
         ALLOCATE (zhat_pol_dxyz_rtp(natom, 3, 3, 3, framecount_rtp))
         ALLOCATE (zhat_pol_dq_rtp(nmodes, 3, 3, framecount_rtp))
         ALLOCATE (iso_sq(nmodes, framecount_rtp), aniso_sq(nmodes, framecount_rtp))
         ALLOCATE (raman_int(nmodes, framecount_rtp))
+        
         zhat_pol_dq_rtp = 0.0_dp
+        data2 = 0.0_dp
 
 !!!Finding laser frequency
         rtp_freq_range = REAL(dom_rtp/framecount_rtp, kind=dp)
-        rtp_point = ANINT(laser_in_resraman/rtp_freq_range, kind=dp)
-        PRINT *, laser_in_resraman, "laser_in_Resraman", rtp_freq_range, "rtp_freq_range", &
-            dom_rtp, "dom_rtp", rtp_point, 'rtp_point'
+        rtp_point = ANINT(laser_in/rtp_freq_range, kind=dp)
+        
+        PRINT *, laser_in, "laser_in", rtp_freq_range, "rtp_freq_range", &
+            dom_rtp, "dom_rtp", rtp_point, 'rtp_point', framecount_rtp
 
 !!!Finite differences
-        DO j = 1, natom
-            DO i = 1, 3
-                DO m = 1, 3
-                    DO o = 1, 3
-                        DO n = 1, framecount_rtp
-                            IF (check_pade=='n') THEN
-                                zhat_pol_dxyz_rtp(j, i, m, o, n) = REAL((REAL(zhat_pol_rtp(j, i, 2, m, o, n), kind=dp) &
-                                                                         - REAL(zhat_pol_rtp(j, i, 1, m, o, n), kind=dp)) &
-                                                                        *factor, kind=dp)
-                            ELSEIF (check_pade=='y') THEN
-                                zhat_pol_dxyz_rtp(j, i, m, o, n) = REAL((REAL(y_out(j, i, 2, m, o, n), kind=dp) &
-                                                                         - REAL(y_out(j, i, 1, m, o, n), kind=dp))*factor, kind=dp)
-                            END IF
-                        END DO
-                    END DO
-                END DO
-            END DO
-        END DO
+       zhat_pol_dxyz_rtp(:, :, :, :, :) = REAL((REAL(zhat_pol_rtp(:, :, 2, :, :, :), kind=dp) &
+                                          - REAL(zhat_pol_rtp(:, :, 1, :, :, :), kind=dp)) * factor, kind=dp)
 
 !!!Derivatives w.r.t. mass weighted normal coordinates
         DO i = 1, nmodes
             DO j = 1, natom
                 DO o = 1, framecount_rtp
                     zhat_pol_dq_rtp(i, :, :, o) = zhat_pol_dq_rtp(i, :, :, o) &
-                                                  + (zhat_pol_dxyz_rtp(j, 1, :, :, o)*disp(j, i, 1)*atom_mass_inv_sqrt(j)) &
-                                                  + (zhat_pol_dxyz_rtp(j, 2, :, :, o)*disp(j, i, 2)*atom_mass_inv_sqrt(j)) &
-                                                  + (zhat_pol_dxyz_rtp(j, 3, :, :, o)*disp(j, i, 3)*atom_mass_inv_sqrt(j))
+                                                  + (zhat_pol_dxyz_rtp(j, 1, :, :, o)*disp(i, j, 1)*atom_mass_inv_sqrt(j)) &
+                                                  + (zhat_pol_dxyz_rtp(j, 2, :, :, o)*disp(i, j, 2)*atom_mass_inv_sqrt(j)) &
+                                                  + (zhat_pol_dxyz_rtp(j, 3, :, :, o)*disp(i, j, 3)*atom_mass_inv_sqrt(j))
                 END DO
             END DO
         END DO
 
 !!!Isotropic and anisotropic contributions!!
-        DO k = 1, nmodes
-            DO o = 1, framecount_rtp
-                iso_sq(k, o) = REAL((zhat_pol_dq_rtp(k, 1, 1, o) + zhat_pol_dq_rtp(k, 2, 2, o) &
-                                     + zhat_pol_dq_rtp(k, 3, 3, o))/3.0_dp, kind=dp)**2.0_dp
+        iso_sq(:, :) = REAL((zhat_pol_dq_rtp(:, 1, 1, :) + zhat_pol_dq_rtp(:, 2, 2, :) &
+                                     + zhat_pol_dq_rtp(:, 3, 3, :))/3.0_dp, kind=dp)**2.0_dp
 
-                aniso_sq(k, o) = (0.50_dp*(((zhat_pol_dq_rtp(k, 1, 1, o) - zhat_pol_dq_rtp(k, 2, 2, o))**2.0_dp) + &
-                                           ((zhat_pol_dq_rtp(k, 2, 2, o) - zhat_pol_dq_rtp(k, 3, 3, o))**2.0_dp) &
-                                           + ((zhat_pol_dq_rtp(k, 3, 3, o) - zhat_pol_dq_rtp(k, 1, 1, o))**2.0_dp))) &
-                                 + (3.0_dp*((zhat_pol_dq_rtp(k, 1, 2, o)**2.0_dp) &
-                                            + (zhat_pol_dq_rtp(k, 2, 3, o)**2.0_dp) &
-                                            + (zhat_pol_dq_rtp(k, 3, 1, o)**2.0_dp)))
-            END DO
-        END DO
+        aniso_sq(:, :) = (0.50_dp*(((zhat_pol_dq_rtp(:, 1, 1, :) - zhat_pol_dq_rtp(:, 2, 2, :))**2.0_dp) + &
+                                           ((zhat_pol_dq_rtp(:, 2, 2, :) - zhat_pol_dq_rtp(:, 3, 3, :))**2.0_dp) &
+                                           + ((zhat_pol_dq_rtp(:, 3, 3, :) - zhat_pol_dq_rtp(:, 1, 1, :))**2.0_dp))) &
+                                 + (3.0_dp*((zhat_pol_dq_rtp(:, 1, 2, :)**2.0_dp) &
+                                            + (zhat_pol_dq_rtp(:, 2, 3, :)**2.0_dp) &
+                                            + (zhat_pol_dq_rtp(:, 3, 1, :)**2.0_dp)))
 
 !!!Calculation of the intensities!!
-        DO k = 1, nmodes
-            raman_int(k, rtp_point) = REAL(((7.0_dp*aniso_sq(k, rtp_point)) + (45.0_dp*iso_sq(k, rtp_point)))/45.0_dp, kind=dp)* &
-                                      REAL(((laser_in_resraman - freq(k))**4.0_dp)/freq(k), kind=dp) &
-                                      *REAL(1.0_dp/(1.0_dp - EXP(-1.438777_dp*freq(k)/temp)), kind=dp)
-        END DO
+        raman_int(:, rtp_point) = REAL(((7.0_dp*aniso_sq(:, rtp_point)) + (45.0_dp*iso_sq(:, rtp_point)))/45.0_dp, kind=dp)* &
+                                      REAL(((laser_in - freq(:))**4.0_dp)/freq(:), kind=dp) &
+                                      *REAL(1.0_dp/(1.0_dp - EXP(-1.438777_dp*freq(:)/temp)), kind=dp)
 
 !!!Broadening the spectrum!!
         DO x = start_freq, end_freq
@@ -1108,15 +1036,14 @@ print*,ir_int(:)
             data2(x) = data2(x) + broad
         END DO
 
-        OPEN (UNIT=98, FILE='result_static_raman.txt', STATUS='unknown', IOSTAT=stat)
+        OPEN (UNIT=98, FILE='result_static_resraman.txt', STATUS='unknown', IOSTAT=stat)
         DO i = start_freq, end_freq
             WRITE (98, *) i, data2(i)
         END DO
         CLOSE (98)
 
-        DEALLOCATE (iso_sq, aniso_sq, data1, data2, pol_rtp)
-        DEALLOCATE (zhat_pol_rtp, zhat_pol_dxyz_rtp, zhat_pol_dq_rtp)!,mass_inv_sqrt)
-        DEALLOCATE (raman_int, y_out)
+        DEALLOCATE (iso_sq, aniso_sq, data2, raman_int, disp, freq)
+        DEALLOCATE (zhat_pol_rtp, zhat_pol_dxyz_rtp, zhat_pol_dq_rtp)
 
     END SUBROUTINE spec_static_resraman
 

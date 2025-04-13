@@ -1,0 +1,13 @@
+RR
+1
+2
+r-met.xyz
+r-met-force.data3
+0.00265
+r-met_RTP_dipoles_static_X_10000.xyz
+r-met_RTP_dipoles_static_Y_10000.xyz
+r-met_RTP_dipoles_static_Z_10000.xyz
+0.00242
+10000
+n
+15808.596424

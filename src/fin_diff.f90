@@ -77,14 +77,14 @@ CONTAINS
 
 !**************************************************************************************************************!
 !**************************************************************************************************************!
-    SUBROUTINE finite_diff_static(natom, nmodes, pol, pol_dq, disp, atom_mass_inv_sqrt, dx, bohr2ang, static_dipole_free, &
-                                  static_dipole_x, static_dipole_y, static_dipole_z, type_dipole, read_function, dip_dq)
+    SUBROUTINE finite_diff_static(natom, nmodes, pol, pol_dq, disp, atom_mass_inv_sqrt, dx, bohr2ang, static_dip_free, &
+                                  static_dip_x, static_dip_y, static_dip_z, type_dipole, read_function, dip_dq)
 
         INTEGER, INTENT(INOUT)                                         :: natom, nmodes
         CHARACTER(LEN=40), INTENT(IN)                                  :: read_function, type_dipole
         REAL(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE, INTENT(INOUT)  :: pol
-        REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE, INTENT(INOUT)    :: static_dipole_free, static_dipole_x
-        REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE, INTENT(INOUT)    :: static_dipole_y, static_dipole_z
+        REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE, INTENT(INOUT)    :: static_dip_free, static_dip_x
+        REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE, INTENT(INOUT)    :: static_dip_y, static_dip_z
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(OUT)        :: pol_dq
         REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE, INTENT(OUT)        :: dip_dq
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(IN)         :: disp
@@ -105,12 +105,15 @@ CONTAINS
             pol_dq = 0.0_dp
             
             IF (type_dipole=='2') THEN
-                pol(:, :, :, 1, :) = REAL((static_dipole_x(:, :, :, :) - static_dipole_free(:, :, :, :)) / (5.338D-5 * 1.313D-26), kind=dp)
-                pol(:, :, :, 2, :) = REAL((static_dipole_y(:, :, :, :) - static_dipole_free(:, :, :, :)) / (5.338D-5 * 1.313D-26), kind=dp)
-                pol(:, :, :, 3, :) = REAL((static_dipole_z(:, :, :, :) - static_dipole_free(:, :, :, :)) / (5.338D-5 * 1.313D-26), kind=dp)
+                pol(:, :, :, 1, :) = REAL((static_dip_x(:, :, :, :) - static_dip_free(:, :, :, :)) / (5.338D-5 * 1.313D-26), kind=dp)
+                pol(:, :, :, 2, :) = REAL((static_dip_y(:, :, :, :) - static_dip_free(:, :, :, :)) / (5.338D-5 * 1.313D-26), kind=dp)
+                pol(:, :, :, 3, :) = REAL((static_dip_z(:, :, :, :) - static_dip_free(:, :, :, :)) / (5.338D-5 * 1.313D-26), kind=dp)
+                
+                DEALLOCATE(static_dip_free,static_dip_x,static_dip_y,static_dip_z)
             END IF
 
             pol_dxyz(:, :, :, :) = REAL((pol(:, :, 1, :, :) - pol(:, :, 2, :, :))*factor, kind=dp)
+        
         
         ELSEIF (read_function=='IR') THEN
         
@@ -119,7 +122,9 @@ CONTAINS
             
             dip_dq = 0.0_dp
        
-            dip_dxyz(:, :, :) = REAL((static_dipole_free(:, :, 1, :) - static_dipole_free(:, :, 2, :))*factor, kind=dp)
+            dip_dxyz(:, :, :) = REAL((static_dip_free(:, :, 1, :) - static_dip_free(:, :, 2, :))*factor, kind=dp)
+        
+            DEALLOCATE(static_dip_free)
         END IF
         
         DO j = 1, nmodes
@@ -136,7 +141,6 @@ CONTAINS
             END DO
         END DO
         
-        DEALLOCATE(static_dipole_free,static_dipole_x,static_dipole_y,static_dipole_z)
         IF (read_function=='R') THEN 
              DEALLOCATE (pol_dxyz,pol)
         ELSEIF (read_function=='IR') THEN 
