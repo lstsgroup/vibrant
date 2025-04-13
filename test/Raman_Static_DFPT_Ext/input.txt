@@ -4,6 +4,6 @@ R
 water.xyz
 normal_mode_water_freq.txt
 normal_mode_water_displ.txt
-polarizabilities_water.dat
 0.001
+polarizabilities_water.dat
 9398.50

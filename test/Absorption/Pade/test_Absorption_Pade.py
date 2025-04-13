@@ -42,7 +42,7 @@ def test_Absorption_Pade(vibrant_binary_path):
     
     # file names
     reference = "output/absorption_spectra_pade.txt"
-    test = "absorption_spectra_pade.txt"
+    test = "absorption_spectrum.txt"
     
     # parse filenames
     x_ref, y_ref = parse_spectrum_from_file(reference)

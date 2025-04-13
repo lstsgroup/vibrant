@@ -6,7 +6,7 @@ MODULE read_traj
 
     PRIVATE
 
-    PUBLIC :: read_coord, read_coord_frame, read_static, read_static_resraman
+    PUBLIC :: read_coord, read_coord_frame, read_normal_modes, read_static, read_static_resraman
 
 CONTAINS
     SUBROUTINE read_coord(natom, framecount, element, coord, filename, periodic, mol_num, system, read_function, &
@@ -81,30 +81,21 @@ CONTAINS
 !********************************************************************************************
 !********************************************************************************************
 
-    SUBROUTINE read_static(natom, element, normal_freq_file, normal_displ_file, static_pol, pol, freq, disp, &
-                           nmodes, static_dip_free_file, static_dip_x_file, static_dip_y_file, static_dip_z_file, &
-                           type_dipole, static_dipole_x, static_dipole_y, static_dipole_z, static_dipole_free, read_function, &
-                           type_static, force_file, force)
+    SUBROUTINE read_normal_modes(natom, element, normal_freq_file, normal_displ_file, freq, disp, nmodes, &
+                                 read_function, type_static, force_file, force)
 
-        CHARACTER(LEN=40), INTENT(IN)                               :: static_pol, type_dipole, static_dip_z_file
-        CHARACTER(LEN=40), INTENT(IN)                               :: static_dip_free_file, static_dip_x_file
-        CHARACTER(LEN=40), INTENT(IN)                               :: static_dip_y_file, read_function, type_static
+        CHARACTER(LEN=40), INTENT(IN)                               :: read_function, type_static
         CHARACTER(LEN=40), INTENT(IN)                               :: normal_freq_file, normal_displ_file, force_file
         INTEGER, INTENT(INOUT)                                      :: natom
         INTEGER, INTENT(OUT)                                        :: nmodes
         CHARACTER(LEN=2), DIMENSION(:), ALLOCATABLE, INTENT(INOUT)    :: element
-        REAL(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE, INTENT(OUT)  :: pol, force
-        REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE, INTENT(OUT)    :: static_dipole_x, static_dipole_free
-        REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE, INTENT(OUT)    :: static_dipole_y, static_dipole_z
+        REAL(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE, INTENT(OUT)  :: force
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE, INTENT(OUT)          :: freq
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(OUT)      :: disp
 
         CHARACTER(LEN=40)                                          :: chara
-        INTEGER                                                    :: i, j, k, m, n, data_number
+        INTEGER                                                    :: i, j, k, m, n
         INTEGER                                                    :: stat
-
-        ALLOCATE (pol(natom, 3, 2, 3, 3), static_dipole_free(natom, 3, 2, 3), static_dipole_x(natom, 3, 2, 3))
-        ALLOCATE (static_dipole_y(natom, 3, 2, 3), static_dipole_z(natom, 3, 2, 3))
 
         IF (read_function=='NMA' .OR. type_static=='1') THEN
             ALLOCATE (force(2, natom, 3, natom, 3))
@@ -131,7 +122,7 @@ CONTAINS
             CLOSE (50)
 
             ALLOCATE (freq(nmodes), disp(nmodes, natom, 3))
-
+            
             OPEN (UNIT=51, FILE=normal_freq_file, STATUS='old', IOSTAT=stat) !Reading normal freqs/coords
             DO i = 1, nmodes
                 READ (51, *, END=997) freq(i)
@@ -149,8 +140,30 @@ CONTAINS
             CLOSE (51)
         END IF
 
+
+    END SUBROUTINE read_normal_modes
+
+!********************************************************************************************
+!********************************************************************************************
+
+    SUBROUTINE read_static(natom, element, static_pol_file, pol, static_dip_file, type_dipole, static_dip, &
+                           type_static)
+
+        CHARACTER(LEN=40), INTENT(IN)                               :: static_pol_file, static_dip_file
+        CHARACTER(LEN=40), INTENT(IN)                               :: type_static, type_dipole
+        INTEGER, INTENT(INOUT)                                      :: natom
+        CHARACTER(LEN=2), DIMENSION(:), ALLOCATABLE, INTENT(INOUT)    :: element
+        REAL(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE, INTENT(OUT)  :: pol
+        REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE, INTENT(OUT)    :: static_dip
+
+        CHARACTER(LEN=40)                                          :: chara
+        INTEGER                                                    :: i, j, k, m, n
+        INTEGER                                                    :: stat
+
+        ALLOCATE (pol(natom, 3, 2, 3, 3), static_dip(natom, 3, 2, 3))
+
         IF (type_dipole=='3') THEN
-            OPEN (UNIT=52, FILE=static_pol, STATUS='old', IOSTAT=stat) !Reading polarizabilties
+            OPEN (UNIT=52, FILE=static_pol_file, STATUS='old', IOSTAT=stat) !Reading polarizabilties
             DO
                     DO k = 1, 2
                         DO i = 1, natom
@@ -172,74 +185,21 @@ CONTAINS
                 CLOSE (52)
 
         ELSEIF (type_dipole=='2') THEN
-                OPEN (UNIT=53, FILE=static_dip_free_file, STATUS='old', IOSTAT=stat) !Reading dipoles
+                OPEN (UNIT=53, FILE=static_dip_file, STATUS='old', IOSTAT=stat) !Reading dipoles
                 DO
                     DO k = 1, 2
                         DO i = 1, natom
                             DO j = 1, 3
                                 READ (53, *, END=994)
                                 READ (53, *)
-                                READ (53, *) chara, static_dipole_free(i, j, k, 1), static_dipole_free(i, j, k, 2), static_dipole_free(i, j, k, 3)
+                                READ (53, *) chara, static_dip(i, j, k, 1), static_dip(i, j, k, 2), static_dip(i, j, k, 3)
                             END DO
                         END DO
                     END DO
                 END DO
 994             CONTINUE
                 CLOSE (53)
-                PRINT *, static_dipole_free(1, 1, 1, 1), "dipole free test"
             
-            ELSEIF (type_dipole=='2' .AND. read_function=='R') THEN
-
-                OPEN (UNIT=54, FILE=static_dip_x_file, STATUS='old', IOSTAT=stat) !Reading dipoles
-                DO
-                    DO k = 1, 2
-                        DO i = 1, natom
-                            DO j = 1, 3
-                                READ (54, *, END=993)
-                                READ (54, *)
-                                READ (54, *) chara, static_dipole_x(i, j, k, 1), static_dipole_x(i, j, k, 2), static_dipole_x(i, j, k, 3)
-                            END DO
-                        END DO
-                    END DO
-                END DO
-993             CONTINUE
-                CLOSE (54)
-
-                PRINT *, static_dipole_x(1, 1, 1, 1), "dipole x test"
-                OPEN (UNIT=55, FILE=static_dip_y_file, STATUS='old', IOSTAT=stat) !Reading dipoles
-
-                DO
-                    DO k = 1, 2
-                        DO i = 1, natom
-                            DO j = 1, 3
-                                READ (55, *, END=992)
-                                READ (55, *)
-                                READ (55, *) chara, static_dipole_y(i, j, k, 1), static_dipole_y(i, j, k, 2), &
-                                    static_dipole_y(i, j, k, 3)
-                            END DO
-                        END DO
-                    END DO
-                END DO
-992             CONTINUE
-                CLOSE (55)
-                PRINT *, static_dipole_y(1, 1, 1, 1), "dipole y test"
-                OPEN (UNIT=56, FILE=static_dip_z_file, STATUS='old', IOSTAT=stat) !Reading dipoles
-                DO
-                    DO k = 1, 2
-                        DO i = 1, natom
-                            DO j = 1, 3
-                                READ (56, *, END=991)
-                                READ (56, *)
-                                READ (56, *) chara, static_dipole_z(i, j, k, 1), static_dipole_z(i, j, k, 2), &
-                                    static_dipole_z(i, j, k, 3)
-                            END DO
-                        END DO
-                    END DO
-                END DO
-991             CONTINUE
-                CLOSE (56)
-                PRINT *, static_dipole_z(1, 1, 1, 1), "dipole z test"
-                PRINT *, static_dipole_z(1, 1, 1, 1), static_dipole_free(1, 2, 2, 2), "dipoles"
         END IF
 
     END SUBROUTINE read_static
@@ -247,63 +207,19 @@ CONTAINS
 !********************************************************************************************
 !********************************************************************************************
 
-    SUBROUTINE read_static_resraman(natom, element, normal_freq_file, normal_displ_file, freq, disp, &
-                                    nmodes, static_dip_x_file, static_dip_y_file, static_dip_z_file, framecount_rtp, &
-                                    static_dipole_x_rtp, static_dipole_y_rtp, static_dipole_z_rtp)
+    SUBROUTINE read_static_resraman(natom, element, static_dip_file, framecount_rtp, static_dip_rtp)
 
-        CHARACTER(LEN=40), INTENT(IN)                               :: static_dip_z_file
-        CHARACTER(LEN=40), INTENT(IN)                               :: static_dip_y_file, static_dip_x_file
-        CHARACTER(LEN=40), INTENT(IN)                               :: normal_freq_file, normal_displ_file
-        INTEGER, INTENT(INOUT)                                      :: natom, framecount_rtp
-        INTEGER, INTENT(OUT)                                        :: nmodes
+        CHARACTER(LEN=40), INTENT(IN)                               :: static_dip_file
         CHARACTER(LEN=2), DIMENSION(:), ALLOCATABLE, INTENT(INOUT)    :: element
-        REAL(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE, INTENT(OUT)  :: static_dipole_x_rtp
-        REAL(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE, INTENT(OUT)  :: static_dipole_y_rtp, static_dipole_z_rtp
-        REAL(kind=dp), DIMENSION(:), ALLOCATABLE, INTENT(OUT)          :: freq
-        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(OUT)      :: disp
+        INTEGER, INTENT(INOUT)                                      :: natom, framecount_rtp
+        REAL(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE, INTENT(OUT)  :: static_dip_rtp
 
         CHARACTER(LEN=40)                                          :: chara
-        INTEGER                                                    :: i, j, k, m, data_number, step
-        INTEGER                                                    :: stat
+        INTEGER                                                    :: i, j, k, m, stat
 
-        nmodes = 0
-        step = 0
-        OPEN (UNIT=50, FILE=normal_freq_file, STATUS='old', IOSTAT=stat) !Reading normal freqs/coords
-        DO
-            READ (50, *, END=998) chara
-            nmodes = nmodes + 1
-        END DO
-998     CONTINUE
-        CLOSE (50)
+        ALLOCATE (static_dip_rtp(natom, 3, 2, 3, framecount_rtp + 1))
 
-        PRINT *, nmodes, 'nmodes'
-
-        ALLOCATE (freq(nmodes), disp(natom, nmodes, 3))
-        ALLOCATE (static_dipole_x_rtp(natom, 3, 2, 3, framecount_rtp + 1))
-        ALLOCATE (static_dipole_y_rtp(natom, 3, 2, 3, framecount_rtp + 1), static_dipole_z_rtp(natom, 3, 2, 3, framecount_rtp + 1))
-
-        OPEN (UNIT=51, FILE=normal_freq_file, STATUS='old', IOSTAT=stat) !Reading normal freqs/coords
-        DO i = 1, nmodes
-            READ (51, *, END=997) freq(i)
-        END DO
-997     CONTINUE
-        CLOSE (51)
-
-        OPEN (UNIT=51, FILE=normal_displ_file, STATUS='old', IOSTAT=stat) !Reading normal freqs/coords
-        DO i = 1, nmodes       !look above!!!
-            DO j = 1, natom        !changed the order of these two lines for o-NP, for water it is reverse!!
-                READ (51, *, END=996) disp(j, i, 1), disp(j, i, 2), disp(j, i, 3)
-            END DO
-        END DO
-996     CONTINUE
-        CLOSE (51)
-
-        PRINT *, disp(1, 2, 1), 'disp'
-        PRINT *, disp(2, 1, 1), 'disp'
-
-        PRINT *, step
-
-        OPEN (UNIT=53, FILE=static_dip_x_file, STATUS='old', IOSTAT=stat) !Reading polarizabilties
+        OPEN (UNIT=53, FILE=static_dip_file, STATUS='old', IOSTAT=stat) !Reading polarizabilties
         DO
             DO k = 1, 2
                 DO i = 1, natom
@@ -311,8 +227,8 @@ CONTAINS
                         READ (53, *, END=994)
                         READ (53, *)
                         DO m = 1, framecount_rtp + 1
-                            READ (53, *) chara, static_dipole_x_rtp(i, j, k, 1, m), static_dipole_x_rtp(i, j, k, 2, m), &
-                                static_dipole_x_rtp(i, j, k, 3, m)
+                            READ (53, *) chara, static_dip_rtp(i, j, k, 1, m), static_dip_rtp(i, j, k, 2, m), &
+                                static_dip_rtp(i, j, k, 3, m)
                         END DO
                     END DO
                 END DO
@@ -320,47 +236,6 @@ CONTAINS
         END DO
 994     CONTINUE
         CLOSE (53)
-
-        PRINT *, "CHECKPOINT1"
-
-        OPEN (UNIT=54, FILE=static_dip_y_file, STATUS='old', IOSTAT=stat) !Reading polarizabilties
-        DO
-            DO k = 1, 2
-                DO i = 1, natom
-                    DO j = 1, 3
-                        READ (54, *, END=993)
-                        READ (54, *)
-                        DO m = 1, framecount_rtp + 1
-                            READ (54, *) chara, static_dipole_y_rtp(i, j, k, 1, m), static_dipole_y_rtp(i, j, k, 2, m), &
-                                static_dipole_y_rtp(i, j, k, 3, m)
-                        END DO
-                    END DO
-                END DO
-            END DO
-        END DO
-993     CONTINUE
-        CLOSE (54)
-
-        OPEN (UNIT=55, FILE=static_dip_z_file, STATUS='old', IOSTAT=stat) !Reading polarizabilties
-        DO
-            DO k = 1, 2
-                DO i = 1, natom
-                    DO j = 1, 3
-                        READ (55, *, END=992)
-                        READ (55, *)
-                        DO m = 1, framecount_rtp + 1
-                            READ (55, *) chara, static_dipole_z_rtp(i, j, k, 1, m), static_dipole_z_rtp(i, j, k, 2, m), &
-                                static_dipole_z_rtp(i, j, k, 3, m)
-                        END DO
-                    END DO
-                END DO
-            END DO
-        END DO
-992     CONTINUE
-        CLOSE (55)
-
-        PRINT *, static_dipole_z_rtp(1, 1, 1, 1, 1), "dipole rtp z test"
-        PRINT *, static_dipole_x_rtp(1, 1, 1, 2, 1), "dipole rtp x test"
 
     END SUBROUTINE read_static_resraman
 END MODULE read_traj
