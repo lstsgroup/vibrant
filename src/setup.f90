@@ -1,50 +1,16 @@
 MODULE setup
 
     USE kinds, ONLY: dp
+    USE constants, ONLY :   speed_light, t_cor
 
     IMPLICIT NONE
 
     PRIVATE
 
-    PUBLIC :: constants, read_input, masses_charges, conversion, pbc_orthorombic, pbc_hexagonal
+    PUBLIC :: read_input, masses_charges, conversion, pbc_orthorombic, pbc_hexagonal !constants,
 
 CONTAINS
 
-    SUBROUTINE constants(const_charge, debye, t_cor, const_planck, const_permit, speed_light, const_boltz, &
-                         temp, pi, bohr2ang, fs2s, damping_constant, joule_unit, ev_unit, action_unit, hartreebohr2evang, &
-                         hessian_factor, at_u, ang, reccm2ev)
-
-        INTEGER, INTENT(OUT)                                 :: t_cor
-        REAL(kind=dp), INTENT(OUT)                            :: debye, const_planck, const_permit, pi, const_charge, fs2s
-        REAL(kind=dp), INTENT(OUT)                            :: speed_light, const_boltz, temp, bohr2ang, reccm2ev
-        REAL(kind=dp), INTENT(OUT)                            :: damping_constant, joule_unit, ev_unit, action_unit
-        REAL(kind=dp), INTENT(OUT)                            :: hartreebohr2evang, hessian_factor, at_u, ang
-
-        const_charge = 1.602176565e-19_dp
-        bohr2ang = 0.5291772109_dp !!bohr two angstrom
-        hartreebohr2evang = 51.42208619083232_dp !!hartree/bohr to eV/angstrom
-        damping_constant = 0.10_dp !! ev
-        joule_unit = 4.359744722e-18 !! J
-        ev_unit = 27.211386_dp !! ev
-        action_unit = 1.054571817e-34_dp !J.s
-        reccm2ev = 0.000124_dp !cm^-1 to eV
-        pi = 3.14159_dp
-        temp = 300.0_dp        !K
-        debye = 0.393456_dp
-        t_cor = 1024
-        const_planck = 6.62607015e-34_dp !m^2*kg/s or J.s
-        const_permit = 8.8541878128e-12 !F*m^−1
-        speed_light = 2.9979246e+10_dp  !cm/s
-        const_boltz = 1.380649e-23_dp !m^2*kg*s^-2*K-1 or J/K
-        fs2s = 1.0e-15_dp
-        ang = 1.0e-10_dp  !!angstrom to cm^-1
-        at_u = 1.6605390666e-27_dp !!atomic mass unit-kilogram relationship
-        hessian_factor = REAL(const_charge/(at_u*ang*ang), kind=dp)
-!laser_in=9398.50_dp  !cm^-1
-!laser_in=200000.0_dp  !cm^-1
-!laser_in=15797.78_dp !cm^-1
-!laser_in=18796.99
-    END SUBROUTINE constants
 
 !*************************************************************************************************
 !*************************************************************************************************
@@ -512,11 +478,10 @@ CONTAINS
 !*********************************************************************************************
 !*********************************************************************************************
 
-    SUBROUTINE conversion(dt, dom, dt_rtp, dom_rtp, speed_light, freq_range, t_cor, sinc_const)
+    SUBROUTINE conversion(dt, dom, dt_rtp, dom_rtp, freq_range, sinc_const)
 
-        INTEGER, INTENT(IN)                    :: t_cor
         REAL(kind=dp), INTENT(OUT)              :: dom, dom_rtp, freq_range, sinc_const
-        REAL(kind=dp), INTENT(IN)               :: speed_light, dt, dt_rtp
+        REAL(kind=dp), INTENT(IN)               ::  dt, dt_rtp
 
         INTEGER                               :: stat   ! error status of OPEN statements
         INTEGER                               :: i, j, k

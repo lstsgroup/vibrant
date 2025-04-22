@@ -1,7 +1,8 @@
 MODULE calc_spectra
 
-    USE setup, ONLY: constants, read_input, conversion
+    USE setup, ONLY: read_input, conversion
     USE kinds, ONLY: dp
+    USE constants, ONLY: pi, t_cor, debye, speed_light, const_planck, const_boltz, const_permit, temp, pi, hartreebohr2evang, hessian_factor, bohr2ang, reccm2ev
     USE read_traj, ONLY: read_coord_frame
     USE fin_diff, ONLY: central_diff, forward_diff
     USE vel_cor, ONLY: cvv, cvv_iso, cvv_aniso, cvv_only_x, cvv_resraman
@@ -19,15 +20,15 @@ MODULE calc_spectra
               spec_static_resraman, spec_resraman
 
 CONTAINS
-    SUBROUTINE spec_power(z, zhat, type_input, freq_range, natom, framecount, t_cor, dt, element, filename, coord_v, v, &
-                          input_mass, dom, mass_atom, read_function, mol_num, mass_tot, pi, coord, system, frag_type)
+     SUBROUTINE spec_power(z, zhat, type_input, freq_range, natom, framecount, dt, element, filename, coord_v, v, &
+                          input_mass, dom, mass_atom, read_function, mol_num, mass_tot, coord, system, frag_type)
 
         CHARACTER(LEN=40), INTENT(INOUT)                          :: read_function, system, frag_type
         CHARACTER(LEN=40), INTENT(INOUT)                          :: type_input, filename, input_mass
         CHARACTER(LEN=2), DIMENSION(:), ALLOCATABLE, INTENT(INOUT)  :: element
-        INTEGER, INTENT(INOUT)                                    :: natom, framecount, t_cor, mol_num
+        INTEGER, INTENT(INOUT)                                    :: natom, framecount, mol_num
         REAL(kind=dp), INTENT(INOUT)                               :: dt, dom
-        REAL(kind=dp), INTENT(IN)                                  :: pi, freq_range
+        REAL(kind=dp), INTENT(IN)                                  ::freq_range
         REAL(kind=dp), INTENT(OUT)                                 :: mass_tot
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE, INTENT(INOUT)      :: z, mass_atom
         REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE, INTENT(INOUT)    :: coord
@@ -46,11 +47,11 @@ CONTAINS
 
         IF (type_input=='1') THEN   !!If it is from positions, do finite differences first
             CALL central_diff(dt, natom, framecount, coord_v, v, read_function, mol_num, system)
-            CALL cvv(natom, framecount, t_cor, v, z, type_input, dt, input_mass, mass_atom, mass_tot, pi, &
+            CALL cvv(natom, framecount, v, z, type_input, dt, input_mass, mass_atom, mass_tot, &
                      mol_num, read_function, system, frag_type)
 
         ELSEIF (type_input=='2') THEN   !!If it is from velocities, compute autcorrelation directly
-            CALL cvv(natom, framecount, t_cor, coord_v, z, type_input, dt, input_mass, mass_atom, mass_tot, pi, &
+            CALL cvv(natom, framecount, coord_v, z, type_input, dt, input_mass, mass_atom, mass_tot, &
                      mol_num, read_function, system, frag_type)
         END IF
 
@@ -73,18 +74,18 @@ CONTAINS
 
 !***********************************************************************************************!
 !***********************************************************************************************!
-    SUBROUTINE spec_ir(z, zhat, freq_range, natom, framecount, t_cor, dt, element, filename, coord_v, v, input_mass, &
-                       dom, pi, mol_num, box_all, box_x, box_y, box_z, vec, vec_pbc, debye, periodic, mass_tot, mass_atom, &
+    SUBROUTINE spec_ir(z, zhat, freq_range, natom, framecount, dt, element, filename, coord_v, v, input_mass, &
+                       dom, mol_num, box_all, box_x, box_y, box_z, vec, vec_pbc, periodic, mass_tot, mass_atom, &
                        type_input, dip, read_function, coord, type_dipole, dipole, system, mass_tot_frag, sinc_const, &
                        nfrag, frag_type)
 
         CHARACTER(LEN=40), INTENT(INOUT)                          :: filename, input_mass, periodic, system, frag_type
         CHARACTER(LEN=40), INTENT(INOUT)                          :: type_dipole, read_function, type_input
         CHARACTER(LEN=2), DIMENSION(:), ALLOCATABLE, INTENT(INOUT)  :: element
-        INTEGER, INTENT(INOUT)                                    :: natom, framecount, t_cor, mol_num, nfrag
+        INTEGER, INTENT(INOUT)                                    :: natom, framecount, mol_num, nfrag
         REAL(kind=dp), INTENT(INOUT)                               :: dt, dom, vec(3), vec_pbc(3), mass_tot
-        REAL(kind=dp), INTENT(IN)                                  :: pi, freq_range, sinc_const
-        REAL(kind=dp), INTENT(INOUT)                               :: debye, box_x, box_y, box_z, box_all
+        REAL(kind=dp), INTENT(IN)                                  :: freq_range, sinc_const
+        REAL(kind=dp), INTENT(INOUT)                               :: box_x, box_y, box_z, box_all
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE, INTENT(INOUT)      :: z, mass_atom
         REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE, INTENT(INOUT)    :: coord
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(INOUT)  :: coord_v, v, dip, dipole
@@ -106,7 +107,7 @@ CONTAINS
 
         IF (system=='1' .OR. (system=='2' .AND. type_dipole=='1')) THEN  !!fragment approach or the whole cell
             CALL central_diff(dt, mol_num, framecount, dipole, v, read_function, mol_num, system)
-            CALL cvv(nfrag, framecount, t_cor, v, z, type_input, dt, input_mass, mass_atom, mass_tot, pi, &
+            CALL cvv(nfrag, framecount, v, z, type_input, dt, input_mass, mass_atom, mass_tot, &
                      mol_num, read_function, system, frag_type)
 
             !IF (type_dipole=='1') THEN !!Wannier centers, but currently only works for water molecule!
@@ -117,7 +118,7 @@ CONTAINS
         ELSEIF (system=='2' .AND. type_dipole=='2') THEN !!molecular approach
             CALL read_coord_frame(mol_num, framecount, element, filename, coord_v)
             CALL central_diff(dt, mol_num, framecount, coord_v, v, read_function, mol_num, system)
-            CALL cvv(mol_num, framecount, t_cor, v, z, type_input, dt, input_mass, mass_atom, mass_tot, pi, &
+            CALL cvv(mol_num, framecount, v, z, type_input, dt, input_mass, mass_atom, mass_tot, &
                      mol_num, read_function, system, frag_type)
         END IF
 
@@ -143,9 +144,9 @@ CONTAINS
 !****************************************************************************************!
 !****************************************************************************************!
     SUBROUTINE spec_raman(natom, framecount, element, coord, wannier_free, wannier_x, wannier_y, wannier_z, &
-                          mass_atom, mass_tot, periodic, mol_num, dt, dom, t_cor, speed_light, coord_v, v, type_input, &
-                          box_all, box_x, box_y, box_z, vec, vec_pbc, debye, read_function, z_iso, z_aniso, &
-                          z_ortho, z_para, const_planck, const_boltz, const_permit, temp, laser_in, pi, filename, &
+                          mass_atom, mass_tot, periodic, mol_num, dt, dom, coord_v, v, type_input, &
+                          box_all, box_x, box_y, box_z, vec, vec_pbc, read_function, z_iso, z_aniso, &
+                          z_ortho, z_para, laser_in, filename, &
                           averaging, direction, type_dipole, system, natom_frag, fragment, refpoint, dipole, cell_type, &
                           mass_tot_frag, frag_type, nfrag, charge, mass_tot_cell)
 
@@ -153,12 +154,11 @@ CONTAINS
         CHARACTER(LEN=40), INTENT(INOUT)                          :: averaging, direction, type_dipole, system, cell_type
         CHARACTER(LEN=40), INTENT(INOUT)                          :: wannier_free, wannier_x, wannier_y, wannier_z
         CHARACTER(LEN=2), DIMENSION(:), ALLOCATABLE, INTENT(INOUT)  :: element
-        INTEGER, INTENT(INOUT)                                    :: nfrag, natom, framecount, t_cor, mol_num
+        INTEGER, INTENT(INOUT)                                    :: nfrag, natom, framecount, mol_num
         INTEGER, DIMENSION(:), ALLOCATABLE, INTENT(INOUT)           :: natom_frag
         INTEGER, DIMENSION(:, :, :), ALLOCATABLE, INTENT(INOUT)       :: fragment
-        REAL(kind=dp), INTENT(INOUT)                               :: dt, dom, vec(3), vec_pbc(3), debye, mass_tot, mass_tot_cell
-        REAL(kind=dp), INTENT(INOUT)                               :: const_planck, const_boltz, const_permit, temp, laser_in, pi
-        REAL(kind=dp), INTENT(INOUT)                               :: speed_light
+        REAL(kind=dp), INTENT(INOUT)                               :: dt, dom, vec(3), vec_pbc(3), mass_tot, mass_tot_cell
+        REAL(kind=dp), INTENT(INOUT)                               ::  laser_in
         REAL(kind=dp), INTENT(INOUT)                               :: box_x, box_y, box_z, box_all
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE, INTENT(INOUT)      :: z_iso, z_aniso, z_ortho, z_para, mass_atom, charge
         REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE, INTENT(INOUT)    :: coord
@@ -371,20 +371,20 @@ CONTAINS
             zhat_depol = COMPLEX(0._dp, 0.0_dp)
 
             IF (system=='1' .OR. (system=='2' .AND. type_dipole=='1')) THEN
-                CALL cvv_iso(nfrag, framecount, t_cor, z_iso, alpha_diff_x, alpha_diff_y, alpha_diff_z, dt, pi, frag_type)
+                CALL cvv_iso(nfrag, framecount, z_iso, alpha_diff_x, alpha_diff_y, alpha_diff_z, dt, frag_type)
             ELSE
-                CALL cvv_iso(mol_num, framecount, t_cor, z_iso, alpha_diff_x, alpha_diff_y, alpha_diff_z, dt, pi, frag_type)
+                CALL cvv_iso(mol_num, framecount, z_iso, alpha_diff_x, alpha_diff_y, alpha_diff_z, dt, frag_type)
             END IF
 
             CALL dfftw_plan_dft_r2c_1d(plan, 2*t_cor, z_iso, zhat_iso, FFTW_ESTIMATE)
             CALL dfftw_execute_dft_r2c(plan, z_iso, zhat_iso)
 
             IF (system=='1' .OR. (system=='2' .AND. type_dipole=='1')) THEN
-                CALL cvv_aniso(nfrag, natom, framecount, t_cor, z_aniso, alpha_diff_x, alpha_diff_y, &
-                               alpha_diff_z, dt, pi, frag_type)
+                CALL cvv_aniso(nfrag, natom, framecount, z_aniso, alpha_diff_x, alpha_diff_y, &
+                               alpha_diff_z, dt, frag_type)
             ELSE
-                CALL cvv_aniso(mol_num, natom, framecount, t_cor, z_aniso, alpha_diff_x, alpha_diff_y, &
-                               alpha_diff_z, dt, pi, frag_type)
+                CALL cvv_aniso(mol_num, natom, framecount, z_aniso, alpha_diff_x, alpha_diff_y, &
+                               alpha_diff_z, dt, frag_type)
             END IF
 
             CALL dfftw_plan_dft_r2c_1d(plan, 2*t_cor, z_aniso, zhat_aniso, FFTW_ESTIMATE)
@@ -463,7 +463,7 @@ CONTAINS
 
             IF (type_dipole=='1') THEN
                 CALL read_coord_frame(natom, framecount, element, wannier_free, coord_v)
-                CALL wannier(element, filename, natom, box_all, box_x, box_y, box_z, vec, vec_pbc, debye, mol_num, &
+                CALL wannier(element, filename, natom, box_all, box_x, box_y, box_z, vec, vec_pbc, mol_num, &
                              periodic, mass_tot, framecount, mass_atom, coord_v, dip_free)
             ELSEIF (type_dipole=='2') THEN
                 CALL read_coord_frame(natom, framecount, element, wannier_free, dip_free)
@@ -474,7 +474,7 @@ CONTAINS
         !!!X-FIELD!!!
                 CALL read_coord_frame(natom, framecount, element, wannier_x, coord_v)
                 IF (type_dipole=='1') THEN
-                    CALL wannier(element, wannier_x, natom, box_all, box_x, box_y, box_z, vec, vec_pbc, debye, mol_num, &
+                    CALL wannier(element, wannier_x, natom, box_all, box_x, box_y, box_z, vec, vec_pbc, mol_num, &
                                  periodic, mass_tot, framecount, mass_atom, coord_v, dip_x)
                     CALL forward_diff(mol_num, framecount, alpha_x, dip_free, dip_x, system, read_function)
                 ELSEIF (type_dipole=='2') THEN
@@ -485,7 +485,7 @@ CONTAINS
             ELSEIF (direction=='2') THEN
                 CALL read_coord_frame(natom, framecount, element, wannier_y, coord_v)
                 IF (type_dipole=='1') THEN
-                    CALL wannier(element, wannier_y, natom, box_all, box_x, box_y, box_z, vec, vec_pbc, debye, mol_num, &
+                    CALL wannier(element, wannier_y, natom, box_all, box_x, box_y, box_z, vec, vec_pbc, mol_num, &
                                  periodic, mass_tot, framecount, mass_atom, coord_v, dip_y)
                     CALL forward_diff(mol_num, framecount, alpha_y, dip_free, dip_y, system, read_function)
                 ELSEIF (type_dipole=='2') THEN
@@ -496,7 +496,7 @@ CONTAINS
         !!!Z-FIELD!!!
                 CALL read_coord_frame(natom, framecount, element, wannier_z, coord_v)
                 IF (type_dipole=='1') THEN
-                    CALL wannier(element, wannier_z, natom, box_all, box_x, box_y, box_z, vec, vec_pbc, debye, mol_num, &
+                    CALL wannier(element, wannier_z, natom, box_all, box_x, box_y, box_z, vec, vec_pbc, mol_num, &
                                  periodic, mass_tot, framecount, mass_atom, coord_v, dip_z)
                     CALL forward_diff(mol_num, framecount, alpha_z, dip_free, dip_z, system, read_function)
                 ELSEIF (type_dipole=='2') THEN
@@ -514,8 +514,8 @@ CONTAINS
             zhat_depol_x = COMPLEX(0._dp, 0.0_dp)
 
         !!IF ONLY ISOTROPIC AVERAGING IS CONSIDERED!!
-            CALL cvv_only_x(mol_num, natom, framecount, t_cor, z_para, z_ortho, alpha_diff_x, &
-                            alpha_diff_y, alpha_diff_z, dt, pi, direction)
+            CALL cvv_only_x(mol_num, natom, framecount, z_para, z_ortho, alpha_diff_x, &
+                            alpha_diff_y, alpha_diff_z, dt, direction)
 
             CALL dfftw_plan_dft_r2c_1d(plan, 2*t_cor, z_para, zhat_para, FFTW_ESTIMATE)
             CALL dfftw_execute_dft_r2c(plan, z_para, zhat_para)
@@ -603,13 +603,12 @@ CONTAINS
 
 !....................................................................................................................!
 !....................................................................................................................!
-    SUBROUTINE normal_mode_analysis(natom, force, dx, hartreebohr2evang, hessian_factor, mass_mat, pi, speed_light, nmodes, &
-                                    freq, disp)
+    SUBROUTINE normal_mode_analysis(natom, force, dx,  mass_mat, nmodes, freq, disp)
 
         INTEGER, INTENT(IN)                                          :: natom
         INTEGER, INTENT(OUT)                                          :: nmodes
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE, INTENT(OUT)           :: freq
-        REAL(kind=dp), INTENT(IN)                                    :: dx, hartreebohr2evang, hessian_factor, pi, speed_light
+        REAL(kind=dp), INTENT(IN)                                    :: dx
         REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE, INTENT(IN)      :: mass_mat
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(OUT)       :: disp
         REAL(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE, INTENT(INOUT) :: force
@@ -703,11 +702,11 @@ CONTAINS
 !....................................................................................................................!
 !....................................................................................................................!
 
-    SUBROUTINE spec_static_ir(nmodes, dip_dq, freq, temp, pi, element, coord, disp, bohr2ang, natom)
+    SUBROUTINE spec_static_ir(nmodes, dip_dq, freq, element, coord, disp, natom)
         
         INTEGER, INTENT(INOUT)                                    :: nmodes, natom
         CHARACTER(LEN=2), DIMENSION(:), ALLOCATABLE, INTENT(INOUT)  :: element
-        REAL(kind=dp), INTENT(INOUT)                               :: temp, pi, bohr2ang
+
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE, INTENT(INOUT)      :: freq
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE        :: ir_int
         REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE, INTENT(INOUT)    :: coord
@@ -759,11 +758,11 @@ CONTAINS
 !....................................................................................................................!
 !....................................................................................................................!
 
-    SUBROUTINE spec_static_raman(nmodes, pol_dq, laser_in, freq, temp, raman_int, pi, element, coord, disp, bohr2ang, natom)
+    SUBROUTINE spec_static_raman(nmodes, pol_dq, laser_in, freq, raman_int, element, coord, disp, natom)
 
         INTEGER, INTENT(INOUT)                                    :: nmodes, natom
         CHARACTER(LEN=2), DIMENSION(:), ALLOCATABLE, INTENT(INOUT)  :: element
-        REAL(kind=dp), INTENT(INOUT)                               :: laser_in, temp, pi, bohr2ang
+        REAL(kind=dp), INTENT(INOUT)                               :: laser_in
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE, INTENT(INOUT)      :: freq
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE, INTENT(OUT)        :: raman_int
         REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE, INTENT(INOUT)    :: coord
@@ -852,12 +851,12 @@ CONTAINS
 !....................................................................................................................!
 !....................................................................................................................!
 
-    SUBROUTINE spec_abs(nmodes, natom, pol_rtp, freq, pi, framecount_rtp, speed_light, framecount_rtp_pade, reccm2ev, check_pade &
+    SUBROUTINE spec_abs(nmodes, natom, pol_rtp, freq, framecount_rtp, framecount_rtp_pade, check_pade &
                         , dom_rtp, read_function, zhat_pol_rtp)
 
         INTEGER, INTENT(INOUT)                                         :: natom, nmodes, framecount_rtp, framecount_rtp_pade
         CHARACTER(LEN=40), INTENT(IN)                                  :: check_pade, read_function
-        REAL(kind=dp), INTENT(IN)                                       :: speed_light, reccm2ev, pi, dom_rtp
+        REAL(kind=dp), INTENT(IN)                                       :: dom_rtp
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE, INTENT(INOUT)           :: freq
         REAL(kind=dp), DIMENSION(:, :, :, :, :, :), ALLOCATABLE, INTENT(INOUT) :: pol_rtp
         COMPLEX(kind=dp), DIMENSION(:, :, :, :, :, :), ALLOCATABLE, INTENT(OUT)            :: zhat_pol_rtp
@@ -950,13 +949,13 @@ CONTAINS
     END SUBROUTINE spec_abs
 !....................................................................................................................!
 !....................................................................................................................!
-    SUBROUTINE spec_static_resraman(nmodes, natom, zhat_pol_rtp, laser_in, freq, temp, pi, framecount_rtp, dom_rtp, &
-                                    dx, bohr2ang, disp, speed_light, check_pade, atom_mass_inv_sqrt)
+    SUBROUTINE spec_static_resraman(nmodes, natom, zhat_pol_rtp, laser_in, freq, framecount_rtp, dom_rtp, &
+                                    dx, disp, check_pade, atom_mass_inv_sqrt)
 
         CHARACTER(LEN=40), INTENT(IN)                                  :: check_pade
         INTEGER, INTENT(INOUT)                                         :: natom, nmodes, framecount_rtp
-        REAL(kind=dp), INTENT(IN)                                       :: dx, bohr2ang, speed_light
-        REAL(kind=dp), INTENT(INOUT)                                    :: laser_in, temp, pi, dom_rtp
+        REAL(kind=dp), INTENT(IN)                                       :: dx
+        REAL(kind=dp), INTENT(INOUT)                                    :: laser_in, dom_rtp
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE, INTENT(INOUT)           :: freq, atom_mass_inv_sqrt
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(INOUT)       :: disp
         COMPLEX(kind=dp), DIMENSION(:, :, :, :, :, :), ALLOCATABLE, INTENT(INOUT)            :: zhat_pol_rtp
@@ -1308,4 +1307,3 @@ CONTAINS
 
     END SUBROUTINE spec_resraman
 END MODULE calc_spectra
-

@@ -1,5 +1,6 @@
 MODULE fin_diff
     USE kinds, ONLY: dp
+    USE constants, ONLY: bohr2ang, speed_light, fs2s, damping_constant, joule_unit, ev_unit, action_unit
     IMPLICIT NONE
     PUBLIC :: central_diff, forward_diff, finite_diff_static, finite_diff_static_resraman
 
@@ -77,7 +78,7 @@ CONTAINS
 
 !**************************************************************************************************************!
 !**************************************************************************************************************!
-    SUBROUTINE finite_diff_static(natom, nmodes, pol, pol_dq, disp, atom_mass_inv_sqrt, dx, bohr2ang, static_dip_free, &
+    SUBROUTINE finite_diff_static(natom, nmodes, pol, pol_dq, disp, atom_mass_inv_sqrt, dx, static_dip_free, &
                                   static_dip_x, static_dip_y, static_dip_z, type_dipole, read_function, dip_dq)
 
         INTEGER, INTENT(INOUT)                                         :: natom, nmodes
@@ -89,7 +90,7 @@ CONTAINS
         REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE, INTENT(OUT)        :: dip_dq
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(IN)         :: disp
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE, INTENT(IN)           :: atom_mass_inv_sqrt
-        REAL(kind=dp), INTENT(IN)                                      :: dx, bohr2ang
+        REAL(kind=dp), INTENT(IN)                                      :: dx
 
         INTEGER                                                      :: stat, i, j, k, m
         REAL(kind=dp)                                                 :: factor
@@ -152,12 +153,10 @@ CONTAINS
 !**************************************************************************************************************!
 !**************************************************************************************************************!
     SUBROUTINE finite_diff_static_resraman(natom, pol_rtp, static_dipole_x_rtp, static_dipole_y_rtp, static_dipole_z_rtp, &
-                                           framecount_rtp, speed_light, fs2s, damping_constant, joule_unit, &
-                                           ev_unit, action_unit, dt_rtp)
+                                           framecount_rtp, dt_rtp)
 
         INTEGER, INTENT(IN)                                           :: natom, framecount_rtp
-        REAL(kind=dp), INTENT(IN)                                      :: speed_light, fs2s, damping_constant
-        REAL(kind=dp), INTENT(IN)                                      :: joule_unit, ev_unit, action_unit, dt_rtp
+        REAL(kind=dp), INTENT(IN)                                      ::  dt_rtp
         REAL(kind=dp), DIMENSION(:, :, :, :, :, :), ALLOCATABLE, INTENT(OUT)  :: pol_rtp
         REAL(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE, INTENT(INOUT)  :: static_dipole_x_rtp, static_dipole_y_rtp
         REAL(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE, INTENT(INOUT)  :: static_dipole_z_rtp

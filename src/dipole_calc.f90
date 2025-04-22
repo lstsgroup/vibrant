@@ -1,6 +1,7 @@
 MODULE dipole_calc
 
     USE kinds, ONLY: dp
+    USE constants, ONLY: debye
     USE setup, ONLY: pbc_orthorombic, pbc_hexagonal
 
     IMPLICIT NONE
@@ -1147,7 +1148,7 @@ CONTAINS
 !***************************************************************************************************
 !***************************************************************************************************
 
-    SUBROUTINE wannier(element, filename, natom, box_all, box_x, box_y, box_z, vec, vec_pbc, debye, mol_num, &
+    SUBROUTINE wannier(element, filename, natom, box_all, box_x, box_y, box_z, vec, vec_pbc, mol_num, &
                        periodic, mass_tot, framecount, mass_atom, coord_v, dip)
 
         CHARACTER(LEN=40), INTENT(INOUT)                                  :: filename, periodic
@@ -1156,7 +1157,7 @@ CONTAINS
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(INOUT)          :: coord_v
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(OUT)            :: dip
         REAL(kind=dp), INTENT(INOUT)                                       :: box_all, box_x, box_y, box_z
-        REAL(kind=dp), INTENT(INOUT)                                       :: debye, mass_tot
+        REAL(kind=dp), INTENT(INOUT)                                       :: mass_tot
         REAL(kind=dp), DIMENSION(3), INTENT(INOUT)                          :: vec, vec_pbc
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE, INTENT(INOUT)              :: mass_atom
 
