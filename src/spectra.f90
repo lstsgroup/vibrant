@@ -922,7 +922,7 @@ CONTAINS
         END IF
 
 !!!Dividing by electric field
-        zhat_pol_rtp=REAL(zhat_pol_rtp/0.001_dp, KIND=8) !!later make this an input variable
+        zhat_pol_rtp=zhat_pol_rtp/0.001_dp !!later make this an input variable
 
 !!!Finding frequency range
         rtp_freq_range = REAL(dom_rtp/framecount_rtp, kind=dp)
