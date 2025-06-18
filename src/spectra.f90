@@ -2,7 +2,9 @@ MODULE calc_spectra
 
     USE setup, ONLY: read_input, conversion
     USE kinds, ONLY: dp
+    USE vib_types, ONLY: systems, md, static, dipoles, raman
     USE constants, ONLY: pi, t_cor, debye, speed_light, const_planck, const_boltz, const_permit, temp, pi, hartreebohr2evang, hessian_factor, bohr2ang, reccm2ev
+    USE vib_types, ONLY: global_settings, systems, static
     USE read_traj, ONLY: read_coord_frame
     USE fin_diff, ONLY: central_diff, forward_diff
     USE vel_cor, ONLY: cvv, cvv_iso, cvv_aniso, cvv_only_x, cvv_resraman
@@ -20,7 +22,7 @@ MODULE calc_spectra
               spec_static_resraman, spec_resraman
 
 CONTAINS
-     SUBROUTINE spec_power(z, zhat, type_input, freq_range, natom, framecount, dt, element, filename, coord_v, v, &
+    SUBROUTINE spec_power(z, zhat, type_input, freq_range, natom, framecount, dt, element, filename, coord_v, v, &
                           input_mass, dom, mass_atom, read_function, mol_num, mass_tot, coord, system, frag_type)
 
         CHARACTER(LEN=40), INTENT(INOUT)                          :: read_function, system, frag_type
@@ -603,15 +605,17 @@ CONTAINS
 
 !....................................................................................................................!
 !....................................................................................................................!
-    SUBROUTINE normal_mode_analysis(natom, force, dx,  mass_mat, nmodes, freq, disp)
+    SUBROUTINE normal_mode_analysis(sys, stats) !sys%natom, stats%force, stats%dx, sys%mass_mat, stats%nmodes, stats%freq, stats%disp)
 
-        INTEGER, INTENT(IN)                                          :: natom
-        INTEGER, INTENT(OUT)                                          :: nmodes
-        REAL(kind=dp), DIMENSION(:), ALLOCATABLE, INTENT(OUT)           :: freq
-        REAL(kind=dp), INTENT(IN)                                    :: dx
-        REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE, INTENT(IN)      :: mass_mat
-        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(OUT)       :: disp
-        REAL(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE, INTENT(INOUT) :: force
+        TYPE(systems), INTENT(INOUT)        :: sys
+        TYPE(static), INTENT(INOUT)        :: stats
+        !INTEGER, INTENT(IN)                                          :: sys%natom
+        !INTEGER, INTENT(OUT)                                          :: stats%nmodes
+        !REAL(kind=dp), DIMENSION(:), ALLOCATABLE, INTENT(OUT)           :: stats%freq
+        !REAL(kind=dp), INTENT(IN)                                    :: stats%dx
+        !REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE, INTENT(IN)      :: sys%mass_mat
+        !REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(OUT)       :: stats%disp
+        !REAL(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE, INTENT(INOUT) :: stats%force
 
         INTEGER                                                     :: stat, i, j, m, n, p, k, info, lwork, lwmax, ix, lda
         REAL(kind=dp)                                                :: factor
@@ -621,25 +625,25 @@ CONTAINS
         REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE                 :: hessian
         LOGICAL, DIMENSION(9)                                        :: mk = .TRUE.
         lwmax = 1000
-        lda = natom*3
-        nmodes = 3*natom - 6 !only for non-linear atoms
+        lda = sys%natom*3
+        stats%nmodes = 3*sys%natom - 6 !only for non-linear atoms
 
-        ALLOCATE (work(lwmax), w(natom*3), w_new(natom*3))
+        ALLOCATE (work(lwmax), w(sys%natom*3), w_new(sys%natom*3))
 
-        factor = REAL(1.0_dp/(2.0_dp*dx), kind=dp)
+        factor = REAL(1.0_dp/(2.0_dp*stats%dx), kind=dp)
 
-        ALLOCATE (hessian(0:natom - 1, 0:2, 0:natom - 1, 0:2), hessian_new(0:natom*3 - 1, 0:natom*3 - 1))
+        ALLOCATE (hessian(0:sys%natom - 1, 0:2, 0:sys%natom - 1, 0:2), hessian_new(0:sys%natom*3 - 1, 0:sys%natom*3 - 1))
 
-!hessian=factor*hessian_factor*(force(2,:,:,:,:)-force(1,:,:,:,:))
-        hessian = hartreebohr2evang*factor*hessian_factor*(force(2, :, :, :, :) - force(1, :, :, :, :))
+!hessian=factor*hessian_factor*(stats%force(2,:,:,:,:)-stats%force(1,:,:,:,:))
+        hessian = hartreebohr2evang*factor*hessian_factor*(stats%force(2, :, :, :, :) - stats%force(1, :, :, :, :))
 
         p = 0
-        DO i = 0, natom - 1
+        DO i = 0, sys%natom - 1
             DO m = 0, 2
                 k = 0
-                DO j = 0, natom - 1
+                DO j = 0, sys%natom - 1
                     DO n = 0, 2
-                        hessian_new(i + m + p, j + n + k) = mass_mat(i + 1, j + 1)*hessian(i, m, j, n)
+                        hessian_new(i + m + p, j + n + k) = sys%mass_mat(i + 1, j + 1)*hessian(i, m, j, n)
                     END DO
                     k = k + 2
                 END DO
@@ -647,7 +651,7 @@ CONTAINS
             p = p + 2
         END DO
 
-!hessian_new(:,:)=RESHAPE(hessian(:,:,:,:), (/3*natom, 3*natom/))
+!hessian_new(:,:)=RESHAPE(hessian(:,:,:,:), (/3*sys%natom, 3*sys%natom/))
         hessian_new(:, :) = REAL((hessian_new(:, :) + TRANSPOSE(hessian_new(:, :)))/2.0_dp, kind=dp)
         n = SIZE(hessian_new, 1)
 
@@ -667,72 +671,170 @@ CONTAINS
         w = REAL(w*SQRT(ABS(w))/ABS(w), kind=dp)
         w = REAL(w/(2.0_dp*pi*speed_light), kind=dp)
 
-        ALLOCATE (freq(nmodes), atomic_displacements(nmodes, natom*3), disp(nmodes, natom, 3))
+        ALLOCATE (stats%freq(stats%nmodes), atomic_displacements(stats%nmodes, sys%natom*3), stats%disp(stats%nmodes, sys%natom, 3))
 
-        DO i = 7, natom*3
-            freq(i - 6) = w(i)
+        DO i = 7, sys%natom*3
+            stats%freq(i - 6) = w(i)
         END DO
 
-        atomic_displacements(1:nmodes, 1:natom*3) = hessian_new(6:3*natom - 1, :)
+        atomic_displacements(1:stats%nmodes, 1:sys%natom*3) = hessian_new(6:3*sys%natom - 1, :)
 
         m = 0
-        DO j = 0, natom - 1 !natom
+        DO j = 0, sys%natom - 1 !sys%natom
             DO k = 0, 2 !dims
-                disp(1:nmodes, j + 1, k + 1) = atomic_displacements(1:nmodes, j + k + 1 + m)
+                stats%disp(1:stats%nmodes, j + 1, k + 1) = atomic_displacements(1:stats%nmodes, j + k + 1 + m)
             END DO
             m = m + 2
         END DO
 
-        PRINT *, freq(1:3)
+        PRINT *, stats%freq(1:3)
 
         OPEN (UNIT=13, FILE='normal_mode_freq.txt', STATUS='unknown', IOSTAT=stat)
-        DO i = 1, nmodes !!atom_num: 1st atom
-            WRITE (13, *) freq(i)
+        DO i = 1, stats%nmodes !!atom_num: 1st atom
+            WRITE (13, *) stats%freq(i)
         END DO
 
         OPEN (UNIT=14, FILE='normal_mode_displ.txt', STATUS='unknown', IOSTAT=stat)
-        DO i = 1, nmodes !!atom_num: 1st atom
-            DO j = 1, natom !!dims: x dimension
-                WRITE (14, *) disp(i, j, 1:3)
+        DO i = 1, stats%nmodes !!atom_num: 1st atom
+            DO j = 1, sys%natom !!dims: x dimension
+                WRITE (14, *) stats%disp(i, j, 1:3)
             END DO
         END DO
 
     END SUBROUTINE normal_mode_analysis
+!    SUBROUTINE normal_mode_analysis(natom, force, dx,  mass_mat, nmodes, freq, disp)
+!
+!        INTEGER, INTENT(IN)                                          :: natom
+!        INTEGER, INTENT(OUT)                                          :: nmodes
+!        REAL(kind=dp), DIMENSION(:), ALLOCATABLE, INTENT(OUT)           :: freq
+!        REAL(kind=dp), INTENT(IN)                                    :: dx
+!        REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE, INTENT(IN)      :: mass_mat
+!        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(OUT)       :: disp
+!        REAL(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE, INTENT(INOUT) :: force
+!
+!        INTEGER                                                     :: stat, i, j, m, n, p, k, info, lwork, lwmax, ix, lda
+!        REAL(kind=dp)                                                :: factor
+!        REAL(kind=dp), DIMENSION(:), ALLOCATABLE                       :: w, work, w_new
+!        REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE                     :: hessian_new, atomic_displacements
+!        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                   :: normal_displacements
+!        REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE                 :: hessian
+!        LOGICAL, DIMENSION(9)                                        :: mk = .TRUE.
+!        lwmax = 1000
+!        lda = natom*3
+!        nmodes = 3*natom - 6 !only for non-linear atoms
+!
+!        ALLOCATE (work(lwmax), w(natom*3), w_new(natom*3))
+!
+!        factor = REAL(1.0_dp/(2.0_dp*dx), kind=dp)
+!
+!        ALLOCATE (hessian(0:natom - 1, 0:2, 0:natom - 1, 0:2), hessian_new(0:natom*3 - 1, 0:natom*3 - 1))
+!
+!!hessian=factor*hessian_factor*(force(2,:,:,:,:)-force(1,:,:,:,:))
+!        hessian = hartreebohr2evang*factor*hessian_factor*(force(2, :, :, :, :) - force(1, :, :, :, :))
+!
+!        p = 0
+!        DO i = 0, natom - 1
+!            DO m = 0, 2
+!                k = 0
+!                DO j = 0, natom - 1
+!                    DO n = 0, 2
+!                        hessian_new(i + m + p, j + n + k) = mass_mat(i + 1, j + 1)*hessian(i, m, j, n)
+!                    END DO
+!                    k = k + 2
+!                END DO
+!            END DO
+!            p = p + 2
+!        END DO
+!
+!!hessian_new(:,:)=RESHAPE(hessian(:,:,:,:), (/3*natom, 3*natom/))
+!        hessian_new(:, :) = REAL((hessian_new(:, :) + TRANSPOSE(hessian_new(:, :)))/2.0_dp, kind=dp)
+!        n = SIZE(hessian_new, 1)
+!
+!        PRINT *, hessian_new(1, 1), "hess"
+!
+!! work size query
+!        lwork = -1
+!        CALL DSYEV('V', 'U', n, hessian_new, lda, w, work, lwork, info)
+!        lwork = MIN(lwmax, INT(work(1)))
+!        PRINT *, "ekin"
+!
+!! get eigenvalues and eigenvectors
+!        CALL dsyev('V', 'U', n, hessian_new, lda, w, work, lwork, info)
+!
+!        hessian_new = TRANSPOSE(hessian_new)
+!
+!        w = REAL(w*SQRT(ABS(w))/ABS(w), kind=dp)
+!        w = REAL(w/(2.0_dp*pi*speed_light), kind=dp)
+!
+!        ALLOCATE (freq(nmodes), atomic_displacements(nmodes, natom*3), disp(nmodes, natom, 3))
+!
+!        DO i = 7, natom*3
+!            freq(i - 6) = w(i)
+!        END DO
+!
+!        atomic_displacements(1:nmodes, 1:natom*3) = hessian_new(6:3*natom - 1, :)
+!
+!        m = 0
+!        DO j = 0, natom - 1 !natom
+!            DO k = 0, 2 !dims
+!                disp(1:nmodes, j + 1, k + 1) = atomic_displacements(1:nmodes, j + k + 1 + m)
+!            END DO
+!            m = m + 2
+!        END DO
+!
+!        PRINT *, freq(1:3)
+!
+!        OPEN (UNIT=13, FILE='normal_mode_freq.txt', STATUS='unknown', IOSTAT=stat)
+!        DO i = 1, nmodes !!atom_num: 1st atom
+!            WRITE (13, *) freq(i)
+!        END DO
+!
+!        OPEN (UNIT=14, FILE='normal_mode_displ.txt', STATUS='unknown', IOSTAT=stat)
+!        DO i = 1, nmodes !!atom_num: 1st atom
+!            DO j = 1, natom !!dims: x dimension
+!                WRITE (14, *) disp(i, j, 1:3)
+!            END DO
+!        END DO
+!
+!    END SUBROUTINE normal_mode_analysis
 
 !....................................................................................................................!
 !....................................................................................................................!
 
-    SUBROUTINE spec_static_ir(nmodes, dip_dq, freq, element, coord, disp, natom)
-        
-        INTEGER, INTENT(INOUT)                                    :: nmodes, natom
-        CHARACTER(LEN=2), DIMENSION(:), ALLOCATABLE, INTENT(INOUT)  :: element
+SUBROUTINE spec_static_ir(sys, stats, dips)!stats%nmodes, dips%dip_dq, stats%freq, sys%element, sys%coord, stats%disp, sys%natom)
 
-        REAL(kind=dp), DIMENSION(:), ALLOCATABLE, INTENT(INOUT)      :: freq
+        TYPE(systems), INTENT(INOUT)        :: sys
+        TYPE(static), INTENT(INOUT)        :: stats
+        TYPE(dipoles), INTENT(INOUT)        :: dips
+
+        !INTEGER, INTENT(INOUT)                                    :: stats%nmodes, sys%natom
+        !CHARACTER(LEN=2), DIMENSION(:), ALLOCATABLE, INTENT(INOUT)  :: sys%element
+        !REAL(kind=dp), DIMENSION(:), ALLOCATABLE, INTENT(INOUT)      :: stats%freq
+        !REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE, INTENT(INOUT)    :: sys%coord
+        !REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE, INTENT(INOUT)  :: dips%dip_dq
+        !REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(INOUT)  :: stats%disp
+
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE        :: ir_int
-        REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE, INTENT(INOUT)    :: coord
-        REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE, INTENT(INOUT)  :: dip_dq
-        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(INOUT)  :: disp
-
         INTEGER                                                  :: stat, i, j, k, m, x, freq_range
         INTEGER                                                  :: start_freq, end_freq
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE                    :: gamma_sq, data2!,broad
         REAL(kind=dp)                                             :: omega, broad, ir_factor
 
-        ALLOCATE (gamma_sq(nmodes), ir_int(nmodes))
-        
+        ALLOCATE (gamma_sq(stats%nmodes), ir_int(stats%nmodes))
+
         start_freq = 1
-        end_freq = INT(MAXVAL(freq) + 1000.0_dp)
+        end_freq = INT(MAXVAL(stats%freq) + 1000.0_dp)
         freq_range = INT(end_freq - start_freq)
         omega = 5.0_dp
-        
+
         ALLOCATE (data2(freq_range + 1))
         data2 = 0.0_dp
-                
-        DO k = 1, nmodes
-            gamma_sq(k) = SQRT(DOT_PRODUCT(dip_dq(k,:),dip_dq(k,:)))
-        ENDDO
-        
-        ir_factor=42.256_dp
+
+        DO k = 1, stats%nmodes
+            gamma_sq(k) = SQRT(DOT_PRODUCT(dips%dip_dq(k, :), dips%dip_dq(k, :)))
+        END DO
+
+        ir_factor = 42.256_dp
 
 !!! To convert debye²angstrom⁻²amu⁻¹ to km/mol (cp2k IR unit)
         ir_int(:) = (gamma_sq(:)**2.0_dp)*ir_factor
@@ -740,8 +842,8 @@ CONTAINS
 !!!Broadening the spectrum!!
         DO i = start_freq, end_freq
             broad = 0.0_dp
-            DO x = 1, nmodes
-                broad = broad + (ir_int(x)*(1.0_dp/(omega*SQRT(2.0_dp*pi)))*EXP(-0.50_dp*((i - freq(x))/omega)**2.0_dp))
+            DO x = 1, stats%nmodes
+                broad = broad + (ir_int(x)*(1.0_dp/(omega*SQRT(2.0_dp*pi)))*EXP(-0.50_dp*((i - stats%freq(x))/omega)**2.0_dp))
             END DO
             data2(i) = data2(i) + broad
         END DO
@@ -752,56 +854,61 @@ CONTAINS
         END DO
         CLOSE (98)
 
-        DEALLOCATE (gamma_sq, data2, ir_int, dip_dq, freq, disp)
+        DEALLOCATE (gamma_sq, data2, ir_int, dips%dip_dq, stats%freq, stats%disp)
 
     END SUBROUTINE spec_static_ir
 !....................................................................................................................!
 !....................................................................................................................!
+    SUBROUTINE spec_static_raman( gs, sys, stats, dips, rams) ! stats%nmodes, rams%pol_dq, gs%laser_in, stats%freq, rams%raman_int, sys%element, sys%coord, stats%disp, sys%natom)
+        
+        TYPE(global_settings), INTENT(INOUT)        :: gs
+        TYPE(systems), INTENT(INOUT)        :: sys
+        TYPE(static), INTENT(INOUT)        :: stats
+        TYPE(dipoles), INTENT(INOUT)        :: dips
+        TYPE(raman), INTENT(INOUT)        :: rams
 
-    SUBROUTINE spec_static_raman(nmodes, pol_dq, laser_in, freq, raman_int, element, coord, disp, natom)
-
-        INTEGER, INTENT(INOUT)                                    :: nmodes, natom
-        CHARACTER(LEN=2), DIMENSION(:), ALLOCATABLE, INTENT(INOUT)  :: element
-        REAL(kind=dp), INTENT(INOUT)                               :: laser_in
-        REAL(kind=dp), DIMENSION(:), ALLOCATABLE, INTENT(INOUT)      :: freq
-        REAL(kind=dp), DIMENSION(:), ALLOCATABLE, INTENT(OUT)        :: raman_int
-        REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE, INTENT(INOUT)    :: coord
-        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(INOUT)  :: pol_dq
-        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(INOUT)  :: disp
+        !INTEGER, INTENT(INOUT)                                    :: stats%nmodes, sys%natom
+        !CHARACTER(LEN=2), DIMENSION(:), ALLOCATABLE, INTENT(INOUT)  :: sys%element
+        !REAL(kind=dp), INTENT(INOUT)                               :: gs%laser_in
+        !REAL(kind=dp), DIMENSION(:), ALLOCATABLE, INTENT(INOUT)      :: stats%freq
+        !REAL(kind=dp), DIMENSION(:), ALLOCATABLE, INTENT(OUT)        :: rams%raman_int
+        !REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE, INTENT(INOUT)    :: sys%coord
+        !REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(INOUT)  :: rams%pol_dq
+        !REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(INOUT)  :: stats%disp
 
         INTEGER                                                  :: stat, i, j, k, m, x, freq_range
         INTEGER                                                  :: start_freq, end_freq
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE                    :: iso_sq, aniso_sq, data1, data2!,broad
         REAL(kind=dp)                                             :: omega, broad
 
-        ALLOCATE (iso_sq(nmodes), aniso_sq(nmodes))
-        ALLOCATE (raman_int(nmodes))
+        ALLOCATE (iso_sq(stats%nmodes), aniso_sq(stats%nmodes))
+        ALLOCATE (rams%raman_int(stats%nmodes))
 
         start_freq = 1
-        end_freq = INT(MAXVAL(freq) + 1000.0_dp)
+        end_freq = INT(MAXVAL(stats%freq) + 1000.0_dp)
         freq_range = INT(end_freq - start_freq)
         omega = 5.0_dp
         ALLOCATE (data2(freq_range + 1))
         data2 = 0.0_dp
 
 !!!Isotropic and anisotropic contributions!!
-        iso_sq(:) = REAL((pol_dq(:, 1, 1) + pol_dq(:, 2, 2) + pol_dq(:, 3, 3))/3.0_dp, kind=dp)**2.0_dp
+        iso_sq(:) = REAL((rams%pol_dq(:, 1, 1) + rams%pol_dq(:, 2, 2) + rams%pol_dq(:, 3, 3))/3.0_dp, kind=dp)**2.0_dp
 
-        aniso_sq(:) = (0.50_dp*(((pol_dq(:, 1, 1) - pol_dq(:, 2, 2))**2.0_dp) + ((pol_dq(:, 2, 2) - pol_dq(:, 3, 3))**2.0_dp) &
-                                    + ((pol_dq(:, 3, 3) - pol_dq(:, 1, 1))**2.0_dp))) &
-                          + (3.0_dp*((pol_dq(:, 1, 2)**2.0_dp) + (pol_dq(:, 2, 3)**2.0_dp) &
-                                     + (pol_dq(:, 3, 1)**2.0_dp)))
+        aniso_sq(:) = (0.50_dp*(((rams%pol_dq(:, 1, 1) - rams%pol_dq(:, 2, 2))**2.0_dp) + ((rams%pol_dq(:, 2, 2) - rams%pol_dq(:, 3, 3))**2.0_dp) &
+                                + ((rams%pol_dq(:, 3, 3) - rams%pol_dq(:, 1, 1))**2.0_dp))) &
+                      + (3.0_dp*((rams%pol_dq(:, 1, 2)**2.0_dp) + (rams%pol_dq(:, 2, 3)**2.0_dp) &
+                                 + (rams%pol_dq(:, 3, 1)**2.0_dp)))
 
 !!!Calculation of the intensities!!
-        raman_int(:) = REAL(((7.0_dp*aniso_sq(:)) + (45.0_dp*iso_sq(:)))/45.0_dp, kind=dp) &
-                           *REAL(((laser_in - freq(:))**4.0_dp)/freq(:), kind=dp) &
-                           *REAL(1.0_dp/(1.0_dp - EXP(-1.438777_dp*freq(:)/temp)), kind=dp)
+        rams%raman_int(:) = REAL(((7.0_dp*aniso_sq(:)) + (45.0_dp*iso_sq(:)))/45.0_dp, kind=dp) &
+                       *REAL(((gs%laser_in - stats%freq(:))**4.0_dp)/stats%freq(:), kind=dp) &
+                       *REAL(1.0_dp/(1.0_dp - EXP(-1.438777_dp*stats%freq(:)/temp)), kind=dp)
 
 !!!Broadening the spectrum!!
         DO i = start_freq, end_freq
             broad = 0.0_dp
-            DO x = 1, nmodes
-                broad = broad + (raman_int(x)*(1.0_dp/(omega*SQRT(2.0_dp*pi)))*EXP(-0.50_dp*((i - freq(x))/omega)**2.0_dp))
+            DO x = 1, stats%nmodes
+                broad = broad + (rams%raman_int(x)*(1.0_dp/(omega*SQRT(2.0_dp*pi)))*EXP(-0.50_dp*((i - stats%freq(x))/omega)**2.0_dp))
             END DO
             data2(i) = data2(i) + broad
         END DO
@@ -813,41 +920,131 @@ CONTAINS
         CLOSE (98)
 
 !!Write Molden output
-        raman_int = REAL(raman_int/MINVAL(raman_int), kind=dp)
+        rams%raman_int = REAL(rams%raman_int/MINVAL(rams%raman_int), kind=dp)
         OPEN (UNIT=15, FILE='raman.mol', STATUS='unknown', IOSTAT=stat)
         WRITE (15, *) "[Molden Format]"
         WRITE (15, *) "[GEOMETRIES] XYZ"
-        WRITE (15, *) natom
+        WRITE (15, *) sys%natom
         WRITE (15, *)
-        DO i = 1, natom
-            WRITE (15, *) element(i), coord(i, 1), coord(i, 2), coord(i, 3)
+        DO i = 1, sys%natom
+            WRITE (15, *) sys%element(i), sys%coord(i, 1), sys%coord(i, 2), sys%coord(i, 3)
         END DO
-        WRITE (15, *) "[FREQ]"
-        DO i = 1, nmodes
-            WRITE (15, *) freq(i)
+        WRITE (15, *) "[stats%freq]"
+        DO i = 1, stats%nmodes
+            WRITE (15, *) stats%freq(i)
         END DO
         WRITE (15, *) "[INT]"
-        DO i = 1, nmodes
-            WRITE (15, *) raman_int(i)
+        DO i = 1, stats%nmodes
+            WRITE (15, *) rams%raman_int(i)
         END DO
-        WRITE (15, *) "[FR-COORD]"
-        WRITE (15, *) natom
+        WRITE (15, *) "[FR-sys%coord]"
+        WRITE (15, *) sys%natom
         WRITE (15, *)
-        DO i = 1, natom
-            WRITE (15, *) element(i), coord(i, 1)/bohr2ang, coord(i, 2)/bohr2ang, coord(i, 3)/bohr2ang
+        DO i = 1, sys%natom
+            WRITE (15, *) sys%element(i), sys%coord(i, 1)/bohr2ang, sys%coord(i, 2)/bohr2ang, sys%coord(i, 3)/bohr2ang
         END DO
-        WRITE (15, *) "[FR-NORM-COORD]"
-        DO i = 1, nmodes
+        WRITE (15, *) "[FR-NORM-sys%coord]"
+        DO i = 1, stats%nmodes
             WRITE (15, *) "vibration", i
-            DO j = 1, natom
-                WRITE (15, *) disp(i, j, 1)/bohr2ang, disp(i, j, 2)/bohr2ang, disp(i, j, 3)/bohr2ang
+            DO j = 1, sys%natom
+                WRITE (15, *) stats%disp(i, j, 1)/bohr2ang, stats%disp(i, j, 2)/bohr2ang, stats%disp(i, j, 3)/bohr2ang
             END DO
         END DO
         CLOSE (15)
 
-        DEALLOCATE (iso_sq, aniso_sq, data2, raman_int)
+        DEALLOCATE (iso_sq, aniso_sq, data2, rams%raman_int)
 
     END SUBROUTINE spec_static_raman
+!    SUBROUTINE spec_static_raman(nmodes, pol_dq, laser_in, freq, raman_int, element, coord, disp, natom)
+!
+!        INTEGER, INTENT(INOUT)                                    :: nmodes, natom
+!        CHARACTER(LEN=2), DIMENSION(:), ALLOCATABLE, INTENT(INOUT)  :: element
+!        REAL(kind=dp), INTENT(INOUT)                               :: laser_in
+!        REAL(kind=dp), DIMENSION(:), ALLOCATABLE, INTENT(INOUT)      :: freq
+!        REAL(kind=dp), DIMENSION(:), ALLOCATABLE, INTENT(OUT)        :: raman_int
+!        REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE, INTENT(INOUT)    :: coord
+!        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(INOUT)  :: pol_dq
+!        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(INOUT)  :: disp
+!
+!        INTEGER                                                  :: stat, i, j, k, m, x, freq_range
+!        INTEGER                                                  :: start_freq, end_freq
+!        REAL(kind=dp), DIMENSION(:), ALLOCATABLE                    :: iso_sq, aniso_sq, data1, data2!,broad
+!        REAL(kind=dp)                                             :: omega, broad
+!
+!        ALLOCATE (iso_sq(nmodes), aniso_sq(nmodes))
+!        ALLOCATE (raman_int(nmodes))
+!
+!        start_freq = 1
+!        end_freq = INT(MAXVAL(freq) + 1000.0_dp)
+!        freq_range = INT(end_freq - start_freq)
+!        omega = 5.0_dp
+!        ALLOCATE (data2(freq_range + 1))
+!        data2 = 0.0_dp
+!
+!!!!Isotropic and anisotropic contributions!!
+!        iso_sq(:) = REAL((pol_dq(:, 1, 1) + pol_dq(:, 2, 2) + pol_dq(:, 3, 3))/3.0_dp, kind=dp)**2.0_dp
+!
+!        aniso_sq(:) = (0.50_dp*(((pol_dq(:, 1, 1) - pol_dq(:, 2, 2))**2.0_dp) + ((pol_dq(:, 2, 2) - pol_dq(:, 3, 3))**2.0_dp) &
+!                                + ((pol_dq(:, 3, 3) - pol_dq(:, 1, 1))**2.0_dp))) &
+!                      + (3.0_dp*((pol_dq(:, 1, 2)**2.0_dp) + (pol_dq(:, 2, 3)**2.0_dp) &
+!                                 + (pol_dq(:, 3, 1)**2.0_dp)))
+!
+!!!!Calculation of the intensities!!
+!        raman_int(:) = REAL(((7.0_dp*aniso_sq(:)) + (45.0_dp*iso_sq(:)))/45.0_dp, kind=dp) &
+!                       *REAL(((laser_in - freq(:))**4.0_dp)/freq(:), kind=dp) &
+!                       *REAL(1.0_dp/(1.0_dp - EXP(-1.438777_dp*freq(:)/temp)), kind=dp)
+!
+!!!!Broadening the spectrum!!
+!        DO i = start_freq, end_freq
+!            broad = 0.0_dp
+!            DO x = 1, nmodes
+!                broad = broad + (raman_int(x)*(1.0_dp/(omega*SQRT(2.0_dp*pi)))*EXP(-0.50_dp*((i - freq(x))/omega)**2.0_dp))
+!            END DO
+!            data2(i) = data2(i) + broad
+!        END DO
+!
+!        OPEN (UNIT=98, FILE='result_static_raman.txt', STATUS='unknown', IOSTAT=stat)
+!        DO i = start_freq, end_freq
+!            WRITE (98, *) i, data2(i)
+!        END DO
+!        CLOSE (98)
+!
+!!!Write Molden output
+!        raman_int = REAL(raman_int/MINVAL(raman_int), kind=dp)
+!        OPEN (UNIT=15, FILE='raman.mol', STATUS='unknown', IOSTAT=stat)
+!        WRITE (15, *) "[Molden Format]"
+!        WRITE (15, *) "[GEOMETRIES] XYZ"
+!        WRITE (15, *) natom
+!        WRITE (15, *)
+!        DO i = 1, natom
+!            WRITE (15, *) element(i), coord(i, 1), coord(i, 2), coord(i, 3)
+!        END DO
+!        WRITE (15, *) "[FREQ]"
+!        DO i = 1, nmodes
+!            WRITE (15, *) freq(i)
+!        END DO
+!        WRITE (15, *) "[INT]"
+!        DO i = 1, nmodes
+!            WRITE (15, *) raman_int(i)
+!        END DO
+!        WRITE (15, *) "[FR-COORD]"
+!        WRITE (15, *) natom
+!        WRITE (15, *)
+!        DO i = 1, natom
+!            WRITE (15, *) element(i), coord(i, 1)/bohr2ang, coord(i, 2)/bohr2ang, coord(i, 3)/bohr2ang
+!        END DO
+!        WRITE (15, *) "[FR-NORM-COORD]"
+!        DO i = 1, nmodes
+!            WRITE (15, *) "vibration", i
+!            DO j = 1, natom
+!                WRITE (15, *) disp(i, j, 1)/bohr2ang, disp(i, j, 2)/bohr2ang, disp(i, j, 3)/bohr2ang
+!            END DO
+!        END DO
+!        CLOSE (15)
+!
+!        DEALLOCATE (iso_sq, aniso_sq, data2, raman_int)
+!
+!    END SUBROUTINE spec_static_raman
 !....................................................................................................................!
 !....................................................................................................................!
 
@@ -867,15 +1064,15 @@ CONTAINS
         REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE                   :: trace, abs_intens
         COMPLEX(kind=dp), DIMENSION(:, :, :, :, :, :), ALLOCATABLE            :: y_out
 
-       IF (read_function=='RR') THEN
+        IF (read_function=='RR') THEN
             dims = 3
             dir = 2
-       ELSEIF (read_function=='ABS') THEN
+        ELSEIF (read_function=='ABS') THEN
             dims = 1
             dir = 1
             natom = 1
-       ENDIF
-       
+        END IF
+
         ALLOCATE (zhat_pol_rtp(natom, dims, dir, 3, 3, framecount_rtp))
 
         zhat_pol_rtp = COMPLEX(0._dp, 0.0_dp)
@@ -898,13 +1095,13 @@ CONTAINS
         END DO
 
         IF (check_pade=='y') THEN
-        
+
             ALLOCATE (y_out(natom, dims, dir, 3, 3, framecount_rtp_pade))
 !!Call Pade
             !$OMP PARALLEL DO COLLAPSE(5)
-            DO j = 1, natom 
-                DO i = 1, dims 
-                    DO k = 1, dir 
+            DO j = 1, natom
+                DO i = 1, dims
+                    DO k = 1, dir
                         DO m = 1, 3
                             DO o = 1, 3
                                 CALL interpolate(framecount_rtp, zhat_pol_rtp(j, i, k, m, o, 1:framecount_rtp), &
@@ -917,12 +1114,11 @@ CONTAINS
             !$OMP END PARALLEL DO
             framecount_rtp = framecount_rtp_pade
             zhat_pol_rtp = y_out
-            DEALLOCATE(y_out)
+            DEALLOCATE (y_out)
         END IF
 
 !!!Finding frequency range
         rtp_freq_range = REAL(dom_rtp/framecount_rtp, kind=dp)
-
 
 !!!Calculate absorption spectra
         ALLOCATE (trace(natom, dims, dir, framecount_rtp))
@@ -930,7 +1126,7 @@ CONTAINS
 
         trace = 0.0_dp
         trace(:, :, :, :) = DIMAG(zhat_pol_rtp(:, :, :, 1, 1, :)) + DIMAG(zhat_pol_rtp(:, :, :, 2, 2, :)) &
-                                  + DIMAG(zhat_pol_rtp(:, :, :, 3, 3, :))
+                            + DIMAG(zhat_pol_rtp(:, :, :, 3, 3, :))
         abs_intens(:, :, :, :) = (4.0_dp*pi*trace(:, :, :, :))/(3.0_dp*speed_light)
 
         OPEN (UNIT=13, FILE='absorption_spectrum.txt', STATUS='unknown', IOSTAT=stat)
@@ -982,20 +1178,20 @@ CONTAINS
         ALLOCATE (zhat_pol_dq_rtp(nmodes, 3, 3, framecount_rtp))
         ALLOCATE (iso_sq(nmodes, framecount_rtp), aniso_sq(nmodes, framecount_rtp))
         ALLOCATE (raman_int(nmodes, framecount_rtp))
-        
+
         zhat_pol_dq_rtp = 0.0_dp
         data2 = 0.0_dp
 
 !!!Finding laser frequency
         rtp_freq_range = REAL(dom_rtp/framecount_rtp, kind=dp)
         rtp_point = ANINT(laser_in/rtp_freq_range, kind=dp)
-        
+
         PRINT *, laser_in, "laser_in", rtp_freq_range, "rtp_freq_range", &
             dom_rtp, "dom_rtp", rtp_point, 'rtp_point', framecount_rtp
 
 !!!Finite differences
-       zhat_pol_dxyz_rtp(:, :, :, :, :) = REAL((REAL(zhat_pol_rtp(:, :, 2, :, :, :), kind=dp) &
-                                          - REAL(zhat_pol_rtp(:, :, 1, :, :, :), kind=dp)) * factor, kind=dp)
+        zhat_pol_dxyz_rtp(:, :, :, :, :) = REAL((REAL(zhat_pol_rtp(:, :, 2, :, :, :), kind=dp) &
+                                                 - REAL(zhat_pol_rtp(:, :, 1, :, :, :), kind=dp))*factor, kind=dp)
 
 !!!Derivatives w.r.t. mass weighted normal coordinates
         DO i = 1, nmodes
@@ -1011,19 +1207,19 @@ CONTAINS
 
 !!!Isotropic and anisotropic contributions!!
         iso_sq(:, :) = REAL((zhat_pol_dq_rtp(:, 1, 1, :) + zhat_pol_dq_rtp(:, 2, 2, :) &
-                                     + zhat_pol_dq_rtp(:, 3, 3, :))/3.0_dp, kind=dp)**2.0_dp
+                             + zhat_pol_dq_rtp(:, 3, 3, :))/3.0_dp, kind=dp)**2.0_dp
 
         aniso_sq(:, :) = (0.50_dp*(((zhat_pol_dq_rtp(:, 1, 1, :) - zhat_pol_dq_rtp(:, 2, 2, :))**2.0_dp) + &
-                                           ((zhat_pol_dq_rtp(:, 2, 2, :) - zhat_pol_dq_rtp(:, 3, 3, :))**2.0_dp) &
-                                           + ((zhat_pol_dq_rtp(:, 3, 3, :) - zhat_pol_dq_rtp(:, 1, 1, :))**2.0_dp))) &
-                                 + (3.0_dp*((zhat_pol_dq_rtp(:, 1, 2, :)**2.0_dp) &
-                                            + (zhat_pol_dq_rtp(:, 2, 3, :)**2.0_dp) &
-                                            + (zhat_pol_dq_rtp(:, 3, 1, :)**2.0_dp)))
+                                   ((zhat_pol_dq_rtp(:, 2, 2, :) - zhat_pol_dq_rtp(:, 3, 3, :))**2.0_dp) &
+                                   + ((zhat_pol_dq_rtp(:, 3, 3, :) - zhat_pol_dq_rtp(:, 1, 1, :))**2.0_dp))) &
+                         + (3.0_dp*((zhat_pol_dq_rtp(:, 1, 2, :)**2.0_dp) &
+                                    + (zhat_pol_dq_rtp(:, 2, 3, :)**2.0_dp) &
+                                    + (zhat_pol_dq_rtp(:, 3, 1, :)**2.0_dp)))
 
 !!!Calculation of the intensities!!
         raman_int(:, rtp_point) = REAL(((7.0_dp*aniso_sq(:, rtp_point)) + (45.0_dp*iso_sq(:, rtp_point)))/45.0_dp, kind=dp)* &
-                                      REAL(((laser_in - freq(:))**4.0_dp)/freq(:), kind=dp) &
-                                      *REAL(1.0_dp/(1.0_dp - EXP(-1.438777_dp*freq(:)/temp)), kind=dp)
+                                  REAL(((laser_in - freq(:))**4.0_dp)/freq(:), kind=dp) &
+                                  *REAL(1.0_dp/(1.0_dp - EXP(-1.438777_dp*freq(:)/temp)), kind=dp)
 
 !!!Broadening the spectrum!!
         DO x = start_freq, end_freq
