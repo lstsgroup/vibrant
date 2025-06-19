@@ -3,56 +3,57 @@ MODULE vel_cor
     USE dipole_calc, ONLY: center_mass
     USE kinds, ONLY: dp
     USE constants, ONLY: t_cor, pi
+    USE vib_types, ONLY: global_settings, systems, molecular_dynamics, static, dipoles, raman
 
     IMPLICIT NONE
     PUBLIC :: cvv, cvv_iso, cvv_aniso, cvv_only_x, cvv_resraman
 
 CONTAINS
-    SUBROUTINE cvv(natom, framecount, coord_v, z, type_input, dt, input_mass, mass_atom, mass_tot, &
-                   mol_num, read_function, system, frag_type)
+SUBROUTINE cvv(natom, framecount, coord_v, z, type_input, dt, input_mass, mass_atom, mass_tot, &
+    mol_num, read_function, system, frag_type)
 
-        CHARACTER(LEN=40), INTENT(INOUT)                          :: system, type_input, input_mass, read_function, frag_type
-        INTEGER, INTENT(INOUT)                                    :: natom, framecount, mol_num
-        REAL(kind=dp), INTENT(IN)                                  :: dt
-        REAL(kind=dp), INTENT(INOUT)                               :: mass_tot
-        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(INOUT)  :: coord_v
-        REAL(kind=dp), DIMENSION(:), ALLOCATABLE, INTENT(OUT)        :: z
-        REAL(kind=dp), DIMENSION(:), ALLOCATABLE, INTENT(IN)         :: mass_atom
+CHARACTER(LEN=40), INTENT(INOUT)                          :: system, type_input, input_mass, read_function, frag_type
+INTEGER, INTENT(INOUT)                                    :: natom, framecount, mol_num
+REAL(kind=dp), INTENT(IN)                                  :: dt
+REAL(kind=dp), INTENT(INOUT)                               :: mass_tot
+REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(INOUT)  :: coord_v
+REAL(kind=dp), DIMENSION(:), ALLOCATABLE, INTENT(OUT)        :: z
+REAL(kind=dp), DIMENSION(:), ALLOCATABLE, INTENT(IN)         :: mass_atom
 
-        CHARACTER(LEN=40)                                        :: chara
-        INTEGER                                                  :: stat, i, j, k, m, t0, t1, l
-        INTEGER, DIMENSION(:), ALLOCATABLE                         :: norm
-        REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE                  :: coord
+CHARACTER(LEN=40)                                        :: chara
+INTEGER                                                  :: stat, i, j, k, m, t0, t1, l
+INTEGER, DIMENSION(:), ALLOCATABLE                         :: norm
+REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE                  :: coord
 
-        ALLOCATE (z(0:2*t_cor - 1), norm(0:2*t_cor - 1))
+ALLOCATE (z(0:2*t_cor - 1), norm(0:2*t_cor - 1))
 
-        norm = 0
-        z = 0.0_dp
-        k = 0
-        j = 0
+norm = 0
+z = 0.0_dp
+k = 0
+j = 0
 
-        DO t0 = 1, framecount - 2
-            t1 = MIN(framecount - 2, t0 + t_cor)
-            DO j = 1, natom
-                IF (frag_type=='2') THEN
-                    k = j + 8
-                ELSEIF (frag_type=='3') THEN
-                    k = j + 20
-                ELSE
-                    k = j
-                END IF
-                IF (input_mass=='y') THEN
-                    z(0:t1 - t0) = z(0:t1 - t0) + (coord_v(t0, k, 1)*coord_v(t0:t1, j, 1) + coord_v(t0, j, 2)* &
-                                                   coord_v(t0:t1, j, 2) + coord_v(t0, j, 3)*coord_v(t0:t1, j, 3))*mass_atom(j)
-                ELSE
-                    !  print*,k,"k",j,"j"
-                    DO m = 1, 3
-                        z(0:t1 - t0) = z(0:t1 - t0) + coord_v(t0, k, m)*coord_v(t0:t1, k, m)
-                    END DO
-                END IF
-            END DO
-            norm(0:t1 - t0) = norm(0:t1 - t0) + 1
-        END DO
+DO t0 = 1, framecount - 2
+t1 = MIN(framecount - 2, t0 + t_cor)
+DO j = 1, natom
+ IF (frag_type=='2') THEN
+     k = j + 8
+ ELSEIF (frag_type=='3') THEN
+     k = j + 20
+ ELSE
+     k = j
+ END IF
+ IF (input_mass=='y') THEN
+     z(0:t1 - t0) = z(0:t1 - t0) + (coord_v(t0, k, 1)*coord_v(t0:t1, j, 1) + coord_v(t0, j, 2)* &
+                                    coord_v(t0:t1, j, 2) + coord_v(t0, j, 3)*coord_v(t0:t1, j, 3))*mass_atom(j)
+ ELSE
+     !  print*,k,"k",j,"j"
+     DO m = 1, 3
+         z(0:t1 - t0) = z(0:t1 - t0) + coord_v(t0, k, m)*coord_v(t0:t1, k, m)
+     END DO
+ END IF
+END DO
+norm(0:t1 - t0) = norm(0:t1 - t0) + 1
+END DO
 
 !IF (type_input=='2') THEN
 !  z(:)=z(:)*4.785992e12
@@ -60,26 +61,100 @@ CONTAINS
 !   z(:)=z(:)*1e10
 !ENDIF
 
-        z(:) = z(:)/norm(:) !!Normalization
+z(:) = z(:)/norm(:) !!Normalization
 
-        z(t_cor) = 0.0_dp
-        DO i = 1, t_cor - 1
-            z(t_cor + i) = z(t_cor - i) !!Data mirroring
-        END DO
+z(t_cor) = 0.0_dp
+DO i = 1, t_cor - 1
+z(t_cor + i) = z(t_cor - i) !!Data mirroring
+END DO
 
-        DO i = 0, 2*t_cor - 1
-            z(i) = z(i)*((COS(i/(t_cor - 1.0_dp)/2.0_dp*3.14_dp))**2) !!Hann Window function
-        END DO
+DO i = 0, 2*t_cor - 1
+z(i) = z(i)*((COS(i/(t_cor - 1.0_dp)/2.0_dp*3.14_dp))**2) !!Hann Window function
+END DO
 
-        OPEN (UNIT=61, FILE='result_cvv.txt', STATUS='unknown', IOSTAT=stat) !!Write output
-        DO i = 0, 2*t_cor - 1
-            WRITE (61, *) z(i)
-        END DO
-        CLOSE (61)
+OPEN (UNIT=61, FILE='result_cvv.txt', STATUS='unknown', IOSTAT=stat) !!Write output
+DO i = 0, 2*t_cor - 1
+WRITE (61, *) z(i)
+END DO
+CLOSE (61)
 
-        DEALLOCATE (norm)
+DEALLOCATE (norm)
 
-    END SUBROUTINE cvv
+END SUBROUTINE cvv
+!SUBROUTINE cvv(gs, sys, md)
+!
+!    TYPE(global_settings), INTENT(INOUT)        :: gs
+!    TYPE(systems), INTENT(INOUT)        :: sys
+!    TYPE(molecular_dynamics), INTENT(INOUT)        :: md    
+!    !CHARACTER(LEN=40), INTENT(INOUT)                          :: sys%system, gs%spectral_type%type_input, sys%input_mass, gs%spectral_type%read_function, sys%frag_type
+!    !INTEGER, INTENT(INOUT)                                    :: sys%sys%natom, sys%framecount, sys%mol_num
+!    !REAL(kind=dp), INTENT(IN)                                  :: md%dt
+!    !REAL(kind=dp), INTENT(INOUT)                               :: sys%mass_tot
+!    !REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(INOUT)  :: md%v
+!    !REAL(kind=dp), DIMENSION(:), ALLOCATABLE, INTENT(OUT)        :: md%z
+!    !REAL(kind=dp), DIMENSION(:), ALLOCATABLE, INTENT(IN)         :: sys%mass_atom
+!
+!    CHARACTER(LEN=40)                                        :: chara
+!    INTEGER                                                  :: stat, i, j, k, m, t0, t1, l
+!    INTEGER, DIMENSION(:), ALLOCATABLE                         :: norm
+!    REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE                  :: coord
+!
+!    ALLOCATE (md%z(0:2*t_cor - 1), norm(0:2*t_cor - 1))
+!
+!    norm = 0
+!    md%z = 0.0_dp
+!    k = 0
+!    j = 0
+!
+!    DO t0 = 1, sys%framecount - 2
+!        t1 = MIN(sys%framecount - 2, t0 + t_cor)
+!        DO j = 1, sys%natom
+!            IF (sys%frag_type=='2') THEN
+!                k = j + 8
+!            ELSEIF (sys%frag_type=='3') THEN
+!                k = j + 20
+!            ELSE
+!                k = j
+!            END IF
+!            IF (sys%input_mass=='y') THEN
+!                md%z(0:t1 - t0) = md%z(0:t1 - t0) + (md%v(t0, k, 1)*md%v(t0:t1, j, 1) + md%v(t0, j, 2)* &
+!                                               md%v(t0:t1, j, 2) + md%v(t0, j, 3)*md%v(t0:t1, j, 3))*sys%mass_atom(j)
+!            ELSE
+!                !  print*,k,"k",j,"j"
+!                DO m = 1, 3
+!                    md%z(0:t1 - t0) = md%z(0:t1 - t0) + md%v(t0, k, m)*md%v(t0:t1, k, m)
+!                END DO
+!            END IF
+!        END DO
+!        norm(0:t1 - t0) = norm(0:t1 - t0) + 1
+!    END DO
+!
+!!IF (gs%spectral_type%type_input=='2') THEN
+!!  md%z(:)=md%z(:)*4.785992e12
+!!ELSEIF (gs%spectral_type%type_input=='1') THEN
+!!   md%z(:)=md%z(:)*1e10
+!!ENDIF
+!
+!    md%z(:) = md%z(:)/norm(:) !!Normalization
+!
+!    md%z(t_cor) = 0.0_dp
+!    DO i = 1, t_cor - 1
+!        md%z(t_cor + i) = md%z(t_cor - i) !!Data mirroring
+!    END DO
+!
+!    DO i = 0, 2*t_cor - 1
+!        md%z(i) = md%z(i)*((COS(i/(t_cor - 1.0_dp)/2.0_dp*3.14_dp))**2) !!Hann Window function
+!    END DO
+!
+!    OPEN (UNIT=61, FILE='result_cvv.txt', STATUS='unknown', IOSTAT=stat) !!Write output
+!    DO i = 0, 2*t_cor - 1
+!        WRITE (61, *) md%z(i)
+!    END DO
+!    CLOSE (61)
+!
+!    DEALLOCATE (norm)
+!
+!END SUBROUTINE cvv
 
 !***********************************************************************************
 !***********************************************************************************

@@ -425,106 +425,106 @@ CONTAINS
 !*********************************************************************************************
 !*********************************************************************************************
 
-    SUBROUTINE masses_charges(gs, sys )!natom, mass_atom, atom_mass_inv_sqrt, mass_mat, element, mass_tot, charge)
-
-        TYPE(global_settings), INTENT(INOUT)   :: gs
-        TYPE(systems) , INTENT(INOUT)        :: sys
-        !CHARACTER(LEN=2), DIMENSION(:), ALLOCATABLE, INTENT(IN)   :: element
-        !INTEGER, INTENT(INOUT)                                  :: natom
-        !REAL(kind=dp), INTENT(INOUT)                             :: mass_tot
-        !REAL(kind=dp), DIMENSION(:), ALLOCATABLE, INTENT(OUT)      :: atom_mass_inv_sqrt, mass_atom, charge
-        !REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE, INTENT(OUT)    :: mass_mat
-
-        INTEGER                                                :: i, j, stat
-        REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE                :: mat1, mat2
-
-        ALLOCATE (sys%atom_mass_inv_sqrt(sys%natom), sys%mass_mat(sys%natom, sys%natom), sys%mass_atom(sys%natom), sys%charge(sys%natom))
-        ALLOCATE (mat1(sys%natom, 1), mat2(1, sys%natom))
-
-        sys%mass_atom = 0.0_dp
-        sys%mass_tot = 0.0_dp
-        DO i = 1, sys%natom
-            IF (sys%element(i)=='O') THEN
-                sys%mass_atom(i) = 15.999_dp
-                sys%charge(i) = 6.0_dp
-            ELSEIF (sys%element(i)=='H') THEN
-                sys%mass_atom(i) = 1.00784_dp
-                sys%charge(i) = 1.0_dp
-            ELSEIF (sys%element(i)=='C') THEN
-                sys%mass_atom(i) = 12.011_dp
-                sys%charge(i) = 4.0_dp
-            ELSEIF (sys%element(i)=='B') THEN
-                sys%mass_atom(i) = 10.811_dp
-                sys%charge(i) = 3.0_dp
-            ELSEIF (sys%element(i)=='N') THEN
-                sys%mass_atom(i) = 14.0067_dp
-                sys%charge(i) = 5.0_dp
-            ELSEIF (sys%element(i)=='X') THEN
-                sys%mass_atom(i) = 0.00_dp
-                sys%charge(i) = -2.0_dp
-            END IF
-            sys%mass_tot = sys%mass_tot + sys%mass_atom(i)
-        END DO
-
-        sys%atom_mass_inv_sqrt(:) = SQRT(REAL(1.0_dp/sys%mass_atom(:), kind=dp))
-
-        mat1(:, :) = RESHAPE(sys%atom_mass_inv_sqrt(:), (/sys%natom, 1/))
-        mat2(:, :) = RESHAPE(sys%atom_mass_inv_sqrt(:), (/1, sys%natom/))
-
-        sys%mass_mat = MATMUL(mat1, mat2)
-
-        DEALLOCATE (mat1, mat2)
-
-    END SUBROUTINE masses_charges
-!    SUBROUTINE masses_charges(natom, mass_atom, atom_mass_inv_sqrt, mass_mat, element, mass_tot, charge)
+!    SUBROUTINE masses_charges(gs, sys )!natom, mass_atom, atom_mass_inv_sqrt, mass_mat, element, mass_tot, charge)
 !
-!        CHARACTER(LEN=2), DIMENSION(:), ALLOCATABLE, INTENT(IN)   :: element
-!        INTEGER, INTENT(INOUT)                                  :: natom
-!        REAL(kind=dp), INTENT(INOUT)                             :: mass_tot
-!        REAL(kind=dp), DIMENSION(:), ALLOCATABLE, INTENT(OUT)      :: atom_mass_inv_sqrt, mass_atom, charge
-!        REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE, INTENT(OUT)    :: mass_mat
+!        TYPE(global_settings), INTENT(INOUT)   :: gs
+!        TYPE(systems) , INTENT(INOUT)        :: sys
+!        !CHARACTER(LEN=2), DIMENSION(:), ALLOCATABLE, INTENT(IN)   :: element
+!        !INTEGER, INTENT(INOUT)                                  :: natom
+!        !REAL(kind=dp), INTENT(INOUT)                             :: mass_tot
+!        !REAL(kind=dp), DIMENSION(:), ALLOCATABLE, INTENT(OUT)      :: atom_mass_inv_sqrt, mass_atom, charge
+!        !REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE, INTENT(OUT)    :: mass_mat
 !
 !        INTEGER                                                :: i, j, stat
 !        REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE                :: mat1, mat2
 !
-!        ALLOCATE (atom_mass_inv_sqrt(natom), mass_mat(natom, natom), mass_atom(natom), charge(natom))
-!        ALLOCATE (mat1(natom, 1), mat2(1, natom))
+!        ALLOCATE (sys%atom_mass_inv_sqrt(sys%natom), sys%mass_mat(sys%natom, sys%natom), sys%mass_atom(sys%natom), sys%charge(sys%natom))
+!        ALLOCATE (mat1(sys%natom, 1), mat2(1, sys%natom))
 !
-!        mass_atom = 0.0_dp
-!        mass_tot = 0.0_dp
-!        DO i = 1, natom
-!            IF (element(i)=='O') THEN
-!                mass_atom(i) = 15.999_dp
-!                charge(i) = 6.0_dp
-!            ELSEIF (element(i)=='H') THEN
-!                mass_atom(i) = 1.00784_dp
-!                charge(i) = 1.0_dp
-!            ELSEIF (element(i)=='C') THEN
-!                mass_atom(i) = 12.011_dp
-!                charge(i) = 4.0_dp
-!            ELSEIF (element(i)=='B') THEN
-!                mass_atom(i) = 10.811_dp
-!                charge(i) = 3.0_dp
-!            ELSEIF (element(i)=='N') THEN
-!                mass_atom(i) = 14.0067_dp
-!                charge(i) = 5.0_dp
-!            ELSEIF (element(i)=='X') THEN
-!                mass_atom(i) = 0.00_dp
-!                charge(i) = -2.0_dp
+!        sys%mass_atom = 0.0_dp
+!        sys%mass_tot = 0.0_dp
+!        DO i = 1, sys%natom
+!            IF (sys%element(i)=='O') THEN
+!                sys%mass_atom(i) = 15.999_dp
+!                sys%charge(i) = 6.0_dp
+!            ELSEIF (sys%element(i)=='H') THEN
+!                sys%mass_atom(i) = 1.00784_dp
+!                sys%charge(i) = 1.0_dp
+!            ELSEIF (sys%element(i)=='C') THEN
+!                sys%mass_atom(i) = 12.011_dp
+!                sys%charge(i) = 4.0_dp
+!            ELSEIF (sys%element(i)=='B') THEN
+!                sys%mass_atom(i) = 10.811_dp
+!                sys%charge(i) = 3.0_dp
+!            ELSEIF (sys%element(i)=='N') THEN
+!                sys%mass_atom(i) = 14.0067_dp
+!                sys%charge(i) = 5.0_dp
+!            ELSEIF (sys%element(i)=='X') THEN
+!                sys%mass_atom(i) = 0.00_dp
+!                sys%charge(i) = -2.0_dp
 !            END IF
-!            mass_tot = mass_tot + mass_atom(i)
+!            sys%mass_tot = sys%mass_tot + sys%mass_atom(i)
 !        END DO
 !
-!        atom_mass_inv_sqrt(:) = SQRT(REAL(1.0_dp/mass_atom(:), kind=dp))
+!        sys%atom_mass_inv_sqrt(:) = SQRT(REAL(1.0_dp/sys%mass_atom(:), kind=dp))
 !
-!        mat1(:, :) = RESHAPE(atom_mass_inv_sqrt(:), (/natom, 1/))
-!        mat2(:, :) = RESHAPE(atom_mass_inv_sqrt(:), (/1, natom/))
+!        mat1(:, :) = RESHAPE(sys%atom_mass_inv_sqrt(:), (/sys%natom, 1/))
+!        mat2(:, :) = RESHAPE(sys%atom_mass_inv_sqrt(:), (/1, sys%natom/))
 !
-!        mass_mat = MATMUL(mat1, mat2)
+!        sys%mass_mat = MATMUL(mat1, mat2)
 !
 !        DEALLOCATE (mat1, mat2)
 !
 !    END SUBROUTINE masses_charges
+    SUBROUTINE masses_charges(natom, mass_atom, atom_mass_inv_sqrt, mass_mat, element, mass_tot, charge)
+
+        CHARACTER(LEN=2), DIMENSION(:), ALLOCATABLE, INTENT(IN)   :: element
+        INTEGER, INTENT(INOUT)                                  :: natom
+        REAL(kind=dp), INTENT(INOUT)                             :: mass_tot
+        REAL(kind=dp), DIMENSION(:), ALLOCATABLE, INTENT(OUT)      :: atom_mass_inv_sqrt, mass_atom, charge
+        REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE, INTENT(OUT)    :: mass_mat
+
+        INTEGER                                                :: i, j, stat
+        REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE                :: mat1, mat2
+
+        ALLOCATE (atom_mass_inv_sqrt(natom), mass_mat(natom, natom), mass_atom(natom), charge(natom))
+        ALLOCATE (mat1(natom, 1), mat2(1, natom))
+
+        mass_atom = 0.0_dp
+        mass_tot = 0.0_dp
+        DO i = 1, natom
+            IF (element(i)=='O') THEN
+                mass_atom(i) = 15.999_dp
+                charge(i) = 6.0_dp
+            ELSEIF (element(i)=='H') THEN
+                mass_atom(i) = 1.00784_dp
+                charge(i) = 1.0_dp
+            ELSEIF (element(i)=='C') THEN
+                mass_atom(i) = 12.011_dp
+                charge(i) = 4.0_dp
+            ELSEIF (element(i)=='B') THEN
+                mass_atom(i) = 10.811_dp
+                charge(i) = 3.0_dp
+            ELSEIF (element(i)=='N') THEN
+                mass_atom(i) = 14.0067_dp
+                charge(i) = 5.0_dp
+            ELSEIF (element(i)=='X') THEN
+                mass_atom(i) = 0.00_dp
+                charge(i) = -2.0_dp
+            END IF
+            mass_tot = mass_tot + mass_atom(i)
+        END DO
+
+        atom_mass_inv_sqrt(:) = SQRT(REAL(1.0_dp/mass_atom(:), kind=dp))
+
+        mat1(:, :) = RESHAPE(atom_mass_inv_sqrt(:), (/natom, 1/))
+        mat2(:, :) = RESHAPE(atom_mass_inv_sqrt(:), (/1, natom/))
+
+        mass_mat = MATMUL(mat1, mat2)
+
+        DEALLOCATE (mat1, mat2)
+
+    END SUBROUTINE masses_charges
 
 !*********************************************************************************************
 !*********************************************************************************************

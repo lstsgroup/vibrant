@@ -1,33 +1,60 @@
 MODULE fin_diff
     USE kinds, ONLY: dp
     USE constants, ONLY: bohr2ang, speed_light, fs2s, damping_constant, joule_unit, ev_unit, action_unit
-    USE vib_types, ONLY: global_settings, systems, md, static, dipoles, raman
+    USE vib_types, ONLY: global_settings, systems, molecular_dynamics, static, dipoles, raman
     IMPLICIT NONE
     PUBLIC :: central_diff, forward_diff, finite_diff_static, finite_diff_static_resraman
 
 CONTAINS
-    SUBROUTINE central_diff(dt, natom, framecount, coord_v, v, read_function, mol_num, system)
+SUBROUTINE central_diff(dt, natom, framecount, coord_v, v, read_function, mol_num, system)
 
-        CHARACTER(LEN=40), INTENT(INOUT)                          :: read_function, system
-        INTEGER, INTENT(INOUT)                                    :: natom, framecount, mol_num
-        REAL(kind=dp), INTENT(INOUT)                               :: dt
-        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(INOUT)  :: coord_v
-        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(OUT)    :: v
+    CHARACTER(LEN=40), INTENT(INOUT)                          :: read_function, system
+    INTEGER, INTENT(INOUT)                                    :: natom, framecount, mol_num
+    REAL(kind=dp), INTENT(INOUT)                               :: dt
+    REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(INOUT)  :: coord_v
+    REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(OUT)    :: v
 
-        INTEGER                                                  :: stat, i, j, k, m
+    INTEGER                                                  :: stat, i, j, k, m
 
-        ALLOCATE (v(framecount, natom, 3))
+    ALLOCATE (v(framecount, natom, 3))
 !ALLOCATE(v(framecount,1:44,3)) !change for fragments
 
-        DO j = 1, framecount - 2
-            DO i = 1, natom
-                DO k = 1, 3
-                    v(j, i, k) = (coord_v(j + 2, i, k) - coord_v(j, i, k))/REAL(2.0_dp*dt, kind=dp)
-                END DO
+    DO j = 1, framecount - 2
+        DO i = 1, natom
+            DO k = 1, 3
+                v(j, i, k) = (coord_v(j + 2, i, k) - coord_v(j, i, k))/REAL(2.0_dp*dt, kind=dp)
             END DO
         END DO
+    END DO
 
-    END SUBROUTINE central_diff
+END SUBROUTINE central_diff
+!    SUBROUTINE central_diff(gs, sys, md)
+!        
+!        
+!        TYPE(global_settings), INTENT(INOUT)        :: gs
+!        TYPE(systems), INTENT(INOUT)        :: sys
+!        TYPE(molecular_dynamics), INTENT(INOUT)        :: md   
+!
+!        !CHARACTER(LEN=40), INTENT(INOUT)                          :: gs%spectral_type%read_function, sys%system
+!        !INTEGER, INTENT(INOUT)                                    :: sys%natom, sys%framecount, sys%mol_num
+!        !REAL(kind=dp), INTENT(INOUT)                               :: md%dt
+!        !REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(INOUT)  ::  md%coord_v
+!        !REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(OUT)    ::  md%v
+!
+!        INTEGER                                                  :: stat, i, j, k, m
+!
+!        ALLOCATE ( md%v(sys%framecount, sys%natom, 3))
+!    !ALLOCATE( md%v(sys%framecount,1:44,3)) !change for fragments
+!
+!        DO j = 1, sys%framecount - 2
+!            DO i = 1, sys%natom
+!                DO k = 1, 3
+!                    md%v(j, i, k) = ( md%coord_v(j + 2, i, k) -  md%coord_v(j, i, k))/REAL(2.0_dp*md%dt, kind=dp)
+!                END DO
+!            END DO
+!        END DO
+!
+!    END SUBROUTINE central_diff
 
 !**************************************************************************************************************!
 !**************************************************************************************************************!

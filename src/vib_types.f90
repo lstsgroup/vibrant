@@ -6,7 +6,7 @@ MODULE vib_types
 
     PRIVATE
 
-    PUBLIC :: global_settings, systems, md, static, dipoles, raman
+    PUBLIC :: global_settings, systems, molecular_dynamics, static, dipoles, raman,  deallocate_all_structures
 
     !***************************************************************************
     TYPE spectral_type
@@ -31,6 +31,8 @@ MODULE vib_types
     !***************************************************************************
     TYPE systems
         CHARACTER(LEN=40)                                :: filename
+        CHARACTER(LEN=40)                                :: frag_type
+        CHARACTER(LEN=40)                                :: input_mass
         CHARACTER(LEN=40)                               :: system, periodic
         INTEGER                                          :: natom, framecount, mol_num, framecount_rtp
         !LOGICAL                                          ::  periodic !yes/no
@@ -46,7 +48,7 @@ MODULE vib_types
     END TYPE systems
 
     !***************************************************************************
-    TYPE md
+    TYPE molecular_dynamics
         CHARACTER(LEN=40)             :: trajectory_file !maybe not needed should be in system type
         CHARACTER(LEN=40)             :: velocity_file   !maybe not needed should be in system type
         REAL(kind=dp)             :: snapshot_time_step ! snapshots_time_step equal to dt ?
@@ -56,8 +58,9 @@ MODULE vib_types
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE :: z       ! correlations vector ?
         COMPLEX(kind=dp), DIMENSION(:), ALLOCATABLE    :: zhat ! correlations vector hat ?
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE     :: coord_v ! coordinates vector
+        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE     :: v ! coordinates vector
         REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE        :: velos_v ! velocity vector
-    END TYPE md
+    END TYPE molecular_dynamics
     !***************************************************************************
     TYPE static
         CHARACTER(LEN=40)                                   :: normal_freq_file, normal_displ_file, force_file
@@ -108,5 +111,60 @@ MODULE vib_types
     END TYPE raman
 
     !***************************************************************************
+
+CONTAINS
+    SUBROUTINE deallocate_all_structures(sys, md, statik, ram, dip)
+        IMPLICIT NONE
+        TYPE(systems), INTENT(INOUT) :: sys
+        TYPE(molecular_dynamics), INTENT(INOUT) :: md
+        TYPE(static), INTENT(INOUT) :: statik
+        TYPE(raman), INTENT(INOUT) :: ram
+        TYPE(dipoles), INTENT(INOUT) :: dip
+      
+        ! systems
+        IF (ALLOCATED(sys%coord)) DEALLOCATE(sys%coord)
+        IF (ALLOCATED(sys%element)) DEALLOCATE(sys%element)
+        IF (ALLOCATED(sys%mass_atom)) DEALLOCATE(sys%mass_atom)
+        IF (ALLOCATED(sys%mass_mat)) DEALLOCATE(sys%mass_mat)
+        IF (ALLOCATED(sys%atom_mass_inv_sqrt)) DEALLOCATE(sys%atom_mass_inv_sqrt)
+        IF (ALLOCATED(sys%charge)) DEALLOCATE(sys%charge)
+      
+        ! molecular_dynamics
+        IF (ALLOCATED(md%z)) DEALLOCATE(md%z)
+        IF (ALLOCATED(md%zhat)) DEALLOCATE(md%zhat)
+        IF (ALLOCATED(md%coord_v)) DEALLOCATE(md%coord_v)
+        IF (ALLOCATED(md%v)) DEALLOCATE(md%v)
+        IF (ALLOCATED(md%velos_v)) DEALLOCATE(md%velos_v)
+      
+        ! static
+        IF (ALLOCATED(statik%freq)) DEALLOCATE(statik%freq)
+        IF (ALLOCATED(statik%disp)) DEALLOCATE(statik%disp)
+        IF (ALLOCATED(statik%force)) DEALLOCATE(statik%force)
+      
+        ! raman
+        IF (ALLOCATED(ram%static_dip_free)) DEALLOCATE(ram%static_dip_free)
+        IF (ALLOCATED(ram%static_dip_x)) DEALLOCATE(ram%static_dip_x)
+        IF (ALLOCATED(ram%static_dip_y)) DEALLOCATE(ram%static_dip_y)
+        IF (ALLOCATED(ram%static_dip_z)) DEALLOCATE(ram%static_dip_z)
+        IF (ALLOCATED(ram%z_iso)) DEALLOCATE(ram%z_iso)
+        IF (ALLOCATED(ram%z_aniso)) DEALLOCATE(ram%z_aniso)
+        IF (ALLOCATED(ram%z_ortho)) DEALLOCATE(ram%z_ortho)
+        IF (ALLOCATED(ram%z_para)) DEALLOCATE(ram%z_para)
+        IF (ALLOCATED(ram%raman_int)) DEALLOCATE(ram%raman_int)
+        IF (ALLOCATED(ram%pol)) DEALLOCATE(ram%pol)
+        IF (ALLOCATED(ram%pol_dq)) DEALLOCATE(ram%pol_dq)
+        IF (ALLOCATED(ram%static_dip_rtp)) DEALLOCATE(ram%static_dip_rtp)
+        IF (ALLOCATED(ram%pol_rtp)) DEALLOCATE(ram%pol_rtp)
+        IF (ALLOCATED(ram%static_dipole_x_rtp)) DEALLOCATE(ram%static_dipole_x_rtp)
+        IF (ALLOCATED(ram%static_dipole_y_rtp)) DEALLOCATE(ram%static_dipole_y_rtp)
+        IF (ALLOCATED(ram%static_dipole_z_rtp)) DEALLOCATE(ram%static_dipole_z_rtp)
+        IF (ALLOCATED(ram%zhat_pol_rtp)) DEALLOCATE(ram%zhat_pol_rtp)
+      
+        ! dipoles
+        IF (ALLOCATED(dip%static_dip)) DEALLOCATE(dip%static_dip)
+        IF (ALLOCATED(dip%dip_dq)) DEALLOCATE(dip%dip_dq)
+        IF (ALLOCATED(dip%dipole)) DEALLOCATE(dip%dipole)
+      
+      END SUBROUTINE deallocate_all_structures
 
 END MODULE vib_types
