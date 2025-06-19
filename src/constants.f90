@@ -46,36 +46,32 @@ MODULE constants
     ! Planck constant [m^2*kg/s] or [J.s]
     REAL(kind=dp), PARAMETER                            :: const_planck = 6.62607015e-34_dp 
 
-    !F*m^−1 ?permittivity of vacuum [F/m]?
+    !Permittivity of vacuum [F/m]?
     REAL(kind=dp), PARAMETER                            :: const_permit = 8.8541878128e-12
 
-    ! PI
+    ! Pi
     REAL(kind=dp), PARAMETER                            :: pi = 3.14159_dp
 
-    ! Charge ?Elementary charge [C]?
+    ! Elementary charge [C] and [eV] -> [J]
     REAL(kind=dp), PARAMETER                            :: const_charge = 1.602176565e-19_dp
 
     ! Boltzmann constant [m^2*kg*s^-2*K-1] or [J/K]
     REAL(kind=dp), PARAMETER                            :: const_boltz = 1.380649e-23_dp 
 
-    !! Damping Constant [ev]
-    REAL(Kind=dp), PARAMETER                            :: damping_constant = 0.10_dp 
-
-    ! Units
-
-    ! J
-    REAL(kind=dp), PARAMETER                            :: joule_unit = 4.359744722e-18
-
-    ! debye
-    REAL(kind=dp), PARAMETER                            :: debye = 0.393456_dp
-
-    ! ev
-    REAL(kind=dp), PARAMETER                            :: ev_unit = 27.211386_dp
-
-    ! J.s
-    REAL(kind=dp), PARAMETER                            :: action_unit = 1.054571817e-34_dp 
 
     ! Conversion factors
+    
+    ! [Hartree] -> [J]
+    REAL(kind=dp), PARAMETER                            :: joule_unit = 4.359744722e-18
+
+    ! [a.u. of action] -> [J*s]
+    REAL(kind=dp), PARAMETER                            :: action_unit = 1.054571817e-34_dp 
+    
+    ! [Debye] -> [a.u.]
+    REAL(kind=dp), PARAMETER                            :: debye = 0.393456_dp
+    
+    ! [a.u.] -> [eV]
+    REAL(kind=dp), PARAMETER                            :: ev_unit = 27.211386_dp
 
     ! [Bohr] -> [Angstrom]
     REAL(kind=dp), PARAMETER                            :: bohr2ang = 0.5291772109_dp 
@@ -83,10 +79,10 @@ MODULE constants
     ! [Hartree/Bohr] -> [eV/Angstrom]
     REAL(kind=dp), PARAMETER                            :: hartreebohr2evang = 51.42208619083232_dp 
     
-    !!atomic mass unit-kilogram relationship
+    ! [a.m.u.] -> [kg]
     REAL(kind=dp), PARAMETER                            :: at_u = 1.6605390666e-27_dp 
 
-    !! [Angstrom] -> [1/cm] (wave numbers)
+    ! [Angstrom] -> [m]
     REAL(kind=dp), PARAMETER                            :: ang = 1.0e-10_dp
 
     ! [fs] -> [s]
@@ -94,17 +90,21 @@ MODULE constants
 
     ! [1/cm] -> [eV]
     REAL(kind=dp), PARAMETER                            :: reccm2ev = 0.000124_dp 
+    
+    ! [eV/(a.m.u*Ang^2)] -> [J/(kg*m^2)]
+    REAL(kind=dp), PARAMETER                            :: hessian_factor = REAL(const_charge/(at_u*ang*ang), kind=dp)
 
 
-    ! Input parameters ? 
+    ! Input parameters 
+    
+    ! Damping Constant [eV]
+    REAL(Kind=dp), PARAMETER                            :: damping_constant = 0.10_dp 
 
-    ! correlation depth?
-    INTEGER, PARAMETER                :: t_cor = 1024
+    ! Correlation depth for MD
+    INTEGER, PARAMETER                                  :: t_cor = 1024
 
-    ! Temperature in K
+    ! Temperature [K]
     REAL(kind=dp), PARAMETER                            :: temp = 300.0_dp       
     
-    ! ???
-    REAL(kind=dp), PARAMETER                            :: hessian_factor = REAL(const_charge/(at_u*ang*ang), kind=dp)
 
 END MODULE constants
