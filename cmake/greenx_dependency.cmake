@@ -13,7 +13,7 @@ ExternalProject_Add(greenx
     GIT_SUBMODULES ""
     UPDATE_COMMAND ""
 )
-set(GREENX_INCLUDE_DIR ${CMAKE_BINARY_DIR}/external/greenx/install/include/modules)
+set(GREENX_INCLUDE_DIR ${CMAKE_BINARY_DIR}/external/greenx/install/include/greenX/GNU-10.2.1/common/modules)
 set(GREENX_LIBRARY_DIR ${CMAKE_BINARY_DIR}/external/greenx/install/lib)
 include_directories(${GREENX_INCLUDE_DIR})
 link_directories(${GREENX_LIBRARY_DIR})
