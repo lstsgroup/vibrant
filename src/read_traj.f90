@@ -10,146 +10,145 @@ MODULE read_traj
     PUBLIC :: read_coord, read_coord_frame, read_normal_modes, read_static, read_static_resraman
 
 CONTAINS
-!    SUBROUTINE read_coord(gs, sys)! natom, framecount, element, coord, filename, periodic, mol_num, system, read_function, framecount_rtp, type_dipole)
-!
-!        ! Variables of your derived types:
-!        TYPE(global_settings), INTENT(INOUT)   :: gs
-!        TYPE(systems), INTENT(INOUT)        :: sys
-!        !CHARACTER(LEN=40), INTENT(IN)                               :: filename, periodic, system, read_function, type_dipole
-!        !INTEGER, INTENT(IN)                                         :: framecount_rtp
-!        !INTEGER, INTENT(OUT)                                        :: natom, framecount, mol_num
-!        !CHARACTER(LEN=2), DIMENSION(:), ALLOCATABLE, INTENT(OUT)      :: element
-!        !REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE, INTENT(OUT)        :: coord
-!
-!        INTEGER                                                    :: i, j, stat
-!
-!        sys%framecount = 0
-!
-!        IF (gs%spectral_type%read_function/='MD-RR') THEN
-!            OPEN (UNIT=50, FILE=sys%filename, STATUS='old', IOSTAT=stat)
-!            READ (50, *) sys%natom
-!            CLOSE (50)
-!        ELSEIF (gs%spectral_type%read_function=='MD-RR') THEN
-!            sys%natom = sys%framecount_rtp
-!        END IF
-!
-!        ALLOCATE (sys%element(sys%natom), sys%coord(sys%natom, 3))
-!
-!        OPEN (UNIT=51, FILE=sys%filename, STATUS='old', IOSTAT=stat)
-!        DO
-!            READ (51, *, END=998)
-!            READ (51, *)
-!            sys%framecount = sys%framecount + 1
-!            DO i = 1, sys%natom
-!                READ (51, *) sys%element(i), sys%coord(i, 1), sys%coord(i, 2), sys%coord(i, 3)
-!            END DO
-!        END DO
-!998     CONTINUE
-!        CLOSE (51)
-!
-!        IF (gs%spectral_type%type_dipole=='2' .OR. gs%spectral_type%type_dipole=='3') THEN !!gas phase
-!            sys%mol_num = 1
-!        ELSEIF ((sys%periodic=='n' .AND. sys%system=='1') .OR. gs%spectral_type%type_dipole=='1') THEN !!fragment approach
-!            sys%mol_num = 44 !20 !! fix later to 20
-!        END IF
-!        PRINT *, sys%mol_num, 'mol num'
-!
-!    END SUBROUTINE read_coord
-SUBROUTINE read_coord(natom, framecount, element, coord, filename, periodic, mol_num, system, read_function, &
-    framecount_rtp, type_dipole)
+    SUBROUTINE read_coord(gs, sys)! natom, framecount, element, coord, filename, periodic, mol_num, system, read_function, framecount_rtp, type_dipole)
 
-CHARACTER(LEN=40), INTENT(IN)                               :: filename, periodic, system, read_function, type_dipole
-INTEGER, INTENT(IN)                                         :: framecount_rtp
-INTEGER, INTENT(OUT)                                        :: natom, framecount, mol_num
-CHARACTER(LEN=2), DIMENSION(:), ALLOCATABLE, INTENT(OUT)      :: element
-REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE, INTENT(OUT)        :: coord
-
-INTEGER                                                    :: i, j, stat
-
-framecount = 0
-
-IF (read_function.NE.'MD-RR') THEN
-OPEN (UNIT=50, FILE=filename, STATUS='old', IOSTAT=stat)
-READ (50, *) natom
-CLOSE (50)
-ELSEIF (read_function=='MD-RR') THEN
-natom = framecount_rtp
-END IF
-
-ALLOCATE (element(natom), coord(natom, 3))
-
-OPEN (UNIT=51, FILE=filename, STATUS='old', IOSTAT=stat)
-DO
-READ (51, *, END=998)
-READ (51, *)
-framecount = framecount + 1
-DO i = 1, natom
-READ (51, *) element(i), coord(i, 1), coord(i, 2), coord(i, 3)
-END DO
-END DO
-998     CONTINUE
-CLOSE (51)
-
-IF (type_dipole=='2' .OR. type_dipole=='3') THEN !!gas phase
-mol_num = 1
-ELSEIF ((periodic=='n' .AND. system=='1') .OR. type_dipole=='1') THEN !!fragment approach
-mol_num = 44 !20 !! fix later to 20
-END IF
-PRINT *, mol_num, 'mol num'
-END SUBROUTINE read_coord
-
-!********************************************************************************************
-!********************************************************************************************
-    SUBROUTINE read_coord_frame(natom, framecount, element, filename, coord_v)
-        CHARACTER(LEN=40), INTENT(IN)                               :: filename
-        INTEGER, INTENT(INOUT)                                      :: natom, framecount
-        CHARACTER(LEN=2), DIMENSION(:), ALLOCATABLE, INTENT(INOUT)    :: element
-        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(OUT)      :: coord_v
+        ! Variables of your derived types:
+        TYPE(global_settings), INTENT(INOUT)   :: gs
+        TYPE(systems), INTENT(INOUT)        :: sys
+        !CHARACTER(LEN=40), INTENT(IN)                               :: filename, periodic, system, read_function, type_dipole
+        !INTEGER, INTENT(IN)                                         :: framecount_rtp
+        !INTEGER, INTENT(OUT)                                        :: natom, framecount, mol_num
+        !CHARACTER(LEN=2), DIMENSION(:), ALLOCATABLE, INTENT(OUT)      :: element
+        !REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE, INTENT(OUT)        :: coord
 
         INTEGER                                                    :: i, j, stat
 
-        ALLOCATE (coord_v(framecount, natom, 3))
-        OPEN (UNIT=52, FILE=filename, STATUS='old', IOSTAT=stat)
+        sys%framecount = 0
+
+        IF (gs%spectral_type%read_function/='MD-RR') THEN
+            OPEN (UNIT=50, FILE=sys%filename, STATUS='old', IOSTAT=stat)
+            READ (50, *) sys%natom
+            CLOSE (50)
+        ELSEIF (gs%spectral_type%read_function=='MD-RR') THEN
+            sys%natom = sys%framecount_rtp
+        END IF
+
+        ALLOCATE (sys%element(sys%natom), sys%coord(sys%natom, 3))
+
+        OPEN (UNIT=51, FILE=sys%filename, STATUS='old', IOSTAT=stat)
         DO
-            DO j = 1, framecount
-                READ (52, *, END=999)
-                READ (52, *)
-                DO i = 1, natom
-                    READ (52, *) element(i), coord_v(j, i, 1), coord_v(j, i, 2), coord_v(j, i, 3)
-                END DO
+            READ (51, *, END=998)
+            READ (51, *)
+            sys%framecount = sys%framecount + 1
+            DO i = 1, sys%natom
+                READ (51, *) sys%element(i), sys%coord(i, 1), sys%coord(i, 2), sys%coord(i, 3)
             END DO
         END DO
-999     CONTINUE
-        CLOSE (52)
+998     CONTINUE
+        CLOSE (51)
 
-    END SUBROUTINE read_coord_frame
-!    SUBROUTINE read_coord_frame(sys, md)
+        IF (gs%spectral_type%type_dipole=='2' .OR. gs%spectral_type%type_dipole=='3') THEN !!gas phase
+            sys%mol_num = 1
+        ELSEIF ((sys%periodic=='n' .AND. sys%system=='1') .OR. gs%spectral_type%type_dipole=='1') THEN !!fragment approach
+            sys%mol_num = 44 !20 !! fix later to 20
+        END IF
+        PRINT *, sys%mol_num, 'mol num'
+
+    END SUBROUTINE read_coord
+!SUBROUTINE read_coord(natom, framecount, element, coord, filename, periodic, mol_num, system, read_function, &
+!    framecount_rtp, type_dipole)
 !
-!        TYPE(systems), INTENT(INOUT)        :: sys
-!        TYPE(molecular_dynamics), INTENT(INOUT)        :: md
-!    
-!        !CHARACTER(LEN=40), INTENT(IN)                               :: sys%filename
-!        !INTEGER, INTENT(INOUT)                                      :: sys%natom, sys%framecount
-!        !CHARACTER(LEN=2), DIMENSION(:), ALLOCATABLE, INTENT(INOUT)    :: sys%element
-!        !REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(OUT)      :: md%coord_v
-!    
+!CHARACTER(LEN=40), INTENT(IN)                               :: filename, periodic, system, read_function, type_dipole
+!INTEGER, INTENT(IN)                                         :: framecount_rtp
+!INTEGER, INTENT(OUT)                                        :: natom, framecount, mol_num
+!CHARACTER(LEN=2), DIMENSION(:), ALLOCATABLE, INTENT(OUT)      :: element
+!REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE, INTENT(OUT)        :: coord
+!
+!INTEGER                                                    :: i, j, stat
+!
+!framecount = 0
+!
+!IF (read_function.NE.'MD-RR') THEN
+!OPEN (UNIT=50, FILE=filename, STATUS='old', IOSTAT=stat)
+!READ (50, *) natom
+!CLOSE (50)
+!ELSEIF (read_function=='MD-RR') THEN
+!natom = framecount_rtp
+!END IF
+!
+!ALLOCATE (element(natom), coord(natom, 3))
+!
+!OPEN (UNIT=51, FILE=filename, STATUS='old', IOSTAT=stat)
+!DO
+!READ (51, *, END=998)
+!READ (51, *)
+!framecount = framecount + 1
+!DO i = 1, natom
+!READ (51, *) element(i), coord(i, 1), coord(i, 2), coord(i, 3)
+!END DO
+!END DO
+!998     CONTINUE
+!CLOSE (51)
+!
+!IF (type_dipole=='2' .OR. type_dipole=='3') THEN !!gas phase
+!mol_num = 1
+!ELSEIF ((periodic=='n' .AND. system=='1') .OR. type_dipole=='1') THEN !!fragment approach
+!mol_num = 44 !20 !! fix later to 20
+!END IF
+!PRINT *, mol_num, 'mol num'
+!END SUBROUTINE read_coord
+!!********************************************************************************************
+!********************************************************************************************
+!    SUBROUTINE read_coord_frame(natom, framecount, element, filename, coord_v)
+!        CHARACTER(LEN=40), INTENT(IN)                               :: filename
+!        INTEGER, INTENT(INOUT)                                      :: natom, framecount
+!        CHARACTER(LEN=2), DIMENSION(:), ALLOCATABLE, INTENT(INOUT)    :: element
+!        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(OUT)      :: coord_v
+!
 !        INTEGER                                                    :: i, j, stat
-!    
-!        ALLOCATE (md%coord_v(sys%framecount, sys%natom, 3))
-!        OPEN (UNIT=52, FILE=sys%filename, STATUS='old', IOSTAT=stat)
+!
+!        ALLOCATE (coord_v(framecount, natom, 3))
+!        OPEN (UNIT=52, FILE=filename, STATUS='old', IOSTAT=stat)
 !        DO
-!            DO j = 1, sys%framecount
+!            DO j = 1, framecount
 !                READ (52, *, END=999)
 !                READ (52, *)
-!                DO i = 1, sys%natom
-!                    READ (52, *) sys%element(i), md%coord_v(j, i, 1), md%coord_v(j, i, 2), md%coord_v(j, i, 3)
+!                DO i = 1, natom
+!                    READ (52, *) element(i), coord_v(j, i, 1), coord_v(j, i, 2), coord_v(j, i, 3)
 !                END DO
 !            END DO
 !        END DO
-!    999     CONTINUE
+!999     CONTINUE
 !        CLOSE (52)
-!    
+!
 !    END SUBROUTINE read_coord_frame
+    SUBROUTINE read_coord_frame(sys, md)
+
+        TYPE(systems), INTENT(INOUT)        :: sys
+        TYPE(molecular_dynamics), INTENT(INOUT)        :: md
+    
+        !CHARACTER(LEN=40), INTENT(IN)                               :: sys%filename
+        !INTEGER, INTENT(INOUT)                                      :: sys%natom, sys%framecount
+        !CHARACTER(LEN=2), DIMENSION(:), ALLOCATABLE, INTENT(INOUT)    :: sys%element
+        !REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(OUT)      :: md%coord_v
+    
+        INTEGER                                                    :: i, j, stat
+    
+        ALLOCATE (md%coord_v(sys%framecount, sys%natom, 3))
+        OPEN (UNIT=52, FILE=sys%filename, STATUS='old', IOSTAT=stat)
+        DO
+            DO j = 1, sys%framecount
+                READ (52, *, END=999)
+                READ (52, *)
+                DO i = 1, sys%natom
+                    READ (52, *) sys%element(i), md%coord_v(j, i, 1), md%coord_v(j, i, 2), md%coord_v(j, i, 3)
+                END DO
+            END DO
+        END DO
+    999     CONTINUE
+        CLOSE (52)
+    
+    END SUBROUTINE read_coord_frame
 
 !********************************************************************************************
 !********************************************************************************************

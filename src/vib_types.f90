@@ -33,10 +33,11 @@ MODULE vib_types
         CHARACTER(LEN=40)                                :: filename
         CHARACTER(LEN=40)                                :: frag_type
         CHARACTER(LEN=40)                                :: input_mass
+        CHARACTER(LEN=40)                               :: cell_type
         CHARACTER(LEN=40)                               :: system, periodic
         INTEGER                                          :: natom, framecount, mol_num, framecount_rtp
         !LOGICAL                                          ::  periodic !yes/no
-        CHARACTER(LEN=40)                                :: cell_type
+        !CHARACTER(LEN=40)                                :: mass_atom
         REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE      :: coord
         CHARACTER(LEN=2), DIMENSION(:), ALLOCATABLE      :: element
         REAL(kind=dp):: mass_tot
@@ -44,7 +45,9 @@ MODULE vib_types
         REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE   :: mass_mat
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE     :: atom_mass_inv_sqrt, charge
         REAL(kind=dp)                                  :: box_all, box_x, box_y, box_z, vec(3), vec_pbc(3)
-        TYPE(fragments)                    ::  fragments
+        
+        TYPE(fragments)                    ::  fragments! <--- NEEDED?
+
     END TYPE systems
 
     !***************************************************************************
@@ -60,6 +63,7 @@ MODULE vib_types
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE     :: coord_v ! coordinates vector
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE     :: v ! coordinates vector
         REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE        :: velos_v ! velocity vector
+        REAL(kind=dp)                                    ::  sinc_const !<---- CONSTANT ? Is this needed here?
     END TYPE molecular_dynamics
     !***************************************************************************
     TYPE static
@@ -75,10 +79,17 @@ MODULE vib_types
     !***************************************************************************
     TYPE dipoles
         CHARACTER(LEN=40)                               :: static_dip_file
+        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE       :: refpoint
+        REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE         :: mass_tot_frag
+        INTEGER, DIMENSION(:), ALLOCATABLE                :: natom_frag
+        INTEGER                                         :: nfrag
+        REAL(kind=dp)                                    ::  mass_tot_cell
         REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE    :: static_dip
-        LOGICAL                                          ::  fragment !<yes/no>
+        !LOGICAL                                          ::  fragment !<yes/no>
+        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE       :: dip
         REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE     :: dip_dq
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE       :: dipole
+        INTEGER, DIMENSION(:, :, :), ALLOCATABLE            :: fragment
 
     END TYPE dipoles
     !***************************************************************************
@@ -167,4 +178,4 @@ CONTAINS
       
       END SUBROUTINE deallocate_all_structures
 
-END MODULE vib_types
+    END MODULE vib_types
