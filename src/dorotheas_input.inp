@@ -1,0 +1,27 @@
+&system
+    &cell 
+        ABC 30.0 29.0 15.0
+        alpha_beta_gamma 90.0 91.0 120.2
+    &end cell
+
+    &coordinates 
+        xyz_filename test.xyz
+    &end coordinates
+
+
+   #&fragmets
+   #    atom_list <number_of_atoms> <id1> <id2> ...
+   #    atom_list 
+   #    ...
+
+   #    pdb_filename <filename>
+   #&end fragments
+    
+&end system
+
+&md
+    trajectory_file waterbulk-pos-1.xyz
+    velocity_file fake_velocity.xyz
+    snapshot_time_step 2.5
+    correlation_depth 100 
+&end md

@@ -1,12 +1,16 @@
-!> @brief Module containing the kind definitions for the real numbers
 MODULE kinds
 
-    IMPLICIT NONE
+   IMPLICIT NONE
+   PRIVATE
 
-    !> Double precision kind
-    INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
+   PUBLIC :: sp, dp, default_string_length
+   PUBLIC :: angs, pi
 
-    !> Single precision kind
-    INTEGER, PARAMETER :: sp = SELECTED_REAL_KIND(6)
+   INTEGER, PARAMETER :: sp = SELECTED_REAL_KIND(6, 30)
+   INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(14, 200)
+   INTEGER, PARAMETER :: default_string_length = 100
+
+   REAL(KIND=dp), PARAMETER ::  pi = 3.14159265358979323846264338_dp
+   REAL(KIND=dp), PARAMETER ::  angs = 0.52917720859_dp 
 
 END MODULE kinds
