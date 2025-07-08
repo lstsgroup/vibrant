@@ -8,7 +8,7 @@ MODULE setup
 
     PRIVATE
 
-    PUBLIC :: read_input, masses_charges, conversion, pbc_orthorombic, pbc_hexagonal ,pbc_hexagonal_old,pbc_orthorombic_old !constants,
+    PUBLIC :: read_input, masses_charges, conversion, pbc_orthorombic, pbc_hexagonal, pbc_hexagonal_old, pbc_orthorombic_old !constants,
 
 CONTAINS
 
@@ -424,10 +424,10 @@ CONTAINS
 
 !*********************************************************************************************
 !*********************************************************************************************
-SUBROUTINE masses_charges(gs, sys )!natom, mass_atom, atom_mass_inv_sqrt, mass_mat, element, mass_tot, charge)
+    SUBROUTINE masses_charges(gs, sys)!natom, mass_atom, atom_mass_inv_sqrt, mass_mat, element, mass_tot, charge)
 
         TYPE(global_settings), INTENT(INOUT)   :: gs
-        TYPE(systems) , INTENT(INOUT)        :: sys
+        TYPE(systems), INTENT(INOUT)        :: sys
         !CHARACTER(LEN=2), DIMENSION(:), ALLOCATABLE, INTENT(IN)   :: element
         !INTEGER, INTENT(INOUT)                                  :: natom
         !REAL(kind=dp), INTENT(INOUT)                             :: mass_tot
@@ -547,18 +547,16 @@ SUBROUTINE masses_charges(gs, sys )!natom, mass_atom, atom_mass_inv_sqrt, mass_m
 !*********************************************************************************************
 !*********************************************************************************************
 
-    SUBROUTINE pbc_orthorombic(coord2, coord1,sys)
-
+    SUBROUTINE pbc_orthorombic(coord2, coord1, sys)
 
         TYPE(systems), INTENT(INOUT)                :: sys
         REAL(kind=dp), DIMENSION(3), INTENT(INOUT)                ::coord2, coord1
-    
 
-        sys%vec(:) = coord2(:) - coord1(:)
+        sys%cell%vec(:) = coord2(:) - coord1(:)
 
-        sys%vec_pbc(1) = sys%vec(1) - sys%box_x*ANINT((1./sys%box_x)*sys%vec(1))
-        sys%vec_pbc(2) = sys%vec(2) - sys%box_y*ANINT((1./sys%box_y)*sys%vec(2))
-        sys%vec_pbc(3) = sys%vec(3) - sys%box_z*ANINT((1./sys%box_z)*sys%vec(3))
+        sys%cell%vec_pbc(1) = sys%cell%vec(1) - sys%cell%box_x*ANINT((1./sys%cell%box_x)*sys%cell%vec(1))
+        sys%cell%vec_pbc(2) = sys%cell%vec(2) - sys%cell%box_y*ANINT((1./sys%cell%box_y)*sys%cell%vec(2))
+        sys%cell%vec_pbc(3) = sys%cell%vec(3) - sys%cell%box_z*ANINT((1./sys%cell%box_z)*sys%cell%vec(3))
 
     END SUBROUTINE pbc_orthorombic
 
@@ -574,12 +572,12 @@ SUBROUTINE masses_charges(gs, sys )!natom, mass_atom, atom_mass_inv_sqrt, mass_m
 
         sqrt3 = 1.73205080756887729352744634_dp
 
-        a = 0.5_dp*(sys%box_x + sys%box_y)
+        a = 0.5_dp*(sys%cell%box_x + sys%cell%box_y)
         acosa = 0.5_dp*a
         asina = sqrt3*acosa
         hmat(1, 1) = a; hmat(1, 2) = acosa; hmat(1, 3) = 0.0_dp
         hmat(2, 1) = 0.0_dp; hmat(2, 2) = asina; hmat(2, 3) = 0.0_dp
-        hmat(3, 1) = 0.0_dp; hmat(3, 2) = 0.0_dp; hmat(3, 3) = sys%box_z
+        hmat(3, 1) = 0.0_dp; hmat(3, 2) = 0.0_dp; hmat(3, 3) = sys%cell%box_z
 
         det_a = hmat(1, 1)*(hmat(2, 2)*hmat(3, 3) - hmat(2, 3)*hmat(3, 2)) - &
                 hmat(1, 2)*(hmat(2, 3)*hmat(3, 1) - hmat(2, 1)*hmat(3, 3)) + &
@@ -599,19 +597,19 @@ SUBROUTINE masses_charges(gs, sys )!natom, mass_atom, atom_mass_inv_sqrt, mass_m
         h_inv(2, 3) = (hmat(1, 3)*hmat(2, 1) - hmat(2, 3)*hmat(1, 1))*det_a
         h_inv(3, 3) = (hmat(1, 1)*hmat(2, 2) - hmat(2, 1)*hmat(1, 2))*det_a
 
-        sys%vec(:) = coord2(:) - coord1(:)
+        sys%cell%vec(:) = coord2(:) - coord1(:)
 
-        s(1) = h_inv(1, 1)*sys%vec(1) + h_inv(1, 2)*sys%vec(2) + h_inv(1, 3)*sys%vec(3)
-        s(2) = h_inv(2, 1)*sys%vec(1) + h_inv(2, 2)*sys%vec(2) + h_inv(2, 3)*sys%vec(3)
-        s(3) = h_inv(3, 1)*sys%vec(1) + h_inv(3, 2)*sys%vec(2) + h_inv(3, 3)*sys%vec(3)
+        s(1) = h_inv(1, 1)*sys%cell%vec(1) + h_inv(1, 2)*sys%cell%vec(2) + h_inv(1, 3)*sys%cell%vec(3)
+        s(2) = h_inv(2, 1)*sys%cell%vec(1) + h_inv(2, 2)*sys%cell%vec(2) + h_inv(2, 3)*sys%cell%vec(3)
+        s(3) = h_inv(3, 1)*sys%cell%vec(1) + h_inv(3, 2)*sys%cell%vec(2) + h_inv(3, 3)*sys%cell%vec(3)
 
         s(1) = s(1) - ANINT(s(1))
         s(2) = s(2) - ANINT(s(2))
         s(3) = s(3) - ANINT(s(3))
 
-        sys%vec_pbc(1) = hmat(1, 1)*s(1) + hmat(1, 2)*s(2) + hmat(1, 3)*s(3)
-        sys%vec_pbc(2) = hmat(2, 1)*s(1) + hmat(2, 2)*s(2) + hmat(2, 3)*s(3)
-        sys%vec_pbc(3) = hmat(3, 1)*s(1) + hmat(3, 2)*s(2) + hmat(3, 3)*s(3)
+        sys%cell%vec_pbc(1) = hmat(1, 1)*s(1) + hmat(1, 2)*s(2) + hmat(1, 3)*s(3)
+        sys%cell%vec_pbc(2) = hmat(2, 1)*s(1) + hmat(2, 2)*s(2) + hmat(2, 3)*s(3)
+        sys%cell%vec_pbc(3) = hmat(3, 1)*s(1) + hmat(3, 2)*s(2) + hmat(3, 3)*s(3)
 
     END SUBROUTINE pbc_hexagonal
 
