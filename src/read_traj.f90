@@ -10,11 +10,11 @@ MODULE read_traj
     PUBLIC :: read_coord, read_coord_frame, read_normal_modes, read_static, read_static_resraman
 
 CONTAINS
-    SUBROUTINE read_coord(gs, sys)! natom, framecount, element, coord, filename, periodic, mol_num, system, read_function, framecount_rtp, type_dipole)
+    SUBROUTINE read_coord(gs, sys, rams)
 
-        ! Variables of your derived types:
         TYPE(global_settings), INTENT(INOUT)   :: gs
         TYPE(systems), INTENT(INOUT)        :: sys
+        TYPE(raman), optional        :: rams
 
         INTEGER                                                   :: i, j, stat
 
@@ -25,7 +25,7 @@ CONTAINS
             READ (50, *) sys%natom
             CLOSE (50)
         ELSEIF (gs%spectral_type%read_function=='MD-RR') THEN
-            sys%natom = sys%framecount_rtp
+            sys%natom = rams%framecount_rtp
         END IF
 
         ALLOCATE (sys%element(sys%natom), sys%coord(sys%natom, 3))
@@ -80,7 +80,7 @@ CONTAINS
 !********************************************************************************************
 !********************************************************************************************
 
-    SUBROUTINE read_normal_modes(gs, sys, stats)! natom, element, normal_freq_file, normal_displ_file, freq, disp, nmodes, read_function, type_static, force_file, force)
+    SUBROUTINE read_normal_modes(gs, sys, stats)
 
         ! Variables of your derived types:
         TYPE(global_settings), INTENT(INOUT)   :: gs
@@ -139,9 +139,7 @@ CONTAINS
 !********************************************************************************************
 !********************************************************************************************
 
-    SUBROUTINE read_static(static_dip_file, static_dip, gs, sys, rams)!sys%natom, sys%element, rams%static_pol_file, rams%pol, static_dip_file, gs%spectral_type%%type_dipole, static_dip, type_static)
-
-        ! Variables of your derived types:
+    SUBROUTINE read_static(static_dip_file, static_dip, gs, sys, rams)
         TYPE(global_settings), INTENT(INOUT)   :: gs
         TYPE(systems), INTENT(INOUT)        :: sys
         TYPE(raman), INTENT(INOUT)        :: rams
@@ -195,76 +193,21 @@ CONTAINS
         END IF
 
     END SUBROUTINE read_static
-!SUBROUTINE read_static(natom, element, static_pol_file, pol, static_dip_file, type_dipole, static_dip, type_static)
-!
-!CHARACTER(LEN=40), INTENT(IN)                               :: static_pol_file, static_dip_file
-!CHARACTER(LEN=40), INTENT(IN)                               :: type_static, type_dipole
-!INTEGER, INTENT(INOUT)                                      :: natom
-!CHARACTER(LEN=2), DIMENSION(:), ALLOCATABLE, INTENT(INOUT)    :: element
-!REAL(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE, INTENT(OUT)  :: pol
-!REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE, INTENT(OUT)    :: static_dip
-!
-!CHARACTER(LEN=40)                                          :: chara
-!INTEGER                                                    :: i, j, k, m, n
-!INTEGER                                                    :: stat
-!
-!ALLOCATE (pol(natom, 3, 2, 3, 3), static_dip(natom, 3, 2, 3))
-!
-!IF (type_dipole=='3') THEN
-!OPEN (UNIT=52, FILE=static_pol_file, STATUS='old', IOSTAT=stat) !Reading polarizabilties
-!DO
-!DO k = 1, 2
-! DO i = 1, natom
-!     DO j = 1, 3
-!         READ (52, *, END=995)
-!         READ (52, *)
-!         READ (52, *)
-!         READ (52, *)
-!         READ (52, *)
-!         READ (52, *)
-!         READ (52, *) chara, chara, chara, pol(i, j, k, 1, 1), pol(i, j, k, 2, 2), pol(i, j, k, 3, 3)
-!         READ (52, *) chara, chara, chara, pol(i, j, k, 1, 2), pol(i, j, k, 1, 3), pol(i, j, k, 2, 3)
-!         READ (52, *) chara, chara, chara, pol(i, j, k, 2, 1), pol(i, j, k, 3, 1), pol(i, j, k, 3, 2)
-!     END DO
-! END DO
-!END DO
-!END DO
-!995             CONTINUE
-!CLOSE (52)
-!
-!ELSEIF (type_dipole=='2') THEN
-!OPEN (UNIT=53, FILE=static_dip_file, STATUS='old', IOSTAT=stat) !Reading dipoles
-!DO
-!DO k = 1, 2
-! DO i = 1, natom
-!     DO j = 1, 3
-!         READ (53, *, END=994)
-!         READ (53, *)
-!         READ (53, *) chara, static_dip(i, j, k, 1), static_dip(i, j, k, 2), static_dip(i, j, k, 3)
-!     END DO
-! END DO
-!END DO
-!END DO
-!994             CONTINUE
-!CLOSE (53)
-!
-!END IF
-!
-!END SUBROUTINE read_static
 
 !********************************************************************************************
 !********************************************************************************************
 
-    SUBROUTINE read_static_resraman(static_dip_file, static_dip_rtp, sys)
+    SUBROUTINE read_static_resraman(static_dip_file, static_dip_rtp, sys,rams)
 
         TYPE(systems), INTENT(INOUT)        :: sys
+        TYPE(raman), INTENT(INOUT)        :: rams
         CHARACTER(LEN=40), INTENT(IN)                               :: static_dip_file
         REAL(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE, INTENT(OUT)  :: static_dip_rtp
 
         CHARACTER(LEN=40)                                          :: chara
         INTEGER                                                    :: i, j, k, m, stat
 
-        ALLOCATE (static_dip_rtp(sys%natom, 3, 2, 3, sys%framecount_rtp + 1))
+        ALLOCATE (static_dip_rtp(sys%natom, 3, 2, 3, rams%framecount_rtp + 1))
 
         OPEN (UNIT=53, FILE=static_dip_file, STATUS='old', IOSTAT=stat) !Reading polarizabilties
         DO
@@ -273,7 +216,7 @@ CONTAINS
                     DO j = 1, 3
                         READ (53, *, END=994)
                         READ (53, *)
-                        DO m = 1, sys%framecount_rtp + 1
+                        DO m = 1, rams%framecount_rtp + 1
                             READ (53, *) chara, static_dip_rtp(i, j, k, 1, m), static_dip_rtp(i, j, k, 2, m), &
                                 static_dip_rtp(i, j, k, 3, m)
                         END DO

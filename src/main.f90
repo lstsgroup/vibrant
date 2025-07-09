@@ -101,7 +101,6 @@ PROGRAM vib2d
     sys%filename = filename
     sys%system = system
     sys%cell%cell_type = cell_type
-    sys%framecount_rtp = framecount_rtp
     sys%periodic = periodic
     sys%frag_type = frag_type
     sys%input_mass = input_mass
@@ -109,14 +108,14 @@ PROGRAM vib2d
     sys%cell%box_x = box_x
     sys%cell%box_y = box_y
     sys%cell%box_z = box_z
-
+    
     stats%force_file = force_file
     stats%normal_freq_file = normal_freq_file
     stats%normal_displ_file = normal_displ_file
     stats%dx = dx
-
+    
     dips%static_dip_file = static_dip_free_file
-
+    
     rams%static_pol_file = static_pol_file
     rams%wannier_free = wannier_free
     rams%wannier_x = wannier_x
@@ -128,7 +127,8 @@ PROGRAM vib2d
     rams%dom_rtp = dom_rtp
     rams%check_pade = check_pade
     rams%framecount_rtp_pade = framecount_rtp_pade
-
+    rams%framecount_rtp = framecount_rtp
+    
     md%freq_range = freq_range
     md%dt = dt
     md%dom = dom
@@ -214,9 +214,9 @@ PROGRAM vib2d
         !***************************************************************************
     ELSEIF (read_function=='ABS') THEN
         CALL read_coord(gs, sys)
-        CALL read_static_resraman(static_dip_x_file, static_dip_x_rtp, sys)
-        CALL read_static_resraman(static_dip_y_file, static_dip_y_rtp, sys)
-        CALL read_static_resraman(static_dip_z_file, static_dip_z_rtp, sys)
+        CALL read_static_resraman(static_dip_x_file, static_dip_x_rtp, sys, rams)
+        CALL read_static_resraman(static_dip_y_file, static_dip_y_rtp, sys, rams)
+        CALL read_static_resraman(static_dip_z_file, static_dip_z_rtp, sys, rams)
         CALL finite_diff_static_resraman(static_dip_x_rtp, static_dip_y_rtp, static_dip_z_rtp, sys, rams) !<-- CHANGE ?
 
         CALL spec_abs(gs, sys, rams)
@@ -224,12 +224,12 @@ PROGRAM vib2d
 
         !***************************************************************************
     ELSEIF (read_function=='RR') THEN
-        CALL read_coord(gs, sys)
+        CALL read_coord(gs, sys, rams)
         CALL masses_charges(gs, sys)
         CALL read_normal_modes(gs, sys, stats)
-        CALL read_static_resraman(static_dip_x_file, static_dip_x_rtp, sys)
-        CALL read_static_resraman(static_dip_y_file, static_dip_y_rtp, sys)
-        CALL read_static_resraman(static_dip_z_file, static_dip_z_rtp, sys)
+        CALL read_static_resraman(static_dip_x_file, static_dip_x_rtp, sys, rams)
+        CALL read_static_resraman(static_dip_y_file, static_dip_y_rtp, sys, rams)
+        CALL read_static_resraman(static_dip_z_file, static_dip_z_rtp, sys, rams)
         IF (type_static=='1') THEN
             CALL normal_mode_analysis(sys, stats)
         END IF

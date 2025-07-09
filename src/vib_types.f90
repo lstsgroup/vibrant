@@ -16,113 +16,121 @@ MODULE vib_types
 
     !***************************************************************************
     TYPE fragments
-
+        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE      :: refpoint
+        INTEGER, DIMENSION(:, :, :), ALLOCATABLE            :: fragment
+        INTEGER                                             :: nfrag
+        INTEGER, DIMENSION(:), ALLOCATABLE                  :: natom_frag
+        REAL(kind=dp)                                       :: mass_tot_cell
+        REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE         :: mass_tot_frag
     END TYPE fragments
 
     !***************************************************************************
     TYPE cell
-        CHARACTER(LEN=40)                               :: cell_type
+        CHARACTER(LEN=40)                              :: cell_type
         REAL(kind=dp)                                  :: box_all, box_x, box_y, box_z, vec(3), vec_pbc(3)
-
     END TYPE cell
 
     !***************************************************************************
     TYPE global_settings
-        TYPE(spectral_type)                              ::  spectral_type ! global setting of spectral type 'P' , 'IR' , 'R' etc.
         LOGICAL                                          ::  md !yes/no
         REAL(kind=dp)                                    ::  temp
         REAL(kind=dp)                                    ::  laser_in
+        TYPE(spectral_type)                              ::  spectral_type ! global setting of spectral type 'P' , 'IR' , 'R' etc.
     END TYPE global_settings
 
     !***************************************************************************
-    TYPE systems
-        CHARACTER(LEN=40)                                :: filename
-        CHARACTER(LEN=40)                                :: frag_type
-        CHARACTER(LEN=40)                                :: input_mass
-        CHARACTER(LEN=40)                               :: system, periodic
-        INTEGER                                          :: natom, framecount, mol_num, framecount_rtp
-        !LOGICAL                                          ::  periodic !yes/no
-        REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE      :: coord
-        CHARACTER(LEN=2), DIMENSION(:), ALLOCATABLE      :: element
-        REAL(kind=dp):: mass_tot
-        REAL(kind=dp), DIMENSION(:), ALLOCATABLE :: mass_atom
-        REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE   :: mass_mat
-        REAL(kind=dp), DIMENSION(:), ALLOCATABLE     :: atom_mass_inv_sqrt, charge
-        TYPE(CELL):: cell
-        TYPE(fragments)                    ::  fragments! <--- NEEDED?
-
+    TYPE systems 
+        INTEGER                                             :: natom               ! number of atoms
+        INTEGER                                             :: framecount          ! number of frames
+        INTEGER                                             :: mol_num             ! number of moleces ? 
+        CHARACTER(LEN=40)                                   :: filename            ! read in file
+        CHARACTER(LEN=40)                                   :: frag_type           !  ???
+        CHARACTER(LEN=40)                                   :: input_mass          ! mass weighting (y/n)
+        CHARACTER(LEN=40)                                   :: system              ! fragment approach (1) or molecular approach? (2)
+        CHARACTER(LEN=40)                                   :: periodic !          ! contain more than one molecule? (y/n)
+        CHARACTER(LEN=2), DIMENSION(:), ALLOCATABLE         :: element              ! ALLOCATE sys%element(sys%natom)
+        REAL(kind=dp)                                       :: mass_tot
+        REAL(kind=dp), DIMENSION(:), ALLOCATABLE            :: atom_mass_inv_sqrt   ! ALLOCATE sys%atom_mass_inv_sqrt(sys%natom)
+        REAL(kind=dp), DIMENSION(:), ALLOCATABLE            :: charge               ! ALLOCATE sys%charge(sys%natom)
+        REAL(kind=dp), DIMENSION(:), ALLOCATABLE            :: mass_atom            ! ALLOCATE sys%mass_atom(sys%natom)
+        REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE         :: coord                ! ALLOCATE sys%coord(sys%natom, 3)
+        REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE         :: mass_mat             ! ALLOCATE sys%mass_mat(sys%natom, sys%natom)
+        TYPE(CELL)                                          :: cell
+        TYPE(fragments)                                     :: fragments! <--- NEEDED?
     END TYPE systems
 
     !***************************************************************************
     TYPE molecular_dynamics
-        CHARACTER(LEN=40)             :: trajectory_file !maybe not needed should be in system type
-        CHARACTER(LEN=40)             :: velocity_file   !maybe not needed should be in system type
-        REAL(kind=dp)             :: snapshot_time_step ! snapshots_time_step equal to dt ?
-        REAL(kind=dp)             :: correlation_depth ! t_cor needed!
-        REAL(kind=dp)                          :: dt, dom ! not quite sure ?
-        REAL(kind=dp)::freq_range                           ! not sure if right here ?
-        REAL(kind=dp), DIMENSION(:), ALLOCATABLE :: z       ! correlations vector ?
-        COMPLEX(kind=dp), DIMENSION(:), ALLOCATABLE    :: zhat ! correlations vector hat ?
-        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE     :: coord_v ! coordinates vector
-        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE     :: v ! coordinates vector
-        REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE        :: velos_v ! velocity vector
-        REAL(kind=dp)                                    ::  sinc_const !<---- CONSTANT ? Is this needed here?
+        CHARACTER(LEN=40)                                   :: trajectory_file !maybe not needed should be in system type
+        CHARACTER(LEN=40)                                   :: velocity_file   !maybe not needed should be in system type
+        REAL(kind=dp)                                       :: snapshot_time_step ! snapshots_time_step equal to dt ?
+        REAL(kind=dp)                                       :: correlation_depth ! t_cor needed!
+        REAL(kind=dp)                                       :: dt   ! not quite sure ?
+        REAL(kind=dp)                                       :: dom ! not quite sure ?
+        REAL(kind=dp)                                       :: freq_range ! not sure if right here ?
+        REAL(kind=dp)                                       :: sinc_const !<---- CONSTANT ? Is this needed here?
+        REAL(kind=dp), DIMENSION(:), ALLOCATABLE            :: z       ! correlations vector ?
+        REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE         :: velos_v ! velocity vector
+        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE      :: v ! coordinates vector
+        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE      :: coord_v ! coordinates vector ALLOCATE coord_v(sys%framecount, natom, 3)
+        COMPLEX(kind=dp), DIMENSION(:), ALLOCATABLE         :: zhat ! correlations vector hat ?
     END TYPE molecular_dynamics
     !***************************************************************************
     TYPE static
-        CHARACTER(LEN=40)                                   :: normal_freq_file, normal_displ_file, force_file
-        REAL(kind=dp)                                       :: dx
-        REAL(kind=dp), DIMENSION(:), ALLOCATABLE            :: freq
-        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE              :: disp
-        REAL(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE           :: force
         INTEGER                                             :: nmodes
-        INTEGER :: framecount_rtp
+        CHARACTER(LEN=40)                                   :: normal_freq_file
+        CHARACTER(LEN=40)                                   :: normal_displ_file
+        CHARACTER(LEN=40)                                   :: force_file
+        REAL(kind=dp)                                       :: dx
+        REAL(kind=dp), DIMENSION(:), ALLOCATABLE            :: freq                 ! ALLOCATE (stats%freq(stats%nmodes))
+        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE      :: disp                 ! ALLOCATE (stats%disp(stats%nmodes, sys%natom, 3))                 
+        REAL(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE:: force                ! ALLOCATE (stats%force(2, sys%natom, 3, sys%natom, 3)) with +-, N atoms, 3 shifts, N atoms, xyz
     END TYPE static
     !***************************************************************************
     TYPE dipoles
-        CHARACTER(LEN=40)                               :: static_dip_file
-        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE       :: refpoint
-        REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE         :: mass_tot_frag
-        INTEGER, DIMENSION(:), ALLOCATABLE                :: natom_frag
-        INTEGER                                         :: nfrag
-        REAL(kind=dp)                                    ::  mass_tot_cell
-        REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE    :: static_dip
-        !LOGICAL                                          ::  fragment !<yes/no>
-        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE       :: dip
-        REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE     :: dip_dq
-        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE       :: dipole
-        INTEGER, DIMENSION(:, :, :), ALLOCATABLE            :: fragment
-
+    CHARACTER(LEN=40)                                   :: static_dip_file
+    REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE         :: dip_dq
+    !REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE      :: dip
+    REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE      :: dipole
+    REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE   :: static_dip
+    !LOGICAL                                            ::  fragment !<yes/no>
+    
+    
+    
+    
+       
+        
     END TYPE dipoles
     !***************************************************************************
     TYPE raman
-        LOGICAL :: polarizability_type ! <numeric/analytic>
+        LOGICAL                                             :: polarizability_type ! <numeric/analytic>
         !numeric
-        CHARACTER(LEN=40)  :: static_dip_free_file, static_dip_x_file, static_dip_y_file, static_dip_z_file
-        REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE     :: static_dip_free, static_dip_x, static_dip_y, static_dip_z
+        CHARACTER(LEN=40)                                   :: static_dip_free_file, static_dip_x_file, static_dip_y_file, static_dip_z_file
+        REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE   :: static_dip_free, static_dip_x, static_dip_y, static_dip_z
         !end numeric
         ! analytic
-        CHARACTER(LEN=40)                               :: static_pol_file
+        CHARACTER(LEN=40)                                   :: static_pol_file
         !end analytic
 
-        REAL(kind=dp), DIMENSION(:), ALLOCATABLE      :: z_iso, z_aniso, z_ortho, z_para
-        CHARACTER(LEN=40)                       :: wannier_free, wannier_x, wannier_y, wannier_z
-        CHARACTER(LEN=40)                       :: averaging, direction
-        REAL(kind=dp), DIMENSION(:), ALLOCATABLE :: raman_int
-        REAL(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE  :: pol
-        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE :: pol_dq
+        REAL(kind=dp), DIMENSION(:), ALLOCATABLE            :: z_iso, z_aniso, z_ortho, z_para
+        CHARACTER(LEN=40)                                   :: wannier_free, wannier_x, wannier_y, wannier_z
+        CHARACTER(LEN=40)                                   :: averaging, direction
+        REAL(kind=dp), DIMENSION(:), ALLOCATABLE            :: raman_int
+        REAL(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE:: pol
+        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE      :: pol_dq
 
         !resonant_raman
-        REAL(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE :: static_dip_rtp
-        REAL(kind=dp)                                  ::  dt_rtp
-        REAL(kind=dp), DIMENSION(:, :, :, :, :, :), ALLOCATABLE  :: pol_rtp
-        REAL(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE :: static_dipole_x_rtp, static_dipole_y_rtp, static_dipole_z_rtp
-        CHARACTER(LEN=40)                               :: check_pade
+        REAL(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE:: static_dip_rtp
+        REAL(kind=dp)                                       :: dt_rtp
+        REAL(kind=dp), DIMENSION(:, :, :, :, :, :), ALLOCATABLE:: pol_rtp
+        REAL(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE:: static_dipole_x_rtp, static_dipole_y_rtp, static_dipole_z_rtp
+        CHARACTER(LEN=40)                                   :: check_pade
         REAL(kind=dp)                                       :: dom_rtp
-        CHARACTER(LEN=40)                               :: rtp_dipole_x, rtp_dipole_y, rtp_dipole_z
+        CHARACTER(LEN=40)                                   :: rtp_dipole_x, rtp_dipole_y, rtp_dipole_z
         COMPLEX(kind=dp), DIMENSION(:, :), ALLOCATABLE      :: z_iso_resraman, z_aniso_resraman
-        COMPLEX(kind=dp), DIMENSION(:, :, :, :, :, :), ALLOCATABLE          :: zhat_pol_rtp
-        INTEGER                                         ::framecount_rtp_pade
+        COMPLEX(kind=dp), DIMENSION(:, :, :, :, :, :), ALLOCATABLE :: zhat_pol_rtp
+        INTEGER                                             :: framecount_rtp_pade
+        INTEGER                                             :: framecount_rtp
         !end resonant_raman
     END TYPE raman
 

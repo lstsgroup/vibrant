@@ -36,22 +36,22 @@ CONTAINS
         ALLOCATE (com(sys%framecount, sys%mol_num, 35, 3))
         ALLOCATE (coord_shifted(sys%framecount, sys%natom, 3))
         ALLOCATE (com2(sys%framecount, sys%natom, 3))
-        ALLOCATE (dips%mass_tot_frag(sys%framecount, sys%mol_num))
-        ALLOCATE (dips%refpoint(sys%framecount, sys%mol_num, 3))
+        ALLOCATE (sys%fragments%mass_tot_frag(sys%framecount, sys%mol_num))
+        ALLOCATE (sys%fragments%refpoint(sys%framecount, sys%mol_num, 3))
         ALLOCATE (fragment(sys%framecount, sys%mol_num, 32))
-        ALLOCATE (dips%natom_frag(sys%mol_num))
+        ALLOCATE (sys%fragments%natom_frag(sys%mol_num))
         ALLOCATE (element_shifted(sys%framecount, sys%natom))
 
         coord3(1) = 0.00_dp
         coord3(2) = 0.00_dp
         coord3(3) = 0.00_dp
-        dips%nfrag = 0
+        sys%fragments%nfrag = 0
         fragment = 0
-        dips%natom_frag = 0
-        dips%refpoint = 0.00_dp
+        sys%fragments%natom_frag = 0
+        sys%fragments%refpoint = 0.00_dp
         com = 0.0_dp
         com2 = 0.0_dp
-        dips%mass_tot_frag = 0.0_dp
+        sys%fragments%mass_tot_frag = 0.0_dp
         n = 0
         l = 0
         q = 0
@@ -272,28 +272,28 @@ CONTAINS
             END DO
         END DO
 
-    !!get dips%natom_frag
+    !!get sys%fragments%natom_frag
         DO i = 1, sys%framecount
             DO j = 1, sys%mol_num
-                dips%natom_frag(j) = COUNT(fragment(i, j, :).NE.0)
+                sys%fragments%natom_frag(j) = COUNT(fragment(i, j, :).NE.0)
             END DO
         END DO
 
         IF (sys%frag_type=='1') THEN
-            dips%nfrag = 8
+            sys%fragments%nfrag = 8
         ELSEIF (sys%frag_type=='2') THEN
-            dips%nfrag = 12
+            sys%fragments%nfrag = 12
         ELSEIF (sys%frag_type=='3') THEN
-            dips%nfrag = 24
+            sys%fragments%nfrag = 24
         ELSEIF (sys%system=='2' .AND. gs%spectral_type%type_dipole=='1') THEN
-            dips%nfrag = 1
+            sys%fragments%nfrag = 1
         END IF
 
     !!get total mass
         DO m = 1, sys%framecount
             DO i = 1, sys%mol_num
-                DO j = 1, dips%natom_frag(i)
-                    dips%mass_tot_frag(m, i) = dips%mass_tot_frag(m, i) + sys%mass_atom(fragment(m, i, j))
+                DO j = 1, sys%fragments%natom_frag(i)
+                    sys%fragments%mass_tot_frag(m, i) = sys%fragments%mass_tot_frag(m, i) + sys%mass_atom(fragment(m, i, j))
                 END DO
             END DO
         END DO
@@ -304,7 +304,7 @@ CONTAINS
         IF (sys%frag_type=='1' .OR. sys%frag_type=='2' .OR. (gs%spectral_type%type_dipole=='1' .AND. sys%system=='2')) THEN
             DO m = 1, sys%framecount
                 DO i = 1, 20
-                    DO j = 2, dips%natom_frag(i)
+                    DO j = 2, sys%fragments%natom_frag(i)
                         CALL pbc_hexagonal(md%coord_v(m, fragment(m, i, j), :), md%coord_v(m, fragment(m, i, 1), :), sys)
                         IF (sys%cell%vec(1)>3.0_dp .AND. sys%cell%vec(2)>5.2_dp) THEN
                             md%coord_v(m, fragment(m, i, j), 1) = md%coord_v(m, fragment(m, i, j), 1) - hmat(1, 2)
@@ -349,20 +349,20 @@ CONTAINS
     !!!WRAPPING UP THE FRAGMENTS TOGETHER
             DO m = 1, sys%framecount
                 DO i = 1, 20
-                    DO j = 1, dips%natom_frag(i)
+                    DO j = 1, sys%fragments%natom_frag(i)
                         IF (md%coord_v(m, fragment(m, i, j), 3)>6.0_dp) THEN
                             md%coord_v(m, fragment(m, i, j), 3) = md%coord_v(m, fragment(m, i, j), 3) - hmat(3, 3)
                         END IF
                         IF (md%coord_v(m, fragment(m, i, j), 3)>0.0_dp .AND. md%coord_v(m, fragment(m, i, j), 3)<2.0_dp) THEN
                             IF (md%coord_v(m, fragment(m, i, j), 2)<-3.0_dp .AND. md%coord_v(m, fragment(m, i, j), 1)<-6.2_dp) THEN
-                                md%coord_v(m, fragment(m, i, 1:dips%natom_frag(i)), 1) = md%coord_v(m, fragment(m, i, 1:dips%natom_frag(i)), 1) &
+                                md%coord_v(m, fragment(m, i, 1:sys%fragments%natom_frag(i)), 1) = md%coord_v(m, fragment(m, i, 1:sys%fragments%natom_frag(i)), 1) &
                                                                                          + hmat(1, 2)
-                                md%coord_v(m, fragment(m, i, 1:dips%natom_frag(i)), 2) = md%coord_v(m, fragment(m, i, 1:dips%natom_frag(i)), 2) &
+                                md%coord_v(m, fragment(m, i, 1:sys%fragments%natom_frag(i)), 2) = md%coord_v(m, fragment(m, i, 1:sys%fragments%natom_frag(i)), 2) &
                                                                                          + hmat(2, 2)
                             END IF
                         END IF
                         IF (md%coord_v(m, fragment(m, i, j), 1)<-8.0_dp) THEN
-                            md%coord_v(m, fragment(m, i, 1:dips%natom_frag(i)), 1) = md%coord_v(m, fragment(m, i, 1:dips%natom_frag(i)), 1) &
+                            md%coord_v(m, fragment(m, i, 1:sys%fragments%natom_frag(i)), 1) = md%coord_v(m, fragment(m, i, 1:sys%fragments%natom_frag(i)), 1) &
                                                                                      + hmat(1, 1)
                         END IF
                     END DO
@@ -372,7 +372,7 @@ CONTAINS
         ELSEIF (sys%frag_type=='3') THEN
             DO m = 1, sys%framecount
                 DO i = 21, sys%mol_num
-                    DO j = 2, dips%natom_frag(i)
+                    DO j = 2, sys%fragments%natom_frag(i)
                         CALL pbc_hexagonal(md%coord_v(m, fragment(m, i, j), :), md%coord_v(m, fragment(m, i, 1), :), sys)
                         IF (sys%cell%vec(1)>3.0_dp .AND. sys%cell%vec(2)>5.2_dp) THEN
                             md%coord_v(m, fragment(m, i, j), 1) = md%coord_v(m, fragment(m, i, j), 1) - hmat(1, 2)
@@ -417,20 +417,20 @@ CONTAINS
     !!!WRAPPING UP THE FRAGMENTS TOGETHER
             DO m = 1, sys%framecount
                 DO i = 21, sys%mol_num
-                    DO j = 1, dips%natom_frag(i)
+                    DO j = 1, sys%fragments%natom_frag(i)
                         IF (md%coord_v(m, fragment(m, i, j), 3)>6.0_dp) THEN
                             md%coord_v(m, fragment(m, i, j), 3) = md%coord_v(m, fragment(m, i, j), 3) - hmat(3, 3)
                         END IF
                         IF (md%coord_v(m, fragment(m, i, j), 3)>0.0_dp .AND. md%coord_v(m, fragment(m, i, j), 3)<2.0_dp) THEN
                             IF (md%coord_v(m, fragment(m, i, j), 2)<-3.0_dp .AND. md%coord_v(m, fragment(m, i, j), 1)<-6.2_dp) THEN
-                                md%coord_v(m, fragment(m, i, 1:dips%natom_frag(i)), 1) = md%coord_v(m, fragment(m, i, 1:dips%natom_frag(i)), 1) &
+                                md%coord_v(m, fragment(m, i, 1:sys%fragments%natom_frag(i)), 1) = md%coord_v(m, fragment(m, i, 1:sys%fragments%natom_frag(i)), 1) &
                                                                                          + hmat(1, 2)
-                                md%coord_v(m, fragment(m, i, 1:dips%natom_frag(i)), 2) = md%coord_v(m, fragment(m, i, 1:dips%natom_frag(i)), 2) &
+                                md%coord_v(m, fragment(m, i, 1:sys%fragments%natom_frag(i)), 2) = md%coord_v(m, fragment(m, i, 1:sys%fragments%natom_frag(i)), 2) &
                                                                                          + hmat(2, 2)
                             END IF
                         END IF
                         IF (md%coord_v(m, fragment(m, i, j), 1)<-8.0_dp) THEN
-                            md%coord_v(m, fragment(m, i, 1:dips%natom_frag(i)), 1) = md%coord_v(m, fragment(m, i, 1:dips%natom_frag(i)), 1) &
+                            md%coord_v(m, fragment(m, i, 1:sys%fragments%natom_frag(i)), 1) = md%coord_v(m, fragment(m, i, 1:sys%fragments%natom_frag(i)), 1) &
                                                                                      + hmat(1, 1)
                         END IF
                     END DO
@@ -449,7 +449,7 @@ CONTAINS
 
         DO m = 1, sys%framecount
             DO i = 1, sys%mol_num
-                DO j = 1, dips%natom_frag(i)
+                DO j = 1, sys%fragments%natom_frag(i)
                     pox_x = 50.0_dp
                     pox_y = 50.0_dp
                     pox_z = 50.0_dp
@@ -459,27 +459,27 @@ CONTAINS
                     bec_pbc(m, 3) = bec(m, 3) - pox_z*ANINT((1./pox_z)*bec(m, 3))
                     com(m, i, j, :) = bec_pbc(m, :)*sys%mass_atom(fragment(m, i, j))
                     IF (sys%system=='1') THEN
-                        dips%refpoint(m, i, :) = dips%refpoint(m, i, :) + com(m, i, j, :)
+                        sys%fragments%refpoint(m, i, :) = sys%fragments%refpoint(m, i, :) + com(m, i, j, :)
                     ELSEIF (gs%spectral_type%type_dipole=='1' .AND. sys%system=='2') THEN
-                        dips%refpoint(m, 1, :) = dips%refpoint(m, 1, :) + com(m, i, j, :)  !!!For COM of whole sys%system
+                        sys%fragments%refpoint(m, 1, :) = sys%fragments%refpoint(m, 1, :) + com(m, i, j, :)  !!!For COM of whole sys%system
                     END IF
                 END DO
             END DO
         END DO
 
-        dips%mass_tot_cell = 0.0_dp
+        sys%fragments%mass_tot_cell = 0.0_dp
 
     !!get total mass of the cell
         DO j = 1, sys%natom
-            dips%mass_tot_cell = dips%mass_tot_cell + sys%mass_atom(j)
+            sys%fragments%mass_tot_cell = sys%fragments%mass_tot_cell + sys%mass_atom(j)
         END DO
 
         DO m = 1, sys%framecount
             IF (gs%spectral_type%type_dipole=='1' .AND. sys%system=='2') THEN
-                dips%refpoint(m, 1, :) = dips%refpoint(m, 1, :)/dips%mass_tot_cell
+                sys%fragments%refpoint(m, 1, :) = sys%fragments%refpoint(m, 1, :)/sys%fragments%mass_tot_cell
             ELSEIF (sys%system=='1') THEN
                 DO i = 1, sys%mol_num
-                    dips%refpoint(m, i, :) = dips%refpoint(m, i, :)/dips%mass_tot_frag(m, i)
+                    sys%fragments%refpoint(m, i, :) = sys%fragments%refpoint(m, i, :)/sys%fragments%mass_tot_frag(m, i)
                 END DO
             END IF
         END DO
@@ -489,12 +489,12 @@ CONTAINS
             WRITE (60, *) sys%natom + 1
             WRITE (60, *)
             DO i = 1, 20
-                DO j = 1, dips%natom_frag(i)
+                DO j = 1, sys%fragments%natom_frag(i)
                     WRITE (60, *) sys%element(fragment(m, i, j)), md%coord_v(m, fragment(m, i, j), :)
                 END DO
-                !WRITE(60,*) 'N', dips%refpoint(m,i,:)
+                !WRITE(60,*) 'N', sys%fragments%refpoint(m,i,:)
             END DO
-            WRITE (60, *) 'N', dips%refpoint(m, 1, :)
+            WRITE (60, *) 'N', sys%fragments%refpoint(m, 1, :)
         END DO
         CLOSE (60)
 
@@ -503,10 +503,10 @@ CONTAINS
             WRITE (12, *) 288
             WRITE (12, *)
             DO i = 9, 20
-                DO j = 1, dips%natom_frag(i)
+                DO j = 1, sys%fragments%natom_frag(i)
                     WRITE (12, *) sys%element(fragment(m, i, j)), md%coord_v(m, fragment(m, i, j), :)
                 END DO
-                WRITE (12, *) 'N', dips%refpoint(m, i, :)
+                WRITE (12, *) 'N', sys%fragments%refpoint(m, i, :)
             END DO
         END DO
         CLOSE (12)
@@ -539,9 +539,9 @@ CONTAINS
         REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE                 :: com
 
         !ALLOCATE(fragment(sys%framecount,37,32))
-        ALLOCATE (dips%refpoint(sys%framecount, 37, 3))
+        ALLOCATE (sys%fragments%refpoint(sys%framecount, 37, 3))
         !ALLOCATE(natom_frag(37))
-        ALLOCATE (dips%mass_tot_frag(sys%framecount, 37))
+        ALLOCATE (sys%fragments%mass_tot_frag(sys%framecount, 37))
         ALLOCATE (com(sys%framecount, 37, 32, 3))
         !ALLOCATE(natom_frag(20))
 
@@ -550,9 +550,9 @@ CONTAINS
         coord3(3) = 0.00_dp
         fragment = 0
         natom_frag = 0
-        dips%refpoint = 0.00_dp
+        sys%fragments%refpoint = 0.00_dp
         com = 0.0_dp
-        dips%mass_tot_frag = 0.0_dp
+        sys%fragments%mass_tot_frag = 0.0_dp
 
         sqrt3 = 1.73205080756887729352744634_dp
 
@@ -852,7 +852,7 @@ CONTAINS
             DO i = 1, 37
                 DO j = 1, natom_frag(i)
                     IF (sys%element(natom_frag(i))=='X') CYCLE
-                    dips%mass_tot_frag(m, i) = dips%mass_tot_frag(m, i) + sys%mass_atom(fragment(m, i, j))
+                    sys%fragments%mass_tot_frag(m, i) = sys%fragments%mass_tot_frag(m, i) + sys%mass_atom(fragment(m, i, j))
                 END DO
             END DO
         END DO
@@ -925,14 +925,14 @@ CONTAINS
                     bec_pbc(m, 2) = bec(m, 2) - pox_y*ANINT((1./pox_y)*bec(m, 2))
                     bec_pbc(m, 3) = bec(m, 3) - pox_z*ANINT((1./pox_z)*bec(m, 3))
                     com(m, i, j, :) = bec_pbc(m, :)*sys%mass_atom(fragment(m, i, j))
-                    dips%refpoint(m, i, :) = dips%refpoint(m, i, :) + com(m, i, j, :)
+                    sys%fragments%refpoint(m, i, :) = sys%fragments%refpoint(m, i, :) + com(m, i, j, :)
                 END DO
             END DO
         END DO
 
         DO m = 1, sys%framecount
             DO i = 1, 37
-                dips%refpoint(m, i, :) = dips%refpoint(m, i, :)/dips%mass_tot_frag(m, i)
+                sys%fragments%refpoint(m, i, :) = sys%fragments%refpoint(m, i, :)/sys%fragments%mass_tot_frag(m, i)
             END DO
         END DO
 
@@ -944,7 +944,7 @@ CONTAINS
                 DO j = 1, natom_frag(i)
                     WRITE (60, *) sys%element(fragment(m, i, j)), md%coord_v(m, fragment(m, i, j), :)
                 END DO
-                WRITE (60, *) 'N', dips%refpoint(m, i, :)
+                WRITE (60, *) 'N', sys%fragments%refpoint(m, i, :)
             END DO
         END DO
         CLOSE (60)
@@ -999,10 +999,10 @@ CONTAINS
             DO i = 1, sys%mol_num
                 DO j = 1, natom_frag(i)
                     IF (sys%system=='1') THEN
-                        CALL pbc_hexagonal(md%coord_v(m, fragment(m, i, j), :), dips%refpoint(m, i, :), sys) !! If fragment approach!!!
+                        CALL pbc_hexagonal(md%coord_v(m, fragment(m, i, j), :), sys%fragments%refpoint(m, i, :), sys) !! If fragment approach!!!
                         dipole(m, i, :) = dipole(m, i, :) + sys%cell%vec_pbc*1.889725989_dp*sys%charge(fragment(m, i, j))
                     ELSEIF (gs%spectral_type%type_dipole=='1' .AND. sys%system=='2') THEN
-                        CALL pbc_orthorombic_old(md%coord_v(m, fragment(m, i, j), :), dips%refpoint(m, 1, :), sys%cell%vec, sys%cell%vec_pbc, &
+                        CALL pbc_orthorombic_old(md%coord_v(m, fragment(m, i, j), :), sys%fragments%refpoint(m, 1, :), sys%cell%vec, sys%cell%vec_pbc, &
                                                  pox_all, pox_x, pox_y, pox_z) !! IF COM is for whole supercel!!!
                         dipole(m, 1, :) = dipole(m, 1, :) + sys%cell%vec_pbc*1.889725989_dp*sys%charge(fragment(m, i, j))
                     END IF
@@ -1010,7 +1010,7 @@ CONTAINS
             END DO
         END DO
 
-        PRINT *, dips%mass_tot_cell, 'mass tot cell'
+        PRINT *, sys%fragments%mass_tot_cell, 'mass tot cell'
 
         DO m = 1, sys%framecount
             IF (sys%system=='2' .AND. gs%spectral_type%type_dipole=='1') THEN
@@ -1019,10 +1019,10 @@ CONTAINS
                 END IF
 !  dipole(m,1,1)=dipole(m,1,1)-(hmat(1,1)*3*1.889725989)
                 dipole(m, 1, 2) = dipole(m, 1, 2) + (hmat(2, 2)*4*1.889725989)!+(hmat(1,2)*3*1.889725989)
-                dipole(m, 1, :) = REAL((dipole(m, 1, :)*2.54174622741_dp)/dips%mass_tot_cell, kind=dp) !!Dividing by total mass, change it later
+                dipole(m, 1, :) = REAL((dipole(m, 1, :)*2.54174622741_dp)/sys%fragments%mass_tot_cell, kind=dp) !!Dividing by total mass, change it later
             ELSEIF (sys%system=='1') THEN
                 DO i = 1, sys%mol_num !! define something for this
-                    dipole(m, i, :) = REAL((dipole(m, i, :)*2.54174622741_dp)/dips%mass_tot_frag(m, i), kind=dp) !!Dividing by total mass, change it later
+                    dipole(m, i, :) = REAL((dipole(m, i, :)*2.54174622741_dp)/sys%fragments%mass_tot_frag(m, i), kind=dp) !!Dividing by total mass, change it later
                 END DO
             END IF
         END DO
@@ -1048,9 +1048,9 @@ CONTAINS
 !OPEN(UNIT=61,FILE='dipole_result_vmd.xyz',STATUS='unknown',IOSTAT=stat)
 !DO m=1,sys%framecount
 ! DO j=1,20
-        ! WRITE(61,'(2X,A15,4X,I2,6X,3F20.12)') "center of mass", j, dips%refpoint(m,j,:)
+        ! WRITE(61,'(2X,A15,4X,I2,6X,3F20.12)') "center of mass", j, sys%fragments%refpoint(m,j,:)
 
-        !WRITE(61,'(2X,A15,4X,I2,6X,3F20.12)') "com+net dipole", j,  dips%refpoint(m,j,:)+(dipole(m,j,:)*2.541746227414447_dp)
+        !WRITE(61,'(2X,A15,4X,I2,6X,3F20.12)') "com+net dipole", j,  sys%fragments%refpoint(m,j,:)+(dipole(m,j,:)*2.541746227414447_dp)
 
 ! ENDDO
 ! ENDDO
@@ -1061,13 +1061,13 @@ CONTAINS
 !WRITE(51,*) sys%framecount
 !WRITE(51,*)
 ! DO j=1,20
-        ! WRITE(51,*) "draw arrow     ", "{",dips%refpoint(m,j,:)&
-        !        ,"}      ","{",dips%refpoint(m,j,:)+(dipole(m,j,:)*2.541746227414447_dp),"}"
+        ! WRITE(51,*) "draw arrow     ", "{",sys%fragments%refpoint(m,j,:)&
+        !        ,"}      ","{",sys%fragments%refpoint(m,j,:)+(dipole(m,j,:)*2.541746227414447_dp),"}"
 ! ENDDO
 !ENDDO
 !CLOSE(51)
-        DEALLOCATE (dips%mass_tot_frag)
-        DEALLOCATE (dips%refpoint)
+        DEALLOCATE (sys%fragments%mass_tot_frag)
+        DEALLOCATE (sys%fragments%refpoint)
     END SUBROUTINE wannier_frag
 !
 !!***************************************************************************************************

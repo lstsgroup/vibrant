@@ -151,77 +151,6 @@ CONTAINS
         END IF
 
     END SUBROUTINE finite_diff_static
-!    SUBROUTINE finite_diff_static(natom, nmodes, pol, pol_dq, disp, atom_mass_inv_sqrt, dx, static_dip_free, &
-!        static_dip_x, static_dip_y, static_dip_z, type_dipole, read_function, dip_dq)
-!
-!INTEGER, INTENT(INOUT)                                         :: natom, nmodes
-!CHARACTER(LEN=40), INTENT(IN)                                  :: read_function, type_dipole
-!REAL(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE, INTENT(INOUT)  :: pol
-!REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE, INTENT(INOUT)    :: static_dip_free, static_dip_x
-!REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE, INTENT(INOUT)    :: static_dip_y, static_dip_z
-!REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(OUT)        :: pol_dq
-!REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE, INTENT(OUT)        :: dip_dq
-!REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(IN)         :: disp
-!REAL(kind=dp), DIMENSION(:), ALLOCATABLE, INTENT(IN)           :: atom_mass_inv_sqrt
-!REAL(kind=dp), INTENT(IN)                                      :: dx
-!
-!INTEGER                                                      :: stat, i, j, k, m
-!REAL(kind=dp)                                                 :: factor
-!REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE                  :: pol_dxyz
-!REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                  :: dip_dxyz
-!
-!factor = REAL(1.0_dp/(2.0_dp*dx), kind=dp)
-!
-!IF (read_function=='R') THEN
-!ALLOCATE (pol_dxyz(natom, 3, 3, 3))
-!ALLOCATE (pol_dq(nmodes, 3, 3))
-!
-!pol_dq = 0.0_dp
-!
-!IF (type_dipole=='2') THEN
-!pol(:, :, :, 1, :) = REAL((static_dip_x(:, :, :, :) - static_dip_free(:, :, :, :)) / (5.338D-5 * 1.313D-26), kind=dp)
-!pol(:, :, :, 2, :) = REAL((static_dip_y(:, :, :, :) - static_dip_free(:, :, :, :)) / (5.338D-5 * 1.313D-26), kind=dp)
-!pol(:, :, :, 3, :) = REAL((static_dip_z(:, :, :, :) - static_dip_free(:, :, :, :)) / (5.338D-5 * 1.313D-26), kind=dp)
-!
-!DEALLOCATE(static_dip_free,static_dip_x,static_dip_y,static_dip_z)
-!END IF
-!
-!pol_dxyz(:, :, :, :) = REAL((pol(:, :, 1, :, :) - pol(:, :, 2, :, :))*factor, kind=dp)
-!
-!
-!ELSEIF (read_function=='IR') THEN
-!
-!ALLOCATE (dip_dxyz(natom, 3, 3))
-!ALLOCATE (dip_dq(nmodes, 3))
-!
-!dip_dq = 0.0_dp
-!
-!dip_dxyz(:, :, :) = REAL((static_dip_free(:, :, 1, :) - static_dip_free(:, :, 2, :))*factor, kind=dp)
-!
-!DEALLOCATE(static_dip_free)
-!END IF
-!
-!DO j = 1, nmodes
-!DO k = 1, natom
-!IF (read_function=='R') THEN
-!pol_dq(j, :, :) = pol_dq(j, :, :) + (pol_dxyz(k, 1, :, :)*disp(j, k, 1)*atom_mass_inv_sqrt(k)) &
-!            + (pol_dxyz(k, 2, :, :)*disp(j, k, 2)*atom_mass_inv_sqrt(k)) + (pol_dxyz(k, 3, :, :)* &
-!            disp(j, k, 3)*atom_mass_inv_sqrt(k))
-!ELSEIF (read_function=='IR') THEN
-!dip_dq(j, :) = dip_dq(j, :) + (dip_dxyz(k, 1, :)*disp(j, k, 1)*atom_mass_inv_sqrt(k)) &
-!            + (dip_dxyz(k, 2, :)*disp(j, k, 2)*atom_mass_inv_sqrt(k)) + (dip_dxyz(k, 3, :)* &
-!            disp(j, k, 3)*atom_mass_inv_sqrt(k))
-!END IF
-!END DO
-!END DO
-!
-!IF (read_function=='R') THEN
-!DEALLOCATE (pol_dxyz,pol)
-!ELSEIF (read_function=='IR') THEN
-!DEALLOCATE (dip_dxyz)
-!ENDIF
-!
-!END SUBROUTINE finite_diff_static
 
 !**************************************************************************************************************!
 !**************************************************************************************************************!
@@ -234,7 +163,7 @@ CONTAINS
         INTEGER                                                      ::  i, j, k, m, l
         REAL(kind=dp)                                                 :: damping_factor, conv_unit
 
-        ALLOCATE (rams%pol_rtp(sys%natom, 3, 2, 3, 3, sys%framecount_rtp))
+        ALLOCATE (rams%pol_rtp(sys%natom, 3, 2, 3, 3, rams%framecount_rtp))
 
         conv_unit = damping_constant*joule_unit/ev_unit !! J
         damping_factor = conv_unit/action_unit*rams%dt_rtp*fs2s !! s-1
@@ -243,7 +172,7 @@ CONTAINS
             DO i = 1, 3
                 DO k = 1, 2
                     DO m = 1, 3
-                        DO l = 2, sys%framecount_rtp + 1
+                        DO l = 2, rams%framecount_rtp + 1
                             rams%pol_rtp(j, i, k, 1, m, l - 1) = REAL((static_dipole_x_rtp(j, i, k, m, l) &
                                                                        - static_dipole_x_rtp(j, i, k, m, 1)) &
                                                                       *(EXP(-1.0_dp*damping_factor*(l - 1)))/0.001_dp, kind=dp)

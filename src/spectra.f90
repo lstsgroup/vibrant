@@ -82,13 +82,12 @@ CONTAINS
         IF (sys%system=='1' .OR. sys%system=='2' .AND. gs%spectral_type%type_dipole=='1') THEN !!fragment approach or whole supercell
             IF (sys%cell%cell_type=='1' .OR. sys%cell%cell_type=='2') THEN !!KP or SC
                 CALL read_coord_frame(sys%natom, sys%filename, md%coord_v, sys)
-                CALL center_mass(sys%filename, dips%fragment, gs, sys, md, dips)
-                CALL wannier_frag(dips%natom_frag, sys%filename, dips%dipole, dips%fragment, gs, sys, md, dips)
+                CALL center_mass(sys%filename, sys%fragments%fragment, gs, sys, md, dips)
+                CALL wannier_frag(sys%fragments%natom_frag, sys%filename, dips%dipole, sys%fragments%fragment, gs, sys, md, dips)
             ELSEIF (sys%cell%cell_type=='3') THEN !!SC with solvent
                 CALL read_coord_frame(sys%natom, sys%filename, md%coord_v, sys)
-
-                CALL solv_frag_index(sys%filename, dips%natom_frag, dips%fragment, sys, md, dips)
-                CALL wannier_frag(dips%natom_frag, sys%filename, dips%dipole, dips%fragment, gs, sys, md, dips)
+                CALL solv_frag_index(sys%filename, sys%fragments%natom_frag, sys%fragments%fragment, sys, md, dips)
+                CALL wannier_frag(sys%fragments%natom_frag, sys%filename, dips%dipole, sys%fragments%fragment, gs, sys, md, dips)
             END IF
         END IF
 
@@ -101,7 +100,7 @@ CONTAINS
         END IF
         IF (sys%system=='1' .OR. (sys%system=='2' .AND. gs%spectral_type%type_dipole=='1')) THEN  !!fragment approach or the whole cell
             CALL central_diff(sys%mol_num, dips%dipole, md%v, sys, md)
-            CALL cvv(dips%nfrag, md%v, sys, md)
+            CALL cvv(sys%fragments%nfrag, md%v, sys, md)
         ELSEIF (sys%system=='2' .AND. gs%spectral_type%type_dipole=='2') THEN !!molecular approach
             CALL read_coord_frame(sys%mol_num, sys%filename, md%coord_v, sys)
             CALL central_diff(sys%mol_num, md%coord_v, md%v, sys, md)
@@ -162,7 +161,7 @@ CONTAINS
                     CALL read_coord_frame(sys%natom, rams%wannier_free, md%coord_v, sys) !<- this needs to be ADJUSTED
                     ! filename different and fragment_free different
                     CALL center_mass(rams%wannier_free, fragment_free, gs, sys, md, dips)
-                    CALL wannier_frag(dips%natom_frag, rams%wannier_free, dip_free, fragment_free, gs, sys, md, dips)
+                    CALL wannier_frag(sys%fragments%natom_frag, rams%wannier_free, dip_free, fragment_free, gs, sys, md, dips)
                 ELSEIF (sys%cell%cell_type=='3') THEN
                     CALL read_coord_frame(sys%natom, rams%wannier_free, md%coord_v, sys)
                     CALL solv_frag_index(rams%wannier_free, natom_frag_free, fragment_free, sys, md, dips)
@@ -180,7 +179,7 @@ CONTAINS
             IF (sys%system=='1' .OR. gs%spectral_type%type_dipole=='1') THEN
                 IF (sys%cell%cell_type.NE.'3') THEN
                     CALL center_mass(rams%wannier_x, fragment_x, gs, sys, md, dips)
-                    CALL wannier_frag(dips%natom_frag, rams%wannier_x, dip_x, fragment_x, gs, sys, md, dips)
+                    CALL wannier_frag(sys%fragments%natom_frag, rams%wannier_x, dip_x, fragment_x, gs, sys, md, dips)
 
                 ELSEIF (sys%cell%cell_type=='3') THEN
                     CALL solv_frag_index(rams%wannier_x, natom_frag_x, fragment_x, sys, md, dips)
@@ -189,7 +188,7 @@ CONTAINS
                 IF (sys%system=='1') THEN
                     CALL forward_diff(sys%mol_num, alpha_x, dip_free, dip_x, gs, sys)
                 ELSEIF (sys%system=='2' .AND. gs%spectral_type%type_dipole=='1') THEN
-                    CALL forward_diff(dips%nfrag, alpha_x, dip_free, dip_x, gs, sys)
+                    CALL forward_diff(sys%fragments%nfrag, alpha_x, dip_free, dip_x, gs, sys)
                 END IF
             ELSEIF (sys%system=='2') THEN
 
@@ -207,7 +206,7 @@ CONTAINS
             END IF
 
             IF (sys%system=='2' .AND. gs%spectral_type%type_dipole=='1') THEN
-                CALL central_diff(dips%nfrag, alpha_x, alpha_diff_x, sys, md)
+                CALL central_diff(sys%fragments%nfrag, alpha_x, alpha_diff_x, sys, md)
             ELSE
                 CALL central_diff(sys%mol_num, alpha_x, alpha_diff_x, sys, md)
             END IF
@@ -219,7 +218,7 @@ CONTAINS
                 IF (sys%cell%cell_type.NE.'3') THEN
 
                     CALL center_mass(rams%wannier_y, fragment_y, gs, sys, md, dips)
-                    CALL wannier_frag(dips%natom_frag, rams%wannier_y, dip_y, fragment_y, gs, sys, md, dips)
+                    CALL wannier_frag(sys%fragments%natom_frag, rams%wannier_y, dip_y, fragment_y, gs, sys, md, dips)
                 ELSEIF (sys%cell%cell_type=='3') THEN
 
                     CALL solv_frag_index(rams%wannier_y, natom_frag_y, fragment_y, sys, md, dips)
@@ -228,7 +227,7 @@ CONTAINS
                 IF (sys%system=='1') THEN
                     CALL forward_diff(sys%mol_num, alpha_y, dip_free, dip_y, gs, sys)
                 ELSEIF (sys%system=='2' .AND. gs%spectral_type%type_dipole=='1') THEN
-                    CALL forward_diff(dips%nfrag, alpha_y, dip_free, dip_y, gs, sys)
+                    CALL forward_diff(sys%fragments%nfrag, alpha_y, dip_free, dip_y, gs, sys)
                 END IF
             ELSEIF (sys%system=='2') THEN
                 IF (gs%spectral_type%type_dipole=='2') THEN
@@ -245,7 +244,7 @@ CONTAINS
             END IF
 
             IF (sys%system=='2' .AND. gs%spectral_type%type_dipole=='1') THEN
-                CALL central_diff(dips%nfrag, alpha_y, alpha_diff_y, sys, md)
+                CALL central_diff(sys%fragments%nfrag, alpha_y, alpha_diff_y, sys, md)
             ELSE
                 CALL central_diff(sys%mol_num, alpha_y, alpha_diff_y, sys, md)
             END IF
@@ -257,7 +256,7 @@ CONTAINS
                 IF (sys%cell%cell_type.NE.'3') THEN
 
                     CALL center_mass(rams%wannier_z, fragment_z, gs, sys, md, dips)
-                    CALL wannier_frag(dips%natom_frag, rams%wannier_z, dip_z, fragment_z, gs, sys, md, dips)
+                    CALL wannier_frag(sys%fragments%natom_frag, rams%wannier_z, dip_z, fragment_z, gs, sys, md, dips)
                 ELSEIF (sys%cell%cell_type=='3') THEN
 
                     CALL solv_frag_index(rams%wannier_z, natom_frag_z, fragment_z, sys, md, dips)
@@ -266,7 +265,7 @@ CONTAINS
                 IF (sys%system=='1') THEN
                     CALL forward_diff(sys%mol_num, alpha_z, dip_free, dip_z, gs, sys)
                 ELSEIF (sys%system=='2' .AND. gs%spectral_type%type_dipole=='1') THEN
-                    CALL forward_diff(dips%nfrag, alpha_z, dip_free, dip_z, gs, sys)
+                    CALL forward_diff(sys%fragments%nfrag, alpha_z, dip_free, dip_z, gs, sys)
                 END IF
 
             ELSEIF (sys%system=='2') THEN
@@ -285,13 +284,13 @@ CONTAINS
             END IF
 
             IF (sys%system=='2' .AND. gs%spectral_type%type_dipole=='1') THEN
-                CALL central_diff(dips%nfrag, alpha_z, alpha_diff_z, sys, md)
+                CALL central_diff(sys%fragments%nfrag, alpha_z, alpha_diff_z, sys, md)
             ELSE
                 CALL central_diff(sys%mol_num, alpha_z, alpha_diff_z, sys, md)
             END IF
 
     !!!ACF AND FFT CALC!!!
-            PRINT *, dips%nfrag, 'dips%nfrag check'
+            PRINT *, sys%fragments%nfrag, 'sys%fragments%nfrag check'
             ALLOCATE (zhat_iso(0:t_cor*2), zhat_aniso(0:t_cor*2))
             ALLOCATE (zhat_unpol(0:t_cor*2), zhat_depol(0:t_cor*2), zhat_para_all(0:t_cor*2))
 
@@ -301,7 +300,7 @@ CONTAINS
             zhat_depol = COMPLEX(0._dp, 0.0_dp)
 
             IF (sys%system=='1' .OR. (sys%system=='2' .AND. gs%spectral_type%type_dipole=='1')) THEN
-                CALL cvv_iso(dips%nfrag, rams%z_iso, alpha_diff_x, alpha_diff_y, alpha_diff_z, sys)
+                CALL cvv_iso(sys%fragments%nfrag, rams%z_iso, alpha_diff_x, alpha_diff_y, alpha_diff_z, sys)
             ELSE
                 CALL cvv_iso(sys%mol_num, rams%z_iso, alpha_diff_x, alpha_diff_y, alpha_diff_z, sys)
             END IF
@@ -310,7 +309,7 @@ CONTAINS
             CALL dfftw_execute_dft_r2c(plan, rams%z_iso, zhat_iso)
 
             IF (sys%system=='1' .OR. (sys%system=='2' .AND. gs%spectral_type%type_dipole=='1')) THEN
-                CALL cvv_aniso(dips%nfrag, rams%z_aniso, alpha_diff_x, alpha_diff_y, alpha_diff_z, sys)
+                CALL cvv_aniso(sys%fragments%nfrag, rams%z_aniso, alpha_diff_x, alpha_diff_y, alpha_diff_z, sys)
             ELSE
                 CALL cvv_aniso(sys%mol_num, rams%z_aniso, alpha_diff_x, alpha_diff_y, alpha_diff_z, sys)
             END IF
@@ -797,7 +796,7 @@ CONTAINS
         TYPE(global_settings), INTENT(INOUT)        :: gs
         TYPE(systems), INTENT(INOUT)        :: sys
         TYPE(raman), INTENT(INOUT)        :: rams
-        !INTEGER, INTENT(INOUT)                                         :: sys%natom, sys%framecount_rtp, rams%framecount_rtp_pade
+        !INTEGER, INTENT(INOUT)                                         :: sys%natom, rams%framecount_rtp, rams%framecount_rtp_pade
         !CHARACTER(LEN=40), INTENT(IN)                                  :: rams%check_pade, gs%spectra_type%read_function
         !REAL(kind=dp), INTENT(IN)                                       :: rams%dom_rtp
         !
@@ -819,7 +818,7 @@ CONTAINS
             sys%natom = 1
         END IF
 
-        ALLOCATE (rams%zhat_pol_rtp(sys%natom, dims, dir, 3, 3, sys%framecount_rtp))
+        ALLOCATE (rams%zhat_pol_rtp(sys%natom, dims, dir, 3, 3, rams%framecount_rtp))
 
         rams%zhat_pol_rtp = COMPLEX(0._dp, 0.0_dp)
 
@@ -829,10 +828,10 @@ CONTAINS
                 DO k = 1, dir
                     DO m = 1, 3
                         DO o = 1, 3
-                            CALL dfftw_plan_dft_r2c_1d(plan, sys%framecount_rtp, rams%pol_rtp(j, i, k, m, o, 1:sys%framecount_rtp), &
-                                                       rams%zhat_pol_rtp(j, i, k, m, o, 1:sys%framecount_rtp), FFTW_ESTIMATE)
-                            CALL dfftw_execute_dft_r2c(plan, rams%pol_rtp(j, i, k, m, o, 1:sys%framecount_rtp), &
-                                                       rams%zhat_pol_rtp(j, i, k, m, o, 1:sys%framecount_rtp))
+                            CALL dfftw_plan_dft_r2c_1d(plan, rams%framecount_rtp, rams%pol_rtp(j, i, k, m, o, 1:rams%framecount_rtp), &
+                                                       rams%zhat_pol_rtp(j, i, k, m, o, 1:rams%framecount_rtp), FFTW_ESTIMATE)
+                            CALL dfftw_execute_dft_r2c(plan, rams%pol_rtp(j, i, k, m, o, 1:rams%framecount_rtp), &
+                                                       rams%zhat_pol_rtp(j, i, k, m, o, 1:rams%framecount_rtp))
                             CALL dfftw_destroy_plan(plan)
                         END DO
                     END DO
@@ -850,7 +849,7 @@ CONTAINS
                     DO k = 1, dir
                         DO m = 1, 3
                             DO o = 1, 3
-                                CALL interpolate(sys%framecount_rtp, rams%zhat_pol_rtp(j, i, k, m, o, 1:sys%framecount_rtp), &
+                                CALL interpolate(rams%framecount_rtp, rams%zhat_pol_rtp(j, i, k, m, o, 1:rams%framecount_rtp), &
                                                  rams%framecount_rtp_pade, y_out(j, i, k, m, o, :))
                             END DO
                         END DO
@@ -858,17 +857,17 @@ CONTAINS
                 END DO
             END DO
             !$OMP END PARALLEL DO
-            sys%framecount_rtp = rams%framecount_rtp_pade
+            rams%framecount_rtp = rams%framecount_rtp_pade
             rams%zhat_pol_rtp = y_out
             DEALLOCATE (y_out)
         END IF
 
         !!!Finding frequency range
-        rtp_freq_range = REAL(rams%dom_rtp/sys%framecount_rtp, kind=dp)
+        rtp_freq_range = REAL(rams%dom_rtp/rams%framecount_rtp, kind=dp)
 
         !!!Calculate absorption spectra
-        ALLOCATE (trace(sys%natom, dims, dir, sys%framecount_rtp))
-        ALLOCATE (abs_intens(sys%natom, dims, dir, sys%framecount_rtp))
+        ALLOCATE (trace(sys%natom, dims, dir, rams%framecount_rtp))
+        ALLOCATE (abs_intens(sys%natom, dims, dir, rams%framecount_rtp))
 
         trace = 0.0_dp
         trace(:, :, :, :) = DIMAG(rams%zhat_pol_rtp(:, :, :, 1, 1, :)) + DIMAG(rams%zhat_pol_rtp(:, :, :, 2, 2, :)) &
@@ -879,7 +878,7 @@ CONTAINS
         DO j = 1, 1 !!atom_num: 1st atom
             DO i = 1, 1 !!dims: x dimension
                 DO k = 1, 1 !! + direction
-                    DO o = 1, sys%framecount_rtp
+                    DO o = 1, rams%framecount_rtp
                         WRITE (13, *) o*rtp_freq_range*reccm2ev, abs_intens(j, i, k, o)*o*rtp_freq_range*(-1.0_dp)
                     END DO
                 END DO
@@ -899,7 +898,7 @@ CONTAINS
         TYPE(raman), INTENT(INOUT)        :: rams
 
 !CHARACTER(LEN=40), INTENT(IN)                                  :: rams%check_pade
-!INTEGER, INTENT(INOUT)                                         :: sys%natom, stats%nmodes, sys%framecount_rtp
+!INTEGER, INTENT(INOUT)                                         :: sys%natom, stats%nmodes, rams%framecount_rtp
 !REAL(kind=dp), INTENT(IN)                                       :: stats%dx
 !REAL(kind=dp), INTENT(INOUT)                                    :: gs%laser_in, rams%dom_rtp
 !REAL(kind=dp), DIMENSION(:), ALLOCATABLE, INTENT(INOUT)           :: stats%freq, sys%atom_mass_inv_sqrt
@@ -924,20 +923,20 @@ CONTAINS
         freq_range = INT(end_freq - start_freq)
 
         ALLOCATE (data2(freq_range*stats%nmodes))
-        ALLOCATE (zhat_pol_dxyz_rtp(sys%natom, 3, 3, 3, sys%framecount_rtp))
-        ALLOCATE (zhat_pol_dq_rtp(stats%nmodes, 3, 3, sys%framecount_rtp))
-        ALLOCATE (iso_sq(stats%nmodes, sys%framecount_rtp), aniso_sq(stats%nmodes, sys%framecount_rtp))
-        ALLOCATE (raman_int(stats%nmodes, sys%framecount_rtp))
+        ALLOCATE (zhat_pol_dxyz_rtp(sys%natom, 3, 3, 3, rams%framecount_rtp))
+        ALLOCATE (zhat_pol_dq_rtp(stats%nmodes, 3, 3, rams%framecount_rtp))
+        ALLOCATE (iso_sq(stats%nmodes, rams%framecount_rtp), aniso_sq(stats%nmodes, rams%framecount_rtp))
+        ALLOCATE (raman_int(stats%nmodes, rams%framecount_rtp))
 
         zhat_pol_dq_rtp = 0.0_dp
         data2 = 0.0_dp
 
 !!!Finding laser frequency
-        rtp_freq_range = REAL(rams%dom_rtp/sys%framecount_rtp, kind=dp)
+        rtp_freq_range = REAL(rams%dom_rtp/rams%framecount_rtp, kind=dp)
         rtp_point = ANINT(gs%laser_in/rtp_freq_range, kind=dp)
 
         PRINT *, gs%laser_in, "gs%laser_in", rtp_freq_range, "rtp_freq_range", &
-            rams%dom_rtp, "rams%dom_rtp", rtp_point, 'rtp_point', sys%framecount_rtp
+            rams%dom_rtp, "rams%dom_rtp", rtp_point, 'rtp_point', rams%framecount_rtp
 
 !!!Finite differences
         zhat_pol_dxyz_rtp(:, :, :, :, :) = REAL((REAL(rams%zhat_pol_rtp(:, :, 2, :, :, :), kind=dp) &
@@ -946,7 +945,7 @@ CONTAINS
 !!!Derivatives w.r.t. mass weighted normal coordinates
         DO i = 1, stats%nmodes
             DO j = 1, sys%natom
-                DO o = 1, sys%framecount_rtp
+                DO o = 1, rams%framecount_rtp
                     zhat_pol_dq_rtp(i, :, :, o) = zhat_pol_dq_rtp(i, :, :, o) &
                                                   + (zhat_pol_dxyz_rtp(j, 1, :, :, o)*stats%disp(i, j, 1)*sys%atom_mass_inv_sqrt(j)) &
                                                   + (zhat_pol_dxyz_rtp(j, 2, :, :, o)*stats%disp(i, j, 2)*sys%atom_mass_inv_sqrt(j)) &
