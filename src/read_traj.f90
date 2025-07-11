@@ -25,7 +25,7 @@ CONTAINS
             READ (50, *) sys%natom
             CLOSE (50)
         ELSEIF (gs%spectral_type%read_function=='MD-RR') THEN
-            sys%natom = rams%framecount_rtp
+            sys%natom = rams%RR%framecount_rtp
         END IF
 
         ALLOCATE (sys%element(sys%natom), sys%coord(sys%natom, 3))
@@ -207,7 +207,7 @@ CONTAINS
         CHARACTER(LEN=40)                                          :: chara
         INTEGER                                                    :: i, j, k, m, stat
 
-        ALLOCATE (static_dip_rtp(sys%natom, 3, 2, 3, rams%framecount_rtp + 1))
+        ALLOCATE (static_dip_rtp(sys%natom, 3, 2, 3, rams%RR%framecount_rtp + 1))
 
         OPEN (UNIT=53, FILE=static_dip_file, STATUS='old', IOSTAT=stat) !Reading polarizabilties
         DO
@@ -216,7 +216,7 @@ CONTAINS
                     DO j = 1, 3
                         READ (53, *, END=994)
                         READ (53, *)
-                        DO m = 1, rams%framecount_rtp + 1
+                        DO m = 1, rams%RR%framecount_rtp + 1
                             READ (53, *) chara, static_dip_rtp(i, j, k, 1, m), static_dip_rtp(i, j, k, 2, m), &
                                 static_dip_rtp(i, j, k, 3, m)
                         END DO

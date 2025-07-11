@@ -163,23 +163,23 @@ CONTAINS
         INTEGER                                                      ::  i, j, k, m, l
         REAL(kind=dp)                                                 :: damping_factor, conv_unit
 
-        ALLOCATE (rams%pol_rtp(sys%natom, 3, 2, 3, 3, rams%framecount_rtp))
+        ALLOCATE (rams%RR%pol_rtp(sys%natom, 3, 2, 3, 3, rams%RR%framecount_rtp))
 
         conv_unit = damping_constant*joule_unit/ev_unit !! J
-        damping_factor = conv_unit/action_unit*rams%dt_rtp*fs2s !! s-1
+        damping_factor = conv_unit/action_unit*rams%RR%dt_rtp*fs2s !! s-1
 
         DO j = 1, sys%natom
             DO i = 1, 3
                 DO k = 1, 2
                     DO m = 1, 3
-                        DO l = 2, rams%framecount_rtp + 1
-                            rams%pol_rtp(j, i, k, 1, m, l - 1) = REAL((static_dipole_x_rtp(j, i, k, m, l) &
+                        DO l = 2, rams%RR%framecount_rtp + 1
+                            rams%RR%pol_rtp(j, i, k, 1, m, l - 1) = REAL((static_dipole_x_rtp(j, i, k, m, l) &
                                                                        - static_dipole_x_rtp(j, i, k, m, 1)) &
                                                                       *(EXP(-1.0_dp*damping_factor*(l - 1)))/0.001_dp, kind=dp)
-                            rams%pol_rtp(j, i, k, 2, m, l - 1) = REAL((static_dipole_y_rtp(j, i, k, m, l) &
+                            rams%RR%pol_rtp(j, i, k, 2, m, l - 1) = REAL((static_dipole_y_rtp(j, i, k, m, l) &
                                                                        - static_dipole_y_rtp(j, i, k, m, 1)) &
                                                                       *(EXP(-1.0_dp*damping_factor*(l - 1)))/0.001_dp, kind=dp)
-                            rams%pol_rtp(j, i, k, 3, m, l - 1) = REAL((static_dipole_z_rtp(j, i, k, m, l) &
+                            rams%RR%pol_rtp(j, i, k, 3, m, l - 1) = REAL((static_dipole_z_rtp(j, i, k, m, l) &
                                                                        - static_dipole_z_rtp(j, i, k, m, 1)) &
                                                                       *(EXP(-1.0_dp*damping_factor*(l - 1)))/0.001_dp, kind=dp)
                         END DO

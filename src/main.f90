@@ -123,11 +123,13 @@ PROGRAM vib2d
     rams%wannier_z = wannier_z
     rams%averaging = averaging
     rams%direction = direction
-    rams%dt_rtp = dt_rtp
-    rams%dom_rtp = dom_rtp
-    rams%check_pade = check_pade
-    rams%framecount_rtp_pade = framecount_rtp_pade
-    rams%framecount_rtp = framecount_rtp
+
+    rams%RR%dt_rtp = dt_rtp
+    rams%RR%dom_rtp = dom_rtp
+    rams%RR%check_pade = check_pade
+    rams%RR%framecount_rtp_pade = framecount_rtp_pade
+    rams%RR%framecount_rtp = framecount_rtp
+
     
     md%freq_range = freq_range
     md%dt = dt
@@ -214,10 +216,10 @@ PROGRAM vib2d
         !***************************************************************************
     ELSEIF (read_function=='ABS') THEN
         CALL read_coord(gs, sys)
-        CALL read_static_resraman(static_dip_x_file, static_dip_x_rtp, sys, rams)
-        CALL read_static_resraman(static_dip_y_file, static_dip_y_rtp, sys, rams)
-        CALL read_static_resraman(static_dip_z_file, static_dip_z_rtp, sys, rams)
-        CALL finite_diff_static_resraman(static_dip_x_rtp, static_dip_y_rtp, static_dip_z_rtp, sys, rams) !<-- CHANGE ?
+        CALL read_static_resraman(static_dip_x_file, rams%RR%static_dip_x_rtp, sys, rams)
+        CALL read_static_resraman(static_dip_y_file, rams%RR%static_dip_y_rtp, sys, rams)
+        CALL read_static_resraman(static_dip_z_file, rams%RR%static_dip_z_rtp, sys, rams)
+        CALL finite_diff_static_resraman(rams%RR%static_dip_x_rtp, rams%RR%static_dip_y_rtp, rams%RR%static_dip_z_rtp, sys, rams) !<-- CHANGE ?
 
         CALL spec_abs(gs, sys, rams)
         !***************************************************************************
@@ -227,14 +229,14 @@ PROGRAM vib2d
         CALL read_coord(gs, sys, rams)
         CALL masses_charges(gs, sys)
         CALL read_normal_modes(gs, sys, stats)
-        CALL read_static_resraman(static_dip_x_file, static_dip_x_rtp, sys, rams)
-        CALL read_static_resraman(static_dip_y_file, static_dip_y_rtp, sys, rams)
-        CALL read_static_resraman(static_dip_z_file, static_dip_z_rtp, sys, rams)
+        CALL read_static_resraman(static_dip_x_file, rams%RR%static_dip_x_rtp, sys, rams)
+        CALL read_static_resraman(static_dip_y_file, rams%RR%static_dip_y_rtp, sys, rams)
+        CALL read_static_resraman(static_dip_z_file, rams%RR%static_dip_z_rtp, sys, rams)
         IF (type_static=='1') THEN
             CALL normal_mode_analysis(sys, stats)
         END IF
 
-        CALL finite_diff_static_resraman(static_dip_x_rtp, static_dip_y_rtp, static_dip_z_rtp, sys, rams)
+        CALL finite_diff_static_resraman(rams%RR%static_dip_x_rtp, rams%RR%static_dip_y_rtp, rams%RR%static_dip_z_rtp, sys, rams)
         CALL spec_abs(gs, sys, rams)
 
         CALL spec_static_resraman(gs, sys, stats, rams)

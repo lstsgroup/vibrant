@@ -16,12 +16,12 @@ MODULE vib_types
 
     !***************************************************************************
     TYPE fragments
-        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE      :: refpoint
-        INTEGER, DIMENSION(:, :, :), ALLOCATABLE            :: fragment
         INTEGER                                             :: nfrag
         INTEGER, DIMENSION(:), ALLOCATABLE                  :: natom_frag
+        INTEGER, DIMENSION(:, :, :), ALLOCATABLE            :: fragment
         REAL(kind=dp)                                       :: mass_tot_cell
         REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE         :: mass_tot_frag
+        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE      :: refpoint
     END TYPE fragments
 
     !***************************************************************************
@@ -29,6 +29,24 @@ MODULE vib_types
         CHARACTER(LEN=40)                              :: cell_type
         REAL(kind=dp)                                  :: box_all, box_x, box_y, box_z, vec(3), vec_pbc(3)
     END TYPE cell
+    !***************************************************************************
+
+    TYPE resonant_raman
+    CHARACTER(LEN=40)                                   :: check_pade
+    INTEGER                                             :: framecount_rtp
+    INTEGER                                             :: framecount_rtp_pade
+    REAL(kind=dp)                                       :: dt_rtp
+    REAL(kind=dp)                                       :: dom_rtp
+    REAL(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE:: static_dip_rtp
+    REAL(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE:: static_dip_x_rtp
+    REAL(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE:: static_dip_y_rtp
+    REAL(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE:: static_dip_z_rtp
+    REAL(kind=dp), DIMENSION(:, :, :, :, :, :), ALLOCATABLE:: pol_rtp
+    COMPLEX(kind=dp), DIMENSION(:, :, :, :, :, :), ALLOCATABLE :: zhat_pol_rtp
+    !CHARACTER(LEN=40)                                   :: rtp_dipole_x, rtp_dipole_y, rtp_dipole_z
+    !COMPLEX(kind=dp), DIMENSION(:, :), ALLOCATABLE      :: z_iso_resraman, z_aniso_resraman
+END TYPE resonant_raman
+
 
     !***************************************************************************
     TYPE global_settings
@@ -77,64 +95,47 @@ MODULE vib_types
     END TYPE molecular_dynamics
     !***************************************************************************
     TYPE static
-        INTEGER                                             :: nmodes
-        CHARACTER(LEN=40)                                   :: normal_freq_file
-        CHARACTER(LEN=40)                                   :: normal_displ_file
-        CHARACTER(LEN=40)                                   :: force_file
-        REAL(kind=dp)                                       :: dx
+        INTEGER                                             :: nmodes               ! number of normal modes
+        CHARACTER(LEN=40)                                   :: normal_freq_file     ! file
+        CHARACTER(LEN=40)                                   :: normal_displ_file    ! file
+        CHARACTER(LEN=40)                                   :: force_file           ! name of force file
+        REAL(kind=dp)                                       :: dx                   ! atom displacement
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE            :: freq                 ! ALLOCATE (stats%freq(stats%nmodes))
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE      :: disp                 ! ALLOCATE (stats%disp(stats%nmodes, sys%natom, 3))                 
         REAL(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE:: force                ! ALLOCATE (stats%force(2, sys%natom, 3, sys%natom, 3)) with +-, N atoms, 3 shifts, N atoms, xyz
     END TYPE static
     !***************************************************************************
     TYPE dipoles
-    CHARACTER(LEN=40)                                   :: static_dip_file
-    REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE         :: dip_dq
-    !REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE      :: dip
-    REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE      :: dipole
-    REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE   :: static_dip
-    !LOGICAL                                            ::  fragment !<yes/no>
-    
-    
-    
-    
-       
-        
+        CHARACTER(LEN=40)                                   :: static_dip_file      !
+        REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE         :: dip_dq               !
+        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE      :: dipole               ! ALLOCATE static_dip(sys%natom, 3, 2, 3) is this neeeded?
+        REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE   :: static_dip           ! field free dipole moment
+        !REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE      :: dip
+        !LOGICAL                                            ::  fragment !<yes/no>
     END TYPE dipoles
     !***************************************************************************
     TYPE raman
         LOGICAL                                             :: polarizability_type ! <numeric/analytic>
         !numeric
-        CHARACTER(LEN=40)                                   :: static_dip_free_file, static_dip_x_file, static_dip_y_file, static_dip_z_file
-        REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE   :: static_dip_free, static_dip_x, static_dip_y, static_dip_z
+        CHARACTER(LEN=40)                                   :: static_dip_free_file, static_dip_x_file, static_dip_y_file, static_dip_z_file ! Dipolemoments mybe move to dipole class differenes static_dip_free_file and static_dip_file
+        REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE   :: static_dip_free, static_dip_x, static_dip_y, static_dip_z ! Dipolemoments mybe move to dipole class
         !end numeric
         ! analytic
         CHARACTER(LEN=40)                                   :: static_pol_file
         !end analytic
 
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE            :: z_iso, z_aniso, z_ortho, z_para
-        CHARACTER(LEN=40)                                   :: wannier_free, wannier_x, wannier_y, wannier_z
+        CHARACTER(LEN=40)                                   :: wannier_free, wannier_x, wannier_y, wannier_z ! same as static_dip_free_file
         CHARACTER(LEN=40)                                   :: averaging, direction
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE            :: raman_int
-        REAL(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE:: pol
-        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE      :: pol_dq
-
-        !resonant_raman
-        REAL(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE:: static_dip_rtp
-        REAL(kind=dp)                                       :: dt_rtp
-        REAL(kind=dp), DIMENSION(:, :, :, :, :, :), ALLOCATABLE:: pol_rtp
-        REAL(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE:: static_dipole_x_rtp, static_dipole_y_rtp, static_dipole_z_rtp
-        CHARACTER(LEN=40)                                   :: check_pade
-        REAL(kind=dp)                                       :: dom_rtp
-        CHARACTER(LEN=40)                                   :: rtp_dipole_x, rtp_dipole_y, rtp_dipole_z
-        COMPLEX(kind=dp), DIMENSION(:, :), ALLOCATABLE      :: z_iso_resraman, z_aniso_resraman
-        COMPLEX(kind=dp), DIMENSION(:, :, :, :, :, :), ALLOCATABLE :: zhat_pol_rtp
-        INTEGER                                             :: framecount_rtp_pade
-        INTEGER                                             :: framecount_rtp
-        !end resonant_raman
+        REAL(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE:: pol ! ALLOCATE rams%pol(sys%natom, 3, 2, 3, 3)
+        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE      :: pol_dq !ALLOCATE (rams%pol_dq(stats%nmodes, 3, 3))
+        TYPE(resonant_raman)                                :: RR
     END TYPE raman
 
     !***************************************************************************
+
+
 
 CONTAINS
     SUBROUTINE deallocate_all_structures(sys, md, statik, ram, dip)
@@ -166,23 +167,23 @@ CONTAINS
         IF (ALLOCATED(statik%force)) DEALLOCATE (statik%force)
 
         ! raman
-        IF (ALLOCATED(ram%static_dip_free)) DEALLOCATE (ram%static_dip_free)
-        IF (ALLOCATED(ram%static_dip_x)) DEALLOCATE (ram%static_dip_x)
-        IF (ALLOCATED(ram%static_dip_y)) DEALLOCATE (ram%static_dip_y)
-        IF (ALLOCATED(ram%static_dip_z)) DEALLOCATE (ram%static_dip_z)
-        IF (ALLOCATED(ram%z_iso)) DEALLOCATE (ram%z_iso)
-        IF (ALLOCATED(ram%z_aniso)) DEALLOCATE (ram%z_aniso)
-        IF (ALLOCATED(ram%z_ortho)) DEALLOCATE (ram%z_ortho)
-        IF (ALLOCATED(ram%z_para)) DEALLOCATE (ram%z_para)
-        IF (ALLOCATED(ram%raman_int)) DEALLOCATE (ram%raman_int)
-        IF (ALLOCATED(ram%pol)) DEALLOCATE (ram%pol)
-        IF (ALLOCATED(ram%pol_dq)) DEALLOCATE (ram%pol_dq)
-        IF (ALLOCATED(ram%static_dip_rtp)) DEALLOCATE (ram%static_dip_rtp)
-        IF (ALLOCATED(ram%pol_rtp)) DEALLOCATE (ram%pol_rtp)
-        IF (ALLOCATED(ram%static_dipole_x_rtp)) DEALLOCATE (ram%static_dipole_x_rtp)
-        IF (ALLOCATED(ram%static_dipole_y_rtp)) DEALLOCATE (ram%static_dipole_y_rtp)
-        IF (ALLOCATED(ram%static_dipole_z_rtp)) DEALLOCATE (ram%static_dipole_z_rtp)
-        IF (ALLOCATED(ram%zhat_pol_rtp)) DEALLOCATE (ram%zhat_pol_rtp)
+        !IF (ALLOCATED(ram%static_dip_free)) DEALLOCATE (ram%static_dip_free)
+        !IF (ALLOCATED(ram%static_dip_x)) DEALLOCATE (ram%static_dip_x)
+        !IF (ALLOCATED(ram%static_dip_y)) DEALLOCATE (ram%static_dip_y)
+        !IF (ALLOCATED(ram%static_dip_z)) DEALLOCATE (ram%static_dip_z)
+        !IF (ALLOCATED(ram%z_iso)) DEALLOCATE (ram%z_iso)
+        !IF (ALLOCATED(ram%z_aniso)) DEALLOCATE (ram%z_aniso)
+        !IF (ALLOCATED(ram%z_ortho)) DEALLOCATE (ram%z_ortho)
+        !IF (ALLOCATED(ram%z_para)) DEALLOCATE (ram%z_para)
+        !IF (ALLOCATED(ram%raman_int)) DEALLOCATE (ram%raman_int)
+        !IF (ALLOCATED(ram%pol)) DEALLOCATE (ram%pol)
+        !IF (ALLOCATED(ram%pol_dq)) DEALLOCATE (ram%pol_dq)
+        !IF (ALLOCATED(ram%static_dip_rtp)) DEALLOCATE (ram%static_dip_rtp)
+        !IF (ALLOCATED(ram%pol_rtp)) DEALLOCATE (ram%pol_rtp)
+        !IF (ALLOCATED(ram%RR%static_dipole_x_rtp)) DEALLOCATE (ram%static_dipole_x_rtp)
+        !IF (ALLOCATED(ram%RR%static_dipole_y_rtp)) DEALLOCATE (ram%static_dipole_y_rtp)
+        !IF (ALLOCATED(ram%RR%static_dipole_z_rtp)) DEALLOCATE (ram%static_dipole_z_rtp)
+        !IF (ALLOCATED(ram%zhat_pol_rtp)) DEALLOCATE (ram%zhat_pol_rtp)
 
         ! dipoles
         IF (ALLOCATED(dip%static_dip)) DEALLOCATE (dip%static_dip)
