@@ -1,50 +1,16 @@
 MODULE setup
 
     USE kinds, ONLY: dp
+    USE constants, ONLY: speed_light, t_cor
+    USE vib_types, ONLY: global_settings, systems
 
     IMPLICIT NONE
 
     PRIVATE
 
-    PUBLIC :: constants, read_input, masses_charges, conversion, pbc_orthorombic, pbc_hexagonal
+    PUBLIC :: read_input, masses_charges, conversion, pbc_orthorombic, pbc_hexagonal, pbc_hexagonal_old, pbc_orthorombic_old !constants,
 
 CONTAINS
-
-    SUBROUTINE constants(const_charge, debye, t_cor, const_planck, const_permit, speed_light, const_boltz, &
-                         temp, pi, bohr2ang, fs2s, damping_constant, joule_unit, ev_unit, action_unit, hartreebohr2evang, &
-                         hessian_factor, at_u, ang, reccm2ev)
-
-        INTEGER, INTENT(OUT)                                 :: t_cor
-        REAL(kind=dp), INTENT(OUT)                            :: debye, const_planck, const_permit, pi, const_charge, fs2s
-        REAL(kind=dp), INTENT(OUT)                            :: speed_light, const_boltz, temp, bohr2ang, reccm2ev
-        REAL(kind=dp), INTENT(OUT)                            :: damping_constant, joule_unit, ev_unit, action_unit
-        REAL(kind=dp), INTENT(OUT)                            :: hartreebohr2evang, hessian_factor, at_u, ang
-
-        const_charge = 1.602176565e-19_dp
-        bohr2ang = 0.5291772109_dp !!bohr two angstrom
-        hartreebohr2evang = 51.42208619083232_dp !!hartree/bohr to eV/angstrom
-        damping_constant = 0.10_dp !! ev
-        joule_unit = 4.359744722e-18 !! J
-        ev_unit = 27.211386_dp !! ev
-        action_unit = 1.054571817e-34_dp !J.s
-        reccm2ev = 0.000124_dp !cm^-1 to eV
-        pi = 3.14159_dp
-        temp = 300.0_dp        !K
-        debye = 0.393456_dp
-        t_cor = 1024
-        const_planck = 6.62607015e-34_dp !m^2*kg/s or J.s
-        const_permit = 8.8541878128e-12 !F*m^−1
-        speed_light = 2.9979246e+10_dp  !cm/s
-        const_boltz = 1.380649e-23_dp !m^2*kg*s^-2*K-1 or J/K
-        fs2s = 1.0e-15_dp
-        ang = 1.0e-10_dp  !!angstrom to cm^-1
-        at_u = 1.6605390666e-27_dp !!atomic mass unit-kilogram relationship
-        hessian_factor = REAL(const_charge/(at_u*ang*ang), kind=dp)
-!laser_in=9398.50_dp  !cm^-1
-!laser_in=200000.0_dp  !cm^-1
-!laser_in=15797.78_dp !cm^-1
-!laser_in=18796.99
-    END SUBROUTINE constants
 
 !*************************************************************************************************
 !*************************************************************************************************
@@ -358,7 +324,7 @@ CONTAINS
                         WRITE (*, *) 'Enter the name of the static dipoles file (Z-Field):'
                         READ (*, *) static_dip_z_file
                     END IF
-                ENDIF
+                END IF
                 IF (read_function=='RR' .OR. read_function=='ABS') THEN
                     WRITE (*, *) 'Enter the RT-TDDFT time step:'
                     READ (*, *) dt_rtp
@@ -386,27 +352,27 @@ CONTAINS
                 rtp_dipole_z = 'o-NP_RTP_dipoles_Z_256.xyz'
                 ! rtp_dipole_x='o-NP_RTP_dipoles_X.xyz'
                 ! rtp_dipole_y='o-NP_RTP_dipoles_Y.xyz'
-                 rtp_dipole_z='o-NP_RTP_dipoles_Z.xyz'
+                rtp_dipole_z = 'o-NP_RTP_dipoles_Z.xyz'
                 ! WRITE(*,*)'What is the number of RTP frames?'
                 ! READ(*,*) framecount_rtp
                 ! framecount_rtp=1280
                 framecount_rtp = 256
                 ! dt_rtp=0.0125_dp
                 dt_rtp = 0.0625_dp
-               ! WRITE (*, *) 'What is the wavenumber of the incident laser (cm^-1)?'
-               ! READ (*, *) laser_in_resraman
+                ! WRITE (*, *) 'What is the wavenumber of the incident laser (cm^-1)?'
+                ! READ (*, *) laser_in_resraman
                 !laser_in_resraman=15797.788309636651_dp
             END IF
             EXIT
         END DO
 
-                ! laser_in_resraman=15797.788309636651_dp
-                 !laser_in_resraman=15808.596424_dp !r-met NR
-                !laser_in_resraman = 57346.490087_dp !r-met RR
-                ! laser_in_resraman=41860.518081_dpi
-                ! check_pade='n'
-                ! framecount_rtp=80000
-                ! check_pade='n'
+        ! laser_in_resraman=15797.788309636651_dp
+        !laser_in_resraman=15808.596424_dp !r-met NR
+        !laser_in_resraman = 57346.490087_dp !r-met RR
+        ! laser_in_resraman=41860.518081_dpi
+        ! check_pade='n'
+        ! framecount_rtp=80000
+        ! check_pade='n'
 
         DO
             IF (read_function=='P' .OR. read_function=='MD-IR') THEN
@@ -458,65 +424,114 @@ CONTAINS
 
 !*********************************************************************************************
 !*********************************************************************************************
+    SUBROUTINE masses_charges(gs, sys)!natom, mass_atom, atom_mass_inv_sqrt, mass_mat, element, mass_tot, charge)
 
-    SUBROUTINE masses_charges(natom, mass_atom, atom_mass_inv_sqrt, mass_mat, element, mass_tot, charge)
-
-        CHARACTER(LEN=2), DIMENSION(:), ALLOCATABLE, INTENT(IN)   :: element
-        INTEGER, INTENT(INOUT)                                  :: natom
-        REAL(kind=dp), INTENT(INOUT)                             :: mass_tot
-        REAL(kind=dp), DIMENSION(:), ALLOCATABLE, INTENT(OUT)      :: atom_mass_inv_sqrt, mass_atom, charge
-        REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE, INTENT(OUT)    :: mass_mat
+        TYPE(global_settings), INTENT(INOUT)   :: gs
+        TYPE(systems), INTENT(INOUT)        :: sys
+        !CHARACTER(LEN=2), DIMENSION(:), ALLOCATABLE, INTENT(IN)   :: element
+        !INTEGER, INTENT(INOUT)                                  :: natom
+        !REAL(kind=dp), INTENT(INOUT)                             :: mass_tot
+        !REAL(kind=dp), DIMENSION(:), ALLOCATABLE, INTENT(OUT)      :: atom_mass_inv_sqrt, mass_atom, charge
+        !REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE, INTENT(OUT)    :: mass_mat
 
         INTEGER                                                :: i, j, stat
         REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE                :: mat1, mat2
 
-        ALLOCATE (atom_mass_inv_sqrt(natom), mass_mat(natom, natom), mass_atom(natom), charge(natom))
-        ALLOCATE (mat1(natom, 1), mat2(1, natom))
+        ALLOCATE (sys%atom_mass_inv_sqrt(sys%natom), sys%mass_mat(sys%natom, sys%natom), sys%mass_atom(sys%natom), sys%charge(sys%natom))
+        ALLOCATE (mat1(sys%natom, 1), mat2(1, sys%natom))
 
-        mass_atom = 0.0_dp
-        mass_tot = 0.0_dp
-        DO i = 1, natom
-            IF (element(i)=='O') THEN
-                mass_atom(i) = 15.999_dp
-                charge(i) = 6.0_dp
-            ELSEIF (element(i)=='H') THEN
-                mass_atom(i) = 1.00784_dp
-                charge(i) = 1.0_dp
-            ELSEIF (element(i)=='C') THEN
-                mass_atom(i) = 12.011_dp
-                charge(i) = 4.0_dp
-            ELSEIF (element(i)=='B') THEN
-                mass_atom(i) = 10.811_dp
-                charge(i) = 3.0_dp
-            ELSEIF (element(i)=='N') THEN
-                mass_atom(i) = 14.0067_dp
-                charge(i) = 5.0_dp
-            ELSEIF (element(i)=='X') THEN
-                mass_atom(i) = 0.00_dp
-                charge(i) = -2.0_dp
+        sys%mass_atom = 0.0_dp
+        sys%mass_tot = 0.0_dp
+        DO i = 1, sys%natom
+            IF (sys%element(i)=='O') THEN
+                sys%mass_atom(i) = 15.999_dp
+                sys%charge(i) = 6.0_dp
+            ELSEIF (sys%element(i)=='H') THEN
+                sys%mass_atom(i) = 1.00784_dp
+                sys%charge(i) = 1.0_dp
+            ELSEIF (sys%element(i)=='C') THEN
+                sys%mass_atom(i) = 12.011_dp
+                sys%charge(i) = 4.0_dp
+            ELSEIF (sys%element(i)=='B') THEN
+                sys%mass_atom(i) = 10.811_dp
+                sys%charge(i) = 3.0_dp
+            ELSEIF (sys%element(i)=='N') THEN
+                sys%mass_atom(i) = 14.0067_dp
+                sys%charge(i) = 5.0_dp
+            ELSEIF (sys%element(i)=='X') THEN
+                sys%mass_atom(i) = 0.00_dp
+                sys%charge(i) = -2.0_dp
             END IF
-            mass_tot = mass_tot + mass_atom(i)
+            sys%mass_tot = sys%mass_tot + sys%mass_atom(i)
         END DO
 
-        atom_mass_inv_sqrt(:) = SQRT(REAL(1.0_dp/mass_atom(:), kind=dp))
+        sys%atom_mass_inv_sqrt(:) = SQRT(REAL(1.0_dp/sys%mass_atom(:), kind=dp))
 
-        mat1(:, :) = RESHAPE(atom_mass_inv_sqrt(:), (/natom, 1/))
-        mat2(:, :) = RESHAPE(atom_mass_inv_sqrt(:), (/1, natom/))
+        mat1(:, :) = RESHAPE(sys%atom_mass_inv_sqrt(:), (/sys%natom, 1/))
+        mat2(:, :) = RESHAPE(sys%atom_mass_inv_sqrt(:), (/1, sys%natom/))
 
-        mass_mat = MATMUL(mat1, mat2)
+        sys%mass_mat = MATMUL(mat1, mat2)
 
         DEALLOCATE (mat1, mat2)
 
     END SUBROUTINE masses_charges
+!    SUBROUTINE masses_charges(natom, mass_atom, atom_mass_inv_sqrt, mass_mat, element, mass_tot, charge)
+!
+!        CHARACTER(LEN=2), DIMENSION(:), ALLOCATABLE, INTENT(IN)   :: element
+!        INTEGER, INTENT(INOUT)                                  :: natom
+!        REAL(kind=dp), INTENT(INOUT)                             :: mass_tot
+!        REAL(kind=dp), DIMENSION(:), ALLOCATABLE, INTENT(OUT)      :: atom_mass_inv_sqrt, mass_atom, charge
+!        REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE, INTENT(OUT)    :: mass_mat
+!
+!        INTEGER                                                :: i, j, stat
+!        REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE                :: mat1, mat2
+!
+!        ALLOCATE (atom_mass_inv_sqrt(natom), mass_mat(natom, natom), mass_atom(natom), charge(natom))
+!        ALLOCATE (mat1(natom, 1), mat2(1, natom))
+!
+!        mass_atom = 0.0_dp
+!        mass_tot = 0.0_dp
+!        DO i = 1, natom
+!            IF (element(i)=='O') THEN
+!                mass_atom(i) = 15.999_dp
+!                charge(i) = 6.0_dp
+!            ELSEIF (element(i)=='H') THEN
+!                mass_atom(i) = 1.00784_dp
+!                charge(i) = 1.0_dp
+!            ELSEIF (element(i)=='C') THEN
+!                mass_atom(i) = 12.011_dp
+!                charge(i) = 4.0_dp
+!            ELSEIF (element(i)=='B') THEN
+!                mass_atom(i) = 10.811_dp
+!                charge(i) = 3.0_dp
+!            ELSEIF (element(i)=='N') THEN
+!                mass_atom(i) = 14.0067_dp
+!                charge(i) = 5.0_dp
+!            ELSEIF (element(i)=='X') THEN
+!                mass_atom(i) = 0.00_dp
+!                charge(i) = -2.0_dp
+!            END IF
+!            mass_tot = mass_tot + mass_atom(i)
+!        END DO
+!
+!        atom_mass_inv_sqrt(:) = SQRT(REAL(1.0_dp/mass_atom(:), kind=dp))
+!
+!        mat1(:, :) = RESHAPE(atom_mass_inv_sqrt(:), (/natom, 1/))
+!        mat2(:, :) = RESHAPE(atom_mass_inv_sqrt(:), (/1, natom/))
+!
+!        mass_mat = MATMUL(mat1, mat2)
+!
+!        DEALLOCATE (mat1, mat2)
+!
+!    END SUBROUTINE masses_charges
+!
+!!*********************************************************************************************
+!!*********************************************************************************************
 
-!*********************************************************************************************
-!*********************************************************************************************
+    SUBROUTINE conversion(dt, dom, dt_rtp, dom_rtp, freq_range, sinc_const)
 
-    SUBROUTINE conversion(dt, dom, dt_rtp, dom_rtp, speed_light, freq_range, t_cor, sinc_const)
-
-        INTEGER, INTENT(IN)                    :: t_cor
         REAL(kind=dp), INTENT(OUT)              :: dom, dom_rtp, freq_range, sinc_const
-        REAL(kind=dp), INTENT(IN)               :: speed_light, dt, dt_rtp
+        REAL(kind=dp), INTENT(IN)               ::  dt, dt_rtp
 
         INTEGER                               :: stat   ! error status of OPEN statements
         INTEGER                               :: i, j, k
@@ -532,23 +547,73 @@ CONTAINS
 !*********************************************************************************************
 !*********************************************************************************************
 
-    SUBROUTINE pbc_orthorombic(coord2, coord1, vec, vec_pbc, box_all, box_x, box_y, box_z)
+    SUBROUTINE pbc_orthorombic(coord2, coord1, sys)
 
-        REAL(kind=dp), DIMENSION(3), INTENT(INOUT)                :: vec, vec_pbc, coord2, coord1
-        REAL(kind=dp), INTENT(IN)                                :: box_all, box_x, box_y, box_z
+        TYPE(systems), INTENT(INOUT)                :: sys
+        REAL(kind=dp), DIMENSION(3), INTENT(INOUT)                ::coord2, coord1
 
-        vec(:) = coord2(:) - coord1(:)
+        sys%cell%vec(:) = coord2(:) - coord1(:)
 
-        vec_pbc(1) = vec(1) - box_x*ANINT((1./box_x)*vec(1))
-        vec_pbc(2) = vec(2) - box_y*ANINT((1./box_y)*vec(2))
-        vec_pbc(3) = vec(3) - box_z*ANINT((1./box_z)*vec(3))
+        sys%cell%vec_pbc(1) = sys%cell%vec(1) - sys%cell%box_x*ANINT((1./sys%cell%box_x)*sys%cell%vec(1))
+        sys%cell%vec_pbc(2) = sys%cell%vec(2) - sys%cell%box_y*ANINT((1./sys%cell%box_y)*sys%cell%vec(2))
+        sys%cell%vec_pbc(3) = sys%cell%vec(3) - sys%cell%box_z*ANINT((1./sys%cell%box_z)*sys%cell%vec(3))
 
     END SUBROUTINE pbc_orthorombic
 
 !********************************************************************************************
 !********************************************************************************************
 
-    SUBROUTINE pbc_hexagonal(coord2, coord1, vec, vec_pbc, box_all, box_x, box_y, box_z)
+    SUBROUTINE pbc_hexagonal(coord2, coord1, sys)
+
+        TYPE(systems), INTENT(INOUT)                :: sys
+        REAL(kind=dp), DIMENSION(3), INTENT(INOUT)                :: coord2, coord1
+        REAL(kind=dp)                                           :: h_inv(3, 3), a, s(3), hmat(3, 3)
+        REAL(kind=dp)                                           :: acosa, asina, sqrt3, det_a
+
+        sqrt3 = 1.73205080756887729352744634_dp
+
+        a = 0.5_dp*(sys%cell%box_x + sys%cell%box_y)
+        acosa = 0.5_dp*a
+        asina = sqrt3*acosa
+        hmat(1, 1) = a; hmat(1, 2) = acosa; hmat(1, 3) = 0.0_dp
+        hmat(2, 1) = 0.0_dp; hmat(2, 2) = asina; hmat(2, 3) = 0.0_dp
+        hmat(3, 1) = 0.0_dp; hmat(3, 2) = 0.0_dp; hmat(3, 3) = sys%cell%box_z
+
+        det_a = hmat(1, 1)*(hmat(2, 2)*hmat(3, 3) - hmat(2, 3)*hmat(3, 2)) - &
+                hmat(1, 2)*(hmat(2, 3)*hmat(3, 1) - hmat(2, 1)*hmat(3, 3)) + &
+                hmat(1, 3)*(hmat(2, 1)*hmat(3, 2) - hmat(2, 2)*hmat(3, 1))
+
+        det_a = 1./det_a
+
+        h_inv(1, 1) = (hmat(2, 2)*hmat(3, 3) - hmat(3, 2)*hmat(2, 3))*det_a
+        h_inv(2, 1) = (hmat(2, 3)*hmat(3, 1) - hmat(3, 3)*hmat(2, 1))*det_a
+        h_inv(3, 1) = (hmat(2, 1)*hmat(3, 2) - hmat(3, 1)*hmat(2, 2))*det_a
+
+        h_inv(1, 2) = (hmat(1, 3)*hmat(3, 2) - hmat(3, 3)*hmat(1, 2))*det_a
+        h_inv(2, 2) = (hmat(1, 1)*hmat(3, 3) - hmat(3, 1)*hmat(1, 3))*det_a
+        h_inv(3, 2) = (hmat(1, 2)*hmat(3, 1) - hmat(3, 2)*hmat(1, 1))*det_a
+
+        h_inv(1, 3) = (hmat(1, 2)*hmat(2, 3) - hmat(2, 2)*hmat(1, 3))*det_a
+        h_inv(2, 3) = (hmat(1, 3)*hmat(2, 1) - hmat(2, 3)*hmat(1, 1))*det_a
+        h_inv(3, 3) = (hmat(1, 1)*hmat(2, 2) - hmat(2, 1)*hmat(1, 2))*det_a
+
+        sys%cell%vec(:) = coord2(:) - coord1(:)
+
+        s(1) = h_inv(1, 1)*sys%cell%vec(1) + h_inv(1, 2)*sys%cell%vec(2) + h_inv(1, 3)*sys%cell%vec(3)
+        s(2) = h_inv(2, 1)*sys%cell%vec(1) + h_inv(2, 2)*sys%cell%vec(2) + h_inv(2, 3)*sys%cell%vec(3)
+        s(3) = h_inv(3, 1)*sys%cell%vec(1) + h_inv(3, 2)*sys%cell%vec(2) + h_inv(3, 3)*sys%cell%vec(3)
+
+        s(1) = s(1) - ANINT(s(1))
+        s(2) = s(2) - ANINT(s(2))
+        s(3) = s(3) - ANINT(s(3))
+
+        sys%cell%vec_pbc(1) = hmat(1, 1)*s(1) + hmat(1, 2)*s(2) + hmat(1, 3)*s(3)
+        sys%cell%vec_pbc(2) = hmat(2, 1)*s(1) + hmat(2, 2)*s(2) + hmat(2, 3)*s(3)
+        sys%cell%vec_pbc(3) = hmat(3, 1)*s(1) + hmat(3, 2)*s(2) + hmat(3, 3)*s(3)
+
+    END SUBROUTINE pbc_hexagonal
+
+    SUBROUTINE pbc_hexagonal_old(coord2, coord1, vec, vec_pbc, box_all, box_x, box_y, box_z)
 
         REAL(kind=dp), DIMENSION(3), INTENT(INOUT)                :: vec, vec_pbc, coord2, coord1
         REAL(kind=dp), INTENT(IN)                                :: box_all, box_x, box_y, box_z
@@ -597,6 +662,18 @@ CONTAINS
         vec_pbc(2) = hmat(2, 1)*s(1) + hmat(2, 2)*s(2) + hmat(2, 3)*s(3)
         vec_pbc(3) = hmat(3, 1)*s(1) + hmat(3, 2)*s(2) + hmat(3, 3)*s(3)
 
-    END SUBROUTINE pbc_hexagonal
+    END SUBROUTINE pbc_hexagonal_old
+    SUBROUTINE pbc_orthorombic_old(coord2, coord1, vec, vec_pbc, box_all, box_x, box_y, box_z)
+
+        REAL(kind=dp), DIMENSION(3), INTENT(INOUT)                :: vec, vec_pbc, coord2, coord1
+        REAL(kind=dp), INTENT(IN)                                :: box_all, box_x, box_y, box_z
+
+        vec(:) = coord2(:) - coord1(:)
+
+        vec_pbc(1) = vec(1) - box_x*ANINT((1./box_x)*vec(1))
+        vec_pbc(2) = vec(2) - box_y*ANINT((1./box_y)*vec(2))
+        vec_pbc(3) = vec(3) - box_z*ANINT((1./box_z)*vec(3))
+
+    END SUBROUTINE pbc_orthorombic_old
 END MODULE setup
 
