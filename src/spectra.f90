@@ -826,7 +826,7 @@ END SUBROUTINE spec_raman
 
 
 !!!Dividing by electric field
-        zhat_pol_rtp=zhat_pol_rtp/0.001_dp !!later make this an input variable
+        rams%RR%zhat_pol_rtp=rams%RR%zhat_pol_rtp/0.001_dp !!later make this an input variable
 
 !!!Finding frequency range
         rtp_freq_range = REAL(rams%RR%dom_rtp/rams%RR%framecount_rtp, kind=dp)
