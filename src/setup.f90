@@ -491,6 +491,9 @@ CONTAINS
             ELSEIF (element(i)=='N') THEN
                 mass_atom(i) = 14.0067_dp
                 charge(i) = 5.0_dp
+            ELSEIF (element(i)=='Fe') THEN
+                mass_atom(i) = 55.935_dp
+                charge(i) = 2.0_dp
             ELSEIF (element(i)=='X') THEN
                 mass_atom(i) = 0.00_dp
                 charge(i) = -2.0_dp
@@ -506,7 +509,6 @@ CONTAINS
         mass_mat = MATMUL(mat1, mat2)
 
         DEALLOCATE (mat1, mat2)
-
     END SUBROUTINE masses_charges
 
 !*********************************************************************************************

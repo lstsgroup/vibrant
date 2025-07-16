@@ -621,7 +621,7 @@ CONTAINS
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                   :: normal_displacements
         REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE                 :: hessian
         LOGICAL, DIMENSION(9)                                        :: mk = .TRUE.
-        lwmax = 1000
+        lwmax = MAX(1, 3*natom*64)  ! conservative guess; LAPACK recommends this for DSYEV
         lda = natom*3
         nmodes = 3*natom - 6 !only for non-linear atoms
 
@@ -658,7 +658,6 @@ CONTAINS
         lwork = -1
         CALL DSYEV('V', 'U', n, hessian_new, lda, w, work, lwork, info)
         lwork = MIN(lwmax, INT(work(1)))
-        PRINT *, "ekin"
 
 ! get eigenvalues and eigenvectors
         CALL dsyev('V', 'U', n, hessian_new, lda, w, work, lwork, info)
@@ -683,8 +682,6 @@ CONTAINS
             END DO
             m = m + 2
         END DO
-
-        PRINT *, freq(1:3)
 
         OPEN (UNIT=13, FILE='normal_mode_freq.txt', STATUS='unknown', IOSTAT=stat)
         DO i = 1, nmodes !!atom_num: 1st atom
