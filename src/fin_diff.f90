@@ -167,7 +167,7 @@ CONTAINS
 
         conv_unit = damping_constant*joule_unit/ev_unit !! J
 
-        damping_factor = cconv_unit/action_unit*rams%RR%dt_rtp*fs2s !! s-1
+        damping_factor = conv_unit/action_unit*rams%RR%dt_rtp*fs2s !! s-1
                             
         DO l = 2, rams%RR%framecount_rtp + 1
             rams%RR%pol_rtp(:, :, :, 1, :, l - 1) = static_dipole_x_rtp(:, :, :, :, l) - static_dipole_x_rtp(:, :, :, :, 1)
