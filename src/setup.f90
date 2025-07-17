@@ -458,6 +458,9 @@ CONTAINS
             ELSEIF (sys%element(i)=='N') THEN
                 sys%mass_atom(i) = 14.0067_dp
                 sys%charge(i) = 5.0_dp
+            ELSEIF (sys%element(i)=='Fe') THEN
+                sys%mass_atom(i) = 55.935_dp
+                sys%charge(i) = 2.0_dp
             ELSEIF (sys%element(i)=='X') THEN
                 sys%mass_atom(i) = 0.00_dp
                 sys%charge(i) = -2.0_dp

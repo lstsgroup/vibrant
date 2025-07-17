@@ -538,7 +538,8 @@ END SUBROUTINE spec_raman
         REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE                     :: hessian_new, atomic_displacements
         REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE                 :: hessian
         LOGICAL, DIMENSION(9)                                        :: mk = .TRUE.
-        lwmax = 1000
+        
+        lwmax = MAX(1, 3*sys%natom*64)  ! conservative guess; LAPACK recommends this for DSYEV
         lda = sys%natom*3
         stats%nmodes = 3*sys%natom - 6 !only for non-linear atoms
 
