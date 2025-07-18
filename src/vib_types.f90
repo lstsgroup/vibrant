@@ -115,15 +115,20 @@ END TYPE resonant_raman
     END TYPE dipoles
     !***************************************************************************
     TYPE raman
-        LOGICAL                                             :: polarizability_type ! <numeric/analytic>
+        !LOGICAL                                             :: polarizability_type ! <numeric/analytic>
         !numeric
-        CHARACTER(LEN=40)                                   :: static_dip_free_file, static_dip_x_file, static_dip_y_file, static_dip_z_file ! Dipolemoments mybe move to dipole class differenes static_dip_free_file and static_dip_file
-        REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE   :: static_dip_free, static_dip_x, static_dip_y, static_dip_z ! Dipolemoments mybe move to dipole class
+        CHARACTER(LEN=40)                                   :: static_dip_free_file
+        CHARACTER(LEN=40)                                   :: static_dip_x_file 
+        CHARACTER(LEN=40)                                   :: static_dip_y_file 
+        CHARACTER(LEN=40)                                   :: static_dip_z_file        ! Dipolemoments mybe move to dipole class differenes static_dip_free_file and static_dip_file
+        REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE   :: static_dip_free          ! Dipolemoments mybe move to dipole class
+        REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE   :: static_dip_x             ! Dipolemoments mybe move to dipole class
+        REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE   :: static_dip_y             ! Dipolemoments mybe move to dipole class
+        REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE   :: static_dip_z             ! Dipolemoments mybe move to dipole class
         !end numeric
         ! analytic
         CHARACTER(LEN=40)                                   :: static_pol_file
         !end analytic
-
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE            :: z_iso, z_aniso, z_ortho, z_para
         CHARACTER(LEN=40)                                   :: wannier_free, wannier_x, wannier_y, wannier_z ! same as static_dip_free_file
         CHARACTER(LEN=40)                                   :: averaging, direction
