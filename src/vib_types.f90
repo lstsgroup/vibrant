@@ -6,7 +6,8 @@ MODULE vib_types
 
     PRIVATE
 
-    PUBLIC :: global_settings, systems, molecular_dynamics, static, dipoles, raman, deallocate_all_structures
+    PUBLIC :: global_settings, systems, molecular_dynamics, static, dipoles, raman, deallocate_types
+
 
     !***************************************************************************
     TYPE spectral_type
@@ -41,8 +42,8 @@ MODULE vib_types
     REAL(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE:: static_dip_x_rtp
     REAL(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE:: static_dip_y_rtp
     REAL(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE:: static_dip_z_rtp
-    REAL(kind=dp), DIMENSION(:, :, :, :, :, :), ALLOCATABLE:: pol_rtp
-    COMPLEX(kind=dp), DIMENSION(:, :, :, :, :, :), ALLOCATABLE :: zhat_pol_rtp
+REAL(kind=dp), DIMENSION(:, :, :, :, :, :), ALLOCATABLE :: pol_rtp
+COMPLEX(kind=dp), DIMENSION(:, :, :, :, :, :), ALLOCATABLE :: zhat_pol_rtp
     !CHARACTER(LEN=40)                                   :: rtp_dipole_x, rtp_dipole_y, rtp_dipole_z
     !COMPLEX(kind=dp), DIMENSION(:, :), ALLOCATABLE      :: z_iso_resraman, z_aniso_resraman
 END TYPE resonant_raman
@@ -115,15 +116,20 @@ END TYPE resonant_raman
     END TYPE dipoles
     !***************************************************************************
     TYPE raman
-        LOGICAL                                             :: polarizability_type ! <numeric/analytic>
+        !LOGICAL                                             :: polarizability_type ! <numeric/analytic>
         !numeric
-        CHARACTER(LEN=40)                                   :: static_dip_free_file, static_dip_x_file, static_dip_y_file, static_dip_z_file ! Dipolemoments mybe move to dipole class differenes static_dip_free_file and static_dip_file
-        REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE   :: static_dip_free, static_dip_x, static_dip_y, static_dip_z ! Dipolemoments mybe move to dipole class
+        CHARACTER(LEN=40)                                   :: static_dip_free_file
+        CHARACTER(LEN=40)                                   :: static_dip_x_file 
+        CHARACTER(LEN=40)                                   :: static_dip_y_file 
+        CHARACTER(LEN=40)                                   :: static_dip_z_file        ! Dipolemoments mybe move to dipole class differenes static_dip_free_file and static_dip_file
+        REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE   :: static_dip_free          ! Dipolemoments mybe move to dipole class
+        REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE   :: static_dip_x             ! Dipolemoments mybe move to dipole class
+        REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE   :: static_dip_y             ! Dipolemoments mybe move to dipole class
+        REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE   :: static_dip_z             ! Dipolemoments mybe move to dipole class
         !end numeric
         ! analytic
         CHARACTER(LEN=40)                                   :: static_pol_file
         !end analytic
-
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE            :: z_iso, z_aniso, z_ortho, z_para
         CHARACTER(LEN=40)                                   :: wannier_free, wannier_x, wannier_y, wannier_z ! same as static_dip_free_file
         CHARACTER(LEN=40)                                   :: averaging, direction
@@ -138,58 +144,180 @@ END TYPE resonant_raman
 
 
 CONTAINS
-    SUBROUTINE deallocate_all_structures(sys, md, statik, ram, dip)
+    SUBROUTINE deallocate_types(gs, sys, md, stats, ram, dip)
+        IMPLICIT NONE
+        
+        TYPE(global_settings), INTENT(INOUT) ,OPTIONAL :: gs
+        TYPE(systems), INTENT(INOUT) ,OPTIONAL :: sys
+        TYPE(molecular_dynamics), INTENT(INOUT), OPTIONAL:: md
+        TYPE(static), INTENT(INOUT), OPTIONAL:: stats
+        TYPE(raman), INTENT(INOUT), OPTIONAL:: ram
+        TYPE(dipoles), INTENT(INOUT) , OPTIONAL:: dip
+        
+        ! global settings
+        IF (PRESENT(gs)) THEN
+            CALL deallocate_global_settings(gs)
+        END IF
+        ! systems
+        IF (PRESENT(sys)) THEN
+            CALL deallocate_system(sys)
+        END IF
+        ! molecular_dynamics
+        IF (PRESENT(md)) THEN
+            CALL deallocate_md(md)
+        END IF
+        ! static
+        IF (PRESENT(stats)) THEN
+            CALL deallocate_stats(stats)
+        END IF
+        !raman
+        IF (PRESENT(ram)) THEN
+            CALL deallocate_raman(ram)
+        END IF
+        !dipoles
+        IF (PRESENT(dip)) THEN
+            CALL deallocate_dipoles(dip)
+        END IF
+    END SUBROUTINE deallocate_types
+    
+
+    SUBROUTINE deallocate_global_settings(gs)
+        IMPLICIT NONE
+        TYPE(global_settings), INTENT(INOUT) :: gs
+        
+        !IF (ALLOCATED(gs%md)) DEALLOCATE(gs%md)
+        !IF (ALLOCATED(gs%temp)) DEALLOCATE(gs%temp)
+        !IF (ALLOCATED(gs%laser_in)) DEALLOCATE(gs%laser_in)
+
+        !IF (ALLOCATED(gs%spectral_type%read_function)) DEALLOCATE(gs%spectral_type%read_function)
+        !IF (ALLOCATED(gs%spectral_type%type_input)) DEALLOCATE(gs%spectral_type%type_input)
+        !IF (ALLOCATED(gs%spectral_type%type_static)) DEALLOCATE(gs%spectral_type%type_static)
+        !IF (ALLOCATED(gs%spectral_type%type_dipole)) DEALLOCATE(gs%spectral_type%type_dipole)
+
+    END SUBROUTINE deallocate_global_settings
+
+    SUBROUTINE deallocate_system(sys)
         IMPLICIT NONE
         TYPE(systems), INTENT(INOUT) :: sys
+
+        !IF (ALLOCATED(sys%natom)) DEALLOCATE(sys%natom)
+        !IF (ALLOCATED(sys%framecount)) DEALLOCATE(sys%framecount)
+        !IF (ALLOCATED(sys%mol_num)) DEALLOCATE(sys%mol_num)
+        !IF (ALLOCATED(sys%filename)) DEALLOCATE(sys%filename)
+        !IF (ALLOCATED(sys%frag_type)) DEALLOCATE(sys%frag_type)
+        !IF (ALLOCATED(sys%input_mass)) DEALLOCATE(sys%input_mass)
+        !IF (ALLOCATED(sys%system)) DEALLOCATE(sys%system)
+        !IF (ALLOCATED(sys%periodic)) DEALLOCATE(sys%periodic)
+        IF (ALLOCATED(sys%element)) DEALLOCATE(sys%element)
+        !IF (ALLOCATED(sys%mass_tot)) DEALLOCATE(sys%mass_tot)
+        IF (ALLOCATED(sys%atom_mass_inv_sqrt)) DEALLOCATE(sys%atom_mass_inv_sqrt)
+        IF (ALLOCATED(sys%charge)) DEALLOCATE(sys%charge)
+        IF (ALLOCATED(sys%mass_atom)) DEALLOCATE(sys%mass_atom)
+        IF (ALLOCATED(sys%coord)) DEALLOCATE(sys%coord)
+        IF (ALLOCATED(sys%mass_mat)) DEALLOCATE(sys%mass_mat)
+        
+        !IF (ALLOCATED(sys%cell%cell_type)) DEALLOCATE(sys%cell%cell_type)
+        !IF (ALLOCATED(sys%cell%box_all)) DEALLOCATE(sys%cell%box_all)
+        !IF (ALLOCATED(sys%cell%box_x)) DEALLOCATE(sys%cell%box_x)
+        !IF (ALLOCATED(sys%cell%box_y)) DEALLOCATE(sys%cell%box_y)
+        !IF (ALLOCATED(sys%cell%box_z)) DEALLOCATE(sys%cell%box_z)
+        !IF (ALLOCATED(sys%cell%vec(3))) DEALLOCATE(sys%cell%vec(3))
+        !IF (ALLOCATED(sys%cell%vec_pbc(3))) DEALLOCATE(sys%cell%vec_pbc(3))
+
+        !IF (ALLOCATED(sys%fragments%nfrag)) DEALLOCATE(sys%fragments%nfrag)
+        IF (ALLOCATED(sys%fragments%natom_frag)) DEALLOCATE(sys%fragments%natom_frag)
+        IF (ALLOCATED(sys%fragments%fragment)) DEALLOCATE(sys%fragments%fragment)
+        !IF (ALLOCATED(sys%fragments%mass_tot_cell)) DEALLOCATE(sys%fragments%mass_tot_cell)
+        IF (ALLOCATED(sys%fragments%mass_tot_frag)) DEALLOCATE(sys%fragments%mass_tot_frag)
+        IF (ALLOCATED(sys%fragments%refpoint)) DEALLOCATE(sys%fragments%refpoint)
+
+      END SUBROUTINE deallocate_system
+
+      SUBROUTINE deallocate_md(md)
+        IMPLICIT NONE
         TYPE(molecular_dynamics), INTENT(INOUT) :: md
-        TYPE(static), INTENT(INOUT) :: statik
-        TYPE(raman), INTENT(INOUT) :: ram
-        TYPE(dipoles), INTENT(INOUT) :: dip
 
-        ! systems
-        IF (ALLOCATED(sys%coord)) DEALLOCATE (sys%coord)
-        IF (ALLOCATED(sys%element)) DEALLOCATE (sys%element)
-        IF (ALLOCATED(sys%mass_atom)) DEALLOCATE (sys%mass_atom)
-        IF (ALLOCATED(sys%mass_mat)) DEALLOCATE (sys%mass_mat)
-        IF (ALLOCATED(sys%atom_mass_inv_sqrt)) DEALLOCATE (sys%atom_mass_inv_sqrt)
-        IF (ALLOCATED(sys%charge)) DEALLOCATE (sys%charge)
+        !IF (ALLOCATED(md%trajectory_file)) DEALLOCATE(md%trajectory_file)
+        !IF (ALLOCATED(md%velocity_file)) DEALLOCATE(md%velocity_file)
+        !IF (ALLOCATED(md%snapshot_time_step)) DEALLOCATE(md%snapshot_time_step)
+        !IF (ALLOCATED(md%correlation_depth)) DEALLOCATE(md%correlation_depth)
+        !IF (ALLOCATED(md%dt)) DEALLOCATE(md%dt)
+        !IF (ALLOCATED(md%dom)) DEALLOCATE(md%dom)
+        !IF (ALLOCATED(md%freq_range)) DEALLOCATE(md%freq_range)
+        !IF (ALLOCATED(md%sinc_const)) DEALLOCATE(md%sinc_const)
+        IF (ALLOCATED(md%z)) DEALLOCATE(md%z)
+        IF (ALLOCATED(md%velos_v)) DEALLOCATE(md%velos_v)
+        IF (ALLOCATED(md%v)) DEALLOCATE(md%v)
+        IF (ALLOCATED(md%coord_v)) DEALLOCATE(md%coord_v)
+        IF (ALLOCATED(md%zhat)) DEALLOCATE(md%zhat)
 
-        ! molecular_dynamics
-        IF (ALLOCATED(md%z)) DEALLOCATE (md%z)
-        IF (ALLOCATED(md%zhat)) DEALLOCATE (md%zhat)
-        IF (ALLOCATED(md%coord_v)) DEALLOCATE (md%coord_v)
-        IF (ALLOCATED(md%v)) DEALLOCATE (md%v)
-        IF (ALLOCATED(md%velos_v)) DEALLOCATE (md%velos_v)
+      END SUBROUTINE deallocate_md
 
-        ! static
-        IF (ALLOCATED(statik%freq)) DEALLOCATE (statik%freq)
-        IF (ALLOCATED(statik%disp)) DEALLOCATE (statik%disp)
-        IF (ALLOCATED(statik%force)) DEALLOCATE (statik%force)
+      SUBROUTINE deallocate_stats(stats)
+        IMPLICIT NONE
+        TYPE(static), INTENT(INOUT):: stats
 
-        ! raman
-        !IF (ALLOCATED(ram%static_dip_free)) DEALLOCATE (ram%static_dip_free)
-        !IF (ALLOCATED(ram%static_dip_x)) DEALLOCATE (ram%static_dip_x)
-        !IF (ALLOCATED(ram%static_dip_y)) DEALLOCATE (ram%static_dip_y)
-        !IF (ALLOCATED(ram%static_dip_z)) DEALLOCATE (ram%static_dip_z)
-        !IF (ALLOCATED(ram%z_iso)) DEALLOCATE (ram%z_iso)
-        !IF (ALLOCATED(ram%z_aniso)) DEALLOCATE (ram%z_aniso)
-        !IF (ALLOCATED(ram%z_ortho)) DEALLOCATE (ram%z_ortho)
-        !IF (ALLOCATED(ram%z_para)) DEALLOCATE (ram%z_para)
-        !IF (ALLOCATED(ram%raman_int)) DEALLOCATE (ram%raman_int)
-        !IF (ALLOCATED(ram%pol)) DEALLOCATE (ram%pol)
-        !IF (ALLOCATED(ram%pol_dq)) DEALLOCATE (ram%pol_dq)
-        !IF (ALLOCATED(ram%static_dip_rtp)) DEALLOCATE (ram%static_dip_rtp)
-        !IF (ALLOCATED(ram%pol_rtp)) DEALLOCATE (ram%pol_rtp)
-        !IF (ALLOCATED(ram%RR%static_dipole_x_rtp)) DEALLOCATE (ram%static_dipole_x_rtp)
-        !IF (ALLOCATED(ram%RR%static_dipole_y_rtp)) DEALLOCATE (ram%static_dipole_y_rtp)
-        !IF (ALLOCATED(ram%RR%static_dipole_z_rtp)) DEALLOCATE (ram%static_dipole_z_rtp)
-        !IF (ALLOCATED(ram%zhat_pol_rtp)) DEALLOCATE (ram%zhat_pol_rtp)
+        !IF (ALLOCATED(stats%nmodes)) DEALLOCATE(stats%nmodes)
+        !IF (ALLOCATED(stats%normal_freq_file)) DEALLOCATE(stats%normal_freq_file)
+        !IF (ALLOCATED(stats%normal_displ_file)) DEALLOCATE(stats%normal_displ_file)
+        !IF (ALLOCATED(stats%force_file)) DEALLOCATE(stats%force_file)
+        !IF (ALLOCATED(stats%dx)) DEALLOCATE(stats%dx)
+        IF (ALLOCATED(stats%freq)) DEALLOCATE(stats%freq)
+        IF (ALLOCATED(stats%disp)) DEALLOCATE(stats%disp)
+        IF (ALLOCATED(stats%force)) DEALLOCATE(stats%force)
+    END SUBROUTINE deallocate_stats
 
-        ! dipoles
-        IF (ALLOCATED(dip%static_dip)) DEALLOCATE (dip%static_dip)
-        IF (ALLOCATED(dip%dip_dq)) DEALLOCATE (dip%dip_dq)
-        IF (ALLOCATED(dip%dipole)) DEALLOCATE (dip%dipole)
+    SUBROUTINE deallocate_dipoles(dips)
+        IMPLICIT NONE
+        TYPE(dipoles), INTENT(INOUT) :: dips
+        !IF (ALLOCATED(dips%static_dip_file)) DEALLOCATE(dips%static_dip_file)
+        IF (ALLOCATED(dips%dip_dq)) DEALLOCATE(dips%dip_dq)
+        IF (ALLOCATED(dips%dipole)) DEALLOCATE(dips%dipole)
+        IF (ALLOCATED(dips%static_dip)) DEALLOCATE(dips%static_dip)
 
-    END SUBROUTINE deallocate_all_structures
+    END SUBROUTINE deallocate_dipoles
+
+
+    SUBROUTINE deallocate_raman(rams)
+        IMPLICIT NONE
+        TYPE(raman), INTENT(INOUT):: rams
+
+        !IF (ALLOCATED(rams%static_dip_free_file)) DEALLOCATE(rams%static_dip_free_file)
+        !IF (ALLOCATED(rams%static_dip_x_file)) DEALLOCATE(rams%static_dip_x_file)
+        !IF (ALLOCATED(rams%static_dip_y_file)) DEALLOCATE(rams%static_dip_y_file)
+        !IF (ALLOCATED(rams%static_dip_z_file)) DEALLOCATE(rams%static_dip_z_file)
+        IF (ALLOCATED(rams%static_dip_free)) DEALLOCATE(rams%static_dip_free)
+        IF (ALLOCATED(rams%static_dip_x)) DEALLOCATE(rams%static_dip_x)
+        IF (ALLOCATED(rams%static_dip_y)) DEALLOCATE(rams%static_dip_y)
+        IF (ALLOCATED(rams%static_dip_z)) DEALLOCATE(rams%static_dip_z)
+        !IF (ALLOCATED(rams%static_pol_file)) DEALLOCATE(rams%static_pol_file)
+        IF (ALLOCATED(rams%z_iso)) DEALLOCATE(rams%z_iso)
+        IF (ALLOCATED(rams%z_aniso)) DEALLOCATE(rams%z_aniso)
+        IF (ALLOCATED(rams%z_ortho)) DEALLOCATE(rams%z_ortho)
+        IF (ALLOCATED(rams%z_para)) DEALLOCATE(rams%z_para)
+        !IF (ALLOCATED(rams%wannier_free)) DEALLOCATE(rams%wannier_free)
+        !IF (ALLOCATED(rams%wannier_x)) DEALLOCATE(rams%wannier_x)
+        !IF (ALLOCATED(rams%wannier_y)) DEALLOCATE(rams%wannier_y)
+        !IF (ALLOCATED(rams%wannier_z))  DEALLOCATE(rams%wannier_z)
+        !IF (ALLOCATED(rams%averaging)) DEALLOCATE(rams%averaging)
+        !IF (ALLOCATED(rams%direction)) DEALLOCATE(rams%direction)
+        IF (ALLOCATED(rams%raman_int)) DEALLOCATE(rams%raman_int)
+        IF (ALLOCATED(rams%pol)) DEALLOCATE(rams%pol)
+        IF (ALLOCATED(rams%pol_dq)) DEALLOCATE(rams%pol_dq)
+
+        !IF (ALLOCATED(rams%RR%check_pade)) DEALLOCATE(rams%RR%check_pade)
+        !IF (ALLOCATED(rams%RR%framecount_rtp)) DEALLOCATE(rams%RR%framecount_rtp)
+        !IF (ALLOCATED(rams%RR%framecount_rtp_pade)) DEALLOCATE(rams%RR%framecount_rtp_pade)
+        !IF (ALLOCATED(rams%RR%dt_rtp)) DEALLOCATE(rams%RR%dt_rtp)
+        !IF (ALLOCATED(rams%RR%dom_rtp)) DEALLOCATE(rams%RR%dom_rtp)
+        IF (ALLOCATED(rams%RR%static_dip_rtp)) DEALLOCATE(rams%RR%static_dip_rtp)
+        IF (ALLOCATED(rams%RR%static_dip_x_rtp)) DEALLOCATE(rams%RR%static_dip_x_rtp)
+        IF (ALLOCATED(rams%RR%static_dip_y_rtp)) DEALLOCATE(rams%RR%static_dip_y_rtp)
+        IF (ALLOCATED(rams%RR%static_dip_z_rtp)) DEALLOCATE(rams%RR%static_dip_z_rtp)
+        IF (ALLOCATED(rams%RR%pol_rtp)) DEALLOCATE(rams%RR%pol_rtp)
+        IF (ALLOCATED(rams%RR%zhat_pol_rtp)) DEALLOCATE(rams%RR%zhat_pol_rtp)
+    END SUBROUTINE deallocate_raman
+
+
 
 END MODULE vib_types

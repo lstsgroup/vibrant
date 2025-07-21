@@ -5,7 +5,7 @@ PROGRAM vib2d
     USE constants, ONLY: speed_light, const_planck, const_permit, pi, const_charge, const_boltz, damping_constant, joule_unit, &
                          debye, ev_unit, action_unit, bohr2ang, hartreebohr2evang, at_u, ang, fs2s, reccm2ev, t_cor, temp, &
                          hessian_factor
-    USE vib_types, ONLY: global_settings, systems, molecular_dynamics, static, dipoles, raman, deallocate_all_structures
+    USE vib_types, ONLY: global_settings, systems, molecular_dynamics, static, dipoles, raman, deallocate_types
     USE setup, ONLY: read_input, masses_charges, conversion, pbc_orthorombic, pbc_hexagonal
     USE read_traj, ONLY: read_coord, read_coord_frame, read_normal_modes, read_static, read_static_resraman
     USE dipole_calc, ONLY: center_mass, wannier, wannier_frag, solv_frag_index
@@ -172,7 +172,6 @@ PROGRAM vib2d
         CALL read_normal_modes(gs, sys, stats)
 
         CALL normal_mode_analysis(sys, stats)
-
         !***************************************************************************
 
         !***************************************************************************
@@ -187,8 +186,6 @@ PROGRAM vib2d
         CALL finite_diff_static(gs, sys, stats, dips, rams)
 
         CALL spec_static_ir(sys, stats, dips)
-
-        DEALLOCATE (sys%element, sys%coord, sys%mass_atom)
         !***************************************************************************
 
         !***************************************************************************
@@ -208,9 +205,6 @@ PROGRAM vib2d
         CALL finite_diff_static(gs, sys, stats, dips, rams)
 
         CALL spec_static_raman(gs, sys, stats, dips, rams)
-        DEALLOCATE (stats%freq, stats%disp)
-        DEALLOCATE (rams%pol_dq)
-        DEALLOCATE (sys%element, sys%coord, sys%mass_atom)
         !***************************************************************************
 
         !***************************************************************************
@@ -240,9 +234,6 @@ PROGRAM vib2d
         CALL spec_abs(gs, sys, rams)
 
         CALL spec_static_resraman(gs, sys, stats, rams)
-
-!        DEALLOCATE (element, coord, mass_atom)
-
         !***************************************************************************
         !***************************************************************************
     ELSEIF (read_function=='MD-RR') THEN
@@ -254,6 +245,8 @@ PROGRAM vib2d
         !CALL spec_resraman(natom,framecount,element,rtp_dipole_x,rtp_dipole_y,rtp_dipole_z,type_input,mol_num,system,&
         !     read_function,dt,z_iso_resraman,z_aniso_resraman,dom,dom_rtp,laser_in_resraman,y_out)
     END IF
+
+    CALL deallocate_types(gs, sys, md, stats, rams, dips)
 
     CALL SYSTEM_CLOCK(count_1, count_rate, count_max) !Ending time
     time_final = count_1*1.0_dp/count_rate

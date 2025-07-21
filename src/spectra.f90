@@ -22,7 +22,7 @@ MODULE calc_spectra
 
 CONTAINS
 SUBROUTINE spec_power(gs, sys, md)
-    ! !Eingabe-Datenstrukturen
+   
     TYPE(global_settings), INTENT(INOUT)        :: gs
     TYPE(systems), INTENT(INOUT)                :: sys
     TYPE(molecular_dynamics), INTENT(INOUT)     :: md
