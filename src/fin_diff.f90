@@ -156,27 +156,20 @@ CONTAINS
 
         conv_unit = damping_constant*joule_unit/ev_unit !! J
         damping_factor = conv_unit/action_unit*rams%RR%dt_rtp*fs2s !! s-1
+                            
+        DO l = 2, rams%RR%framecount_rtp + 1
+            rams%RR%pol_rtp(:, :, :, 1, :, l - 1) = static_dipole_x_rtp(:, :, :, :, l) - static_dipole_x_rtp(:, :, :, :, 1)
+            rams%RR%pol_rtp(:, :, :, 2, :, l - 1) = static_dipole_y_rtp(:, :, :, :, l) - static_dipole_y_rtp(:, :, :, :, 1)
+            rams%RR%pol_rtp(:, :, :, 3, :, l - 1) = static_dipole_z_rtp(:, :, :, :, l) - static_dipole_z_rtp(:, :, :, :, 1)
+        ENDDO
 
-        DO j = 1, sys%natom
-            DO i = 1, 3
-                DO k = 1, 2
-                    DO m = 1, 3
-                        DO l = 2, rams%RR%framecount_rtp + 1
-                            rams%RR%pol_rtp(j, i, k, 1, m, l - 1) = REAL((static_dipole_x_rtp(j, i, k, m, l) &
-                                                                          - static_dipole_x_rtp(j, i, k, m, 1)) &
-                                                                         *(EXP(-1.0_dp*damping_factor*(l - 1)))/0.001_dp, kind=dp)
-                            rams%RR%pol_rtp(j, i, k, 2, m, l - 1) = REAL((static_dipole_y_rtp(j, i, k, m, l) &
-                                                                          - static_dipole_y_rtp(j, i, k, m, 1)) &
-                                                                         *(EXP(-1.0_dp*damping_factor*(l - 1)))/0.001_dp, kind=dp)
-                            rams%RR%pol_rtp(j, i, k, 3, m, l - 1) = REAL((static_dipole_z_rtp(j, i, k, m, l) &
-                                                                          - static_dipole_z_rtp(j, i, k, m, 1)) &
-                                                                         *(EXP(-1.0_dp*damping_factor*(l - 1)))/0.001_dp, kind=dp)
-                        END DO
-                    END DO
-                END DO
-            END DO
-        END DO
+      DO l=1,rams%RR%framecount_rtp
+        rams%RR%pol_rtp(:,:,:,:,:,l)= rams%RR%pol_rtp(:,:,:,:,:,l)*(EXP(-1.0d0*damping_factor*l))
+      ENDDO
 
+       ! DO i = 1, framecount_rtp
+        !    pol_rtp(:,:,:,:,:,i) = pol_rtp(:,:,:,:,:,i)*((COS(i/(framecount_rtp - 1.0_dp)/2.0_dp*3.14_dp))**2) !!Hann Window function
+        !END DO
     END SUBROUTINE finite_diff_static_resraman
 END MODULE fin_diff
 

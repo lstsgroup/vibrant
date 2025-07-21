@@ -823,14 +823,18 @@ END SUBROUTINE spec_raman
             rams%RR%zhat_pol_rtp = y_out
             DEALLOCATE (y_out)
         END IF
-    
-        !!!Finding frequency range
+
+
+!!!Dividing by electric field
+        rams%RR%zhat_pol_rtp=rams%RR%zhat_pol_rtp/0.001_dp !!later make this an input variable
+
+!!!Finding frequency range
         rtp_freq_range = REAL(rams%RR%dom_rtp/rams%RR%framecount_rtp, kind=dp)
-    
-        !!!Calculate absorption spectra
+
+!!!Calculate absorption spectra
         ALLOCATE (trace(sys%natom, dims, dir, rams%RR%framecount_rtp))
         ALLOCATE (abs_intens(sys%natom, dims, dir, rams%RR%framecount_rtp))
-    
+  
         trace = 0.0_dp
         trace(:, :, :, :) = DIMAG(rams%RR%zhat_pol_rtp(:, :, :, 1, 1, :)) + DIMAG(rams%RR%zhat_pol_rtp(:, :, :, 2, 2, :)) &
                             + DIMAG(rams%RR%zhat_pol_rtp(:, :, :, 3, 3, :))
