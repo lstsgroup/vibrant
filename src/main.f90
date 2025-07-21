@@ -172,7 +172,6 @@ PROGRAM vib2d
         CALL read_normal_modes(gs, sys, stats)
 
         CALL normal_mode_analysis(sys, stats)
-
         !***************************************************************************
 
         !***************************************************************************
@@ -187,8 +186,6 @@ PROGRAM vib2d
         CALL finite_diff_static(gs, sys, stats, dips, rams)
 
         CALL spec_static_ir(sys, stats, dips)
-
-        DEALLOCATE (sys%element, sys%coord, sys%mass_atom)
         !***************************************************************************
 
         !***************************************************************************
@@ -208,9 +205,6 @@ PROGRAM vib2d
         CALL finite_diff_static(gs, sys, stats, dips, rams)
 
         CALL spec_static_raman(gs, sys, stats, dips, rams)
-        DEALLOCATE (stats%freq, stats%disp)
-        DEALLOCATE (rams%pol_dq)
-        DEALLOCATE (sys%element, sys%coord, sys%mass_atom)
         !***************************************************************************
 
         !***************************************************************************
@@ -240,9 +234,6 @@ PROGRAM vib2d
         CALL spec_abs(gs, sys, rams)
 
         CALL spec_static_resraman(gs, sys, stats, rams)
-
-!        DEALLOCATE (element, coord, mass_atom)
-
         !***************************************************************************
         !***************************************************************************
     ELSEIF (read_function=='MD-RR') THEN

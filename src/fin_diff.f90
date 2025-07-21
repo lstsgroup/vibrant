@@ -76,24 +76,13 @@ CONTAINS
 
 !**************************************************************************************************************!
 !**************************************************************************************************************!
-    SUBROUTINE finite_diff_static(gs, sys, stats, dips, rams) ! sys%natom, stats%nmodes, rams%pol, rams%pol_dq, stats%disp, sys%atom_mass_inv_sqrt, stats%dx, dips%static_dip, rams%static_dip_x, rams%static_dip_y, rams%static_dip_z, gs%spectral_type%type_dipole, gs%spectral_type%read_function, dips%dip_dq)
+    SUBROUTINE finite_diff_static(gs, sys, stats, dips, rams)
 
         TYPE(global_settings), INTENT(INOUT) :: gs
         TYPE(systems), INTENT(INOUT)   :: sys
         TYPE(static), INTENT(INOUT):: stats
         TYPE(dipoles), INTENT(INOUT)    ::  dips
         TYPE(raman), INTENT(INOUT)   :: rams
-
-        !INTEGER, INTENT(INOUT)                                         :: sys%natom, stats%nmodes
-        !CHARACTER(LEN=40), INTENT(IN)                                  :: gs%spectral_type%read_function, gs%spectral_type%type_dipole
-        !REAL(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE, INTENT(INOUT)  :: rams%pol
-        !REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE, INTENT(INOUT)    :: dips%static_dip, rams%static_dip_x
-        !REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE, INTENT(INOUT)    :: rams%static_dip_y, rams%static_dip_z
-        !REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(OUT)        :: rams%pol_dq
-        !REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE, INTENT(OUT)        :: dips%dip_dq
-        !REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(IN)         :: stats%disp
-        !REAL(kind=dp), DIMENSION(:), ALLOCATABLE, INTENT(IN)           :: sys%atom_mass_inv_sqrt
-        !REAL(kind=dp), INTENT(IN)                                      :: stats%dx
 
         INTEGER                                                      :: stat, i, j, k, m
         REAL(kind=dp)                                                 :: factor
@@ -174,14 +163,14 @@ CONTAINS
                     DO m = 1, 3
                         DO l = 2, rams%RR%framecount_rtp + 1
                             rams%RR%pol_rtp(j, i, k, 1, m, l - 1) = REAL((static_dipole_x_rtp(j, i, k, m, l) &
-                                                                       - static_dipole_x_rtp(j, i, k, m, 1)) &
-                                                                      *(EXP(-1.0_dp*damping_factor*(l - 1)))/0.001_dp, kind=dp)
+                                                                          - static_dipole_x_rtp(j, i, k, m, 1)) &
+                                                                         *(EXP(-1.0_dp*damping_factor*(l - 1)))/0.001_dp, kind=dp)
                             rams%RR%pol_rtp(j, i, k, 2, m, l - 1) = REAL((static_dipole_y_rtp(j, i, k, m, l) &
-                                                                       - static_dipole_y_rtp(j, i, k, m, 1)) &
-                                                                      *(EXP(-1.0_dp*damping_factor*(l - 1)))/0.001_dp, kind=dp)
+                                                                          - static_dipole_y_rtp(j, i, k, m, 1)) &
+                                                                         *(EXP(-1.0_dp*damping_factor*(l - 1)))/0.001_dp, kind=dp)
                             rams%RR%pol_rtp(j, i, k, 3, m, l - 1) = REAL((static_dipole_z_rtp(j, i, k, m, l) &
-                                                                       - static_dipole_z_rtp(j, i, k, m, 1)) &
-                                                                      *(EXP(-1.0_dp*damping_factor*(l - 1)))/0.001_dp, kind=dp)
+                                                                          - static_dipole_z_rtp(j, i, k, m, 1)) &
+                                                                         *(EXP(-1.0_dp*damping_factor*(l - 1)))/0.001_dp, kind=dp)
                         END DO
                     END DO
                 END DO
