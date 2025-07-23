@@ -1,11 +1,12 @@
 PROGRAM vib2d
 
     USE, INTRINSIC           :: ISO_C_BINDING
-    USE kinds, ONLY: dp
+    USE kinds, ONLY: dp, str_len
     USE constants, ONLY: speed_light, const_planck, const_permit, pi, const_charge, const_boltz, damping_constant, joule_unit, &
                          debye, ev_unit, action_unit, bohr2ang, hartreebohr2evang, at_u, ang, fs2s, reccm2ev, t_cor, temp, &
                          hessian_factor
-    USE vib_types, ONLY: global_settings, systems, molecular_dynamics, static, dipoles, raman, deallocate_types
+    USE read_input, ONLY:  parse_command_line,  parse_input, check_input
+    USE vib_types, ONLY: global_settings, systems, molecular_dynamics, static, dipoles, raman,init_global_settings,init_systems, init_molecular_dynamics,init_static, deallocate_types
     USE setup, ONLY: read_input, masses_charges, conversion, pbc_orthorombic, pbc_hexagonal
     USE read_traj, ONLY: read_coord, read_coord_frame, read_normal_modes, read_static, read_static_resraman
     USE dipole_calc, ONLY: center_mass, wannier, wannier_frag, solv_frag_index
@@ -65,187 +66,221 @@ PROGRAM vib2d
     REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE       :: coord_v, coord_dip, coord_f, coord_x, coord_y, coord_z, dipole
     REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE       :: coord_v_x, coord_v_free, alpha_x, alpha_y, alpha_z, v
     REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE       :: alpha_diff_x, alpha_diff_y, alpha_diff_z
-
+    
     ! Variables of your derived types:
     TYPE(global_settings) :: gs
     TYPE(systems)        :: sys
-    TYPE(molecular_dynamics)        :: md
+    TYPE(molecular_dynamics)    :: md
 
     TYPE(static)            :: stats
     TYPE(dipoles)            :: dips
     TYPE(raman)            :: rams
-!$omp parallel
+    CHARACTER(LEN=str_len)          :: input_file_name
+    
+    !$omp parallel
     num_threads = omp_get_num_threads()
-!$omp end parallel
-
+    !$omp end parallel
+    
     CALL SYSTEM_CLOCK(count_0, count_rate, count_max) !Starting time
     time_init = count_0*1.0_dp/count_rate
-
+    
+    CALL init_global_settings(gs)
+    CALL init_systems(sys)
+    CALL init_molecular_dynamics(md)
+    CALL init_static(stats)
+    
     CALL output_config_info()
 
-    CALL read_input(filename, static_pol_file, static_dip_free_file, static_dip_x_file, static_dip_y_file, static_dip_z_file, &
-                    normal_freq_file, normal_displ_file, read_function, system, length, box_all, box_x, box_y, box_z, dt, &
-                    type_input, wannier_free, wannier_x, wannier_y, wannier_z, input_mass, periodic, direction, averaging, &
-                    type_dipole, cell_type, rtp_dipole_x, rtp_dipole_y, rtp_dipole_z, framecount_rtp, dt_rtp, &
-                    frag_type, type_static, force_file, laser_in, check_pade, dx, framecount_rtp_pade)
+    !***************************************************************************
+    !                                                                        ***
+    !                                                                           ***
+    !                                                                               ***
 
-    CALL conversion(dt, dom, dt_rtp, dom_rtp, freq_range, sinc_const)
-
-    ! TEMP setup
-    gs%spectral_type%read_function = read_function
-    gs%spectral_type%type_dipole = type_dipole
-    gs%spectral_type%type_static = type_static
-    gs%spectral_type%type_input = type_input
-    gs%laser_in = laser_in
-
-    sys%filename = filename
-    sys%system = system
-    sys%cell%cell_type = cell_type
-    sys%periodic = periodic
-    sys%frag_type = frag_type
-    sys%input_mass = input_mass
-    sys%cell%box_all = box_all
-    sys%cell%box_x = box_x
-    sys%cell%box_y = box_y
-    sys%cell%box_z = box_z
+    CALL parse_command_line(input_file_name)
     
-    stats%force_file = force_file
-    stats%normal_freq_file = normal_freq_file
-    stats%normal_displ_file = normal_displ_file
-    stats%dx = dx
-    
-    dips%static_dip_file = static_dip_free_file
-    
-    rams%static_pol_file = static_pol_file
-    rams%wannier_free = wannier_free
-    rams%wannier_x = wannier_x
-    rams%wannier_y = wannier_y
-    rams%wannier_z = wannier_z
-    rams%averaging = averaging
-    rams%direction = direction
+    CALL parse_input(gs, sys, md, stats, dips, rams, input_file_name)
+    PRINT *, REPEAT('-', 30)
+    CALL check_input(gs, sys, md, stats, dips, rams)
+    PRINT *, REPEAT('-', 30)
+    !write(*,*) "input_file_name", input_file_name
+    !write(*,*) "temperature", gs%temp
+    !write(*,*) "laserin", gs%laser_in
+    !write(*,*) "read_function", gs%spectral_type%read_function
+    !write(*,*) "type_input ", gs%spectral_type%type_input
+    !write(*,*) "type_static ", gs%spectral_type%type_static
+    !write(*,*) "type_dipole ", gs%spectral_type%type_dipole
+    !                                                                                  ***
+    !                                                                           ***
+    !                                                                        ***
+    !***************************************************************************
 
-    rams%RR%dt_rtp = dt_rtp
-    rams%RR%dom_rtp = dom_rtp
-    rams%RR%check_pade = check_pade
-    rams%RR%framecount_rtp_pade = framecount_rtp_pade
-    rams%RR%framecount_rtp = framecount_rtp
+
+
 
     
-    md%freq_range = freq_range
-    md%dt = dt
-    md%dom = dom
-    md%sinc_const = sinc_const
-
+!    CALL read_input(filename, static_pol_file, static_dip_free_file, static_dip_x_file, static_dip_y_file, static_dip_z_file, &
+!                    normal_freq_file, normal_displ_file, read_function, system, length, box_all, box_x, box_y, box_z, dt, &
+!                    type_input, wannier_free, wannier_x, wannier_y, wannier_z, input_mass, periodic, direction, averaging, &
+!                    type_dipole, cell_type, rtp_dipole_x, rtp_dipole_y, rtp_dipole_z, framecount_rtp, dt_rtp, &
+!                    frag_type, type_static, force_file, laser_in, check_pade, dx, framecount_rtp_pade)
+    
+    CALL conversion(md%dt, md%dom, rams%RR%dt_rtp, rams%RR%dom_rtp, md%freq_range, md%sinc_const)
 !
-!    !***************************************************************************
-    IF (read_function=='P') THEN
+!    ! TEMP setup
+!    gs%spectral_type%read_function = read_function
+!    gs%spectral_type%type_dipole = type_dipole
+!    gs%spectral_type%type_static = type_static
+!    gs%spectral_type%type_input = type_input
+!    gs%laser_in = laser_in
+!
+!    sys%filename = filename
+!    sys%system = system
+!    sys%cell%cell_type = cell_type
+!    sys%periodic = periodic
+!    sys%frag_type = frag_type
+!    sys%input_mass = input_mass
+!    sys%cell%box_all = box_all
+!    sys%cell%box_x = box_x
+!    sys%cell%box_y = box_y
+!    sys%cell%box_z = box_z
+!    
+!    stats%force_file = force_file
+!    stats%normal_freq_file = normal_freq_file
+!    stats%normal_displ_file = normal_displ_file
+!    stats%dx = dx
+!    
+!    dips%static_dip_file = static_dip_free_file
+!    
+!    rams%static_pol_file = static_pol_file
+!    rams%wannier_free = wannier_free
+!    rams%wannier_x = wannier_x
+!    rams%wannier_y = wannier_y
+!    rams%wannier_z = wannier_z
+!    rams%averaging = averaging
+!    rams%direction = direction
+!
+!    rams%RR%dt_rtp = dt_rtp
+!    rams%RR%dom_rtp = dom_rtp
+!    rams%RR%check_pade = check_pade
+!    rams%RR%framecount_rtp_pade = framecount_rtp_pade
+!    rams%RR%framecount_rtp = framecount_rtp
+!
+!    
+!    md%freq_range = freq_range
+!    md%dt = dt
+!    md%dom = dom
+!    md%sinc_const = sinc_const
+!
+!!
+!!    !***************************************************************************
+    IF (gs%spectral_type%read_function=='P') THEN
         CALL read_coord(gs, sys)
         CALL masses_charges(gs, sys)
-
+               
         CALL spec_power(gs, sys, md)
-        !***************************************************************************
-        !***************************************************************************
-    ELSEIF (read_function=='MD-IR') THEN
-        CALL read_coord(gs, sys)
-        IF (sys%system=='1' .OR. sys%system=='2' .AND. gs%spectral_type%type_dipole=='1') THEN !!fragment approach or whole supercell
-            IF (sys%cell%cell_type=='1' .OR. sys%cell%cell_type=='2') THEN !!KP or SC
-                CALL masses_charges(gs, sys)
-            END IF
-        END IF
-
-        CALL spec_ir(gs, sys, md, dips)
-        !***************************************************************************
-
-        !***************************************************************************
-    ELSEIF (read_function=='MD-R') THEN
-        sys%filename = wannier_free! <----  MUST BE ADJUSTED
-        CALL read_coord(gs, sys)
-        CALL masses_charges(gs, sys)
-
-        CALL spec_raman(gs, sys, md, dips, rams)
-        !***************************************************************************
-
-        !***************************************************************************
-    ELSEIF (read_function=='NMA') THEN
+!        !***************************************************************************
+!        !***************************************************************************
+!    ELSEIF (gs%spectral_type%read_function=='MD-IR') THEN
+!        CALL read_coord(gs, sys)
+!        IF (sys%system=='1' .OR. sys%system=='2' .AND. gs%spectral_type%type_dipole=='1') THEN !!fragment approach or whole supercell
+!            IF (sys%cell%cell_type=='1' .OR. sys%cell%cell_type=='2') THEN !!KP or SC
+!                CALL masses_charges(gs, sys)
+!            END IF
+!        END IF
+!
+!        CALL spec_ir(gs, sys, md, dips)
+!        !***************************************************************************
+!
+!        !***************************************************************************
+!    ELSEIF (gs%spectral_type%read_function=='MD-R') THEN
+!        sys%filename = wannier_free! <----  MUST BE ADJUSTED
+!        CALL read_coord(gs, sys)
+!        CALL masses_charges(gs, sys)
+!
+!        CALL spec_raman(gs, sys, md, dips, rams)
+!        !***************************************************************************
+!
+!        !***************************************************************************
+    ELSEIF (gs%spectral_type%read_function=='NMA') THEN
         CALL read_coord(gs, sys)
         CALL masses_charges(gs, sys)
         CALL read_normal_modes(gs, sys, stats)
 
         CALL normal_mode_analysis(sys, stats)
-        !***************************************************************************
-
-        !***************************************************************************
-    ELSEIF (read_function=='IR') THEN
-        CALL read_coord(gs, sys)
-        CALL masses_charges(gs, sys)
-        CALL read_normal_modes(gs, sys, stats)
-        CALL read_static(dips%static_dip_file, dips%static_dip, gs, sys, rams)
-        IF (type_static=='1') THEN
-            CALL normal_mode_analysis(sys, stats)
-        END IF
-        CALL finite_diff_static(gs, sys, stats, dips, rams)
-
-        CALL spec_static_ir(sys, stats, dips)
-        !***************************************************************************
-
-        !***************************************************************************
-    ELSEIF (read_function=='R') THEN
-        CALL read_coord(gs, sys)
-        CALL masses_charges(gs, sys)
-        CALL read_normal_modes(gs, sys, stats)
-        CALL read_static(dips%static_dip_file, dips%static_dip, gs, sys, rams)
-        IF (type_dipole=='2') THEN
-            CALL read_static(static_dip_x_file, static_dip_x, gs, sys, rams)
-            CALL read_static(static_dip_y_file, static_dip_y, gs, sys, rams)
-            CALL read_static(static_dip_z_file, static_dip_z, gs, sys, rams)
-        END IF
-        IF (type_static=='1') THEN
-            CALL normal_mode_analysis(sys, stats)
-        END IF
-        CALL finite_diff_static(gs, sys, stats, dips, rams)
-
-        CALL spec_static_raman(gs, sys, stats, dips, rams)
-        !***************************************************************************
-
-        !***************************************************************************
-    ELSEIF (read_function=='ABS') THEN
-        CALL read_coord(gs, sys)
-        CALL read_static_resraman(static_dip_x_file, rams%RR%static_dip_x_rtp, sys, rams)
-        CALL read_static_resraman(static_dip_y_file, rams%RR%static_dip_y_rtp, sys, rams)
-        CALL read_static_resraman(static_dip_z_file, rams%RR%static_dip_z_rtp, sys, rams)
-        CALL finite_diff_static_resraman(rams%RR%static_dip_x_rtp, rams%RR%static_dip_y_rtp, rams%RR%static_dip_z_rtp, sys, rams) !<-- CHANGE ?
-
-        CALL spec_abs(gs, sys, rams)
-        !***************************************************************************
-
-        !***************************************************************************
-    ELSEIF (read_function=='RR') THEN
-        CALL read_coord(gs, sys, rams)
-        CALL masses_charges(gs, sys)
-        CALL read_normal_modes(gs, sys, stats)
-        CALL read_static_resraman(static_dip_x_file, rams%RR%static_dip_x_rtp, sys, rams)
-        CALL read_static_resraman(static_dip_y_file, rams%RR%static_dip_y_rtp, sys, rams)
-        CALL read_static_resraman(static_dip_z_file, rams%RR%static_dip_z_rtp, sys, rams)
-        IF (type_static=='1') THEN
-            CALL normal_mode_analysis(sys, stats)
-        END IF
-
-        CALL finite_diff_static_resraman(rams%RR%static_dip_x_rtp, rams%RR%static_dip_y_rtp, rams%RR%static_dip_z_rtp, sys, rams)
-        CALL spec_abs(gs, sys, rams)
-
-        CALL spec_static_resraman(gs, sys, stats, rams)
-        !***************************************************************************
-        !***************************************************************************
-    ELSEIF (read_function=='MD-RR') THEN
-        !sys%filename = rtp_dipole_x ! <----  MUST BE ADJUSTED
-        !CALL read_coord(gs, sys)
-        !natom = sys%natom
-        !framecount = sys%framecount
-        !mol_num = sys%mol_num
-        !CALL spec_resraman(natom,framecount,element,rtp_dipole_x,rtp_dipole_y,rtp_dipole_z,type_input,mol_num,system,&
-        !     read_function,dt,z_iso_resraman,z_aniso_resraman,dom,dom_rtp,laser_in_resraman,y_out)
+!        !***************************************************************************
+!
+!        !***************************************************************************
+!    ELSEIF (gs%spectral_type%read_function=='IR') THEN
+!        CALL read_coord(gs, sys)
+!        CALL masses_charges(gs, sys)
+!        CALL read_normal_modes(gs, sys, stats)
+!        CALL read_static(dips%static_dip_file, dips%static_dip, gs, sys, rams)
+!        IF (type_static=='1') THEN
+!            CALL normal_mode_analysis(sys, stats)
+!        END IF
+!        CALL finite_diff_static(gs, sys, stats, dips, rams)
+!
+!        CALL spec_static_ir(sys, stats, dips)
+!        !***************************************************************************
+!
+!        !***************************************************************************
+!    ELSEIF (gs%spectral_type%read_function=='R') THEN
+!        CALL read_coord(gs, sys)
+!        CALL masses_charges(gs, sys)
+!        CALL read_normal_modes(gs, sys, stats)
+!        CALL read_static(dips%static_dip_file, dips%static_dip, gs, sys, rams)
+!        IF (type_dipole=='2') THEN
+!            CALL read_static(static_dip_x_file, static_dip_x, gs, sys, rams)
+!            CALL read_static(static_dip_y_file, static_dip_y, gs, sys, rams)
+!            CALL read_static(static_dip_z_file, static_dip_z, gs, sys, rams)
+!        END IF
+!        IF (type_static=='1') THEN
+!            CALL normal_mode_analysis(sys, stats)
+!        END IF
+!        CALL finite_diff_static(gs, sys, stats, dips, rams)
+!
+!        CALL spec_static_raman(gs, sys, stats, dips, rams)
+!        !***************************************************************************
+!
+!        !***************************************************************************
+!    ELSEIF (gs%spectral_type%read_function=='ABS') THEN
+!        CALL read_coord(gs, sys)
+!        CALL read_static_resraman(static_dip_x_file, rams%RR%static_dip_x_rtp, sys, rams)
+!        CALL read_static_resraman(static_dip_y_file, rams%RR%static_dip_y_rtp, sys, rams)
+!        CALL read_static_resraman(static_dip_z_file, rams%RR%static_dip_z_rtp, sys, rams)
+!        CALL finite_diff_static_resraman(rams%RR%static_dip_x_rtp, rams%RR%static_dip_y_rtp, rams%RR%static_dip_z_rtp, sys, rams) !<-- CHANGE ?
+!
+!        CALL spec_abs(gs, sys, rams)
+!        !***************************************************************************
+!
+!        !***************************************************************************
+!    ELSEIF (gs%spectral_type%read_function=='RR') THEN
+!        CALL read_coord(gs, sys, rams)
+!        CALL masses_charges(gs, sys)
+!        CALL read_normal_modes(gs, sys, stats)
+!        CALL read_static_resraman(static_dip_x_file, rams%RR%static_dip_x_rtp, sys, rams)
+!        CALL read_static_resraman(static_dip_y_file, rams%RR%static_dip_y_rtp, sys, rams)
+!        CALL read_static_resraman(static_dip_z_file, rams%RR%static_dip_z_rtp, sys, rams)
+!        IF (type_static=='1') THEN
+!            CALL normal_mode_analysis(sys, stats)
+!        END IF
+!
+!        CALL finite_diff_static_resraman(rams%RR%static_dip_x_rtp, rams%RR%static_dip_y_rtp, rams%RR%static_dip_z_rtp, sys, rams)
+!        CALL spec_abs(gs, sys, rams)
+!
+!        CALL spec_static_resraman(gs, sys, stats, rams)
+!        !***************************************************************************
+!        !***************************************************************************
+!    ELSEIF (gs%spectral_type%read_function=='MD-RR') THEN
+!        !sys%filename = rtp_dipole_x ! <----  MUST BE ADJUSTED
+!        !CALL read_coord(gs, sys)
+!        !natom = sys%natom
+!        !framecount = sys%framecount
+!        !mol_num = sys%mol_num
+!        !CALL spec_resraman(natom,framecount,element,rtp_dipole_x,rtp_dipole_y,rtp_dipole_z,type_input,mol_num,system,&
+!        !     read_function,dt,z_iso_resraman,z_aniso_resraman,dom,dom_rtp,laser_in_resraman,y_out)
     END IF
-
+!
     CALL deallocate_types(gs, sys, md, stats, rams, dips)
 
     CALL SYSTEM_CLOCK(count_1, count_rate, count_max) !Ending time

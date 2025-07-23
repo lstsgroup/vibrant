@@ -4,9 +4,12 @@ MODULE kinds
     IMPLICIT NONE
 
     !> Double precision kind
-    INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(15)
+    INTEGER, PARAMETER, PUBLIC :: dp = SELECTED_REAL_KIND(15)
 
     !> Single precision kind
-    INTEGER, PARAMETER :: sp = SELECTED_REAL_KIND(6)
+    INTEGER, PARAMETER, PUBLIC :: sp = SELECTED_REAL_KIND(6)
+
+    !> default string length
+    INTEGER, PARAMETER, PUBLIC :: str_len = 100
 
 END MODULE kinds
