@@ -176,7 +176,7 @@ PROGRAM vib2d
     IF (gs%spectral_type%read_function=='P') THEN
         CALL read_coord(gs, sys)
         CALL masses_charges(gs, sys)
-               
+             print*,'test'  
         CALL spec_power(gs, sys, md)
 !        !***************************************************************************
 !        !***************************************************************************
