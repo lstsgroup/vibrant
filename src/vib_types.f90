@@ -31,7 +31,18 @@ MODULE vib_types
         REAL(kind=dp)                                  :: box_all, box_x, box_y, box_z, vec(3), vec_pbc(3)
     END TYPE cell
     !***************************************************************************
+    TYPE electric_field
+        CHARACTER(LEN=40)                                   :: wannier_xyz
+        CHARACTER(LEN=40)                                   :: static_dip_file_xyz
 
+        INTEGER, DIMENSION(:), ALLOCATABLE                         :: natom_frag_xyz
+        INTEGER, DIMENSION(:, :, :), ALLOCATABLE                     :: fragment_xyz
+        REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE   :: static_dip_xyz
+        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                :: alpha_xyz
+        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                :: dip_xyz 
+        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                :: alpha_diff_xyz
+    END  TYPE electric_field
+    !***************************************************************************
     TYPE resonant_raman
     CHARACTER(LEN=40)                                   :: check_pade
     INTEGER                                             :: framecount_rtp
@@ -42,8 +53,8 @@ MODULE vib_types
     REAL(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE:: static_dip_x_rtp
     REAL(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE:: static_dip_y_rtp
     REAL(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE:: static_dip_z_rtp
-REAL(kind=dp), DIMENSION(:, :, :, :, :, :), ALLOCATABLE :: pol_rtp
-COMPLEX(kind=dp), DIMENSION(:, :, :, :, :, :), ALLOCATABLE :: zhat_pol_rtp
+    REAL(kind=dp), DIMENSION(:, :, :, :, :, :), ALLOCATABLE :: pol_rtp
+    COMPLEX(kind=dp), DIMENSION(:, :, :, :, :, :), ALLOCATABLE :: zhat_pol_rtp
     !CHARACTER(LEN=40)                                   :: rtp_dipole_x, rtp_dipole_y, rtp_dipole_z
     !COMPLEX(kind=dp), DIMENSION(:, :), ALLOCATABLE      :: z_iso_resraman, z_aniso_resraman
 END TYPE resonant_raman
@@ -115,6 +126,7 @@ END TYPE resonant_raman
         !LOGICAL                                            ::  fragment !<yes/no>
     END TYPE dipoles
     !***************************************************************************
+    
     TYPE raman
         !LOGICAL                                             :: polarizability_type ! <numeric/analytic>
         !numeric
@@ -126,6 +138,7 @@ END TYPE resonant_raman
         REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE   :: static_dip_x             ! Dipolemoments mybe move to dipole class
         REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE   :: static_dip_y             ! Dipolemoments mybe move to dipole class
         REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE   :: static_dip_z             ! Dipolemoments mybe move to dipole class
+        TYPE(electric_field), DIMENSION(3)                                :: e_field
         !end numeric
         ! analytic
         CHARACTER(LEN=40)                                   :: static_pol_file
@@ -282,14 +295,22 @@ CONTAINS
         IMPLICIT NONE
         TYPE(raman), INTENT(INOUT):: rams
 
+        INTEGER                     :: xyz
+
         !IF (ALLOCATED(rams%static_dip_free_file)) DEALLOCATE(rams%static_dip_free_file)
         !IF (ALLOCATED(rams%static_dip_x_file)) DEALLOCATE(rams%static_dip_x_file)
         !IF (ALLOCATED(rams%static_dip_y_file)) DEALLOCATE(rams%static_dip_y_file)
         !IF (ALLOCATED(rams%static_dip_z_file)) DEALLOCATE(rams%static_dip_z_file)
         IF (ALLOCATED(rams%static_dip_free)) DEALLOCATE(rams%static_dip_free)
-        IF (ALLOCATED(rams%static_dip_x)) DEALLOCATE(rams%static_dip_x)
-        IF (ALLOCATED(rams%static_dip_y)) DEALLOCATE(rams%static_dip_y)
-        IF (ALLOCATED(rams%static_dip_z)) DEALLOCATE(rams%static_dip_z)
+        DO xyz = 1, 3
+            IF (ALLOCATED(rams%e_field(xyz)%static_dip_xyz)) DEALLOCATE(rams%e_field(xyz)%static_dip_xyz)
+            IF (ALLOCATED(rams%e_field(xyz)%alpha_xyz)) DEALLOCATE(rams%e_field(xyz)%alpha_xyz)
+            IF (ALLOCATED(rams%e_field(xyz)%dip_xyz)) DEALLOCATE(rams%e_field(xyz)%dip_xyz)
+            IF (ALLOCATED(rams%e_field(xyz)%alpha_diff_xyz)) DEALLOCATE(rams%e_field(xyz)%alpha_diff_xyz)
+            IF (ALLOCATED(rams%e_field(xyz)%fragment_xyz)) DEALLOCATE(rams%e_field(xyz)%fragment_xyz)
+            IF (ALLOCATED(rams%e_field(xyz)%natom_frag_xyz)) DEALLOCATE(rams%e_field(xyz)%natom_frag_xyz)
+        END DO
+        
         !IF (ALLOCATED(rams%static_pol_file)) DEALLOCATE(rams%static_pol_file)
         IF (ALLOCATED(rams%z_iso)) DEALLOCATE(rams%z_iso)
         IF (ALLOCATED(rams%z_aniso)) DEALLOCATE(rams%z_aniso)

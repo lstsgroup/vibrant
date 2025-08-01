@@ -121,6 +121,12 @@ PROGRAM vib2d
     rams%wannier_x = wannier_x
     rams%wannier_y = wannier_y
     rams%wannier_z = wannier_z
+
+    rams%e_field(1)%wannier_xyz = wannier_x
+    rams%e_field(2)%wannier_xyz = wannier_y
+    rams%e_field(3)%wannier_xyz = wannier_z
+
+
     rams%averaging = averaging
     rams%direction = direction
 
