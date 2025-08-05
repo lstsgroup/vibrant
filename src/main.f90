@@ -200,6 +200,11 @@ PROGRAM vib2d
         CALL masses_charges(gs, sys)
         CALL read_normal_modes(gs, sys, stats)
         CALL read_static(dips%static_dip_file, dips%static_dip, gs, sys, rams)
+        !PRINT *, "POLs: ", rams%atom(1)%displacement(1)%XYZ(1)%pol(1,1), rams%atom(1)%displacement(1)%XYZ(1)%pol(2, 2), rams%atom(1)%displacement(1)%XYZ(1)%pol(3, 3)
+        !PRINT *, "POLs: ", rams%atom(1)%displacement(1)%XYZ(1)%pol(1,2), rams%atom(1)%displacement(1)%XYZ(1)%pol(1, 3), rams%atom(1)%displacement(1)%XYZ(1)%pol(2, 3)
+        !PRINT *, "POLs: ", rams%atom(1)%displacement(1)%XYZ(1)%pol(2,1), rams%atom(1)%displacement(1)%XYZ(1)%pol(3, 1), rams%atom(1)%displacement(1)%XYZ(1)%pol(3, 2)
+        
+
         IF (type_dipole=='2') THEN
             CALL read_static(static_dip_x_file, static_dip_x, gs, sys, rams)
             CALL read_static(static_dip_y_file, static_dip_y, gs, sys, rams)

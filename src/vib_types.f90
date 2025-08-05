@@ -31,17 +31,7 @@ MODULE vib_types
         REAL(kind=dp)                                  :: box_all, box_x, box_y, box_z, vec(3), vec_pbc(3)
     END TYPE cell
     !***************************************************************************
-    TYPE electric_field
-        CHARACTER(LEN=40)                                   :: wannier_xyz
-        CHARACTER(LEN=40)                                   :: static_dip_file_xyz
-
-        INTEGER, DIMENSION(:), ALLOCATABLE                         :: natom_frag_xyz
-        INTEGER, DIMENSION(:, :, :), ALLOCATABLE                     :: fragment_xyz
-        REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE   :: static_dip_xyz
-        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                :: alpha_xyz
-        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                :: dip_xyz 
-        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                :: alpha_diff_xyz
-    END  TYPE electric_field
+    
     !***************************************************************************
     TYPE resonant_raman
     CHARACTER(LEN=40)                                   :: check_pade
@@ -126,6 +116,32 @@ END TYPE resonant_raman
         !LOGICAL                                            ::  fragment !<yes/no>
     END TYPE dipoles
     !***************************************************************************
+
+
+    TYPE direction_type
+        REAL(kind=dp) :: pol(3,3)
+    END TYPE direction_type
+
+    TYPE displacement_type
+        TYPE(direction_type), DIMENSION(3)   :: XYZ
+    END TYPE displacement_type
+
+    TYPE atom_information
+        TYPE(displacement_type), DIMENSION(2) :: displacement
+        !REAL(kind=dp), DIMENSION(3, 3), ALLOCATABLE :: pol
+    END TYPE atom_information
+
+    TYPE electric_field
+        CHARACTER(LEN=40)                                   :: wannier_xyz
+        CHARACTER(LEN=40)                                   :: static_dip_file_xyz
+
+        INTEGER, DIMENSION(:), ALLOCATABLE                         :: natom_frag_xyz
+        INTEGER, DIMENSION(:, :, :), ALLOCATABLE                     :: fragment_xyz
+        REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE   ::        static_dip_xyz !static_dip(sys%natom, 3, 2, 3)
+        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                :: alpha_xyz
+        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                :: dip_xyz 
+        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                :: alpha_diff_xyz
+    END  TYPE electric_field
     
     TYPE raman
         !LOGICAL                                             :: polarizability_type ! <numeric/analytic>
@@ -134,7 +150,7 @@ END TYPE resonant_raman
         CHARACTER(LEN=40)                                   :: static_dip_x_file 
         CHARACTER(LEN=40)                                   :: static_dip_y_file 
         CHARACTER(LEN=40)                                   :: static_dip_z_file        ! Dipolemoments mybe move to dipole class differenes static_dip_free_file and static_dip_file
-        REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE   :: static_dip_free          ! Dipolemoments mybe move to dipole class
+        REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE   :: static_dip_free          ! Dipolemoments mybe move to dipole class 
         REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE   :: static_dip_x             ! Dipolemoments mybe move to dipole class
         REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE   :: static_dip_y             ! Dipolemoments mybe move to dipole class
         REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE   :: static_dip_z             ! Dipolemoments mybe move to dipole class
@@ -147,19 +163,19 @@ END TYPE resonant_raman
         CHARACTER(LEN=40)                                   :: wannier_free, wannier_x, wannier_y, wannier_z ! same as static_dip_free_file
         CHARACTER(LEN=40)                                   :: averaging, direction
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE            :: raman_int
-        REAL(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE:: pol ! ALLOCATE rams%pol(sys%natom, 3, 2, 3, 3)
+        !REAL(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE:: pol ! ALLOCATE rams%pol(sys%natom, 3, 2, 3, 3)
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE      :: pol_dq !ALLOCATE (rams%pol_dq(stats%nmodes, 3, 3))
+        
+
+        Type(atom_information), DIMENSION(:), ALLOCATABLE  ::  atom                                           
         TYPE(resonant_raman)                                :: RR
     END TYPE raman
 
     !***************************************************************************
 
-
-
 CONTAINS
     SUBROUTINE deallocate_types(gs, sys, md, stats, ram, dip)
-        IMPLICIT NONE
-        
+
         TYPE(global_settings), INTENT(INOUT) ,OPTIONAL :: gs
         TYPE(systems), INTENT(INOUT) ,OPTIONAL :: sys
         TYPE(molecular_dynamics), INTENT(INOUT), OPTIONAL:: md
@@ -195,7 +211,6 @@ CONTAINS
     
 
     SUBROUTINE deallocate_global_settings(gs)
-        IMPLICIT NONE
         TYPE(global_settings), INTENT(INOUT) :: gs
         
         !IF (ALLOCATED(gs%md)) DEALLOCATE(gs%md)
@@ -210,7 +225,7 @@ CONTAINS
     END SUBROUTINE deallocate_global_settings
 
     SUBROUTINE deallocate_system(sys)
-        IMPLICIT NONE
+
         TYPE(systems), INTENT(INOUT) :: sys
 
         !IF (ALLOCATED(sys%natom)) DEALLOCATE(sys%natom)
@@ -247,7 +262,7 @@ CONTAINS
       END SUBROUTINE deallocate_system
 
       SUBROUTINE deallocate_md(md)
-        IMPLICIT NONE
+     
         TYPE(molecular_dynamics), INTENT(INOUT) :: md
 
         !IF (ALLOCATED(md%trajectory_file)) DEALLOCATE(md%trajectory_file)
@@ -267,7 +282,7 @@ CONTAINS
       END SUBROUTINE deallocate_md
 
       SUBROUTINE deallocate_stats(stats)
-        IMPLICIT NONE
+    
         TYPE(static), INTENT(INOUT):: stats
 
         !IF (ALLOCATED(stats%nmodes)) DEALLOCATE(stats%nmodes)
@@ -281,7 +296,7 @@ CONTAINS
     END SUBROUTINE deallocate_stats
 
     SUBROUTINE deallocate_dipoles(dips)
-        IMPLICIT NONE
+
         TYPE(dipoles), INTENT(INOUT) :: dips
         !IF (ALLOCATED(dips%static_dip_file)) DEALLOCATE(dips%static_dip_file)
         IF (ALLOCATED(dips%dip_dq)) DEALLOCATE(dips%dip_dq)
@@ -292,7 +307,7 @@ CONTAINS
 
 
     SUBROUTINE deallocate_raman(rams)
-        IMPLICIT NONE
+
         TYPE(raman), INTENT(INOUT):: rams
 
         INTEGER                     :: xyz
@@ -323,7 +338,7 @@ CONTAINS
         !IF (ALLOCATED(rams%averaging)) DEALLOCATE(rams%averaging)
         !IF (ALLOCATED(rams%direction)) DEALLOCATE(rams%direction)
         IF (ALLOCATED(rams%raman_int)) DEALLOCATE(rams%raman_int)
-        IF (ALLOCATED(rams%pol)) DEALLOCATE(rams%pol)
+        !IF (ALLOCATED(rams%pol)) DEALLOCATE(rams%pol)
         IF (ALLOCATED(rams%pol_dq)) DEALLOCATE(rams%pol_dq)
 
         !IF (ALLOCATED(rams%RR%check_pade)) DEALLOCATE(rams%RR%check_pade)

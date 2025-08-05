@@ -207,43 +207,7 @@ SUBROUTINE spec_raman(gs, sys, md, dips, rams)
             CALL central_diff(sys%mol_num, rams%e_field(xyz)%alpha_xyz,rams%e_field(xyz)%alpha_diff_xyz, sys, md)
         END IF
     END DO
-    DO xyz = 1, 3
-        CALL read_coord_frame(sys%natom, rams%e_field(xyz)%wannier_xyz, md%coord_v, sys)
-        IF (sys%system=='1' .OR. gs%spectral_type%type_dipole=='1') THEN
-            IF (sys%cell%cell_type.NE.'3') THEN
-                CALL center_mass(rams%e_field(xyz)%wannier_xyz, rams%e_field(xyz)%fragment_xyz, gs, sys, md, dips)
-                CALL wannier_frag(sys%fragments%natom_frag, rams%e_field(xyz)%wannier_xyz,rams%e_field(xyz)%dip_xyz, rams%e_field(xyz)%fragment_xyz, gs, sys, md, dips)
-    
-            ELSEIF (sys%cell%cell_type=='3') THEN
-                CALL solv_frag_index(rams%e_field(xyz)%wannier_xyz, rams%e_field(xyz)%natom_frag_xyz, rams%e_field(xyz)%fragment_xyz, sys, md, dips)
-                CALL wannier_frag(rams%e_field(xyz)%natom_frag_xyz, rams%e_field(xyz)%wannier_xyz,rams%e_field(xyz)%dip_xyz, rams%e_field(xyz)%fragment_xyz, gs, sys, md, dips)
-            END IF
-            IF (sys%system=='1') THEN
-                CALL forward_diff(sys%mol_num, rams%e_field(xyz)%alpha_xyz, dip_free,rams%e_field(xyz)%dip_xyz, gs, sys)
-            ELSEIF (sys%system=='2' .AND. gs%spectral_type%type_dipole=='1') THEN
-                CALL forward_diff(sys%fragments%nfrag, rams%e_field(xyz)%alpha_xyz, dip_free,rams%e_field(xyz)%dip_xyz, gs, sys)
-            END IF
-        ELSEIF (sys%system=='2') THEN
-    
-            IF (gs%spectral_type%type_dipole=='2') THEN
-                CALL forward_diff(sys%mol_num, rams%e_field(xyz)%alpha_xyz, dip_free, md%coord_v, gs, sys)
-    
-            ELSEIF (gs%spectral_type%type_dipole=='3') THEN
-                DO i = 1, sys%framecount
-                    DO j = 1, 1
-                        rams%e_field(xyz)%alpha_xyz(i, j, :) = md%coord_v(i, j, :)
-                    END DO
-                END DO
-                rams%e_field(xyz)%alpha_xyz = REAL(rams%e_field(xyz)%alpha_xyz*((8.988d+15)/(5.142d+11*3.33564d-30)), kind=dp) !conversion to debye/E
-            END IF
-        END IF
-    
-        IF (sys%system=='2' .AND. gs%spectral_type%type_dipole=='1') THEN
-            CALL central_diff(sys%fragments%nfrag, rams%e_field(xyz)%alpha_xyz,rams%e_field(xyz)%alpha_diff_xyz, sys, md)
-        ELSE
-            CALL central_diff(sys%mol_num, rams%e_field(xyz)%alpha_xyz,rams%e_field(xyz)%alpha_diff_xyz, sys, md)
-        END IF
-    END DO
+
 
 
 !!!ACF AND FFT CALC!!!
@@ -557,6 +521,7 @@ END SUBROUTINE spec_raman
     END SUBROUTINE normal_mode_analysis
 
 !....................................................................................................................!
+    
 !....................................................................................................................!
 
     SUBROUTINE spec_static_ir(sys, stats, dips)
@@ -608,6 +573,7 @@ END SUBROUTINE spec_raman
     
     END SUBROUTINE spec_static_ir
 !....................................................................................................................!
+
 !....................................................................................................................!
     SUBROUTINE spec_static_raman(gs, sys, stats, dips, rams) 
 
