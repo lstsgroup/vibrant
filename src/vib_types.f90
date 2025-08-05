@@ -132,6 +132,21 @@ MODULE vib_types
       !LOGICAL                                            ::  fragment !<yes/no>
    END TYPE dipoles
    !***************************************************************************
+   TYPE direction_type
+        REAL(kind=dp) :: pol(3,3)
+    END TYPE direction_type
+   !***************************************************************************
+
+    TYPE displacement_type
+        TYPE(direction_type), DIMENSION(3)   :: XYZ
+    END TYPE displacement_type
+   !***************************************************************************
+
+    TYPE atom_information
+        TYPE(displacement_type), DIMENSION(2) :: displacement
+        !REAL(kind=dp), DIMENSION(3, 3), ALLOCATABLE :: pol
+    END TYPE atom_information
+   !***************************************************************************
    TYPE raman
       !LOGICAL                                             :: polarizability_type ! <numeric/analytic>
       !numeric
@@ -149,8 +164,9 @@ MODULE vib_types
       CHARACTER(LEN=40)                                   :: wannier_free, wannier_x, wannier_y, wannier_z ! same as static_dip_free_file
       CHARACTER(LEN=40)                                   :: averaging, direction
       REAL(kind=dp), DIMENSION(:), ALLOCATABLE            :: raman_int
-      REAL(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE:: pol ! ALLOCATE rams%pol(sys%natom, 3, 2, 3, 3)
+      !REAL(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE:: pol ! ALLOCATE rams%pol(sys%natom, 3, 2, 3, 3)
       REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE      :: pol_dq !ALLOCATE (rams%pol_dq(stats%nmodes, 3, 3))
+      Type(atom_information), DIMENSION(:), ALLOCATABLE  ::  atom   
       TYPE(resonant_raman)                                :: RR
       TYPE(electric_field), DIMENSION(3)                  :: e_field
    END TYPE raman
@@ -215,7 +231,6 @@ CONTAINS
    END SUBROUTINE init_raman
 
    SUBROUTINE deallocate_types(gs, sys, md, stats, ram, dip)
-      IMPLICIT NONE
 
       TYPE(global_settings), INTENT(INOUT), OPTIONAL :: gs
       TYPE(systems), INTENT(INOUT), OPTIONAL :: sys
@@ -251,7 +266,6 @@ CONTAINS
    END SUBROUTINE deallocate_types
 
    SUBROUTINE deallocate_global_settings(gs)
-      IMPLICIT NONE
       TYPE(global_settings), INTENT(INOUT) :: gs
 
       !IF (ALLOCATED(gs%md)) DEALLOCATE(gs%md)
@@ -266,7 +280,6 @@ CONTAINS
    END SUBROUTINE deallocate_global_settings
 
    SUBROUTINE deallocate_system(sys)
-      IMPLICIT NONE
       TYPE(systems), INTENT(INOUT) :: sys
 
       !IF (ALLOCATED(sys%natom)) DEALLOCATE(sys%natom)
@@ -303,7 +316,6 @@ CONTAINS
    END SUBROUTINE deallocate_system
 
    SUBROUTINE deallocate_md(md)
-      IMPLICIT NONE
       TYPE(molecular_dynamics), INTENT(INOUT) :: md
 
       !IF (ALLOCATED(md%trajectory_file)) DEALLOCATE(md%trajectory_file)
@@ -323,7 +335,6 @@ CONTAINS
    END SUBROUTINE deallocate_md
 
    SUBROUTINE deallocate_stats(stats)
-      IMPLICIT NONE
       TYPE(static), INTENT(INOUT):: stats
 
       !IF (ALLOCATED(stats%nmodes)) DEALLOCATE(stats%nmodes)
@@ -337,7 +348,6 @@ CONTAINS
    END SUBROUTINE deallocate_stats
 
    SUBROUTINE deallocate_dipoles(dips)
-      IMPLICIT NONE
       TYPE(dipoles), INTENT(INOUT) :: dips
       !IF (ALLOCATED(dips%dip_file)) DEALLOCATE(dips%dip_file)
       IF (ALLOCATED(dips%dip_dq)) DEALLOCATE (dips%dip_dq)
@@ -347,7 +357,6 @@ CONTAINS
    END SUBROUTINE deallocate_dipoles
 
    SUBROUTINE deallocate_raman(rams)
-      IMPLICIT NONE
       TYPE(raman), INTENT(INOUT):: rams
 
       INTEGER                     :: xyz
@@ -377,7 +386,7 @@ CONTAINS
       !IF (ALLOCATED(rams%averaging)) DEALLOCATE(rams%averaging)
       !IF (ALLOCATED(rams%direction)) DEALLOCATE(rams%direction)
       IF (ALLOCATED(rams%raman_int)) DEALLOCATE (rams%raman_int)
-      IF (ALLOCATED(rams%pol)) DEALLOCATE (rams%pol)
+      !IF (ALLOCATED(rams%pol)) DEALLOCATE (rams%pol)
       IF (ALLOCATED(rams%pol_dq)) DEALLOCATE (rams%pol_dq)
 
       !IF (ALLOCATED(rams%RR%check_pade)) DEALLOCATE(rams%RR%check_pade)

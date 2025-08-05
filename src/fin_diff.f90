@@ -85,31 +85,32 @@ CONTAINS
       TYPE(dipoles), INTENT(INOUT)    ::  dips
       TYPE(raman), INTENT(INOUT)   :: rams
 
-      INTEGER                                                      :: stat, i, j, k, m
+      INTEGER                                                      :: stat, i, j, k, l, m
       REAL(kind=dp)                                                 :: factor
-      REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE                  :: pol_dxyz
+      !REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE                  :: pol_dxyz
       REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                  :: dip_dxyz
 
       factor = REAL(1.0_dp/(2.0_dp*stats%dx), kind=dp)
 
       IF (gs%spectral_type%read_function == 'R') THEN
-         ALLOCATE (pol_dxyz(sys%natom, 3, 3, 3))
+         !ALLOCATE (pol_dxyz(sys%natom, 3, 3, 3))
          ALLOCATE (rams%pol_dq(stats%nmodes, 3, 3))
 
          rams%pol_dq = 0.0_dp
 
          IF (dips%type_dipole == 'berry') THEN
-            rams%pol(:, :, :, 1, :) = REAL((rams%static_dip_x(:, :, :, :) - &
-                                            dips%static_dip(:, :, :, :))/(5.338d-5*1.313d-26), kind=dp)
-            rams%pol(:, :, :, 2, :) = REAL((rams%static_dip_y(:, :, :, :) - &
-                                            dips%static_dip(:, :, :, :))/(5.338d-5*1.313d-26), kind=dp)
-            rams%pol(:, :, :, 3, :) = REAL((rams%static_dip_z(:, :, :, :) - &
-                                            dips%static_dip(:, :, :, :))/(5.338d-5*1.313d-26), kind=dp)
+             DO j = 1, 2
+               DO i = 1, sys%natom
+                  rams%atom(i)%displacement(j)%XYZ(1)%pol(:,:)  = REAL((rams%static_dip_x(i, j, :, :) - dips%static_dip(i, j, :, :))/(5.338d-5*1.313d-26), kind=dp)
+                  rams%atom(i)%displacement(j)%XYZ(2)%pol(:,:)  = REAL((rams%static_dip_y(i, j, :, :) - dips%static_dip(i, j, :, :))/(5.338d-5*1.313d-26), kind=dp)
+                  rams%atom(i)%displacement(j)%XYZ(3)%pol(:,:)  = REAL((rams%static_dip_z(i, j, :, :) - dips%static_dip(i, j, :, :))/(5.338d-5*1.313d-26), kind=dp)
+               END DO
+             END DO
 
-            DEALLOCATE (dips%static_dip, rams%static_dip_x, rams%static_dip_y, rams%static_dip_z)
+            !DEALLOCATE (dips%static_dip, rams%static_dip_x, rams%static_dip_y, rams%static_dip_z)
          END IF
 
-         pol_dxyz(:, :, :, :) = REAL((rams%pol(:, :, 1, :, :) - rams%pol(:, :, 2, :, :))*factor, kind=dp)
+         !pol_dxyz(:, :, :, :) = REAL((rams%pol(:, :, 1, :, :) - rams%pol(:, :, 2, :, :))*factor, kind=dp)
 
       ELSEIF (gs%spectral_type%read_function == 'IR') THEN
 
@@ -123,22 +124,21 @@ CONTAINS
          DEALLOCATE (dips%static_dip)
       END IF
 
-      DO j = 1, stats%nmodes
-         DO k = 1, sys%natom
-            DO i = 1, 3
-               IF (gs%spectral_type%read_function == 'R') THEN
-                  rams%pol_dq(j, :, :) = rams%pol_dq(j, :, :) + &
-                                         pol_dxyz(k, i, :, :)*stats%disp(j, k, i)*sys%atom_mass_inv_sqrt(k)
-               ELSEIF (gs%spectral_type%read_function == 'IR') THEN
-                  dips%dip_dq(j, :) = dips%dip_dq(j, :) + &
-                                      dip_dxyz(k, i, :)*stats%disp(j, k, i)*sys%atom_mass_inv_sqrt(k)
+      DO j = 1, stats%nmodes !Number of Normal Modes
+         DO k = 1, sys%natom !Number of Atoms
+            Do l = 1, 3 !Displacement
+               IF (gs%spectral_type%read_function=='R') THEN
+                  rams%pol_dq(j, :, :) = rams%pol_dq(j, :, :) + factor * stats%disp(j, k, l) * sys%atom_mass_inv_sqrt(k) * &
+                                    (rams%atom(k)%displacement(1)%XYZ(l)%pol(:,:) - rams%atom(k)%displacement(2)%XYZ(l)%pol(:,:))
+               ELSEIF (gs%spectral_type%read_function=='IR') THEN
+                  dips%dip_dq(j, :) = dips%dip_dq(j, :) + (dip_dxyz(k, l, :)*stats%disp(j, k, l)*sys%atom_mass_inv_sqrt(k))
                END IF
             END DO
          END DO
       END DO
 
       IF (gs%spectral_type%read_function == 'R') THEN
-         DEALLOCATE (pol_dxyz, rams%pol)
+         !DEALLOCATE (rams%pol)
       ELSEIF (gs%spectral_type%read_function == 'IR') THEN
          DEALLOCATE (dip_dxyz)
       END IF

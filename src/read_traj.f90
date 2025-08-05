@@ -155,7 +155,7 @@ CONTAINS
       INTEGER                                                    :: i, j, k, m, n
       INTEGER                                                    :: stat
 
-      ALLOCATE (rams%pol(sys%natom, 3, 2, 3, 3), static_dip(sys%natom, 3, 2, 3))
+      ALLOCATE (rams%atom(sys%natom), static_dip(sys%natom, 3, 2, 3)) ! rams%pol(sys%natom, 3, 2, 3, 3), 
 
       IF (dips%type_dipole == 'dfpt') THEN
          OPEN (UNIT=52, FILE=rams%static_pol_file, STATUS='old', IOSTAT=stat) !Reading polarizabilties
@@ -169,12 +169,12 @@ CONTAINS
                      READ (52, *)
                      READ (52, *)
                      READ (52, *)
-                     READ (52, *) chara, chara, chara, rams%pol(i, j, k, 1, 1), &
-                        rams%pol(i, j, k, 2, 2), rams%pol(i, j, k, 3, 3)
-                     READ (52, *) chara, chara, chara, rams%pol(i, j, k, 1, 2), &
-                        rams%pol(i, j, k, 1, 3), rams%pol(i, j, k, 2, 3)
-                     READ (52, *) chara, chara, chara, rams%pol(i, j, k, 2, 1), &
-                        rams%pol(i, j, k, 3, 1), rams%pol(i, j, k, 3, 2)
+                     READ (52, *) chara, chara, chara, rams%atom(i)%displacement(k)%XYZ(j)%pol(1,1), &
+                        rams%atom(i)%displacement(k)%XYZ(j)%pol(2, 2), rams%atom(i)%displacement(k)%XYZ(j)%pol(3, 3)
+                     READ (52, *) chara, chara, chara, rams%atom(i)%displacement(k)%XYZ(j)%pol(1,2), &
+                        rams%atom(i)%displacement(k)%XYZ(j)%pol(1, 3), rams%atom(i)%displacement(k)%XYZ(j)%pol(2, 3)
+                     READ (52, *) chara, chara, chara, rams%atom(i)%displacement(k)%XYZ(j)%pol(2,1), &
+                        rams%atom(i)%displacement(k)%XYZ(j)%pol(3, 1), rams%atom(i)%displacement(k)%XYZ(j)%pol(3, 2)
                   END DO
                END DO
             END DO
