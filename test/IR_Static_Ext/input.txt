@@ -1,8 +1,16 @@
-IR
-2
-2
-o-NP.xyz
-normal_mode_freq.txt
-normal_mode_displ.txt
-0.001
-dipole_o-NP_free_static.xyz
+&global
+ spectra IR
+&end global
+&system
+ filename o-NP.xyz
+&end system
+&static
+ diag_hessian n
+ normal_freq_file normal_mode_freq.txt
+ normal_displ_file normal_mode_displ.txt
+ displacement 0.001
+&end static
+&dipoles
+ type_dipole berry
+ static_dip_file dipole_o-NP_free_static.xyz
+&end dipoles

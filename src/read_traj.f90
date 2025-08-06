@@ -10,10 +10,11 @@ MODULE read_traj
     PUBLIC :: read_coord, read_coord_frame, read_normal_modes, read_static, read_static_resraman
 
 CONTAINS
-    SUBROUTINE read_coord(gs, sys, rams)
+    SUBROUTINE read_coord(gs, sys, dips, rams)
 
         TYPE(global_settings), INTENT(INOUT)   :: gs
         TYPE(systems), INTENT(INOUT)        :: sys
+        TYPE(dipoles), optional        :: dips
         TYPE(raman), optional        :: rams
 
         INTEGER                                                   :: i, j, stat
@@ -42,11 +43,13 @@ CONTAINS
 998     CONTINUE
         CLOSE (51)
 
-        IF (dip%type_dipole=='2' .OR. dip%type_dipole=='3') THEN !!gas phase
+        IF (gs%spectral_type%read_function/='P') THEN
+        IF (dips%type_dipole=='berry' .OR. dips%type_dipole=='dfpt') THEN !!gas phase
             sys%mol_num = 1
-        ELSEIF ((sys%periodic=='n' .AND. sys%system=='1') .OR. dip%type_dipole=='1') THEN !!fragment approach
+        ELSEIF ((sys%periodic=='n' .AND. sys%system=='1') .OR. dips%type_dipole=='wannier') THEN !!fragment approach
             sys%mol_num = 44 !20 !! fix later to 20
         END IF
+ENDIF
         PRINT *, sys%mol_num, 'mol num'
 
     END SUBROUTINE read_coord
@@ -57,7 +60,7 @@ CONTAINS
 
         TYPE(systems), INTENT(INOUT)        :: sys
         CHARACTER(LEN=40), INTENT(IN)                               :: filename
-        INTEGER, INTENT(INOUT)                                      :: natom
+        INTEGER, INTENT(INOUT)                               :: natom
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(OUT)      :: coord_v
 
         INTEGER                                                    :: i, j, stat
@@ -91,7 +94,7 @@ CONTAINS
         INTEGER                                                    :: i, j, k, m, n
         INTEGER                                                    :: stat
 
-        IF (gs%spectral_type%read_function=='NMA' .OR. gs%spectral_type%type_static=='1') THEN
+        IF (gs%spectral_type%read_function=='NMA' .OR. stats%diag_hessian=='y') THEN
             ALLOCATE (stats%force(2, sys%natom, 3, sys%natom, 3))
             OPEN (UNIT=49, FILE=stats%force_file, STATUS='old', IOSTAT=stat) !Reading forces
             DO i = 1, 2
@@ -105,7 +108,7 @@ CONTAINS
             END DO
             CLOSE (49)
 
-        ELSEIF (gs%spectral_type%type_static=='2') THEN
+        ELSEIF (stats%diag_hessian=='n') THEN
             stats%nmodes = 0
             OPEN (UNIT=50, FILE=stats%normal_freq_file, STATUS='old', IOSTAT=stat) !Reading normal freqs/coords
             DO
@@ -139,9 +142,10 @@ CONTAINS
 !********************************************************************************************
 !********************************************************************************************
 
-    SUBROUTINE read_static(static_dip_file, static_dip, gs, sys, rams)
+    SUBROUTINE read_static(static_dip_file, static_dip, gs, sys, dips, rams)
         TYPE(global_settings), INTENT(INOUT)   :: gs
         TYPE(systems), INTENT(INOUT)        :: sys
+        TYPE(dipoles), INTENT(INOUT)        :: dips
         TYPE(raman), INTENT(INOUT)        :: rams
         CHARACTER(LEN=40), INTENT(IN)                               :: static_dip_file
         REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE, INTENT(OUT)    :: static_dip
@@ -152,7 +156,7 @@ CONTAINS
 
         ALLOCATE (rams%pol(sys%natom, 3, 2, 3, 3), static_dip(sys%natom, 3, 2, 3))
 
-        IF (dip%type_dipole=='3') THEN
+        IF (dips%type_dipole=='dfpt') THEN
             OPEN (UNIT=52, FILE=rams%static_pol_file, STATUS='old', IOSTAT=stat) !Reading polarizabilties
             DO
                 DO k = 1, 2
@@ -174,7 +178,7 @@ CONTAINS
 995         CONTINUE
             CLOSE (52)
 
-        ELSEIF (dip%type_dipole=='2') THEN
+        ELSEIF (dips%type_dipole=='berry') THEN
             OPEN (UNIT=53, FILE=static_dip_file, STATUS='old', IOSTAT=stat) !Reading dipoles
             DO
                 DO k = 1, 2

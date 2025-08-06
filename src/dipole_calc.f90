@@ -285,7 +285,7 @@ CONTAINS
             sys%fragments%nfrag = 12
         ELSEIF (sys%frag_type=='3') THEN
             sys%fragments%nfrag = 24
-        ELSEIF (sys%system=='2' .AND. gs%spectral_type%type_dipole=='1') THEN
+        ELSEIF (sys%system=='2' .AND. dips%type_dipole=='1') THEN
             sys%fragments%nfrag = 1
         END IF
 
@@ -301,7 +301,7 @@ CONTAINS
     !!Find center of mass
 
     !!!For B-O and C-B fragments!!!
-        IF (sys%frag_type=='1' .OR. sys%frag_type=='2' .OR. (gs%spectral_type%type_dipole=='1' .AND. sys%system=='2')) THEN
+        IF (sys%frag_type=='1' .OR. sys%frag_type=='2' .OR. (dips%type_dipole=='1' .AND. sys%system=='2')) THEN
             DO m = 1, sys%framecount
                 DO i = 1, 20
                     DO j = 2, sys%fragments%natom_frag(i)
@@ -443,7 +443,7 @@ CONTAINS
         coord_shifted = 0.
         l = 0
 
-        IF (sys%system=='2' .AND. gs%spectral_type%type_dipole=='1') THEN
+        IF (sys%system=='2' .AND. dips%type_dipole=='1') THEN
             sys%mol_num = 20
         END IF
 
@@ -460,7 +460,7 @@ CONTAINS
                     com(m, i, j, :) = bec_pbc(m, :)*sys%mass_atom(fragment(m, i, j))
                     IF (sys%system=='1') THEN
                         sys%fragments%refpoint(m, i, :) = sys%fragments%refpoint(m, i, :) + com(m, i, j, :)
-                    ELSEIF (gs%spectral_type%type_dipole=='1' .AND. sys%system=='2') THEN
+                    ELSEIF (dips%type_dipole=='1' .AND. sys%system=='2') THEN
                         sys%fragments%refpoint(m, 1, :) = sys%fragments%refpoint(m, 1, :) + com(m, i, j, :)  !!!For COM of whole sys%system
                     END IF
                 END DO
@@ -475,7 +475,7 @@ CONTAINS
         END DO
 
         DO m = 1, sys%framecount
-            IF (gs%spectral_type%type_dipole=='1' .AND. sys%system=='2') THEN
+            IF (dips%type_dipole=='1' .AND. sys%system=='2') THEN
                 sys%fragments%refpoint(m, 1, :) = sys%fragments%refpoint(m, 1, :)/sys%fragments%mass_tot_cell
             ELSEIF (sys%system=='1') THEN
                 DO i = 1, sys%mol_num
@@ -1001,7 +1001,7 @@ CONTAINS
                     IF (sys%system=='1') THEN
                         CALL pbc_hexagonal(md%coord_v(m, fragment(m, i, j), :), sys%fragments%refpoint(m, i, :), sys) !! If fragment approach!!!
                         dipole(m, i, :) = dipole(m, i, :) + sys%cell%vec_pbc*1.889725989_dp*sys%charge(fragment(m, i, j))
-                    ELSEIF (gs%spectral_type%type_dipole=='1' .AND. sys%system=='2') THEN
+                    ELSEIF (dips%type_dipole=='1' .AND. sys%system=='2') THEN
                         CALL pbc_orthorombic_old(md%coord_v(m, fragment(m, i, j), :), sys%fragments%refpoint(m, 1, :), sys%cell%vec, sys%cell%vec_pbc, &
                                                  pox_all, pox_x, pox_y, pox_z) !! IF COM is for whole supercel!!!
                         dipole(m, 1, :) = dipole(m, 1, :) + sys%cell%vec_pbc*1.889725989_dp*sys%charge(fragment(m, i, j))
@@ -1013,7 +1013,7 @@ CONTAINS
         PRINT *, sys%fragments%mass_tot_cell, 'mass tot cell'
 
         DO m = 1, sys%framecount
-            IF (sys%system=='2' .AND. gs%spectral_type%type_dipole=='1') THEN
+            IF (sys%system=='2' .AND. dips%type_dipole=='1') THEN
                 IF (dipole(m, 1, 1)>120) THEN
                     dipole(m, 1, 1) = dipole(m, 1, 1) - (hmat(1, 1)*3*1.889725989)
                 END IF

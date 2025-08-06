@@ -26,7 +26,7 @@ PROGRAM vib2d
     INTEGER(kind=dp)                                 :: plan
     INTEGER, DIMENSION(:), ALLOCATABLE                :: natom_frag, natom_frag_x, natom_frag_free, nfrag_BO, nfrag_BC, nfrag_Ph
     INTEGER, DIMENSION(:, :, :), ALLOCATABLE            :: fragment
-    CHARACTER(LEN=40)                               :: system, filename, static_pol_file, read_function, length, type_traj, output_dip
+    CHARACTER(LEN=40)                               :: diag_hessian, system, filename, static_pol_file, read_function, length, type_traj, output_dip
     CHARACTER(LEN=40)                               :: filename_dip, type_dipole, direction, averaging, cell_type, coord_file
     CHARACTER(LEN=40)                               :: normal_freq_file, normal_displ_file, frag_type, type_static, force_file
     CHARACTER(LEN=40)                               :: static_dip_free_file, static_dip_x_file, static_dip_y_file, static_dip_z_file
@@ -108,7 +108,7 @@ PROGRAM vib2d
     !write(*,*) "read_function", gs%spectral_type%read_function
     !write(*,*) "type_input ", gs%spectral_type%type_input
     !write(*,*) "type_static ", gs%spectral_type%type_static
-    !write(*,*) "type_dipole ", gs%spectral_type%type_dipole
+    !write(*,*) "type_dipole ", dips%type_dipole
     !                                                                                  ***
     !                                                                           ***
     !                                                                        ***
@@ -128,7 +128,7 @@ PROGRAM vib2d
 !
 !    ! TEMP setup
 !    gs%spectral_type%read_function = read_function
-!    gs%spectral_type%type_dipole = type_dipole
+!    dips%type_dipole = type_dipole
 !    gs%spectral_type%type_static = type_static
 !    gs%spectral_type%type_input = type_input
 !    gs%laser_in = laser_in
@@ -180,8 +180,8 @@ PROGRAM vib2d
 !        !***************************************************************************
 !        !***************************************************************************
 !    ELSEIF (gs%spectral_type%read_function=='MD-IR') THEN
-!        CALL read_coord(gs, sys)
-!        IF (sys%system=='1' .OR. sys%system=='2' .AND. gs%spectral_type%type_dipole=='1') THEN !!fragment approach or whole supercell
+!        CALL read_coord(gs, sys, dips)
+!        IF (sys%system=='1' .OR. sys%system=='2' .AND. dips%type_dipole=='wannier') THEN !!fragment approach or whole supercell
 !            IF (sys%cell%cell_type=='1' .OR. sys%cell%cell_type=='2') THEN !!KP or SC
 !                CALL masses_charges(gs, sys)
 !            END IF
@@ -193,7 +193,7 @@ PROGRAM vib2d
 !        !***************************************************************************
 !    ELSEIF (gs%spectral_type%read_function=='MD-R') THEN
 !        sys%filename = wannier_free! <----  MUST BE ADJUSTED
-!        CALL read_coord(gs, sys)
+!        CALL read_coord(gs, sys, dips)
 !        CALL masses_charges(gs, sys)
 !
 !        CALL spec_raman(gs, sys, md, dips, rams)
@@ -201,30 +201,29 @@ PROGRAM vib2d
 !
 !        !***************************************************************************
     ELSEIF (gs%spectral_type%read_function=='NMA') THEN
-        CALL read_coord(gs, sys)
+        CALL read_coord(gs, sys, dips)
         CALL masses_charges(gs, sys)
         CALL read_normal_modes(gs, sys, stats)
-
         CALL normal_mode_analysis(sys, stats)
 !        !***************************************************************************
 !
 !        !***************************************************************************
-!    ELSEIF (gs%spectral_type%read_function=='IR') THEN
-!        CALL read_coord(gs, sys)
-!        CALL masses_charges(gs, sys)
-!        CALL read_normal_modes(gs, sys, stats)
-!        CALL read_static(dips%static_dip_file, dips%static_dip, gs, sys, rams)
-!        IF (type_static=='1') THEN
-!            CALL normal_mode_analysis(sys, stats)
-!        END IF
-!        CALL finite_diff_static(gs, sys, stats, dips, rams)
-!
-!        CALL spec_static_ir(sys, stats, dips)
+    ELSEIF (gs%spectral_type%read_function=='IR') THEN
+        CALL read_coord(gs, sys, dips)
+        CALL masses_charges(gs, sys)
+        CALL read_normal_modes(gs, sys, stats)
+        CALL read_static(dips%static_dip_file, dips%static_dip, gs, sys, dips, rams)
+        IF (stats%diag_hessian=='y') THEN
+            CALL normal_mode_analysis(sys, stats)
+        END IF
+        CALL finite_diff_static(gs, sys, stats, dips, rams)
+
+        CALL spec_static_ir(sys, stats, dips)
 !        !***************************************************************************
 !
 !        !***************************************************************************
 !    ELSEIF (gs%spectral_type%read_function=='R') THEN
-!        CALL read_coord(gs, sys)
+!        CALL read_coord(gs, sys, dips)
 !        CALL masses_charges(gs, sys)
 !        CALL read_normal_modes(gs, sys, stats)
 !        CALL read_static(dips%static_dip_file, dips%static_dip, gs, sys, rams)
@@ -233,7 +232,7 @@ PROGRAM vib2d
 !            CALL read_static(static_dip_y_file, static_dip_y, gs, sys, rams)
 !            CALL read_static(static_dip_z_file, static_dip_z, gs, sys, rams)
 !        END IF
-!        IF (type_static=='1') THEN
+!        IF (diag_hessian=='y') THEN
 !            CALL normal_mode_analysis(sys, stats)
 !        END IF
 !        CALL finite_diff_static(gs, sys, stats, dips, rams)
@@ -243,7 +242,7 @@ PROGRAM vib2d
 !
 !        !***************************************************************************
 !    ELSEIF (gs%spectral_type%read_function=='ABS') THEN
-!        CALL read_coord(gs, sys)
+!        CALL read_coord(gs, sys, dips)
 !        CALL read_static_resraman(static_dip_x_file, rams%RR%static_dip_x_rtp, sys, rams)
 !        CALL read_static_resraman(static_dip_y_file, rams%RR%static_dip_y_rtp, sys, rams)
 !        CALL read_static_resraman(static_dip_z_file, rams%RR%static_dip_z_rtp, sys, rams)
@@ -272,7 +271,7 @@ PROGRAM vib2d
 !        !***************************************************************************
 !    ELSEIF (gs%spectral_type%read_function=='MD-RR') THEN
 !        !sys%filename = rtp_dipole_x ! <----  MUST BE ADJUSTED
-!        !CALL read_coord(gs, sys)
+!        !CALL read_coord(gs, sys, dips)
 !        !natom = sys%natom
 !        !framecount = sys%framecount
 !        !mol_num = sys%mol_num

@@ -1,8 +1,8 @@
 &global
  spectra P
- type_input 2
 &end global
 &system
+ type_traj vel
  filename waterbulk-vel-1_shorter.xyz
  mass_weighting y
 &end system

@@ -82,7 +82,6 @@ MODULE vib_types
         CHARACTER(LEN=40)                                   :: trajectory_file !maybe not needed should be in system type
         CHARACTER(LEN=40)                                   :: velocity_file   !maybe not needed should be in system type
         REAL(kind=dp)                                       :: snapshot_time_step ! snapshots_time_step equal to dt ?
-        REAL(kind=dp)                                       :: correlation_depth ! t_cor needed!
         REAL(kind=dp)                                       :: dt   ! not quite sure ?
         REAL(kind=dp)                                       :: dom ! not quite sure ?
         REAL(kind=dp)                                       :: freq_range ! not sure if right here ?
@@ -169,7 +168,6 @@ CONTAINS
     SUBROUTINE init_molecular_dynamics(md)
         TYPE(molecular_dynamics), INTENT(out) :: md
         md%t_cor = -1
-        md%correlation_depth = -1
         md%trajectory_file = ''
         md%velocity_file = ''
         md%snapshot_time_step = -1.0_dp

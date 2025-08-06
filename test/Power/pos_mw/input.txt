@@ -1,8 +1,8 @@
 &global
  spectra P
- type_input 1
 &end global
 &system
+ type_traj pos
  filename trajectory_shorter.xyz
  mass_weighting y
 &end system

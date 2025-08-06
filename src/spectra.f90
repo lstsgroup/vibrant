@@ -78,7 +78,7 @@ SUBROUTINE spec_ir(gs, sys, md, dips)
     INTEGER                                                  :: stat, i
     INTEGER(kind=dp)                                          :: plan
 
-    IF (sys%system=='1' .OR. sys%system=='2' .AND. gs%spectral_type%type_dipole=='1') THEN !!fragment approach or whole supercell
+    IF (sys%system=='1' .OR. sys%system=='2' .AND. dips%type_dipole=='wannier') THEN !!fragment approach or whole supercell
         IF (sys%cell%cell_type=='1' .OR. sys%cell%cell_type=='2') THEN !!KP or SC
             CALL read_coord_frame(sys%natom, sys%filename, md%coord_v, sys)
             CALL center_mass(sys%filename, sys%fragments%fragment, gs, sys, md, dips)
@@ -94,13 +94,13 @@ SUBROUTINE spec_ir(gs, sys, md, dips)
 
     md%zhat = COMPLEX(0._dp, 0.0_dp)
 
-    IF (sys%system=='2' .AND. gs%spectral_type%type_dipole=='1') THEN
+    IF (sys%system=='2' .AND. dips%type_dipole=='wannier') THEN
         sys%mol_num = 1
     END IF
-    IF (sys%system=='1' .OR. (sys%system=='2' .AND. gs%spectral_type%type_dipole=='1')) THEN  !!fragment approach or the whole cell
+    IF (sys%system=='1' .OR. (sys%system=='2' .AND. dips%type_dipole=='wannier')) THEN  !!fragment approach or the whole cell
         CALL central_diff(sys%mol_num, dips%dipole, md%v, sys, md)
         CALL cvv(sys%fragments%nfrag, md%v, sys, md)
-    ELSEIF (sys%system=='2' .AND. gs%spectral_type%type_dipole=='2') THEN !!molecular approach
+    ELSEIF (sys%system=='2' .AND. dips%type_dipole=='berry') THEN !!molecular approach
         CALL read_coord_frame(sys%mol_num, sys%filename, md%coord_v, sys)
         CALL central_diff(sys%mol_num, md%coord_v, md%v, sys, md)
         CALL cvv(sys%mol_num, md%v, sys, md)
@@ -152,7 +152,7 @@ SUBROUTINE spec_raman(gs, sys, md, dips, rams)
     IF (rams%averaging=='1') THEN
 
 !!FIELD_FREE!!!
-        IF (sys%system=='1' .OR. gs%spectral_type%type_dipole=='1') THEN
+        IF (sys%system=='1' .OR. dips%type_dipole=='wannier') THEN
             IF (sys%cell%cell_type.NE.'3') THEN
                 !CALL read_coord_frame(sys, md)
                 CALL read_coord_frame(sys%natom, rams%wannier_free, md%coord_v, sys) !<- this needs to be ADJUSTED
@@ -166,14 +166,14 @@ SUBROUTINE spec_raman(gs, sys, md, dips, rams)
                 CALL wannier_frag(natom_frag_free, rams%wannier_free, dip_free, fragment_free, gs, sys, md, dips)
             END IF
         ELSEIF (sys%system=='2') THEN
-            IF (gs%spectral_type%type_dipole=='2') THEN
+            IF (dips%type_dipole=='berry') THEN
                 CALL read_coord_frame(sys%mol_num, rams%wannier_free, dip_free, sys)
             END IF
         END IF
 
 !!!X-FIELD!!!
         CALL read_coord_frame(sys%natom, rams%wannier_x, md%coord_v, sys)
-        IF (sys%system=='1' .OR. gs%spectral_type%type_dipole=='1') THEN
+        IF (sys%system=='1' .OR. dips%type_dipole=='wannier') THEN
             IF (sys%cell%cell_type.NE.'3') THEN
                 CALL center_mass(rams%wannier_x, fragment_x, gs, sys, md, dips)
                 CALL wannier_frag(sys%fragments%natom_frag, rams%wannier_x, dip_x, fragment_x, gs, sys, md, dips)
@@ -184,15 +184,15 @@ SUBROUTINE spec_raman(gs, sys, md, dips, rams)
             END IF
             IF (sys%system=='1') THEN
                 CALL forward_diff(sys%mol_num, alpha_x, dip_free, dip_x, gs, sys)
-            ELSEIF (sys%system=='2' .AND. gs%spectral_type%type_dipole=='1') THEN
+            ELSEIF (sys%system=='2' .AND. dips%type_dipole=='wannier') THEN
                 CALL forward_diff(sys%fragments%nfrag, alpha_x, dip_free, dip_x, gs, sys)
             END IF
         ELSEIF (sys%system=='2') THEN
 
-            IF (gs%spectral_type%type_dipole=='2') THEN
+            IF (dips%type_dipole=='berry') THEN
                 CALL forward_diff(sys%mol_num, alpha_x, dip_free, md%coord_v, gs, sys)
 
-            ELSEIF (gs%spectral_type%type_dipole=='3') THEN
+            ELSEIF (dips%type_dipole=='dfpt') THEN
                 DO i = 1, sys%framecount
                     DO j = 1, 1
                         alpha_x(i, j, :) = md%coord_v(i, j, :)
@@ -202,7 +202,7 @@ SUBROUTINE spec_raman(gs, sys, md, dips, rams)
             END IF
         END IF
 
-        IF (sys%system=='2' .AND. gs%spectral_type%type_dipole=='1') THEN
+        IF (sys%system=='2' .AND. dips%type_dipole=='wannier') THEN
             CALL central_diff(sys%fragments%nfrag, alpha_x, alpha_diff_x, sys, md)
         ELSE
             CALL central_diff(sys%mol_num, alpha_x, alpha_diff_x, sys, md)
@@ -211,7 +211,7 @@ SUBROUTINE spec_raman(gs, sys, md, dips, rams)
 !!!Y-FIELD!!!
 
         CALL read_coord_frame(sys%natom, rams%wannier_y, md%coord_v, sys)
-        IF (sys%system=='1' .OR. gs%spectral_type%type_dipole=='1') THEN
+        IF (sys%system=='1' .OR. dips%type_dipole=='wannier') THEN
             IF (sys%cell%cell_type.NE.'3') THEN
 
                 CALL center_mass(rams%wannier_y, fragment_y, gs, sys, md, dips)
@@ -223,14 +223,14 @@ SUBROUTINE spec_raman(gs, sys, md, dips, rams)
             END IF
             IF (sys%system=='1') THEN
                 CALL forward_diff(sys%mol_num, alpha_y, dip_free, dip_y, gs, sys)
-            ELSEIF (sys%system=='2' .AND. gs%spectral_type%type_dipole=='1') THEN
+            ELSEIF (sys%system=='2' .AND. dips%type_dipole=='wannier') THEN
                 CALL forward_diff(sys%fragments%nfrag, alpha_y, dip_free, dip_y, gs, sys)
             END IF
         ELSEIF (sys%system=='2') THEN
-            IF (gs%spectral_type%type_dipole=='2') THEN
+            IF (dips%type_dipole=='berry') THEN
                 CALL forward_diff(sys%mol_num, alpha_y, dip_free, md%coord_v, gs, sys)
 
-            ELSEIF (gs%spectral_type%type_dipole=='3') THEN
+            ELSEIF (dips%type_dipole=='dfpt') THEN
                 DO i = 1, sys%framecount
                     DO j = 1, 1
                         alpha_y(i, j, :) = md%coord_v(i, j, :)
@@ -240,7 +240,7 @@ SUBROUTINE spec_raman(gs, sys, md, dips, rams)
             END IF
         END IF
 
-        IF (sys%system=='2' .AND. gs%spectral_type%type_dipole=='1') THEN
+        IF (sys%system=='2' .AND. dips%type_dipole=='wannier') THEN
             CALL central_diff(sys%fragments%nfrag, alpha_y, alpha_diff_y, sys, md)
         ELSE
             CALL central_diff(sys%mol_num, alpha_y, alpha_diff_y, sys, md)
@@ -249,7 +249,7 @@ SUBROUTINE spec_raman(gs, sys, md, dips, rams)
 !!!Z-FIELD!!!
 
         CALL read_coord_frame(sys%natom, rams%wannier_z, md%coord_v, sys)
-        IF (sys%system=='1' .OR. gs%spectral_type%type_dipole=='1') THEN
+        IF (sys%system=='1' .OR. dips%type_dipole=='wannier') THEN
             IF (sys%cell%cell_type.NE.'3') THEN
 
                 CALL center_mass(rams%wannier_z, fragment_z, gs, sys, md, dips)
@@ -261,16 +261,16 @@ SUBROUTINE spec_raman(gs, sys, md, dips, rams)
             END IF
             IF (sys%system=='1') THEN
                 CALL forward_diff(sys%mol_num, alpha_z, dip_free, dip_z, gs, sys)
-            ELSEIF (sys%system=='2' .AND. gs%spectral_type%type_dipole=='1') THEN
+            ELSEIF (sys%system=='2' .AND. dips%type_dipole=='wannier') THEN
                 CALL forward_diff(sys%fragments%nfrag, alpha_z, dip_free, dip_z, gs, sys)
             END IF
 
         ELSEIF (sys%system=='2') THEN
 
-            IF (gs%spectral_type%type_dipole=='2') THEN
+            IF (dips%type_dipole=='berry') THEN
                 CALL forward_diff(sys%mol_num, alpha_z, dip_free, md%coord_v, gs, sys)
 
-            ELSEIF (gs%spectral_type%type_dipole=='3') THEN
+            ELSEIF (dips%type_dipole=='dfpt') THEN
                 DO i = 1, sys%framecount
                     DO j = 1, 1
                         alpha_z(i, j, :) = md%coord_v(i, j, :)
@@ -280,7 +280,7 @@ SUBROUTINE spec_raman(gs, sys, md, dips, rams)
             END IF
         END IF
 
-        IF (sys%system=='2' .AND. gs%spectral_type%type_dipole=='1') THEN
+        IF (sys%system=='2' .AND. dips%type_dipole=='wannier') THEN
             CALL central_diff(sys%fragments%nfrag, alpha_z, alpha_diff_z, sys, md)
         ELSE
             CALL central_diff(sys%mol_num, alpha_z, alpha_diff_z, sys, md)
@@ -296,7 +296,7 @@ SUBROUTINE spec_raman(gs, sys, md, dips, rams)
         zhat_unpol = COMPLEX(0._dp, 0.0_dp)
         zhat_depol = COMPLEX(0._dp, 0.0_dp)
 
-        IF (sys%system=='1' .OR. (sys%system=='2' .AND. gs%spectral_type%type_dipole=='1')) THEN
+        IF (sys%system=='1' .OR. (sys%system=='2' .AND. dips%type_dipole=='wannier')) THEN
             CALL cvv_iso(sys%fragments%nfrag, rams%z_iso, alpha_diff_x, alpha_diff_y, alpha_diff_z, sys, md)
         ELSE
             CALL cvv_iso(sys%mol_num, rams%z_iso, alpha_diff_x, alpha_diff_y, alpha_diff_z, sys, md)
@@ -305,7 +305,7 @@ SUBROUTINE spec_raman(gs, sys, md, dips, rams)
         CALL dfftw_plan_dft_r2c_1d(plan, 2*md%t_cor, rams%z_iso, zhat_iso, FFTW_ESTIMATE)
         CALL dfftw_execute_dft_r2c(plan, rams%z_iso, zhat_iso)
 
-        IF (sys%system=='1' .OR. (sys%system=='2' .AND. gs%spectral_type%type_dipole=='1')) THEN
+        IF (sys%system=='1' .OR. (sys%system=='2' .AND. dips%type_dipole=='wannier')) THEN
             CALL cvv_aniso(sys%fragments%nfrag, rams%z_aniso, alpha_diff_x, alpha_diff_y, alpha_diff_z, sys, md)
         ELSE
             CALL cvv_aniso(sys%mol_num, rams%z_aniso, alpha_diff_x, alpha_diff_y, alpha_diff_z, sys, md)
@@ -385,12 +385,12 @@ SUBROUTINE spec_raman(gs, sys, md, dips, rams)
 
     ELSEIF (rams%averaging=='2') THEN
 
-        IF (gs%spectral_type%type_dipole=='1') THEN
+        IF (dips%type_dipole=='wannier') THEN
             CALL read_coord_frame(sys%natom, rams%wannier_free, md%coord_v, sys)
             !sys%filename = rams%wannier_free
             !CALL read_coord_frame(sys, md)
             CALL wannier(sys%filename, dip_free, sys, md)
-        ELSEIF (gs%spectral_type%type_dipole=='2') THEN
+        ELSEIF (dips%type_dipole=='berry') THEN
 
             CALL read_coord_frame(sys%natom, rams%wannier_free, dip_free, sys)
         END IF
@@ -401,10 +401,10 @@ SUBROUTINE spec_raman(gs, sys, md, dips, rams)
             sys%filename = rams%wannier_x
 
             CALL read_coord_frame(sys%natom, rams%wannier_x, md%coord_v, sys)
-            IF (gs%spectral_type%type_dipole=='1') THEN
+            IF (dips%type_dipole=='wannier') THEN
                 CALL wannier(rams%wannier_x, dip_x, sys, md)
                 CALL forward_diff(sys%mol_num, alpha_x, dip_free, dip_x, gs, sys)
-            ELSEIF (gs%spectral_type%type_dipole=='2') THEN
+            ELSEIF (dips%type_dipole=='berry') THEN
                 CALL forward_diff(sys%mol_num, alpha_x, dip_free, md%coord_v, gs, sys)
             END IF
             CALL central_diff(sys%natom, alpha_x, alpha_diff_x, sys, md)
@@ -413,10 +413,10 @@ SUBROUTINE spec_raman(gs, sys, md, dips, rams)
         ELSEIF (rams%direction=='2') THEN
 
             CALL read_coord_frame(sys%natom, rams%wannier_y, md%coord_v, sys)
-            IF (gs%spectral_type%type_dipole=='1') THEN
+            IF (dips%type_dipole=='wannier') THEN
                 CALL wannier(rams%wannier_y, dip_y, sys, md)
                 CALL forward_diff(sys%mol_num, alpha_y, dip_free, dip_y, gs, sys)
-            ELSEIF (gs%spectral_type%type_dipole=='2') THEN
+            ELSEIF (dips%type_dipole=='berry') THEN
                 CALL forward_diff(sys%mol_num, alpha_y, dip_free, md%coord_v, gs, sys)
             END IF
             CALL central_diff(sys%natom, alpha_y, alpha_diff_y, sys, md)
@@ -424,10 +424,10 @@ SUBROUTINE spec_raman(gs, sys, md, dips, rams)
         ELSEIF (rams%direction=='3') THEN
 !!!Z-FIELD!!!
             CALL read_coord_frame(sys%natom, rams%wannier_z, md%coord_v, sys)
-            IF (gs%spectral_type%type_dipole=='1') THEN
+            IF (dips%type_dipole=='wannier') THEN
                 CALL wannier(rams%wannier_z, dip_z, sys, md)
                 CALL forward_diff(sys%mol_num, alpha_z, dip_free, dip_z, gs, sys)
-            ELSEIF (gs%spectral_type%type_dipole=='2') THEN
+            ELSEIF (dips%type_dipole=='berry') THEN
                 CALL forward_diff(sys%mol_num, alpha_z, dip_free, md%coord_v, gs, sys)
             END IF
             CALL central_diff(sys%natom, alpha_z, alpha_diff_z, sys, md)
@@ -641,7 +641,12 @@ END SUBROUTINE spec_raman
         end_freq = INT(MAXVAL(stats%freq) + 1000.0_dp)
         freq_range = INT(end_freq - start_freq)
         omega = 5.0_dp
-    
+   
+PRINT *, "Max freq: ", MAXVAL(stats%freq)
+PRINT *, "end_freq: ", end_freq
+PRINT *, "freq_range: ", freq_range
+
+ 
         ALLOCATE (data2(freq_range + 1))
         data2 = 0.0_dp
     

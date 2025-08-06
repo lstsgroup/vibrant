@@ -72,6 +72,7 @@ CONTAINS
         LOGICAL :: in_md = .FALSE.
         LOGICAL :: in_static = .FALSE.
         LOGICAL :: in_hessian = .FALSE.
+        LOGICAL :: in_dipoles = .FALSE.
         
         OPEN (unit=999, file=TRIM(input_file_name), status="old")
 
@@ -160,6 +161,16 @@ CONTAINS
                 CYCLE
             END IF            
 
+            IF (INDEX(line, '&dipoles')>0) THEN
+                in_dipoles = .TRUE.
+                CYCLE
+            ENDIF
+  
+            IF (INDEX(line, '&end dipoles')>0) THEN
+                in_dipoles = .FALSE.
+                CYCLE
+            END IF            
+            
             ! Parse within active sections
             IF (in_global) THEN
                 IF (INDEX(to_lower(line), 'temperature')>0) THEN
@@ -172,12 +183,12 @@ CONTAINS
                 ELSEIF (INDEX(to_lower(line), 'spectra')>0) THEN
                         READ (line, *) dummy, gs%spectral_type%read_function
                         write(*,*) "spectra: ", gs%spectral_type%read_function
-                ELSEIF (INDEX(to_lower(line), 'type_static')>0) THEN
-                    READ (line, *) dummy, gs%spectral_type%type_static !'Do you want the normal modes to be calculated (type "1") or read from an external file (type "2")?'
-                    write(*,*) "type_static: ", gs%spectral_type%type_static
+                ELSEIF (INDEX(to_lower(line), 'diag_hessian')>0) THEN
+                    READ (line, *) dummy, stats%diag_hessian !'Do you want the normal modes to be calculated (type "1") or read from an external file (type "2")?'
+                    write(*,*) "hessian diagonalization: ", stats%diag_hessian
                 ELSEIF (INDEX(to_lower(line), 'type_dipole')>0) THEN  !Which one do you want to use: Wannier centers (1) or Berry phase dipole moments (2)?'
-                    READ (line, *) dummy, gs%spectral_type%type_dipole
-                    write(*,*) "type_dipole: ", gs%spectral_type%type_dipole
+                    READ (line, *) dummy, dips%type_dipole
+                    write(*,*) "type_dipole: ", dips%type_dipole
                 END IF
             END IF
             
@@ -186,7 +197,7 @@ CONTAINS
                     READ (line, *) dummy, sys%filename
                     write(*,*) "filename: ", sys%filename
                 ELSEIF (INDEX(to_lower(line), 'type_traj')>0) THEN
-                    READ (line, *) dummy, sys%type_traj !'Enter the type of the input file (type 1 for positions, 2 for velocities)'
+                    READ (line, *) dummy, sys%type_traj !'Enter the type of the trajectory (type pos for positions, vel for velocities)'
                     write(*,*) "type_traj: ", sys%type_traj
                 ELSEIF (INDEX(to_lower(line), 'mass_weighting')>0) THEN !'Do you want to apply mass weighting (y/n)?
                     READ (line, *) dummy, sys%input_mass
@@ -220,9 +231,31 @@ CONTAINS
                     READ (line, *) dummy, stats%dx
                     write(*,*) "displacement: ",  stats%dx
                 END iF
+                IF (INDEX(to_lower(line), 'diag_hessian')>0) THEN !Diagonalize hessian or read the normal mode freqs/disps from a file
+                    READ (line, *) dummy, stats%diag_hessian
+                    write(*,*) "Hessian diagonalization: ",  stats%diag_hessian
+                END iF
+                IF (INDEX(to_lower(line), 'normal_freq_file')>0) THEN !Read normal mode frequencies
+                    READ (line, *) dummy, stats%normal_freq_file
+                    write(*,*) "Normal mode frequencies will be read from: ",  stats%normal_freq_file
+                END iF
+                IF (INDEX(to_lower(line), 'normal_displ_file')>0) THEN !Read normal mode displacements
+                    READ (line, *) dummy, stats%normal_displ_file
+                    write(*,*) "Normal mode displacements will be read from: ",  stats%normal_displ_file
+                END iF
 
             END IF
 
+            IF (in_dipoles) THEN
+                IF (INDEX(to_lower(line), 'type_dipole')>0) THEN !Type of the dipole moment
+                    READ (line, *) dummy, dips%type_dipole
+                    write(*,*) "Type of the dipole moments: ",  dips%type_dipole
+                ENDIF
+                IF (INDEX(to_lower(line), 'static_dip_file')>0) THEN !Type of the dipole moment
+                    READ (line, *) dummy, dips%static_dip_file
+                    write(*,*) "Dipole file: ",  dips%static_dip_file
+                ENDIF
+            ENDIF
             !IF (in_coordinates) THEN
             !    IF (INDEX(line, 'xyz_filename')>0) THEN
             !        READ (line, *) dummy, input%system%coordinates%xyz_filename
@@ -275,12 +308,7 @@ CONTAINS
                 print *, 'Error: type_traj not defined in the input - provide "type_traj pos" for positions, "type_traj vel" for velocities'
                 stop
             END IF
-            !check for input_dipole, not needed for P but set to a default value
-            IF (trim(gs%spectral_type%type_dipole) == '') THEN !<----- NEEDED IN READ_COORD FUNCTION ...
-                print *, 'Warning: type_dipole not defined in the input setting it to 1'
-                gs%spectral_type%type_dipole = '1'
             !check for filename
-            END IF
             IF (trim(sys%filename) == '') THEN
                 print *, 'Error: Filename not defined in the input'
                 stop
@@ -303,9 +331,9 @@ CONTAINS
  
         ELSEIF (gs%spectral_type%read_function=='NMA') THEN
             !check for input_dipole not needed for P but set to a default value
-            IF (trim(gs%spectral_type%type_dipole) == '') THEN
+            IF (trim(dips%type_dipole) == '') THEN
                 print *, 'Warning: type_dipole not defined in the input setting it to 1'
-                gs%spectral_type%type_dipole = '1'
+                dips%type_dipole = '1'
             END IF
             !check for filename
             IF (trim(sys%filename) == '') THEN
@@ -323,8 +351,44 @@ CONTAINS
                 stop
             END IF
 
-        END IF
-
+        ELSEIF (gs%spectral_type%read_function=='IR') THEN
+            !check for filename
+            IF (trim(sys%filename) == '') THEN
+                print *, 'Error: Filename not defined in the input'
+                stop
+            END IF
+            !check for force_file
+            IF (stats%diag_hessian == 'y') THEN
+                IF (trim(stats%force_file) == '') THEN
+                    print *, 'Error: File name of the forces not defined in the input'
+                    stop
+                END IF
+            ELSEIF (stats%diag_hessian == 'n') THEN
+                IF (trim(stats%normal_freq_file) == '') THEN
+                    print *, 'Error: File name of the normal mode frequencies not defined in the input'
+                    stop
+                END IF
+                IF (trim(stats%normal_displ_file) == '') THEN
+                    print *, 'Error: File name of the normal mode displacements not defined in the input'
+                    stop
+                END IF
+            ENDIF
+            !check for displacement
+            IF (stats%dx  < 0) THEN
+                print *, 'Error: Displacement not defined in the input'
+                stop
+            ENDIF
+            !check for dipole file
+            IF (trim(dips%static_dip_file) == '') THEN
+                print *, 'Error: Dipole filename not defined in the input'
+                stop
+            ENDIF
+            !check for type_dipole
+            IF (trim(dips%type_dipole) == '') THEN
+                print *, 'Warning: type_dipole not defined in the input setting it to 1'
+                dips%type_dipole = 'berry'
+            END IF
+      ENDIF
 
    END SUBROUTINE check_input
 END MODULE read_input

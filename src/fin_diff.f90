@@ -97,7 +97,7 @@ CONTAINS
 
             rams%pol_dq = 0.0_dp
 
-            IF (gs%spectral_type%type_dipole=='2') THEN
+            IF (dips%type_dipole=='berry') THEN
                 rams%pol(:, :, :, 1, :) = REAL((rams%static_dip_x(:, :, :, :) - dips%static_dip(:, :, :, :))/(5.338d-5*1.313d-26), kind=dp)
                 rams%pol(:, :, :, 2, :) = REAL((rams%static_dip_y(:, :, :, :) - dips%static_dip(:, :, :, :))/(5.338d-5*1.313d-26), kind=dp)
                 rams%pol(:, :, :, 3, :) = REAL((rams%static_dip_z(:, :, :, :) - dips%static_dip(:, :, :, :))/(5.338d-5*1.313d-26), kind=dp)
