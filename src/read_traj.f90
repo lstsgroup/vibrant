@@ -91,14 +91,25 @@ CONTAINS
         INTEGER                                                    :: i, j, k, m, n
         INTEGER                                                    :: stat
 
-        IF (gs%spectral_type%read_function=='NMA' .OR. gs%spectral_type%type_static=='1') THEN
-            ALLOCATE (stats%force(2, sys%natom, 3, sys%natom, 3))
+        IF (gs%spectral_type%read_function=='NMA' .OR. gs%spectral_type%type_static=='1') THEN 
+            ALLOCATE (stats%force(sys%natom,3))
+            DO j = 1, sys%natom
+                DO k = 1, 3
+                    IF (.NOT. allocated(stats%force(j,k)%atom)) THEN
+                        ALLOCATE(stats%force(j,k)%atom(sys%natom))
+                    END IF
+                END DO
+            END DO
+              
+
             OPEN (UNIT=49, FILE=stats%force_file, STATUS='old', IOSTAT=stat) !Reading forces
             DO i = 1, 2
                 DO j = 1, sys%natom
                     DO m = 1, 3
                         DO n = 1, sys%natom
-                            READ (49, *) stats%force(i, j, m, n, 1), stats%force(i, j, m, n, 2), stats%force(i, j, m, n, 3)
+                                READ (49, *)    stats%force(n,1)%atom(j)%displacement(i)%XYZ(m), &
+                                                stats%force(n,2)%atom(j)%displacement(i)%XYZ(m), &
+                                                stats%force(n,3)%atom(j)%displacement(i)%XYZ(m)
                         END DO
                     END DO
                 END DO
@@ -148,9 +159,16 @@ CONTAINS
 
         CHARACTER(LEN=40)                                          :: chara
         INTEGER                                                    :: i, j, k, m, n
-        INTEGER                                                    :: stat
+        INTEGER                                                    :: stat, i_pol, j_pol
 
-        ALLOCATE (rams%atom(sys%natom), static_dip(sys%natom, 3, 2, 3)) ! rams%pol(sys%natom, 3, 2, 3, 3), 
+        ALLOCATE (static_dip(sys%natom, 3, 2, 3)) ! rams%pol(sys%natom, 3, 2, 3, 3), 
+        DO i_pol = 1, 3
+            DO j_pol = 1, 3
+              IF (.NOT. allocated(rams%pol(i_pol,j_pol)%atom)) THEN
+                ALLOCATE(rams%pol(i_pol,j_pol)%atom(sys%natom))
+              END IF
+            END DO
+        END DO
       
         IF (gs%spectral_type%type_dipole=='3') THEN
             OPEN (UNIT=52, FILE=rams%static_pol_file, STATUS='old', IOSTAT=stat) !Reading polarizabilties
@@ -164,9 +182,9 @@ CONTAINS
                             READ (52, *)
                             READ (52, *)
                             READ (52, *)
-                            READ (52, *) chara, chara, chara, rams%atom(i)%displacement(k)%XYZ(j)%pol(1,1), rams%atom(i)%displacement(k)%XYZ(j)%pol(2, 2), rams%atom(i)%displacement(k)%XYZ(j)%pol(3, 3)
-                            READ (52, *) chara, chara, chara, rams%atom(i)%displacement(k)%XYZ(j)%pol(1,2), rams%atom(i)%displacement(k)%XYZ(j)%pol(1, 3), rams%atom(i)%displacement(k)%XYZ(j)%pol(2, 3)
-                            READ (52, *) chara, chara, chara, rams%atom(i)%displacement(k)%XYZ(j)%pol(2,1), rams%atom(i)%displacement(k)%XYZ(j)%pol(3, 1), rams%atom(i)%displacement(k)%XYZ(j)%pol(3, 2)
+                            READ (52, *) chara, chara, chara, rams%pol(1,1)%atom(i)%displacement(k)%XYZ(j), rams%pol(2, 2)%atom(i)%displacement(k)%XYZ(j), rams%pol(3, 3)%atom(i)%displacement(k)%XYZ(j)
+                            READ (52, *) chara, chara, chara, rams%pol(1,2)%atom(i)%displacement(k)%XYZ(j), rams%pol(1, 3)%atom(i)%displacement(k)%XYZ(j), rams%pol(2, 3)%atom(i)%displacement(k)%XYZ(j)
+                            READ (52, *) chara, chara, chara, rams%pol(2,1)%atom(i)%displacement(k)%XYZ(j), rams%pol(3, 1)%atom(i)%displacement(k)%XYZ(j), rams%pol(3, 2)%atom(i)%displacement(k)%XYZ(j)
                         END DO
                     END DO
                 END DO

@@ -431,97 +431,94 @@ END SUBROUTINE spec_raman
 
 !!....................................................................................................................!
 !....................................................................................................................!
-    SUBROUTINE normal_mode_analysis(sys, stats)
-        TYPE(systems), INTENT(INOUT)        :: sys
-        TYPE(static), INTENT(INOUT)        :: stats
-        
-        INTEGER                                                     :: stat, i, j, m, n, p, k, info, lwork, lwmax, lda
-        REAL(kind=dp)                                                :: factor
-        REAL(kind=dp), DIMENSION(:), ALLOCATABLE                       :: w, work, w_new
-        REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE                     :: hessian_new, atomic_displacements
-        REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE                 :: hessian
-        LOGICAL, DIMENSION(9)                                        :: mk = .TRUE.
-        lwmax = 1000
-        lda = sys%natom*3
-        stats%nmodes = 3*sys%natom - 6 !only for non-linear atoms
+SUBROUTINE normal_mode_analysis(sys, stats)
+    TYPE(systems), INTENT(INOUT)        :: sys
+    TYPE(static), INTENT(INOUT)        :: stats
+    
+    INTEGER                                                     :: stat, i, j, m, n, p, k, info, lwork, lwmax, lda
+    REAL(kind=dp)                                                :: factor
+    REAL(kind=dp), DIMENSION(:), ALLOCATABLE                       :: w, work, w_new
+    REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE                     :: hessian, atomic_displacements
 
-        ALLOCATE (work(lwmax), w(sys%natom*3), w_new(sys%natom*3))
+    LOGICAL, DIMENSION(9)                                        :: mk = .TRUE.
+    lwmax = 1000
+    lda = sys%natom*3
+    stats%nmodes = 3*sys%natom - 6 !only for non-linear atoms
 
-        factor = REAL(1.0_dp/(2.0_dp*stats%dx), kind=dp)
+    ALLOCATE (work(lwmax), w(sys%natom*3), w_new(sys%natom*3))
 
-        ALLOCATE (hessian(0:sys%natom - 1, 0:2, 0:sys%natom - 1, 0:2), hessian_new(0:sys%natom*3 - 1, 0:sys%natom*3 - 1))
+    factor = REAL(1.0_dp/(2.0_dp*stats%dx), kind=dp)
 
-!hessian=factor*hessian_factor*(stats%force(2,:,:,:,:)-stats%force(1,:,:,:,:))
-        hessian = hartreebohr2evang*factor*hessian_factor*(stats%force(2, :, :, :, :) - stats%force(1, :, :, :, :))
+    ALLOCATE (hessian(0:sys%natom*3 - 1, 0:sys%natom*3 - 1))
 
-        p = 0
-        DO i = 0, sys%natom - 1
-            DO m = 0, 2
-                k = 0
-                DO j = 0, sys%natom - 1
-                    DO n = 0, 2
-                        hessian_new(i + m + p, j + n + k) = sys%mass_mat(i + 1, j + 1)*hessian(i, m, j, n)
-                    END DO
-                    k = k + 2
+    p = 0
+    DO i = 0, sys%natom - 1
+        DO m = 0, 2
+            k = 0
+            DO j = 0, sys%natom - 1
+                DO n = 0, 2
+                    hessian(i + m + p, j + n + k) = sys%mass_mat(i + 1, j + 1)*hartreebohr2evang*factor*hessian_factor* &
+                    (stats%force(j+1,n+1)%atom(i+1)%displacement(2)%XYZ(m+1) - stats%force(j+1,n+1)%atom(i+1)%displacement(1)%XYZ(m+1))
                 END DO
+                k = k + 2
             END DO
-            p = p + 2
         END DO
+        p = p + 2
+    END DO
 
-!hessian_new(:,:)=RESHAPE(hessian(:,:,:,:), (/3*sys%natom, 3*sys%natom/))
-        hessian_new(:, :) = REAL((hessian_new(:, :) + TRANSPOSE(hessian_new(:, :)))/2.0_dp, kind=dp)
-        n = SIZE(hessian_new, 1)
+    hessian(:, :) = REAL((hessian(:, :) + TRANSPOSE(hessian(:, :)))/2.0_dp, kind=dp)
+    n = SIZE(hessian, 1)
 
-        PRINT *, hessian_new(1, 1), "hess"
+    PRINT *, hessian(1, 1), "hess"
 
 ! work size query
-        lwork = -1
-        CALL DSYEV('V', 'U', n, hessian_new, lda, w, work, lwork, info)
-        lwork = MIN(lwmax, INT(work(1)))
-        PRINT *, "ekin"
+    lwork = -1
+    CALL DSYEV('V', 'U', n, hessian, lda, w, work, lwork, info)
+    lwork = MIN(lwmax, INT(work(1)))
+    PRINT *, "ekin"
 
 ! get eigenvalues and eigenvectors
-        CALL dsyev('V', 'U', n, hessian_new, lda, w, work, lwork, info)
+    CALL dsyev('V', 'U', n, hessian, lda, w, work, lwork, info)
 
-        hessian_new = TRANSPOSE(hessian_new)
+    hessian = TRANSPOSE(hessian)
 
-        w = REAL(w*SQRT(ABS(w))/ABS(w), kind=dp)
-        w = REAL(w/(2.0_dp*pi*speed_light), kind=dp)
+    w = REAL(w*SQRT(ABS(w))/ABS(w), kind=dp)
+    w = REAL(w/(2.0_dp*pi*speed_light), kind=dp)
 
-        ALLOCATE (stats%freq(stats%nmodes), atomic_displacements(stats%nmodes, sys%natom*3), stats%disp(stats%nmodes, sys%natom, 3))
+    ALLOCATE (stats%freq(stats%nmodes), atomic_displacements(stats%nmodes, sys%natom*3), stats%disp(stats%nmodes, sys%natom, 3))
 
-        DO i = 7, sys%natom*3
-            stats%freq(i - 6) = w(i)
+    DO i = 7, sys%natom*3
+        stats%freq(i - 6) = w(i)
+    END DO
+
+    atomic_displacements(1:stats%nmodes, 1:sys%natom*3) = hessian(6:3*sys%natom - 1, :)
+
+    m = 0
+    DO j = 0, sys%natom - 1 !sys%natom
+        DO k = 0, 2 !dims
+            stats%disp(1:stats%nmodes, j + 1, k + 1) = atomic_displacements(1:stats%nmodes, j + k + 1 + m)
         END DO
+        m = m + 2
+    END DO
 
-        atomic_displacements(1:stats%nmodes, 1:sys%natom*3) = hessian_new(6:3*sys%natom - 1, :)
+    PRINT *, stats%freq(1:3)
 
-        m = 0
-        DO j = 0, sys%natom - 1 !sys%natom
-            DO k = 0, 2 !dims
-                stats%disp(1:stats%nmodes, j + 1, k + 1) = atomic_displacements(1:stats%nmodes, j + k + 1 + m)
-            END DO
-            m = m + 2
+    OPEN (UNIT=13, FILE='normal_mode_freq.txt', STATUS='unknown', IOSTAT=stat)
+    DO i = 1, stats%nmodes !!atom_num: 1st atom
+        WRITE (13, *) stats%freq(i)
+    END DO
+
+    OPEN (UNIT=14, FILE='normal_mode_displ.txt', STATUS='unknown', IOSTAT=stat)
+    DO i = 1, stats%nmodes !!atom_num: 1st atom
+        DO j = 1, sys%natom !!dims: x dimension
+            WRITE (14, *) stats%disp(i, j, 1:3)
         END DO
+    END DO
 
-        PRINT *, stats%freq(1:3)
-
-        OPEN (UNIT=13, FILE='normal_mode_freq.txt', STATUS='unknown', IOSTAT=stat)
-        DO i = 1, stats%nmodes !!atom_num: 1st atom
-            WRITE (13, *) stats%freq(i)
-        END DO
-
-        OPEN (UNIT=14, FILE='normal_mode_displ.txt', STATUS='unknown', IOSTAT=stat)
-        DO i = 1, stats%nmodes !!atom_num: 1st atom
-            DO j = 1, sys%natom !!dims: x dimension
-                WRITE (14, *) stats%disp(i, j, 1:3)
-            END DO
-        END DO
-
-    END SUBROUTINE normal_mode_analysis
+END SUBROUTINE normal_mode_analysis
 
 !....................................................................................................................!
-    
+
 !....................................................................................................................!
 
     SUBROUTINE spec_static_ir(sys, stats, dips)
