@@ -42,9 +42,9 @@ CONTAINS
 998     CONTINUE
         CLOSE (51)
 
-        IF (gs%spectral_type%type_dipole=='2' .OR. gs%spectral_type%type_dipole=='3') THEN !!gas phase
+        IF (dip%type_dipole=='2' .OR. dip%type_dipole=='3') THEN !!gas phase
             sys%mol_num = 1
-        ELSEIF ((sys%periodic=='n' .AND. sys%system=='1') .OR. gs%spectral_type%type_dipole=='1') THEN !!fragment approach
+        ELSEIF ((sys%periodic=='n' .AND. sys%system=='1') .OR. dip%type_dipole=='1') THEN !!fragment approach
             sys%mol_num = 44 !20 !! fix later to 20
         END IF
         PRINT *, sys%mol_num, 'mol num'
@@ -152,7 +152,7 @@ CONTAINS
 
         ALLOCATE (rams%pol(sys%natom, 3, 2, 3, 3), static_dip(sys%natom, 3, 2, 3))
 
-        IF (gs%spectral_type%type_dipole=='3') THEN
+        IF (dip%type_dipole=='3') THEN
             OPEN (UNIT=52, FILE=rams%static_pol_file, STATUS='old', IOSTAT=stat) !Reading polarizabilties
             DO
                 DO k = 1, 2
@@ -174,7 +174,7 @@ CONTAINS
 995         CONTINUE
             CLOSE (52)
 
-        ELSEIF (gs%spectral_type%type_dipole=='2') THEN
+        ELSEIF (dip%type_dipole=='2') THEN
             OPEN (UNIT=53, FILE=static_dip_file, STATUS='old', IOSTAT=stat) !Reading dipoles
             DO
                 DO k = 1, 2

@@ -4,7 +4,7 @@ MODULE calc_spectra
     USE kinds, ONLY: dp
     USE vib_types, ONLY: global_settings, systems, molecular_dynamics, static, dipoles, raman
 
-    USE constants, ONLY: pi, t_cor, debye, speed_light, const_planck, const_boltz, const_permit, temp, pi, hartreebohr2evang, hessian_factor, bohr2ang, reccm2ev
+    USE constants, ONLY: pi, fs2s, debye, speed_light, const_planck, const_boltz, const_permit, temp, pi, hartreebohr2evang, hessian_factor, bohr2ang, reccm2ev
     USE read_traj, ONLY: read_coord_frame
     USE fin_diff, ONLY: central_diff, forward_diff
     USE vel_cor, ONLY: cvv, cvv_iso, cvv_aniso, cvv_only_x, cvv_resraman
@@ -29,35 +29,39 @@ SUBROUTINE spec_power(gs, sys, md)
 
     INTEGER                                                  :: stat, i
     INTEGER(kind=dp)                                          :: plan
+    REAL(kind=dp)                               :: dom, freq_range
 
-    ALLOCATE (md%zhat(0:t_cor*2 - 1))
+    ALLOCATE (md%zhat(0:md%t_cor*2 - 1))
 
     md%zhat = COMPLEX(0._dp, 0.0_dp)
 
     CALL read_coord_frame(sys%natom, sys%filename, md%coord_v, sys)
 
-    IF (gs%spectral_type%type_input=='1') THEN   !!If it is from positions, do finite differences first
+    IF (sys%type_traj=='pos') THEN   !!If it is from positions, do finite differences first
         CALL central_diff(sys%natom, md%coord_v, md%v, sys, md)
 
         CALL cvv(sys%natom, md%v, sys, md)
 
-    ELSEIF (gs%spectral_type%type_input=='2') THEN   !!If it is from velocities, compute autcorrelation directly
+    ELSEIF (sys%type_traj=='vel') THEN   !!If it is from velocities, compute autcorrelation directly
 
         CALL cvv(sys%natom, md%coord_v, sys, md)
 
     END IF
 
-    CALL dfftw_plan_dft_r2c_1d(plan, 2*t_cor, md%z, md%zhat, FFTW_ESTIMATE) !!!FFT
+    dom = REAL((1.0_dp/(md%dt*fs2s))/speed_light, kind=dp)
+    freq_range = REAL(dom/(2.0_dp*md%t_cor), kind=dp)
+    
+    CALL dfftw_plan_dft_r2c_1d(plan, 2*md%t_cor, md%z, md%zhat, FFTW_ESTIMATE) !!!FFT
     CALL dfftw_execute_dft_r2c(plan, md%z, md%zhat)
     CALL dfftw_destroy_plan(plan)
 
     md%zhat = REAL(md%zhat, kind=dp)
 
     OPEN (UNIT=63, FILE='power_spec.txt', STATUS='unknown', IOSTAT=stat) !!write the output
-    DO i = 0, 2*t_cor - 1
+    DO i = 0, 2*md%t_cor - 1
         md%zhat(i) = (md%zhat(i)*md%dt*7.211349d-9)/(sys%natom*3.0_dp) !!!unit conversion
-        IF ((i*md%freq_range).GE.5000_dp) CYCLE
-        WRITE (63, *) i*md%freq_range, REAL(md%zhat(i), kind=dp)
+        IF ((i*freq_range).GE.5000_dp) CYCLE
+        WRITE (63, *) i*freq_range, REAL(md%zhat(i), kind=dp)
     END DO
 
     CLOSE (63)
@@ -86,7 +90,7 @@ SUBROUTINE spec_ir(gs, sys, md, dips)
         END IF
     END IF
 
-    ALLOCATE (md%zhat(0:2*t_cor - 1))
+    ALLOCATE (md%zhat(0:2*md%t_cor - 1))
 
     md%zhat = COMPLEX(0._dp, 0.0_dp)
 
@@ -102,13 +106,13 @@ SUBROUTINE spec_ir(gs, sys, md, dips)
         CALL cvv(sys%mol_num, md%v, sys, md)
     END IF
 
-    CALL dfftw_plan_dft_r2c_1d(plan, 2*t_cor, md%z(0:2*t_cor - 1), md%zhat(0:2*t_cor - 1), FFTW_ESTIMATE) !!FFT!!
+    CALL dfftw_plan_dft_r2c_1d(plan, 2*md%t_cor, md%z(0:2*md%t_cor - 1), md%zhat(0:2*md%t_cor - 1), FFTW_ESTIMATE) !!FFT!!
     CALL dfftw_execute_dft_r2c(plan, md%z, md%zhat)
     CALL dfftw_destroy_plan(plan)
 
     md%zhat = REAL(md%zhat, kind=dp)
     OPEN (UNIT=61, FILE='IR_spectrum.txt', STATUS='unknown', IOSTAT=stat) !!write output
-    DO i = 0, 2*t_cor - 1
+    DO i = 0, 2*md%t_cor - 1
         md%zhat(i) = md%zhat(i)*3047.2310_dp*md%dt*(md%sinc_const*(i)/SIN(md%sinc_const*(i)))**2._dp !!unit conv. & sinc func.
         IF ((i*md%freq_range).GE.5000_dp) CYCLE
         md%zhat(0) = 0.00_dp
@@ -284,8 +288,8 @@ SUBROUTINE spec_raman(gs, sys, md, dips, rams)
 
 !!!ACF AND FFT CALC!!!
         PRINT *, sys%fragments%nfrag, 'sys%fragments%nfrag check'
-        ALLOCATE (zhat_iso(0:t_cor*2), zhat_aniso(0:t_cor*2))
-        ALLOCATE (zhat_unpol(0:t_cor*2), zhat_depol(0:t_cor*2), zhat_para_all(0:t_cor*2))
+        ALLOCATE (zhat_iso(0:md%t_cor*2), zhat_aniso(0:md%t_cor*2))
+        ALLOCATE (zhat_unpol(0:md%t_cor*2), zhat_depol(0:md%t_cor*2), zhat_para_all(0:md%t_cor*2))
 
         zhat_iso = COMPLEX(0._dp, 0.0_dp)
         zhat_aniso = COMPLEX(0._dp, 0.0_dp)
@@ -293,30 +297,30 @@ SUBROUTINE spec_raman(gs, sys, md, dips, rams)
         zhat_depol = COMPLEX(0._dp, 0.0_dp)
 
         IF (sys%system=='1' .OR. (sys%system=='2' .AND. gs%spectral_type%type_dipole=='1')) THEN
-            CALL cvv_iso(sys%fragments%nfrag, rams%z_iso, alpha_diff_x, alpha_diff_y, alpha_diff_z, sys)
+            CALL cvv_iso(sys%fragments%nfrag, rams%z_iso, alpha_diff_x, alpha_diff_y, alpha_diff_z, sys, md)
         ELSE
-            CALL cvv_iso(sys%mol_num, rams%z_iso, alpha_diff_x, alpha_diff_y, alpha_diff_z, sys)
+            CALL cvv_iso(sys%mol_num, rams%z_iso, alpha_diff_x, alpha_diff_y, alpha_diff_z, sys, md)
         END IF
 
-        CALL dfftw_plan_dft_r2c_1d(plan, 2*t_cor, rams%z_iso, zhat_iso, FFTW_ESTIMATE)
+        CALL dfftw_plan_dft_r2c_1d(plan, 2*md%t_cor, rams%z_iso, zhat_iso, FFTW_ESTIMATE)
         CALL dfftw_execute_dft_r2c(plan, rams%z_iso, zhat_iso)
 
         IF (sys%system=='1' .OR. (sys%system=='2' .AND. gs%spectral_type%type_dipole=='1')) THEN
-            CALL cvv_aniso(sys%fragments%nfrag, rams%z_aniso, alpha_diff_x, alpha_diff_y, alpha_diff_z, sys)
+            CALL cvv_aniso(sys%fragments%nfrag, rams%z_aniso, alpha_diff_x, alpha_diff_y, alpha_diff_z, sys, md)
         ELSE
-            CALL cvv_aniso(sys%mol_num, rams%z_aniso, alpha_diff_x, alpha_diff_y, alpha_diff_z, sys)
+            CALL cvv_aniso(sys%mol_num, rams%z_aniso, alpha_diff_x, alpha_diff_y, alpha_diff_z, sys, md)
         END IF
 
-        CALL dfftw_plan_dft_r2c_1d(plan, 2*t_cor, rams%z_aniso, zhat_aniso, FFTW_ESTIMATE)
+        CALL dfftw_plan_dft_r2c_1d(plan, 2*md%t_cor, rams%z_aniso, zhat_aniso, FFTW_ESTIMATE)
         CALL dfftw_execute_dft_r2c(plan, rams%z_aniso, zhat_aniso)
 
 !!!ORTHOGONAL!!!
         OPEN (UNIT=63, FILE='result_fft_water_lib_ortho.txt', STATUS='unknown', IOSTAT=stat)
         zhat_aniso = REAL(zhat_aniso, kind=dp)
-        freq_range = REAL(md%dom/(2.0_dp*t_cor), kind=dp)
+        freq_range = REAL(md%dom/(2.0_dp*md%t_cor), kind=dp)
         f = freq_range*md%dt*1.883652d-4
 
-        DO i = 0, 2*t_cor - 2
+        DO i = 0, 2*md%t_cor - 2
             zhat_aniso(i + 1) = REAL(zhat_aniso(i + 1), kind=dp)*(f*(i + 1)/SIN(f*(i + 1)))**2._dp
             zhat_aniso(i) = zhat_aniso(i)*((const_planck)/(8.0_dp*const_boltz*const_permit*const_permit)*1d-29*0.421_dp*md%dt &
                                            *(((gs%laser_in - ((i)*freq_range))**4)/((i)*freq_range)) &
@@ -334,10 +338,10 @@ SUBROUTINE spec_raman(gs, sys, md, dips, rams)
         OPEN (UNIT=64, FILE='result_fft_water_lib_para.txt', STATUS='unknown', IOSTAT=stat)
         zhat_iso = REAL(zhat_iso, kind=dp)
         zhat_para_all = REAL(zhat_para_all, kind=dp)
-        freq_range = REAL(md%dom/(2.0_dp*t_cor), kind=dp)
+        freq_range = REAL(md%dom/(2.0_dp*md%t_cor), kind=dp)
         f = freq_range*md%dt*1.883652d-4
 
-        DO i = 0, 2*t_cor - 2
+        DO i = 0, 2*md%t_cor - 2
 
             zhat_iso(i + 1) = REAL(zhat_iso(i + 1), kind=dp)*(f*(i + 1)/SIN(f*(i + 1)))**2._dp
             zhat_iso(i) = zhat_iso(i)*((const_planck)/(8.0_dp*const_boltz*const_permit*const_permit)*1d-29*0.421_dp*md%dt &
@@ -354,9 +358,9 @@ SUBROUTINE spec_raman(gs, sys, md, dips, rams)
 !!!UNPOL!!!
         OPEN (UNIT=65, FILE='result_fft_water_lib_unpol.txt', STATUS='unknown', IOSTAT=stat)
         zhat_unpol = REAL(zhat_unpol, kind=dp)
-        freq_range = REAL(md%dom/(2.0_dp*t_cor), kind=dp)
+        freq_range = REAL(md%dom/(2.0_dp*md%t_cor), kind=dp)
 
-        DO i = 0, 2*t_cor - 2
+        DO i = 0, 2*md%t_cor - 2
             zhat_unpol(i) = zhat_iso(i) + (zhat_aniso(i)*7.0_dp/45.0_dp)
             zhat_unpol(0) = 0.00_dp
             IF ((i*freq_range).GE.5000.0_dp) CYCLE
@@ -367,9 +371,9 @@ SUBROUTINE spec_raman(gs, sys, md, dips, rams)
 !!!DEPOL RATIO!!!
         OPEN (UNIT=66, FILE='result_fft_water_lib_depol.txt', STATUS='unknown', IOSTAT=stat)
         zhat_depol = REAL(zhat_depol, kind=dp)
-        freq_range = REAL(md%dom/(2.0_dp*t_cor), kind=dp)
+        freq_range = REAL(md%dom/(2.0_dp*md%t_cor), kind=dp)
 
-        DO i = 0, 2*t_cor - 2
+        DO i = 0, 2*md%t_cor - 2
             zhat_depol(i) = (REAL(zhat_aniso(i), kind=dp)/15.0_dp)/REAL(zhat_para_all(i), kind=dp)
             IF ((i*freq_range).GE.5000.0_dp) CYCLE
             WRITE (66, *) i*freq_range, REAL(zhat_depol(i), kind=dp)
@@ -431,7 +435,7 @@ SUBROUTINE spec_raman(gs, sys, md, dips, rams)
 
         END IF
 
-        ALLOCATE (zhat_para(0:t_cor*2), zhat_unpol_x(0:t_cor*2), zhat_ortho(0:t_cor*2), zhat_depol_x(0:t_cor*2))
+        ALLOCATE (zhat_para(0:md%t_cor*2), zhat_unpol_x(0:md%t_cor*2), zhat_ortho(0:md%t_cor*2), zhat_depol_x(0:md%t_cor*2))
 
         zhat_para = COMPLEX(0._dp, 0.0_dp)
         zhat_ortho = COMPLEX(0._dp, 0.0_dp)
@@ -440,21 +444,21 @@ SUBROUTINE spec_raman(gs, sys, md, dips, rams)
 
 !!IF ONLY ISOTROPIC AVERAGING IS CONSIDERED!!
         CALL cvv_only_x(sys%mol_num, sys%framecount, rams%z_para, rams%z_ortho, alpha_diff_x, &
-                        alpha_diff_y, alpha_diff_z, rams%direction)
+                        alpha_diff_y, alpha_diff_z, rams%direction, md)
 
-        CALL dfftw_plan_dft_r2c_1d(plan, 2*t_cor, rams%z_para, zhat_para, FFTW_ESTIMATE)
+        CALL dfftw_plan_dft_r2c_1d(plan, 2*md%t_cor, rams%z_para, zhat_para, FFTW_ESTIMATE)
         CALL dfftw_execute_dft_r2c(plan, rams%z_para, zhat_para)
 
-        CALL dfftw_plan_dft_r2c_1d(plan, 2*t_cor, rams%z_ortho, zhat_ortho, FFTW_ESTIMATE)
+        CALL dfftw_plan_dft_r2c_1d(plan, 2*md%t_cor, rams%z_ortho, zhat_ortho, FFTW_ESTIMATE)
         CALL dfftw_execute_dft_r2c(plan, rams%z_ortho, zhat_ortho)
 
 !!ORTHOGONAL!!
         OPEN (UNIT=68, FILE='result_fft_water_lib_ortho_iso.txt', STATUS='unknown', IOSTAT=stat)
         zhat_ortho = REAL(zhat_ortho, kind=dp)
-        freq_range = REAL(md%dom/t_cor, kind=dp)
+        freq_range = REAL(md%dom/md%t_cor, kind=dp)
         f = freq_range*md%dt*1.883652d-4
 
-        DO i = 0, 2*t_cor - 2
+        DO i = 0, 2*md%t_cor - 2
             zhat_ortho(i + 1) = REAL(zhat_ortho(i + 1), kind=dp)*(f*(i + 1)/SIN(f*(i + 1)))**2._dp
 
             zhat_ortho(i) = REAL(zhat_ortho(i), kind=dp)*((const_planck)/(8.0_dp*const_boltz*const_permit*const_permit) &
@@ -472,10 +476,10 @@ SUBROUTINE spec_raman(gs, sys, md, dips, rams)
 !!PARALLEL!!
         OPEN (UNIT=67, FILE='result_fft_water_lib_para_iso.txt', STATUS='unknown', IOSTAT=stat)
         zhat_para = REAL(zhat_para, kind=dp)
-        freq_range = REAL(md%dom/t_cor, kind=dp)
+        freq_range = REAL(md%dom/md%t_cor, kind=dp)
         f = freq_range*md%dt*1.883652d-4
 
-        DO i = 0, 2*t_cor - 2
+        DO i = 0, 2*md%t_cor - 2
             zhat_para(i + 1) = REAL(zhat_para(i + 1), kind=dp)*(f*(i + 1)/SIN(f*(i + 1)))**2._dp
 
             zhat_para(i) = REAL(zhat_para(i), kind=dp)*((const_planck)/(8.0_dp*const_boltz*const_permit*const_permit) &
@@ -491,9 +495,9 @@ SUBROUTINE spec_raman(gs, sys, md, dips, rams)
 
 !!UNPOL!!
         OPEN (UNIT=69, FILE='result_fft_water_lib_unpol_iso.txt', STATUS='unknown', IOSTAT=stat)
-        freq_range = REAL(md%dom/t_cor, kind=dp)
+        freq_range = REAL(md%dom/md%t_cor, kind=dp)
 
-        DO i = 0, 2*t_cor - 2
+        DO i = 0, 2*md%t_cor - 2
             zhat_unpol_x(i) = zhat_para(i) + zhat_ortho(i)
             IF ((i*freq_range).GE.5000_dp) CYCLE
             WRITE (69, *) i*freq_range, REAL(zhat_unpol_x(i), kind=dp)
@@ -503,7 +507,7 @@ SUBROUTINE spec_raman(gs, sys, md, dips, rams)
 !!DEPOL RATIO!!
         OPEN (UNIT=70, FILE='result_fft_water_lib_depol_iso.txt', STATUS='unknown', IOSTAT=stat)
 
-        DO i = 0, 2*t_cor - 2
+        DO i = 0, 2*md%t_cor - 2
             zhat_depol_x(i) = REAL(zhat_ortho(i), kind=dp)/REAL(zhat_para(i), kind=dp)
             IF ((i*freq_range).GE.5000_dp) CYCLE
             WRITE (70, *) i*freq_range, REAL(zhat_depol_x(i), kind=dp)!REAL(zhat_ortho(i),kind=dp)/REAL(zhat_para(i),kind=dp)
@@ -1155,27 +1159,27 @@ END SUBROUTINE spec_raman
 
         CALL cvv_resraman(framecount, natom, dt, alpha_resraman_x_diff_re, alpha_resraman_y_diff_re, &
                           alpha_resraman_z_diff_re, alpha_resraman_x_diff_im, alpha_resraman_y_diff_im, alpha_resraman_z_diff_im, &
-                          z_iso_resraman, z_aniso_resraman)
+                          z_iso_resraman, z_aniso_resraman, md)
 
-        ALLOCATE (zhat_iso_resraman(0:t_cor*2, natom), zhat_aniso_resraman(0:t_cor*2, natom))
-        ALLOCATE (zhat_unpol_resraman(0:t_cor*2, natom))
+        ALLOCATE (zhat_iso_resraman(0:md%t_cor*2, natom), zhat_aniso_resraman(0:md%t_cor*2, natom))
+        ALLOCATE (zhat_unpol_resraman(0:md%t_cor*2, natom))
 
         zhat_iso_resraman = COMPLEX(0._dp, 0.0_dp)
         zhat_aniso_resraman = COMPLEX(0._dp, 0.0_dp)
 
         DO j = 1, natom
-            CALL dfftw_plan_dft_1d(plan, 2*t_cor, z_iso_resraman(0:t_cor*2, j), zhat_iso_resraman(0:t_cor*2, j), &
+            CALL dfftw_plan_dft_1d(plan, 2*md%t_cor, z_iso_resraman(0:md%t_cor*2, j), zhat_iso_resraman(0:md%t_cor*2, j), &
                                    FFTW_FORWARD, FFTW_ESTIMATE)
-            CALL dfftw_execute_dft(plan, z_iso_resraman(0:t_cor*2, j), zhat_iso_resraman(0:t_cor*2, j)) !!!important to specify arrays!!
+            CALL dfftw_execute_dft(plan, z_iso_resraman(0:md%t_cor*2, j), zhat_iso_resraman(0:md%t_cor*2, j)) !!!important to specify arrays!!
             CALL dfftw_destroy_plan(plan)
 
-            CALL dfftw_plan_dft_1d(plan, 2*t_cor, z_aniso_resraman(0:t_cor*2, j), zhat_aniso_resraman(0:t_cor*2, j), &
+            CALL dfftw_plan_dft_1d(plan, 2*md%t_cor, z_aniso_resraman(0:md%t_cor*2, j), zhat_aniso_resraman(0:md%t_cor*2, j), &
                                    FFTW_FORWARD, FFTW_ESTIMATE)
-            CALL dfftw_execute_dft(plan, z_aniso_resraman(0:t_cor*2, j), zhat_aniso_resraman(0:t_cor*2, j)) !!!important to specify arrays!!
+            CALL dfftw_execute_dft(plan, z_aniso_resraman(0:md%t_cor*2, j), zhat_aniso_resraman(0:md%t_cor*2, j)) !!!important to specify arrays!!
             CALL dfftw_destroy_plan(plan)
         END DO
 
-        freq_range = REAL(dom/(2*t_cor), kind=dp)
+        freq_range = REAL(dom/(2*md%t_cor), kind=dp)
         j = ANINT(laser_in_resraman/rtp_freq_range, kind=dp)
 
 !!!!UNPOLARIZED!!!!
@@ -1184,14 +1188,14 @@ END SUBROUTINE spec_raman
 !zhat_aniso_resraman=AIMAG(zhat_aniso_resraman)
 
 !OPEN(UNIT=30,FILE='zhat_aimag.txt',STATUS='unknown',IOSTAT=stat)
-!DO i=0,2*t_cor-2
+!DO i=0,2*md%t_cor-2
 ! WRITE(30,*) REAL(zhat_aniso_resraman(i,j),kind=dp),AIMAG(zhat_aniso_resraman(i,j))
 !ENDDO
 !CLOSE(30)
 
         f = freq_range*dt*1.883652d-4
         OPEN (UNIT=73, FILE='o-NP_resraman.txt', STATUS='unknown', IOSTAT=stat)
-        DO i = 0, 2*t_cor - 2
+        DO i = 0, 2*md%t_cor - 2
             ! j=22
             !zhat_iso_resraman(i+1,j),AIMAG(zhat_iso_resraman(i+1,j),kind=dp)*(f*(i+1)/SIN(f*(i+1)))**2._dp
             zhat_iso_resraman(i + 1, j) = (zhat_iso_resraman(i + 1, j))*(f*(i + 1)/SIN(f*(i + 1)))**2._dp

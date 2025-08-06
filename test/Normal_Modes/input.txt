@@ -5,6 +5,8 @@
  filename water.xyz
 &end system
 &static
-  force_file water-force.data3
+  &hessian
+   force_file water-force.data3
+  &end hessian
   displacement 0.001
 &end static

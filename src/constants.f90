@@ -36,7 +36,7 @@ MODULE constants
     PRIVATE
 
     PUBLIC ::   speed_light, const_planck, const_permit, pi, const_charge, const_boltz, damping_constant, joule_unit, debye, &
-              ev_unit, action_unit, bohr2ang, hartreebohr2evang, at_u, ang, fs2s, reccm2ev, t_cor, temp, hessian_factor
+              ev_unit, action_unit, bohr2ang, hartreebohr2evang, at_u, ang, fs2s, reccm2ev, temp, hessian_factor
 
     ! Constants
 
@@ -99,7 +99,7 @@ MODULE constants
     REAL(Kind=dp), PARAMETER                            :: damping_constant = 0.10_dp
 
     ! Correlation depth for MD
-    INTEGER, PARAMETER                                  :: t_cor = 1024
+    !INTEGER, PARAMETER                                  :: t_cor = 1024
 
     ! Temperature [K]
     REAL(kind=dp), PARAMETER                            :: temp = 300.0_dp

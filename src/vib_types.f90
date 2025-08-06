@@ -6,12 +6,11 @@ MODULE vib_types
 
     PRIVATE
 
-    PUBLIC :: global_settings, systems, molecular_dynamics, static, dipoles, raman,init_global_settings,init_systems, init_molecular_dynamics, init_static, deallocate_types
+    PUBLIC :: global_settings, systems, molecular_dynamics, static, dipoles, raman,init_global_settings,init_systems,init_molecular_dynamics, init_static, init_dipoles, deallocate_types
 
     !***************************************************************************
     TYPE spectral_type
         CHARACTER(LEN=40)                               :: read_function
-        CHARACTER(LEN=40)                               :: type_input, type_static, type_dipole ! From IR calc what are those`?
     END TYPE spectral_type
 
     !***************************************************************************
@@ -62,6 +61,7 @@ MODULE vib_types
         INTEGER                                             :: mol_num             ! number of moleces ?
         CHARACTER(LEN=40)                                   :: filename            ! read in file
         CHARACTER(LEN=40)                                   :: frag_type           !  ???
+        CHARACTER(LEN=40)                                   :: type_traj           !  trajectory type for power spec
         CHARACTER(LEN=40)                                   :: input_mass          ! mass weighting (y/n)
         CHARACTER(LEN=40)                                   :: system              ! fragment approach (1) or molecular approach? (2)
         CHARACTER(LEN=40)                                   :: periodic !          ! contain more than one molecule? (y/n)
@@ -78,6 +78,7 @@ MODULE vib_types
 
     !***************************************************************************
     TYPE molecular_dynamics
+        INTEGER                                             :: t_cor               ! correlation depth
         CHARACTER(LEN=40)                                   :: trajectory_file !maybe not needed should be in system type
         CHARACTER(LEN=40)                                   :: velocity_file   !maybe not needed should be in system type
         REAL(kind=dp)                                       :: snapshot_time_step ! snapshots_time_step equal to dt ?
@@ -95,6 +96,7 @@ MODULE vib_types
     !***************************************************************************
     TYPE static
         INTEGER                                             :: nmodes               ! number of normal modes
+        CHARACTER(LEN=40)                                   :: diag_hessian         ! for IR/Raman, yes or no
         CHARACTER(LEN=40)                                   :: normal_freq_file     ! file
         CHARACTER(LEN=40)                                   :: normal_displ_file    ! file
         CHARACTER(LEN=40)                                   :: force_file           ! name of force file
@@ -104,8 +106,9 @@ MODULE vib_types
         REAL(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE:: force                ! ALLOCATE (stats%force(2, sys%natom, 3, sys%natom, 3)) with +-, N atoms, 3 shifts, N atoms, xyz
     END TYPE static
     !***************************************************************************
-    TYPE dipoles
+    TYPE dipoles 
         CHARACTER(LEN=40)                                   :: static_dip_file      !
+        CHARACTER(LEN=40)                                   :: type_dipole ! From IR calc what are those`? !!we can add these to static and dipoles
         REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE         :: dip_dq               !
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE      :: dipole               ! ALLOCATE static_dip(sys%natom, 3, 2, 3) is this neeeded?
         REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE   :: static_dip           ! field free dipole moment
@@ -146,9 +149,6 @@ CONTAINS
         gs%temp = -1.0_dp
         gs%laser_in = -1.0_dp
         gs%spectral_type%read_function = ''
-        gs%spectral_type%type_input = ''
-        gs%spectral_type%type_static = ''
-        gs%spectral_type%type_dipole = ''
     END SUBROUTINE init_global_settings
 
     SUBROUTINE init_systems(sys)
@@ -159,6 +159,7 @@ CONTAINS
         sys%mol_num = -1
         sys%filename = ''
         sys%frag_type = ''
+        sys%type_traj = ''
         sys%input_mass = ''
         sys%system = ''
         sys%periodic = ''
@@ -167,10 +168,11 @@ CONTAINS
 
     SUBROUTINE init_molecular_dynamics(md)
         TYPE(molecular_dynamics), INTENT(out) :: md
+        md%t_cor = -1
+        md%correlation_depth = -1
         md%trajectory_file = ''
         md%velocity_file = ''
         md%snapshot_time_step = -1.0_dp
-        md%correlation_depth = -1.0_dp
         md%dt = -1.0_dp
         md%dom = -1.0_dp
         md%freq_range = -1.0_dp
@@ -179,14 +181,20 @@ CONTAINS
 
     SUBROUTINE init_static(stats)
         TYPE(static), INTENT(out) :: stats
-
         stats%nmodes       = -1         
+        stats%diag_hessian = ''
         stats%normal_freq_file = ''      
         stats%normal_displ_file  = ''    
         stats%force_file   = ''          
         stats%dx      = -1.0_dp
     END SUBROUTINE init_static
-
+    
+    SUBROUTINE init_dipoles(dip)
+        TYPE(dipoles), INTENT(out) :: dip
+        dip%type_dipole = ''
+        dip%static_dip_file = ''
+    END SUBROUTINE init_dipoles
+    
     SUBROUTINE deallocate_types(gs, sys, md, stats, ram, dip)
         IMPLICIT NONE
 

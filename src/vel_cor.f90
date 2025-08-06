@@ -2,7 +2,7 @@ MODULE vel_cor
 
     USE dipole_calc, ONLY: center_mass
     USE kinds, ONLY: dp
-    USE constants, ONLY: t_cor, pi
+    USE constants, ONLY: pi
     USE vib_types, ONLY: global_settings, systems, molecular_dynamics, static, dipoles, raman
 
     IMPLICIT NONE
@@ -21,15 +21,19 @@ SUBROUTINE cvv(natom, coord_v, sys, md)
     INTEGER, DIMENSION(:), ALLOCATABLE                         :: norm
     REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE                  :: coord
     
-    ALLOCATE (md%z(0:2*t_cor - 1), norm(0:2*t_cor - 1))
+    ALLOCATE (md%z(0:2*md%t_cor - 1), norm(0:2*md%t_cor - 1))
     
     norm = 0
     md%z = 0.0_dp
     k = 0
     j = 0
-    
+   
+   ! IF (md%t_cor < 0) THEN
+    !    t_cor 
+   ! ENDIF
+ 
     DO t0 = 1, sys%framecount - 2
-    t1 = MIN(sys%framecount - 2, t0 + t_cor)
+    t1 = MIN(sys%framecount - 2, t0 + md%t_cor)
     DO j = 1, natom
      IF (sys%frag_type=='2') THEN
          k = j + 8
@@ -53,17 +57,17 @@ SUBROUTINE cvv(natom, coord_v, sys, md)
     
     md%z(:) = md%z(:)/norm(:) !!Normalization
     
-    md%z(t_cor) = 0.0_dp
-    DO i = 1, t_cor - 1
-    md%z(t_cor + i) = md%z(t_cor - i) !!Data mirroring
+    md%z(md%t_cor) = 0.0_dp
+    DO i = 1, md%t_cor - 1
+    md%z(md%t_cor + i) = md%z(md%t_cor - i) !!Data mirroring
     END DO
     
-    DO i = 0, 2*t_cor - 1
-    md%z(i) = md%z(i)*((COS(i/(t_cor - 1.0_dp)/2.0_dp*3.14_dp))**2) !!Hann Window function
+    DO i = 0, 2*md%t_cor - 1
+    md%z(i) = md%z(i)*((COS(i/(md%t_cor - 1.0_dp)/2.0_dp*3.14_dp))**2) !!Hann Window function
     END DO
     
     OPEN (UNIT=61, FILE='result_cvv.txt', STATUS='unknown', IOSTAT=stat) !!Write output
-    DO i = 0, 2*t_cor - 1
+    DO i = 0, 2*md%t_cor - 1
     WRITE (61, *) md%z(i)
     END DO
     CLOSE (61)
@@ -76,9 +80,10 @@ SUBROUTINE cvv(natom, coord_v, sys, md)
 !!***********************************************************************************
 !!***********************************************************************************
 
-    SUBROUTINE cvv_iso(mol_num, z_iso, alpha_diff_x, alpha_diff_y, alpha_diff_z, sys)
+    SUBROUTINE cvv_iso(mol_num, z_iso, alpha_diff_x, alpha_diff_y, alpha_diff_z, sys, md)
 
         TYPE(systems), INTENT(INOUT)                :: sys
+        TYPE(molecular_dynamics), INTENT(INOUT)     :: md
         INTEGER, INTENT(INOUT)                                    :: mol_num
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE, INTENT(OUT)        :: z_iso
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(INOUT)  :: alpha_diff_x, alpha_diff_y, alpha_diff_z
@@ -86,12 +91,12 @@ SUBROUTINE cvv(natom, coord_v, sys, md)
         INTEGER                                                  :: stat, i, j, k, t0, t1
         INTEGER, DIMENSION(:), ALLOCATABLE                         :: norm
     
-        ALLOCATE (z_iso(0:2*t_cor - 1), norm(0:2*t_cor - 1))
+        ALLOCATE (z_iso(0:2*md%t_cor - 1), norm(0:2*md%t_cor - 1))
     
         norm = 0
         z_iso = 0.0_dp
         DO t0 = 1, sys%framecount - 2
-            t1 = MIN(sys%framecount - 2, t0 + t_cor)
+            t1 = MIN(sys%framecount - 2, t0 + md%t_cor)
             DO j = 1, mol_num
                 IF (sys%frag_type=='2') THEN
                     k = j + 8
@@ -113,20 +118,20 @@ SUBROUTINE cvv(natom, coord_v, sys, md)
         z_iso(:) = z_iso(:)/(2.0_dp*pi)
     !z_iso(:)=z_iso(:)/mol_num
     
-        DO i = 0, t_cor - 1
-            z_iso(i) = z_iso(i)*((COS(i/(t_cor - 1.0_dp)/2.0_dp*3.14_dp))**2)
-            !z_iso(i)=z_iso(i)*0.5_dp*(1+COS(2.0_dp*3.14_dp*i/(2.0_dp*(t_cor-1))))
+        DO i = 0, md%t_cor - 1
+            z_iso(i) = z_iso(i)*((COS(i/(md%t_cor - 1.0_dp)/2.0_dp*3.14_dp))**2)
+            !z_iso(i)=z_iso(i)*0.5_dp*(1+COS(2.0_dp*3.14_dp*i/(2.0_dp*(md%t_cor-1))))
         END DO
     
-        z_iso(t_cor) = 0.0_dp
+        z_iso(md%t_cor) = 0.0_dp
     
-        DO i = 1, t_cor - 1
-            z_iso(t_cor + i) = z_iso(t_cor - i)
+        DO i = 1, md%t_cor - 1
+            z_iso(md%t_cor + i) = z_iso(md%t_cor - i)
         END DO
     
         OPEN (UNIT=61, FILE='result_cvv_iso.txt', STATUS='unknown', IOSTAT=stat)
     
-        DO i = 0, 2*t_cor - 1
+        DO i = 0, 2*md%t_cor - 1
             WRITE (61, *) z_iso(i)
         END DO
         CLOSE (61)
@@ -137,9 +142,10 @@ SUBROUTINE cvv(natom, coord_v, sys, md)
 !***********************************************************************************
 !***********************************************************************************
 
-    SUBROUTINE cvv_aniso(mol_num, z_aniso, alpha_diff_x, alpha_diff_y, alpha_diff_z, sys)
+    SUBROUTINE cvv_aniso(mol_num, z_aniso, alpha_diff_x, alpha_diff_y, alpha_diff_z, sys, md)
 
         TYPE(systems), INTENT(INOUT)                :: sys
+        TYPE(molecular_dynamics), INTENT(INOUT)     :: md
         INTEGER, INTENT(INOUT)                                    :: mol_num
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE, INTENT(OUT)        :: z_aniso
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(INOUT)  :: alpha_diff_x, alpha_diff_y, alpha_diff_z
@@ -147,13 +153,13 @@ SUBROUTINE cvv(natom, coord_v, sys, md)
         INTEGER                                                  :: stat, i, j, k, t0, t1
         INTEGER, DIMENSION(:), ALLOCATABLE                         :: norm
         
-        ALLOCATE (z_aniso(0:2*t_cor - 1), norm(0:2*t_cor - 1))
+        ALLOCATE (z_aniso(0:2*md%t_cor - 1), norm(0:2*md%t_cor - 1))
         
         norm = 0
         z_aniso = 0.0_dp
         
         DO t0 = 1, sys%framecount - 2
-        t1 = MIN(sys%framecount - 2, t0 + t_cor)
+        t1 = MIN(sys%framecount - 2, t0 + md%t_cor)
         DO j = 1, mol_num
         IF (sys%frag_type=='2') THEN
         k = j + 8
@@ -184,19 +190,19 @@ SUBROUTINE cvv(natom, coord_v, sys, md)
         z_aniso(:) = z_aniso(:)/(2.0_dp*pi)
         !z_aniso(:)=REAL(z_aniso(:)/mol_num,kind=dp)
         
-        DO i = 0, t_cor - 1
-        z_aniso(i) = z_aniso(i)*((COS(i/(t_cor - 1.0_dp)/2.0_dp*3.14_dp))**2)
+        DO i = 0, md%t_cor - 1
+        z_aniso(i) = z_aniso(i)*((COS(i/(md%t_cor - 1.0_dp)/2.0_dp*3.14_dp))**2)
         END DO
         
-        z_aniso(t_cor) = 0.0_dp
+        z_aniso(md%t_cor) = 0.0_dp
         
-        DO i = 1, t_cor - 1
-        z_aniso(t_cor + i) = z_aniso(t_cor - i)
+        DO i = 1, md%t_cor - 1
+        z_aniso(md%t_cor + i) = z_aniso(md%t_cor - i)
         END DO
         
         OPEN (UNIT=61, FILE='result_cvv_aniso.txt', STATUS='unknown', IOSTAT=stat)
         
-        DO i = 0, 2*t_cor - 1
+        DO i = 0, 2*md%t_cor - 1
         WRITE (61, *) z_aniso(i)
         END DO
         CLOSE (61)
@@ -210,8 +216,9 @@ SUBROUTINE cvv(natom, coord_v, sys, md)
 
     SUBROUTINE cvv_resraman(framecount, natom, dt, alpha_resraman_x_diff_re, alpha_resraman_y_diff_re, &
                             alpha_resraman_z_diff_re, alpha_resraman_x_diff_im, alpha_resraman_y_diff_im, &
-                            alpha_resraman_z_diff_im, z_iso_resraman, z_aniso_resraman)
+                            alpha_resraman_z_diff_im, z_iso_resraman, z_aniso_resraman, md)
 
+        TYPE(molecular_dynamics), INTENT(INOUT)     :: md
         INTEGER, INTENT(INOUT)                                    :: framecount, natom
         REAL(kind=dp), INTENT(IN)                                  :: dt
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(INOUT)  :: alpha_resraman_x_diff_re, alpha_resraman_y_diff_re
@@ -226,8 +233,8 @@ SUBROUTINE cvv(natom, coord_v, sys, md)
 
 !!!ISOTROPIC!!!
 
-        ALLOCATE (z_iso_resraman(0:2*t_cor, natom - 1), norm_iso(0:2*t_cor, natom - 1))
-        ALLOCATE (z_aniso_resraman(0:2*t_cor, natom - 1), norm_aniso(0:2*t_cor, natom - 1))
+        ALLOCATE (z_iso_resraman(0:2*md%t_cor, natom - 1), norm_iso(0:2*md%t_cor, natom - 1))
+        ALLOCATE (z_aniso_resraman(0:2*md%t_cor, natom - 1), norm_aniso(0:2*md%t_cor, natom - 1))
 
         im_unit = (0.0_dp, 1.0_dp)
         z_iso_resraman = (0.0_dp, 0.0_dp)
@@ -237,7 +244,7 @@ SUBROUTINE cvv(natom, coord_v, sys, md)
 
         norm_iso = 0.0_dp
         DO t0 = 2, framecount
-            t1 = MIN(framecount, t0 + t_cor)
+            t1 = MIN(framecount, t0 + md%t_cor)
             DO k = 1, natom - 1
   !!RE*RE
                 z_iso_resraman(0:t1 - t0, k) = z_iso_resraman(0:t1 - t0, k) &
@@ -273,25 +280,25 @@ SUBROUTINE cvv(natom, coord_v, sys, md)
         z_iso_resraman(:, :) = z_iso_resraman(:, :)/9._dp
         z_iso_resraman(:, :) = z_iso_resraman(:, :)/(2.0_dp*pi)
 
-        DO i = 0, t_cor - 1
+        DO i = 0, md%t_cor - 1
             DO j = 1, natom - 1
-                z_iso_resraman(i, j) = z_iso_resraman(i, j)*((COS(i/(t_cor - 1.0_dp)/2.0_dp*3.14_dp))**2)
+                z_iso_resraman(i, j) = z_iso_resraman(i, j)*((COS(i/(md%t_cor - 1.0_dp)/2.0_dp*3.14_dp))**2)
             END DO
         END DO
 
         DO i = 1, natom - 1
-            z_iso_resraman(t_cor, i) = 0.0_dp
+            z_iso_resraman(md%t_cor, i) = 0.0_dp
         END DO
 
-        DO i = 1, t_cor - 1
+        DO i = 1, md%t_cor - 1
             DO j = 1, natom - 1
-                z_iso_resraman(t_cor + i, j) = z_iso_resraman(t_cor - i, j)
+                z_iso_resraman(md%t_cor + i, j) = z_iso_resraman(md%t_cor - i, j)
             END DO
         END DO
 
         OPEN (UNIT=61, FILE='result_cvv_iso_resraman.txt', STATUS='unknown', IOSTAT=stat)
 
-        DO i = 0, 2*t_cor - 1
+        DO i = 0, 2*md%t_cor - 1
             DO j = 1, natom - 1
                 WRITE (61, *) z_iso_resraman(i, j)
             END DO
@@ -303,7 +310,7 @@ SUBROUTINE cvv(natom, coord_v, sys, md)
 
         norm_aniso = 0.0_dp
         DO t0 = 2, framecount
-            t1 = MIN(framecount, t0 + t_cor)
+            t1 = MIN(framecount, t0 + md%t_cor)
             DO k = 1, natom - 1
   !!RE*RE
                 z_aniso_resraman(0:t1 - t0, k) = z_aniso_resraman(0:t1 - t0, k) + (alpha_resraman_x_diff_re(t0, k, 1) &
@@ -435,25 +442,25 @@ SUBROUTINE cvv(natom, coord_v, sys, md)
         z_aniso_resraman(:, :) = REAL(z_aniso_resraman(:, :)/norm_aniso(:, :), kind=dp)
         z_aniso_resraman(:, :) = REAL(z_aniso_resraman(:, :)/(2.0_dp*pi), kind=dp)
 
-        DO i = 0, t_cor - 1
+        DO i = 0, md%t_cor - 1
             DO j = 1, natom - 1
-                z_aniso_resraman(i, j) = z_aniso_resraman(i, j)*0.5_dp*(1 + COS(2.0_dp*3.14_dp*i/(2.0_dp*(t_cor - 1))))
+                z_aniso_resraman(i, j) = z_aniso_resraman(i, j)*0.5_dp*(1 + COS(2.0_dp*3.14_dp*i/(2.0_dp*(md%t_cor - 1))))
             END DO
         END DO
 
         DO i = 1, natom - 1
-            z_aniso_resraman(t_cor, i) = 0.0_dp
+            z_aniso_resraman(md%t_cor, i) = 0.0_dp
         END DO
 
-        DO i = 1, t_cor - 1
+        DO i = 1, md%t_cor - 1
             DO j = 1, natom - 1
-                z_aniso_resraman(t_cor + i, j) = z_aniso_resraman(t_cor - i, j)
+                z_aniso_resraman(md%t_cor + i, j) = z_aniso_resraman(md%t_cor - i, j)
             END DO
         END DO
 
         OPEN (UNIT=62, FILE='result_cvv_aniso_resraman.txt', STATUS='unknown', IOSTAT=stat)
 
-        DO i = 0, 2*t_cor - 1
+        DO i = 0, 2*md%t_cor - 1
             DO j = 1, natom - 1
                 WRITE (62, *) z_aniso_resraman(i, j)
             END DO
@@ -467,8 +474,9 @@ SUBROUTINE cvv(natom, coord_v, sys, md)
 !***********************************************************************************
 
     SUBROUTINE cvv_only_x(mol_num, framecount, z_para, z_ortho, alpha_diff_x, &
-                          alpha_diff_y, alpha_diff_z, direction)
+                          alpha_diff_y, alpha_diff_z, direction, md)
 
+        TYPE(molecular_dynamics), INTENT(INOUT)     :: md
         CHARACTER(LEN=40), INTENT(IN)                             :: direction
         INTEGER, INTENT(INOUT)                                    :: framecount, mol_num
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE, INTENT(OUT)        :: z_para, z_ortho
@@ -479,8 +487,8 @@ SUBROUTINE cvv(natom, coord_v, sys, md)
         INTEGER, DIMENSION(:), ALLOCATABLE                         :: norm
         INTEGER                                                  :: stat, i, j, k, m, t0, t1
 
-        ALLOCATE (z_para(0:t_cor*2), norm(0:t_cor*2))
-        ALLOCATE (z_ortho(0:t_cor*2))
+        ALLOCATE (z_para(0:md%t_cor*2), norm(0:md%t_cor*2))
+        ALLOCATE (z_ortho(0:md%t_cor*2))
 
         framecount = framecount - 2
 
@@ -488,7 +496,7 @@ SUBROUTINE cvv(natom, coord_v, sys, md)
         z_para = 0.0_dp
         z_ortho = 0.0_dp
         DO t0 = 1, framecount
-            t1 = MIN(framecount, t0 + t_cor)
+            t1 = MIN(framecount, t0 + md%t_cor)
             DO k = 1, mol_num
 
                 IF (direction=='1') THEN
@@ -513,29 +521,29 @@ SUBROUTINE cvv(natom, coord_v, sys, md)
         z_ortho(:) = z_ortho(:)/mol_num
         z_ortho(:) = z_ortho(:)/(2.0_dp*pi)
 
-        DO i = 0, t_cor - 1
-            z_para(i) = z_para(i)*0.5_dp*(1 + COS(2.0_dp*3.14_dp*i/(2.0_dp*(t_cor - 1))))
-            z_ortho(i) = z_ortho(i)*0.5_dp*(1 + COS(2.0_dp*3.14_dp*i/(2.0_dp*(t_cor - 1))))
+        DO i = 0, md%t_cor - 1
+            z_para(i) = z_para(i)*0.5_dp*(1 + COS(2.0_dp*3.14_dp*i/(2.0_dp*(md%t_cor - 1))))
+            z_ortho(i) = z_ortho(i)*0.5_dp*(1 + COS(2.0_dp*3.14_dp*i/(2.0_dp*(md%t_cor - 1))))
         END DO
 
-        z_para(t_cor) = 0.0_dp
-        z_ortho(t_cor) = 0.0_dp
+        z_para(md%t_cor) = 0.0_dp
+        z_ortho(md%t_cor) = 0.0_dp
 
-        DO i = 1, t_cor - 1
-            z_para(t_cor + i) = z_para(t_cor - i)
-            z_ortho(t_cor + i) = z_ortho(t_cor - i)
+        DO i = 1, md%t_cor - 1
+            z_para(md%t_cor + i) = z_para(md%t_cor - i)
+            z_ortho(md%t_cor + i) = z_ortho(md%t_cor - i)
         END DO
 
         OPEN (UNIT=60, FILE='result_cvv_para.txt', STATUS='unknown', IOSTAT=stat)
 
-        DO i = 0, 2*t_cor - 1
+        DO i = 0, 2*md%t_cor - 1
             WRITE (60, *) z_para(i)
         END DO
         CLOSE (60)
 
         OPEN (UNIT=61, FILE='result_cvv_ortho.txt', STATUS='unknown', IOSTAT=stat)
 
-        DO i = 0, 2*t_cor - 1
+        DO i = 0, 2*md%t_cor - 1
             WRITE (61, *) z_ortho(i)
         END DO
         CLOSE (61)

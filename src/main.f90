@@ -3,7 +3,7 @@ PROGRAM vib2d
     USE, INTRINSIC           :: ISO_C_BINDING
     USE kinds, ONLY: dp, str_len
     USE constants, ONLY: speed_light, const_planck, const_permit, pi, const_charge, const_boltz, damping_constant, joule_unit, &
-                         debye, ev_unit, action_unit, bohr2ang, hartreebohr2evang, at_u, ang, fs2s, reccm2ev, t_cor, temp, &
+                         debye, ev_unit, action_unit, bohr2ang, hartreebohr2evang, at_u, ang, fs2s, reccm2ev, temp, &
                          hessian_factor
     USE read_input, ONLY:  parse_command_line,  parse_input, check_input
     USE vib_types, ONLY: global_settings, systems, molecular_dynamics, static, dipoles, raman,init_global_settings,init_systems, init_molecular_dynamics,init_static, deallocate_types
@@ -26,7 +26,7 @@ PROGRAM vib2d
     INTEGER(kind=dp)                                 :: plan
     INTEGER, DIMENSION(:), ALLOCATABLE                :: natom_frag, natom_frag_x, natom_frag_free, nfrag_BO, nfrag_BC, nfrag_Ph
     INTEGER, DIMENSION(:, :, :), ALLOCATABLE            :: fragment
-    CHARACTER(LEN=40)                               :: system, filename, static_pol_file, read_function, length, type_input, output_dip
+    CHARACTER(LEN=40)                               :: system, filename, static_pol_file, read_function, length, type_traj, output_dip
     CHARACTER(LEN=40)                               :: filename_dip, type_dipole, direction, averaging, cell_type, coord_file
     CHARACTER(LEN=40)                               :: normal_freq_file, normal_displ_file, frag_type, type_static, force_file
     CHARACTER(LEN=40)                               :: static_dip_free_file, static_dip_x_file, static_dip_y_file, static_dip_z_file
@@ -176,7 +176,6 @@ PROGRAM vib2d
     IF (gs%spectral_type%read_function=='P') THEN
         CALL read_coord(gs, sys)
         CALL masses_charges(gs, sys)
-             print*,'test'  
         CALL spec_power(gs, sys, md)
 !        !***************************************************************************
 !        !***************************************************************************

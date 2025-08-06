@@ -1,7 +1,17 @@
-IR
-1
-2
-o-NP.xyz
-o-NP-force.data3
-0.001
-dipole_o-NP_free_static.xyz
+&global
+ spectra IR
+&end global
+&system
+ filename o-NP.xyz
+&end system
+&static
+ diag_hessian y
+ &hessian
+  force_file o-NP-force.data3
+ &end hessian
+ displacement 0.001
+&end static
+&dipoles
+ type_dipole berry
+ static_dip_file dipole_o-NP_free_static.xyz
+&end dipoles

@@ -1,7 +1,7 @@
 MODULE setup
 
     USE kinds, ONLY: dp
-    USE constants, ONLY: speed_light, t_cor
+    USE constants, ONLY: speed_light
     USE vib_types, ONLY: global_settings, systems
 
     IMPLICIT NONE
@@ -487,11 +487,11 @@ CONTAINS
         INTEGER                               :: stat   ! error status of OPEN statements
         INTEGER                               :: i, j, k
 
-        dom = REAL((1.0_dp/(dt*1e-15))/speed_light, kind=dp)
+        !dom = REAL((1.0_dp/(dt*1e-15))/speed_light, kind=dp)
         dom_rtp = REAL((1.0_dp/(dt_rtp*1e-15))/speed_light, kind=dp)
 
-        freq_range = REAL(dom/(2.0_dp*t_cor), kind=dp)
-        sinc_const = freq_range*dt*1.883652d-4 !!for sinc function
+       ! freq_range = REAL(dom/(2.0_dp*md%t_cor), kind=dp)
+       ! sinc_const = freq_range*dt*1.883652d-4 !!for sinc function
 
     END SUBROUTINE conversion
 

@@ -8,4 +8,5 @@
 &end system
 &md
  time_step 2.5
+ correlation_depth 1024
 &end md

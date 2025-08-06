@@ -71,6 +71,7 @@ CONTAINS
         LOGICAL :: in_fragments = .FALSE.
         LOGICAL :: in_md = .FALSE.
         LOGICAL :: in_static = .FALSE.
+        LOGICAL :: in_hessian = .FALSE.
         
         OPEN (unit=999, file=TRIM(input_file_name), status="old")
 
@@ -149,6 +150,16 @@ CONTAINS
                 CYCLE
             END IF
 
+            IF (INDEX(line, '&hessian')>0) THEN
+                in_hessian = .TRUE.
+                CYCLE
+            ENDIF
+  
+            IF (INDEX(line, '&end hessian')>0) THEN
+                in_hessian = .FALSE.
+                CYCLE
+            END IF            
+
             ! Parse within active sections
             IF (in_global) THEN
                 IF (INDEX(to_lower(line), 'temperature')>0) THEN
@@ -161,10 +172,7 @@ CONTAINS
                 ELSEIF (INDEX(to_lower(line), 'spectra')>0) THEN
                         READ (line, *) dummy, gs%spectral_type%read_function
                         write(*,*) "spectra: ", gs%spectral_type%read_function
-                ELSEIF (INDEX(to_lower(line), 'type_input')>0) THEN
-                    READ (line, *) dummy, gs%spectral_type%type_input !'Enter the type of the input file (type 1 for positions, 2 for velocities)'
-                    write(*,*) "type_input: ", gs%spectral_type%type_input
-                    ELSEIF (INDEX(to_lower(line), 'type_static')>0) THEN
+                ELSEIF (INDEX(to_lower(line), 'type_static')>0) THEN
                     READ (line, *) dummy, gs%spectral_type%type_static !'Do you want the normal modes to be calculated (type "1") or read from an external file (type "2")?'
                     write(*,*) "type_static: ", gs%spectral_type%type_static
                 ELSEIF (INDEX(to_lower(line), 'type_dipole')>0) THEN  !Which one do you want to use: Wannier centers (1) or Berry phase dipole moments (2)?'
@@ -177,6 +185,9 @@ CONTAINS
                 IF (INDEX(to_lower(line), 'filename')>0) THEN
                     READ (line, *) dummy, sys%filename
                     write(*,*) "filename: ", sys%filename
+                ELSEIF (INDEX(to_lower(line), 'type_traj')>0) THEN
+                    READ (line, *) dummy, sys%type_traj !'Enter the type of the input file (type 1 for positions, 2 for velocities)'
+                    write(*,*) "type_traj: ", sys%type_traj
                 ELSEIF (INDEX(to_lower(line), 'mass_weighting')>0) THEN !'Do you want to apply mass weighting (y/n)?
                     READ (line, *) dummy, sys%input_mass
                     write(*,*) "mass_weighting: ",  sys%input_mass
@@ -199,10 +210,13 @@ CONTAINS
             END IF
 
             IF (in_static) THEN
-                IF (INDEX(to_lower(line), 'force_file')>0) THEN
-                    READ (line, *) dummy, stats%force_file
-                    write(*,*) "force_file: ", stats%force_file
-                ELSEIF (INDEX(to_lower(line), 'displacement')>0) THEN !'Do you want to apply mass weighting (y/n)?
+                IF (in_hessian) THEN                
+                    IF (INDEX(to_lower(line), 'force_file')>0) THEN
+                        READ (line, *) dummy, stats%force_file
+                        write(*,*) "force_file: ", stats%force_file
+                    ENDIF
+                ENDIF
+                IF (INDEX(to_lower(line), 'displacement')>0) THEN !'Do you want to apply mass weighting (y/n)?
                     READ (line, *) dummy, stats%dx
                     write(*,*) "displacement: ",  stats%dx
                 END iF
@@ -230,6 +244,10 @@ CONTAINS
                     READ (line, *) dummy, md%dt
                     write(*,*) "time_step: ",  md%dt
                 END IF
+                IF (INDEX(line, 'correlation_depth')>0) THEN
+                    READ (line, *) dummy, md%t_cor
+                    write(*,*) "correlation depth: ",  md%t_cor
+                END IF
             END IF
         END DO
 100     CONTINUE
@@ -250,13 +268,14 @@ CONTAINS
         IF (trim(gs%spectral_type%read_function) == '') THEN
             print *, 'Error: Spectra not defined in the input'
             stop
+        
         ELSEIF (gs%spectral_type%read_function=='P') THEN
             !check for input_type
-            IF (trim(gs%spectral_type%type_input) == '') THEN
-                print *, 'Error: type_input not defined in the input - provide type_input 1 for positions, type_input 2 for velocities'
+            IF (trim(sys%type_traj) == '') THEN
+                print *, 'Error: type_traj not defined in the input - provide "type_traj pos" for positions, "type_traj vel" for velocities'
                 stop
             END IF
-            !check for input_dipole not needed for P but set to a default value
+            !check for input_dipole, not needed for P but set to a default value
             IF (trim(gs%spectral_type%type_dipole) == '') THEN !<----- NEEDED IN READ_COORD FUNCTION ...
                 print *, 'Warning: type_dipole not defined in the input setting it to 1'
                 gs%spectral_type%type_dipole = '1'
@@ -271,11 +290,17 @@ CONTAINS
                 print *, 'Error: mass_weighting not defined in the input'
                 stop
             END IF
-            !check timstep
+            !check time step
             IF (md%dt < 0) THEN
                 print *, 'Error: time_step not defined in the input'
                 stop
             END IF
+            !check t_cor
+            IF (md%t_cor < 0) THEN
+                print *, 'Error: correlation depth not defined in the input, we will continue with an estimate' !can be worded differently
+                stop
+            ENDIF
+ 
         ELSEIF (gs%spectral_type%read_function=='NMA') THEN
             !check for input_dipole not needed for P but set to a default value
             IF (trim(gs%spectral_type%type_dipole) == '') THEN
