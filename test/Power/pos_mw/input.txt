@@ -1,5 +1,11 @@
-P
-1
-y
-trajectory_shorter.xyz
-0.5
+&global
+ spectra P
+ type_input 1
+&end global
+&system
+ filename trajectory_shorter.xyz
+ mass_weighting y
+&end system
+&md
+ time_step 0.5
+&end md

@@ -1,4 +1,10 @@
-NMA
-water.xyz
-water-force.data3
-0.001
+&global
+ spectra NMA
+&end global
+&system
+ filename water.xyz
+&end system
+&static
+  force_file water-force.data3
+  displacement 0.001
+&end static

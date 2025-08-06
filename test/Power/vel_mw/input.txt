@@ -1,5 +1,11 @@
-P
-2
-y
-waterbulk-vel-1_shorter.xyz
-2.5
+&global
+ spectra P
+ type_input 2
+&end global
+&system
+ filename waterbulk-vel-1_shorter.xyz
+ mass_weighting y
+&end system
+&md
+ time_step 2.5
+&end md
