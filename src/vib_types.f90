@@ -115,7 +115,7 @@ MODULE vib_types
       REAL(kind=dp)                                       :: dx                   ! atom displacement
       REAL(kind=dp), DIMENSION(:), ALLOCATABLE            :: freq                 ! ALLOCATE (stats%freq(stats%nmodes))
       REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE      :: disp                 ! ALLOCATE (stats%disp(stats%nmodes, sys%natom, 3))
-      REAL(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE:: force                ! ALLOCATE (stats%force(2, sys%natom, 3, sys%natom, 3)) with +-, N atoms, 3 shifts, N atoms, xyz
+      Type(static_property), DIMENSION(:, :), ALLOCATABLE  ::  force
    END TYPE static
    !***************************************************************************
    TYPE dipoles
@@ -132,13 +132,9 @@ MODULE vib_types
       !LOGICAL                                            ::  fragment !<yes/no>
    END TYPE dipoles
    !***************************************************************************
-   TYPE direction_type
-        REAL(kind=dp) :: pol(3,3)
-    END TYPE direction_type
-   !***************************************************************************
 
     TYPE displacement_type
-        TYPE(direction_type), DIMENSION(3)   :: XYZ
+        REAL(kind=dp), DIMENSION(3)  :: XYZ
     END TYPE displacement_type
    !***************************************************************************
 
@@ -146,6 +142,10 @@ MODULE vib_types
         TYPE(displacement_type), DIMENSION(2) :: displacement
         !REAL(kind=dp), DIMENSION(3, 3), ALLOCATABLE :: pol
     END TYPE atom_information
+   !***************************************************************************
+    TYPE static_property
+        TYPE(atom_information), DIMENSION(:), ALLOCATABLE :: atom
+    END TYPE static_property
    !***************************************************************************
    TYPE raman
       !LOGICAL                                             :: polarizability_type ! <numeric/analytic>
@@ -166,7 +166,7 @@ MODULE vib_types
       REAL(kind=dp), DIMENSION(:), ALLOCATABLE            :: raman_int
       !REAL(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE:: pol ! ALLOCATE rams%pol(sys%natom, 3, 2, 3, 3)
       REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE      :: pol_dq !ALLOCATE (rams%pol_dq(stats%nmodes, 3, 3))
-      Type(atom_information), DIMENSION(:), ALLOCATABLE  ::  atom   
+      Type(static_property), DIMENSION(3,3)  :: pol   
       TYPE(resonant_raman)                                :: RR
       TYPE(electric_field), DIMENSION(3)                  :: e_field
    END TYPE raman
@@ -337,6 +337,8 @@ CONTAINS
    SUBROUTINE deallocate_stats(stats)
       TYPE(static), INTENT(INOUT):: stats
 
+      INTEGER                     :: xyz, i
+
       !IF (ALLOCATED(stats%nmodes)) DEALLOCATE(stats%nmodes)
       !IF (ALLOCATED(stats%normal_freq_file)) DEALLOCATE(stats%normal_freq_file)
       !IF (ALLOCATED(stats%normal_displ_file)) DEALLOCATE(stats%normal_displ_file)
@@ -344,7 +346,17 @@ CONTAINS
       !IF (ALLOCATED(stats%dx)) DEALLOCATE(stats%dx)
       IF (ALLOCATED(stats%freq)) DEALLOCATE (stats%freq)
       IF (ALLOCATED(stats%disp)) DEALLOCATE (stats%disp)
-      IF (ALLOCATED(stats%force)) DEALLOCATE (stats%force)
+      ! Deallocating Static Property
+        IF (ALLOCATED(stats%force)) THEN
+            DO xyz = 1, 3
+                DO i = 1, size(stats%force,1)
+                IF (ALLOCATED(stats%force(i,xyz)%atom)) THEN
+                    DEALLOCATE(stats%force(i,xyz)%atom)
+                END IF
+                END DO
+            END DO
+            DEALLOCATE(stats%force)
+        END IF
    END SUBROUTINE deallocate_stats
 
    SUBROUTINE deallocate_dipoles(dips)
@@ -359,7 +371,7 @@ CONTAINS
    SUBROUTINE deallocate_raman(rams)
       TYPE(raman), INTENT(INOUT):: rams
 
-      INTEGER                     :: xyz
+      INTEGER                     :: xyz, i_pol, j_pol
 
       !IF (ALLOCATED(rams%static_dip_free_file)) DEALLOCATE(rams%static_dip_free_file)
       !IF (ALLOCATED(rams%dip_x_file)) DEALLOCATE(rams%dip_x_file)
@@ -374,6 +386,16 @@ CONTAINS
             IF (ALLOCATED(rams%e_field(xyz)%fragment_xyz)) DEALLOCATE(rams%e_field(xyz)%fragment_xyz)
             IF (ALLOCATED(rams%e_field(xyz)%natom_frag_xyz)) DEALLOCATE(rams%e_field(xyz)%natom_frag_xyz)
       END DO
+
+      ! Deallocating Static Property
+        DO i_pol = 1, 3
+            DO j_pol = 1, 3
+            IF (ALLOCATED(rams%pol(i_pol,j_pol)%atom)) THEN
+                DEALLOCATE(rams%pol(i_pol,j_pol)%atom)
+            END IF
+            END DO
+        END DO
+      
       !IF (ALLOCATED(rams%static_pol_file)) DEALLOCATE(rams%static_pol_file)
       IF (ALLOCATED(rams%z_iso)) DEALLOCATE (rams%z_iso)
       IF (ALLOCATED(rams%z_aniso)) DEALLOCATE (rams%z_aniso)
