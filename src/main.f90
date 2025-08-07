@@ -222,22 +222,22 @@ PROGRAM vib2d
 !        !***************************************************************************
 !
 !        !***************************************************************************
-!    ELSEIF (gs%spectral_type%read_function=='R') THEN
-!        CALL read_coord(gs, sys, dips)
-!        CALL masses_charges(gs, sys)
-!        CALL read_normal_modes(gs, sys, stats)
-!        CALL read_static(dips%static_dip_file, dips%static_dip, gs, sys, rams)
-!        IF (type_dipole=='2') THEN
-!            CALL read_static(static_dip_x_file, static_dip_x, gs, sys, rams)
-!            CALL read_static(static_dip_y_file, static_dip_y, gs, sys, rams)
-!            CALL read_static(static_dip_z_file, static_dip_z, gs, sys, rams)
-!        END IF
-!        IF (diag_hessian=='y') THEN
-!            CALL normal_mode_analysis(sys, stats)
-!        END IF
-!        CALL finite_diff_static(gs, sys, stats, dips, rams)
-!
-!        CALL spec_static_raman(gs, sys, stats, dips, rams)
+    ELSEIF (gs%spectral_type%read_function=='R') THEN
+        CALL read_coord(gs, sys, dips)
+        CALL masses_charges(gs, sys)
+        CALL read_normal_modes(gs, sys, stats)
+        CALL read_static(dips%static_dip_file, dips%static_dip, gs, sys, dips, rams)
+      !  IF (type_dipole=='2') THEN
+       !     CALL read_static(static_dip_x_file, static_dip_x, gs, sys, rams)
+        !    CALL read_static(static_dip_y_file, static_dip_y, gs, sys, rams)
+         !   CALL read_static(static_dip_z_file, static_dip_z, gs, sys, rams)
+       ! END IF
+        IF (stats%diag_hessian=='y') THEN
+            CALL normal_mode_analysis(sys, stats)
+        END IF
+        CALL finite_diff_static(gs, sys, stats, dips, rams)
+
+        CALL spec_static_raman(gs, sys, stats, dips, rams)
 !        !***************************************************************************
 !
 !        !***************************************************************************

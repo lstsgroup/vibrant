@@ -1,8 +1,20 @@
-R
-1
-3
-water.xyz
-water-force.data3
-0.001
-polarizabilities_water.dat
-9398.50
+&global
+ spectra R
+&end global
+&system
+ filename water.xyz
+&end system
+&static
+ diag_hessian y
+ &hessian
+  force_file water-force.data3
+ &end hessian
+ displacement 0.001
+&end static
+&dipoles
+ type_dipole dfpt
+ static_pol_file polarizabilities_water.dat
+&end dipoles
+&raman
+ laser_in 9398.50
+&end raman

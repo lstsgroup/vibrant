@@ -1,9 +1,19 @@
-R
-2
-3
-water.xyz
-normal_mode_water_freq.txt
-normal_mode_water_displ.txt
-0.001
-polarizabilities_water.dat
-9398.50
+&global
+ spectra R
+&end global
+&system
+ filename water.xyz
+&end system
+&static
+ diag_hessian n
+ normal_freq_file normal_mode_water_freq.txt
+ normal_displ_file normal_mode_water_displ.txt
+ displacement 0.001
+&end static
+&dipoles
+ type_dipole dfpt
+ static_pol_file polarizabilities_water.dat
+&end dipoles
+&raman
+ laser_in 9398.50
+&end raman

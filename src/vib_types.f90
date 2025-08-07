@@ -6,7 +6,7 @@ MODULE vib_types
 
     PRIVATE
 
-    PUBLIC :: global_settings, systems, molecular_dynamics, static, dipoles, raman,init_global_settings,init_systems,init_molecular_dynamics, init_static, init_dipoles, deallocate_types
+    PUBLIC :: global_settings, systems, molecular_dynamics, static, dipoles, raman,init_global_settings,init_systems,init_molecular_dynamics, init_static, init_dipoles, init_raman,  deallocate_types
 
     !***************************************************************************
     TYPE spectral_type
@@ -50,7 +50,6 @@ MODULE vib_types
     TYPE global_settings
         LOGICAL                                          ::  md !yes/no
         REAL(kind=dp)                                    ::  temp
-        REAL(kind=dp)                                    ::  laser_in
         TYPE(spectral_type)                              ::  spectral_type ! global setting of spectral type 'P' , 'IR' , 'R' etc.
     END TYPE global_settings
 
@@ -123,6 +122,7 @@ MODULE vib_types
         CHARACTER(LEN=40)                                   :: static_dip_y_file
         CHARACTER(LEN=40)                                   :: static_dip_z_file        ! Dipolemoments mybe move to dipole class differenes static_dip_free_file and static_dip_file
         REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE   :: static_dip_free          ! Dipolemoments mybe move to dipole class
+        REAL(kind=dp)                                       :: laser_in
         REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE   :: static_dip_x             ! Dipolemoments mybe move to dipole class
         REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE   :: static_dip_y             ! Dipolemoments mybe move to dipole class
         REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE   :: static_dip_z             ! Dipolemoments mybe move to dipole class
@@ -146,7 +146,6 @@ CONTAINS
         TYPE(global_settings), INTENT(out) :: gs
 
         gs%temp = -1.0_dp
-        gs%laser_in = -1.0_dp
         gs%spectral_type%read_function = ''
     END SUBROUTINE init_global_settings
 
@@ -192,6 +191,12 @@ CONTAINS
         dip%type_dipole = ''
         dip%static_dip_file = ''
     END SUBROUTINE init_dipoles
+    
+    SUBROUTINE init_raman(ram)
+        TYPE(raman), INTENT(out) :: ram
+        ram%static_pol_file = ''
+        ram%laser_in = -1.0_dp
+    END SUBROUTINE init_raman
     
     SUBROUTINE deallocate_types(gs, sys, md, stats, ram, dip)
         IMPLICIT NONE

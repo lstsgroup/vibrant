@@ -323,7 +323,7 @@ SUBROUTINE spec_raman(gs, sys, md, dips, rams)
         DO i = 0, 2*md%t_cor - 2
             zhat_aniso(i + 1) = REAL(zhat_aniso(i + 1), kind=dp)*(f*(i + 1)/SIN(f*(i + 1)))**2._dp
             zhat_aniso(i) = zhat_aniso(i)*((const_planck)/(8.0_dp*const_boltz*const_permit*const_permit)*1d-29*0.421_dp*md%dt &
-                                           *(((gs%laser_in - ((i)*freq_range))**4)/((i)*freq_range)) &
+                                           *(((rams%laser_in - ((i)*freq_range))**4)/((i)*freq_range)) &
                                            *(1.0_dp/(1.0_dp - EXP((-1.438777_dp*((i)*freq_range)) &
                                                                   /temp))))*2.0_dp*2.0_dp*pi!*((-1.438777_dp*i*freq_range)/temp)*(1.0_dp/(1.0_dp-EXP((-1.438777_dp*&
             !((i)*freq_range))/temp)))
@@ -345,7 +345,7 @@ SUBROUTINE spec_raman(gs, sys, md, dips, rams)
 
             zhat_iso(i + 1) = REAL(zhat_iso(i + 1), kind=dp)*(f*(i + 1)/SIN(f*(i + 1)))**2._dp
             zhat_iso(i) = zhat_iso(i)*((const_planck)/(8.0_dp*const_boltz*const_permit*const_permit)*1d-29*0.421_dp*md%dt &
-                                       *(((gs%laser_in - ((i)*freq_range))**4)/((i)*freq_range)) &
+                                       *(((rams%laser_in - ((i)*freq_range))**4)/((i)*freq_range)) &
                                        *(1.0_dp/(1.0_dp - EXP((-1.438777_dp*((i)*freq_range))/temp))))*2.0_dp*2.0_dp*pi
 
             zhat_para_all(i) = zhat_iso(i) + (zhat_aniso(i)*4.0_dp/45.0_dp)
@@ -463,7 +463,7 @@ SUBROUTINE spec_raman(gs, sys, md, dips, rams)
 
             zhat_ortho(i) = REAL(zhat_ortho(i), kind=dp)*((const_planck)/(8.0_dp*const_boltz*const_permit*const_permit) &
                                                           *1d-29*0.421_dp*md%dt &
-                                                          *(((gs%laser_in - ((i)*freq_range))**4)/((i)*freq_range)) &
+                                                          *(((rams%laser_in - ((i)*freq_range))**4)/((i)*freq_range)) &
                                                           *(1.0_dp/(1.0_dp - EXP((-1.438777_dp*((i)*freq_range)) &
                                                                                  /temp))))*2.0_dp*pi*2.0_dp
 
@@ -484,7 +484,7 @@ SUBROUTINE spec_raman(gs, sys, md, dips, rams)
 
             zhat_para(i) = REAL(zhat_para(i), kind=dp)*((const_planck)/(8.0_dp*const_boltz*const_permit*const_permit) &
                                                         *1d-29*0.421_dp*md%dt &
-                                                        *(((gs%laser_in - ((i)*freq_range))**4)/((i)*freq_range)) &
+                                                        *(((rams%laser_in - ((i)*freq_range))**4)/((i)*freq_range)) &
                                                         *(1.0_dp/(1.0_dp - EXP((-1.438777_dp*((i)*freq_range)) &
                                                                                /temp))))*2.0_dp*pi*2.0_dp
             zhat_para(0) = 0.0_dp
@@ -712,7 +712,7 @@ PRINT *, "freq_range: ", freq_range
     
     !!!Calculation of the intensities!!
         rams%raman_int(:) = REAL(((7.0_dp*aniso_sq(:)) + (45.0_dp*iso_sq(:)))/45.0_dp, kind=dp) &
-                            *REAL(((gs%laser_in - stats%freq(:))**4.0_dp)/stats%freq(:), kind=dp) &
+                            *REAL(((rams%laser_in - stats%freq(:))**4.0_dp)/stats%freq(:), kind=dp) &
                             *REAL(1.0_dp/(1.0_dp - EXP(-1.438777_dp*stats%freq(:)/temp)), kind=dp)
     
     !!!Broadening the spectrum!!
@@ -900,9 +900,9 @@ PRINT *, "freq_range: ", freq_range
 
 !!!Finding laser frequency
         rtp_freq_range = REAL(rams%RR%dom_rtp/rams%RR%framecount_rtp, kind=dp)
-        rtp_point = ANINT(gs%laser_in/rtp_freq_range, kind=dp)
+        rtp_point = ANINT(rams%laser_in/rtp_freq_range, kind=dp)
 
-        PRINT *, gs%laser_in, "gs%laser_in", rtp_freq_range, "rtp_freq_range", &
+        PRINT *, rams%laser_in, "rams%laser_in", rtp_freq_range, "rtp_freq_range", &
             rams%RR%dom_rtp, "rams%RR%dom_rtp", rtp_point, 'rtp_point', rams%RR%framecount_rtp
 
 !!!Finite differences
@@ -934,7 +934,7 @@ PRINT *, "freq_range: ", freq_range
 
 !!!Calculation of the intensities!!
         raman_int(:, rtp_point) = REAL(((7.0_dp*aniso_sq(:, rtp_point)) + (45.0_dp*iso_sq(:, rtp_point)))/45.0_dp, kind=dp)* &
-                                  REAL(((gs%laser_in - stats%freq(:))**4.0_dp)/stats%freq(:), kind=dp) &
+                                  REAL(((rams%laser_in - stats%freq(:))**4.0_dp)/stats%freq(:), kind=dp) &
                                   *REAL(1.0_dp/(1.0_dp - EXP(-1.438777_dp*stats%freq(:)/temp)), kind=dp)
 
 !!!Broadening the spectrum!!

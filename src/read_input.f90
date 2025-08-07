@@ -73,6 +73,7 @@ CONTAINS
         LOGICAL :: in_static = .FALSE.
         LOGICAL :: in_hessian = .FALSE.
         LOGICAL :: in_dipoles = .FALSE.
+        LOGICAL :: in_raman = .FALSE.
         
         OPEN (unit=999, file=TRIM(input_file_name), status="old")
 
@@ -171,15 +172,22 @@ CONTAINS
                 CYCLE
             END IF            
             
+            IF (INDEX(line, '&raman')>0) THEN
+                in_raman = .TRUE.
+                CYCLE
+            ENDIF
+  
+            IF (INDEX(line, '&end raman')>0) THEN
+                in_raman = .FALSE.
+                CYCLE
+            END IF            
+            
             ! Parse within active sections
             IF (in_global) THEN
                 IF (INDEX(to_lower(line), 'temperature')>0) THEN
                     READ (line, *) dummy, gs%temp
                     write(*,*) "temperature: ", gs%temp
                     !input%system%cell%present = .TRUE. ! add is present later
-                ELSEIF (INDEX(to_lower(line), 'laser_in')>0) THEN
-                    READ (line, *) dummy, gs%laser_in
-                    write(*,*) "laser_in: ", gs%laser_in
                 ELSEIF (INDEX(to_lower(line), 'spectra')>0) THEN
                         READ (line, *) dummy, gs%spectral_type%read_function
                         write(*,*) "spectra: ", gs%spectral_type%read_function
@@ -255,7 +263,19 @@ CONTAINS
                     READ (line, *) dummy, dips%static_dip_file
                     write(*,*) "Dipole file: ",  dips%static_dip_file
                 ENDIF
+                IF (INDEX(to_lower(line), 'static_pol_file')>0) THEN !Type of the dipole moment
+                    READ (line, *) dummy, rams%static_pol_file
+                    write(*,*) "Polarizability file: ",  rams%static_pol_file
+                ENDIF
             ENDIF
+            
+            IF (in_raman) THEN
+                IF (INDEX(to_lower(line), 'laser_in')>0) THEN !Type of the dipole moment
+                    READ (line, *) dummy, rams%laser_in
+                    write(*,*) "Incident laser wavelength in cm^{-1}: ",  rams%laser_in
+                ENDIF
+            ENDIF
+            !IF (in_coordinates) THEN
             !IF (in_coordinates) THEN
             !    IF (INDEX(line, 'xyz_filename')>0) THEN
             !        READ (line, *) dummy, input%system%coordinates%xyz_filename
@@ -387,6 +407,48 @@ CONTAINS
             IF (trim(dips%type_dipole) == '') THEN
                 print *, 'Warning: type_dipole not defined in the input setting it to 1'
                 dips%type_dipole = 'berry'
+            END IF
+
+        ELSEIF (gs%spectral_type%read_function=='R') THEN
+            !check for filename
+            IF (trim(sys%filename) == '') THEN
+                print *, 'Error: Filename not defined in the input'
+                stop
+            END IF
+            !check for force_file
+            IF (stats%diag_hessian == 'y') THEN
+                IF (trim(stats%force_file) == '') THEN
+                    print *, 'Error: File name of the forces not defined in the input'
+                    stop
+                END IF
+            ELSEIF (stats%diag_hessian == 'n') THEN
+                IF (trim(stats%normal_freq_file) == '') THEN
+                    print *, 'Error: File name of the normal mode frequencies not defined in the input'
+                    stop
+                END IF
+                IF (trim(stats%normal_displ_file) == '') THEN
+                    print *, 'Error: File name of the normal mode displacements not defined in the input'
+                    stop
+                END IF
+            ENDIF
+            !check for displacement
+            IF (stats%dx  < 0) THEN
+                print *, 'Error: Displacement not defined in the input'
+                stop
+            ENDIF
+            !check for dipole file
+            IF (trim(rams%static_pol_file) == '') THEN
+                print *, 'Error: Polarizability filename not defined in the input'
+                stop
+            ENDIF
+            !check for type_dipole
+            IF (trim(dips%type_dipole) == '') THEN
+                print *, 'Warning: type_dipole not defined in the input setting it to 1'
+                dips%type_dipole = 'dfpt'
+            END IF
+            IF (rams%laser_in < 0) THEN
+                print *, 'Warning: Incident laser frequency not defined, setting it to 1 0.5 cm⁻1'
+                rams%laser_in = 0.5
             END IF
       ENDIF
 
