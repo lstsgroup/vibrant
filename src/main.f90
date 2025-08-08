@@ -42,7 +42,7 @@ PROGRAM vib2d
     REAL(kind=dp)                                    :: f, tmax, omega, theta, sinth, costh, sinsq
     REAL(kind=dp)                                    :: cossq, thsq, thcub, alpha, beta, gamma0, dt, multiplier, dx
     REAL(kind=dp)                                    :: time_init, time_final, elapsed_time
-    REAL(kind=dp)                                    ::  sinc_const, mass_tot_cell
+    REAL(kind=dp)                                    ::  sinc_const, mass_tot_cell, e_field
     REAL(kind=dp), DIMENSION(3)                       :: vec, vec_pbc, coord2, coord1
     REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE       :: refpoint, refpoint_free, refpoint_x, refpoint_y, refpoint_z
     REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE       :: alpha_resraman_x, alpha_resraman_y, alpha_resraman_z
@@ -241,14 +241,14 @@ PROGRAM vib2d
 !        !***************************************************************************
 !
 !        !***************************************************************************
-!    ELSEIF (gs%spectral_type%read_function=='ABS') THEN
-!        CALL read_coord(gs, sys, dips)
-!        CALL read_static_resraman(static_dip_x_file, rams%RR%static_dip_x_rtp, sys, rams)
-!        CALL read_static_resraman(static_dip_y_file, rams%RR%static_dip_y_rtp, sys, rams)
-!        CALL read_static_resraman(static_dip_z_file, rams%RR%static_dip_z_rtp, sys, rams)
-!        CALL finite_diff_static_resraman(rams%RR%static_dip_x_rtp, rams%RR%static_dip_y_rtp, rams%RR%static_dip_z_rtp, sys, rams) !<-- CHANGE ?
-!
-!        CALL spec_abs(gs, sys, rams)
+    ELSEIF (gs%spectral_type%read_function=='ABS') THEN
+        CALL read_coord(gs, sys, dips)
+        CALL read_static_resraman(dips%static_dip_x_file, rams%RR%static_dip_x_rtp, sys, rams)
+        CALL read_static_resraman(dips%static_dip_y_file, rams%RR%static_dip_y_rtp, sys, rams)
+        CALL read_static_resraman(dips%static_dip_z_file, rams%RR%static_dip_z_rtp, sys, rams)
+        CALL finite_diff_static_resraman(rams%RR%static_dip_x_rtp, rams%RR%static_dip_y_rtp, rams%RR%static_dip_z_rtp, sys, rams) !<-- CHANGE ?
+
+        CALL spec_abs(gs, sys, dips, rams)
 !        !***************************************************************************
 !
 !        !***************************************************************************

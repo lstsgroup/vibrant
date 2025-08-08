@@ -1,10 +1,19 @@
-ABS
-2
-r-met.xyz
-r-met_RTP_dipoles_static_X_100.xyz
-r-met_RTP_dipoles_static_Y_100.xyz
-r-met_RTP_dipoles_static_Z_100.xyz
-0.00242
-100
-y
-500
+&global
+ spectra ABS
+&end global
+&system
+ filename r-met.xyz
+&end system
+&dipoles
+ type_dipole berry
+ field_strength 0.001
+ dip_x_file r-met_RTP_dipoles_static_X_100.xyz
+ dip_y_file r-met_RTP_dipoles_static_Y_100.xyz
+ dip_z_file r-met_RTP_dipoles_static_Z_100.xyz
+&end dipoles
+&rtp
+ rtp_time_step 0.00242
+ rtp_framecount 100
+ check_pade y
+ pade_framecount 500
+&end rtp

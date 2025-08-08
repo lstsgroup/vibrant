@@ -74,6 +74,7 @@ CONTAINS
         LOGICAL :: in_hessian = .FALSE.
         LOGICAL :: in_dipoles = .FALSE.
         LOGICAL :: in_raman = .FALSE.
+        LOGICAL :: in_rtp = .FALSE.
         
         OPEN (unit=999, file=TRIM(input_file_name), status="old")
 
@@ -182,6 +183,16 @@ CONTAINS
                 CYCLE
             END IF            
             
+            IF (INDEX(line, '&rtp')>0) THEN
+                in_rtp = .TRUE.
+                CYCLE
+            ENDIF
+  
+            IF (INDEX(line, '&end rtp')>0) THEN
+                in_rtp = .FALSE.
+                CYCLE
+            END IF            
+            
             ! Parse within active sections
             IF (in_global) THEN
                 IF (INDEX(to_lower(line), 'temperature')>0) THEN
@@ -263,9 +274,25 @@ CONTAINS
                     READ (line, *) dummy, dips%static_dip_file
                     write(*,*) "Dipole file: ",  dips%static_dip_file
                 ENDIF
+                IF (INDEX(to_lower(line), 'dip_x_file')>0) THEN !Type of the dipole moment
+                    READ (line, *) dummy, dips%static_dip_x_file
+                    write(*,*) "Dipole file under x-field: ",  dips%static_dip_x_file
+                ENDIF
+                IF (INDEX(to_lower(line), 'dip_y_file')>0) THEN !Type of the dipole moment
+                    READ (line, *) dummy, dips%static_dip_y_file
+                    write(*,*) "Dipole file under y-field: ",  dips%static_dip_y_file
+                ENDIF
+                IF (INDEX(to_lower(line), 'dip_z_file')>0) THEN !Type of the dipole moment
+                    READ (line, *) dummy, dips%static_dip_z_file
+                    write(*,*) "Dipole file under y-field: ",  dips%static_dip_z_file
+                ENDIF
                 IF (INDEX(to_lower(line), 'static_pol_file')>0) THEN !Type of the dipole moment
                     READ (line, *) dummy, rams%static_pol_file
                     write(*,*) "Polarizability file: ",  rams%static_pol_file
+                ENDIF
+                IF (INDEX(to_lower(line), 'field_strength')>0) THEN !Field strength
+                    READ (line, *) dummy, dips%e_field
+                    write(*,*) "Electric field strength (a.u.): ",  dips%e_field
                 ENDIF
             ENDIF
             
@@ -273,6 +300,25 @@ CONTAINS
                 IF (INDEX(to_lower(line), 'laser_in')>0) THEN !Type of the dipole moment
                     READ (line, *) dummy, rams%laser_in
                     write(*,*) "Incident laser wavelength in cm^{-1}: ",  rams%laser_in
+                ENDIF
+            ENDIF
+            
+            IF (in_rtp) THEN
+                IF (INDEX(to_lower(line), 'rtp_time_step')>0) THEN !RTP time step
+                    READ (line, *) dummy, rams%RR%dt_rtp
+                    write(*,*) "RTP time step (fs): ", rams%RR%dt_rtp
+                ENDIF
+                IF (INDEX(to_lower(line), 'rtp_framecount')>0) THEN !RTP time step
+                    READ (line, *) dummy, rams%RR%framecount_rtp
+                    write(*,*) "RTP framecount: ", rams%RR%framecount_rtp
+                ENDIF
+                IF (INDEX(to_lower(line), 'check_pade')>0) THEN !RTP time step
+                    READ (line, *) dummy, rams%RR%check_pade
+                    write(*,*) "Apply Pade: ", rams%RR%check_pade
+                ENDIF
+                IF (INDEX(to_lower(line), 'pade_framecount')>0) THEN !RTP time step
+                    READ (line, *) dummy, rams%RR%framecount_rtp_pade
+                    write(*,*) "Requested framecount after Pade: ", rams%RR%framecount_rtp_pade
                 ENDIF
             ENDIF
             !IF (in_coordinates) THEN
@@ -446,11 +492,60 @@ CONTAINS
                 print *, 'Warning: type_dipole not defined in the input setting it to 1'
                 dips%type_dipole = 'dfpt'
             END IF
+            IF (dips%type_dipole.NE.'dfpt' .AND. dips%e_field < 0) THEN
+                print *, 'Error: Electric field strength not defined!'
+                stop
+            ENDIF
             IF (rams%laser_in < 0) THEN
                 print *, 'Warning: Incident laser frequency not defined, setting it to 1 0.5 cm⁻1'
                 rams%laser_in = 0.5
             END IF
-      ENDIF
+
+         ELSEIF (gs%spectral_type%read_function=='ABS') THEN
+            !check for filename
+            IF (trim(sys%filename) == '') THEN
+                print *, 'Error: Filename not defined in the input'
+                stop
+            END IF
+            !check for dipole file
+            IF (trim(dips%static_dip_x_file) == '') THEN
+                print *, 'Error: X-field dipole file name not defined in the input'
+                stop
+            ENDIF
+            IF (trim(dips%static_dip_y_file) == '') THEN
+                print *, 'Error: Y-field dipole file name not defined in the input'
+                stop
+            ENDIF
+            IF (trim(dips%static_dip_z_file) == '') THEN
+                print *, 'Error: Z-field dipole file name not defined in the input'
+                stop
+            ENDIF
+            !check for type_dipole
+            IF (trim(dips%type_dipole) == '') THEN
+                print *, 'Warning: type_dipole not defined in the input setting it to 1'
+                dips%type_dipole = 'berry'
+            END IF
+            IF (rams%RR%dt_rtp < 0) THEN
+                print *, 'Error: RTP time step not defined!'
+                stop
+            ENDIF
+            IF (dips%type_dipole.NE.'dfpt' .AND. dips%e_field < 0) THEN
+                print *, 'Error: Electric field strength not defined!'
+                stop
+            ENDIF
+            IF (rams%RR%framecount_rtp < 0) THEN
+                print *, 'Error: RTP framecount not defined!'
+                stop
+            ENDIF
+            IF (trim(rams%RR%check_pade) == '') THEN
+                print *, 'Warning: The calculation will continue without Pade approximants!'
+                rams%RR%check_pade = 'y'
+            ENDIF
+            IF (trim(rams%RR%check_pade) == 'y' .AND. rams%RR%framecount_rtp_pade < 0) THEN !this can also be adjusted
+                print *, 'Warning: Pade framecount is set to 80000!'
+                rams%RR%framecount_rtp_pade = 80000
+            ENDIF
+        ENDIF
 
    END SUBROUTINE check_input
 END MODULE read_input

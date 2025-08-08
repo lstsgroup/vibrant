@@ -769,9 +769,10 @@ PRINT *, "freq_range: ", freq_range
 !....................................................................................................................!
 !....................................................................................................................!
 
-    SUBROUTINE spec_abs(gs, sys, rams)
+    SUBROUTINE spec_abs(gs, sys, dips, rams)
         TYPE(global_settings), INTENT(INOUT)        :: gs
         TYPE(systems), INTENT(INOUT)        :: sys
+        TYPE(dipoles), INTENT(INOUT)        :: dips
         TYPE(raman), INTENT(INOUT)        :: rams
        
         INTEGER                                                       :: stat, i, j, k, m, x, o, dims, dir
@@ -835,7 +836,7 @@ PRINT *, "freq_range: ", freq_range
 
 
 !!!Dividing by electric field
-        rams%RR%zhat_pol_rtp=rams%RR%zhat_pol_rtp/0.001_dp !!later make this an input variable
+        rams%RR%zhat_pol_rtp=rams%RR%zhat_pol_rtp/dips%e_field !!later make this an input variable
 
 !!!Finding frequency range
         rtp_freq_range = REAL(rams%RR%dom_rtp/rams%RR%framecount_rtp, kind=dp)

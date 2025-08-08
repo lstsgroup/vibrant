@@ -106,7 +106,11 @@ MODULE vib_types
     !***************************************************************************
     TYPE dipoles 
         CHARACTER(LEN=40)                                   :: static_dip_file      !
+        CHARACTER(LEN=40)                                   :: static_dip_x_file
+        CHARACTER(LEN=40)                                   :: static_dip_y_file
+        CHARACTER(LEN=40)                                   :: static_dip_z_file        ! Dipolemoments mybe move to dipole class differenes static_dip_free_file and static_dip_file
         CHARACTER(LEN=40)                                   :: type_dipole ! From IR calc what are those`? !!we can add these to static and dipoles
+        REAL(kind=dp)                                       :: e_field !electric field
         REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE         :: dip_dq               !
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE      :: dipole               ! ALLOCATE static_dip(sys%natom, 3, 2, 3) is this neeeded?
         REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE   :: static_dip           ! field free dipole moment
@@ -118,9 +122,6 @@ MODULE vib_types
         !LOGICAL                                             :: polarizability_type ! <numeric/analytic>
         !numeric
         CHARACTER(LEN=40)                                   :: static_dip_free_file
-        CHARACTER(LEN=40)                                   :: static_dip_x_file
-        CHARACTER(LEN=40)                                   :: static_dip_y_file
-        CHARACTER(LEN=40)                                   :: static_dip_z_file        ! Dipolemoments mybe move to dipole class differenes static_dip_free_file and static_dip_file
         REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE   :: static_dip_free          ! Dipolemoments mybe move to dipole class
         REAL(kind=dp)                                       :: laser_in
         REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE   :: static_dip_x             ! Dipolemoments mybe move to dipole class
