@@ -1,14 +1,27 @@
-RR
-2
-2
-r-met.xyz
-normal_freqs_r-met.dat
-normal_displacements_r-met.dat
-0.00265
-r-met_RTP_dipoles_static_X_10000.xyz
-r-met_RTP_dipoles_static_Y_10000.xyz
-r-met_RTP_dipoles_static_Z_10000.xyz
-0.00242
-10000
-n
-15808.596424
+&global
+ spectra RR
+&end global
+&system
+ filename r-met.xyz
+&end system
+&static
+ diag_hessian n
+ normal_freq_file normal_freqs_r-met.dat
+ normal_displ_file normal_displacements_r-met.dat
+ displacement 0.00265
+&end static
+&dipoles
+ type_dipole berry
+ field_strength 0.001
+ dip_x_file r-met_RTP_dipoles_static_X_10000.xyz
+ dip_y_file r-met_RTP_dipoles_static_Y_10000.xyz
+ dip_z_file r-met_RTP_dipoles_static_Z_10000.xyz
+&end dipoles
+&rtp
+ rtp_time_step 0.00242
+ rtp_framecount 10000
+ check_pade n
+&end rtp
+&raman
+ laser_in 15808.596424
+&end raman

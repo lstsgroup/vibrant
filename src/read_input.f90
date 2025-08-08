@@ -60,7 +60,8 @@ CONTAINS
         TYPE(dipoles), INTENT(INOUT)            :: dips
         TYPE(raman), INTENT(INOUT)           :: rams
         CHARACTER(LEN=str_len), INTENT(IN) :: input_file_name
-
+INTEGER :: ios
+CHARACTER(len=256) :: iomsg
         !** intermal variables
         CHARACTER(LEN=str_len) :: line
         CHARACTER(LEN=str_len) :: dummy
@@ -246,10 +247,17 @@ CONTAINS
                         write(*,*) "force_file: ", stats%force_file
                     ENDIF
                 ENDIF
-                IF (INDEX(to_lower(line), 'displacement')>0) THEN !'Do you want to apply mass weighting (y/n)?
+                IF (INDEX(to_lower(ADJUSTL(line)), 'displacement ') == 1) THEN  ! only match if first token
                     READ (line, *) dummy, stats%dx
-                    write(*,*) "displacement: ",  stats%dx
-                END iF
+                    WRITE(*,*) "displacement in Angstrom: ", stats%dx
+                END IF
+                !READ (line, *, IOSTAT=ios, IOMSG=iomsg) dummy, stats%dx
+                !IF (ios /= 0) THEN
+                !   PRINT *, "Error reading displacement line: ", TRIM(iomsg)
+                !   PRINT *, "Line content was: ", TRIM(line)
+                !   STOP
+                !END IF
+                
                 IF (INDEX(to_lower(line), 'diag_hessian')>0) THEN !Diagonalize hessian or read the normal mode freqs/disps from a file
                     READ (line, *) dummy, stats%diag_hessian
                     write(*,*) "Hessian diagonalization: ",  stats%diag_hessian
@@ -545,6 +553,79 @@ CONTAINS
                 print *, 'Warning: Pade framecount is set to 80000!'
                 rams%RR%framecount_rtp_pade = 80000
             ENDIF
+
+        !!Check for RR 
+          ELSEIF (gs%spectral_type%read_function=='RR') THEN
+            !check for filename
+            IF (trim(sys%filename) == '') THEN
+                print *, 'Error: Filename not defined in the input'
+                stop
+            END IF
+            !check for force_file
+            IF (stats%diag_hessian == 'y') THEN
+                IF (trim(stats%force_file) == '') THEN
+                    print *, 'Error: File name of the forces not defined in the input'
+                    stop
+                END IF
+            ELSEIF (stats%diag_hessian == 'n') THEN
+                IF (trim(stats%normal_freq_file) == '') THEN
+                    print *, 'Error: File name of the normal mode frequencies not defined in the input'
+                    stop
+                END IF
+                IF (trim(stats%normal_displ_file) == '') THEN
+                    print *, 'Error: File name of the normal mode displacements not defined in the input'
+                    stop
+                END IF
+            ENDIF
+            !check for displacement
+            IF (stats%dx  < 0) THEN
+                print *, 'Error: Displacement not defined in the input'
+                stop
+            ENDIF
+            !check for type_dipole
+            IF (trim(dips%type_dipole) == '') THEN
+                print *, 'Warning: type_dipole not defined in the input setting it to 1'
+                dips%type_dipole = 'berry'
+            END IF
+            !check for dipole files
+            IF (trim(dips%static_dip_x_file) == '') THEN
+                print *, 'Error: X-field dipole file name not defined in the input'
+                stop
+            ENDIF
+            IF (trim(dips%static_dip_y_file) == '') THEN
+                print *, 'Error: Y-field dipole file name not defined in the input'
+                stop
+            ENDIF
+            IF (trim(dips%static_dip_z_file) == '') THEN
+                print *, 'Error: Z-field dipole file name not defined in the input'
+                stop
+            ENDIF
+            IF (rams%RR%dt_rtp < 0) THEN
+                print *, 'Error: RTP time step not defined!'
+                stop
+            ENDIF
+            IF (dips%type_dipole.NE.'dfpt' .AND. dips%e_field < 0) THEN
+                print *, 'Error: Electric field strength not defined!'
+                stop
+            ENDIF
+            IF (rams%RR%framecount_rtp < 0) THEN
+                print *, 'Error: RTP framecount not defined!'
+                stop
+            ENDIF
+            IF (trim(rams%RR%check_pade) == '') THEN
+                print *, 'Warning: The calculation will continue without Pade approximants!'
+                rams%RR%check_pade = 'y'
+            ENDIF
+            IF (trim(rams%RR%check_pade) == 'y' .AND. rams%RR%framecount_rtp_pade < 0) THEN !this can also be adjusted
+                print *, 'Warning: Pade framecount is set to 80000!'
+                rams%RR%framecount_rtp_pade = 80000
+            ENDIF
+            IF (rams%laser_in < 0) THEN
+                print *, 'Warning: Incident laser frequency not defined, setting it to 1 0.5 cm⁻1'
+                rams%laser_in = 0.5
+            END IF
+
+         
         ENDIF
 
    END SUBROUTINE check_input

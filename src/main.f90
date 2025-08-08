@@ -249,26 +249,27 @@ PROGRAM vib2d
         CALL finite_diff_static_resraman(rams%RR%static_dip_x_rtp, rams%RR%static_dip_y_rtp, rams%RR%static_dip_z_rtp, sys, rams) !<-- CHANGE ?
 
         CALL spec_abs(gs, sys, dips, rams)
-!        !***************************************************************************
-!
-!        !***************************************************************************
-!    ELSEIF (gs%spectral_type%read_function=='RR') THEN
-!        CALL read_coord(gs, sys, rams)
-!        CALL masses_charges(gs, sys)
-!        CALL read_normal_modes(gs, sys, stats)
-!        CALL read_static_resraman(static_dip_x_file, rams%RR%static_dip_x_rtp, sys, rams)
-!        CALL read_static_resraman(static_dip_y_file, rams%RR%static_dip_y_rtp, sys, rams)
-!        CALL read_static_resraman(static_dip_z_file, rams%RR%static_dip_z_rtp, sys, rams)
-!        IF (type_static=='1') THEN
-!            CALL normal_mode_analysis(sys, stats)
-!        END IF
-!
-!        CALL finite_diff_static_resraman(rams%RR%static_dip_x_rtp, rams%RR%static_dip_y_rtp, rams%RR%static_dip_z_rtp, sys, rams)
-!        CALL spec_abs(gs, sys, rams)
-!
-!        CALL spec_static_resraman(gs, sys, stats, rams)
-!        !***************************************************************************
-!        !***************************************************************************
+        !***************************************************************************
+
+        !***************************************************************************
+    ELSEIF (gs%spectral_type%read_function=='RR') THEN
+        CALL read_coord(gs, sys, dips)
+        CALL masses_charges(gs, sys)
+        CALL read_normal_modes(gs, sys, stats)
+        CALL read_static_resraman(dips%static_dip_x_file, rams%RR%static_dip_x_rtp, sys, rams)
+        CALL read_static_resraman(dips%static_dip_y_file, rams%RR%static_dip_y_rtp, sys, rams)
+        CALL read_static_resraman(dips%static_dip_z_file, rams%RR%static_dip_z_rtp, sys, rams)
+   
+        IF (stats%diag_hessian=='y') THEN
+            CALL normal_mode_analysis(sys, stats)
+        END IF
+
+        CALL finite_diff_static_resraman(rams%RR%static_dip_x_rtp, rams%RR%static_dip_y_rtp, rams%RR%static_dip_z_rtp, sys, rams)
+        CALL spec_abs(gs, sys, dips, rams)
+
+        CALL spec_static_resraman(gs, sys, stats, rams)
+        !***************************************************************************
+        !***************************************************************************
 !    ELSEIF (gs%spectral_type%read_function=='MD-RR') THEN
 !        !sys%filename = rtp_dipole_x ! <----  MUST BE ADJUSTED
 !        !CALL read_coord(gs, sys, dips)
