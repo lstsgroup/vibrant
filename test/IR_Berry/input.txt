@@ -1,8 +1,8 @@
 MD-IR
-2
-2
-2
-n
+2 !wannier or berry
+2 !fragment or molecular
+2 !kp, sc, solvent traj
+n !how many molecules
 berry_dipole_free_sc.xyz
 2.5
-n
+n !are cell vectors the same

@@ -1,9 +1,23 @@
+&global
+ spectra MD-R
+&end global
+&system
+ filename water.xyz
+&end system
+&dipoles
+ type_dipole dfpt
+ static_pol_file polarizabilities_water.dat
+&end dipoles
+&raman
+ laser_in 9398.50
+&end raman
+
 MD-R
-3
-2
-2
-1
+3 !DFPT
+2 !fragment/molecular
+2 !cell_type, k_point, sc, solvent_traj
+1 !averaging isotropic etc
 9398.50
-n
+n !how many molecules
 2.5
-n
+n !are 3 cell vectors the same length?
