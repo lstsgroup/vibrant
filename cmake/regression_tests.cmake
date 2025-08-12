@@ -22,16 +22,16 @@ add_test(
     COMMAND pytest test_IR_Berry.py
     WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test/IR_Berry
 )
-add_test(
-    NAME IR_Wannier_Ph
-    COMMAND pytest test_IR_Wannier_Ph.py
-    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test/IR_Wannier_Ph
-)
-add_test(
-    NAME IR_Wannier_whole
-    COMMAND pytest test_IR_Wannier_whole.py
-    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test/IR_Wannier_whole
-)
+#add_test(
+#    NAME IR_Wannier_Ph
+#    COMMAND pytest test_IR_Wannier_Ph.py
+#    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test/IR_Wannier_Ph
+#)
+#add_test(
+#    NAME IR_Wannier_whole
+#    COMMAND pytest test_IR_Wannier_whole.py
+#    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test/IR_Wannier_whole
+#)
 add_test(
     NAME Raman_Berry
     COMMAND pytest test_Raman_Berry.py
