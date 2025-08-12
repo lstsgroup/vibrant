@@ -24,9 +24,9 @@ CONTAINS
         ! internal variables
         TYPE(params) :: pade_params
         INTEGER      :: num_ref_points, i, n_halve_query_points
-        INTEGER      :: last_important, last_important_out
+        INTEGER      :: last_important, last_important_out, n_par
         REAL(kind=dp) :: first, last, step, x_last_important
-        COMPLEX(kind=dp), DIMENSION(:), ALLOCATABLE :: x_ref_complx
+        COMPLEX(kind=dp), DIMENSION(:), ALLOCATABLE :: x_ref_complx, x_ref_complx_tmp, y_ref_tmp
         COMPLEX(kind=dp), DIMENSION(:), ALLOCATABLE :: x_out_complx
         ! convert x to complex type
         ! use only half of the array (other half filled with zeros)
@@ -46,10 +46,11 @@ CONTAINS
                 x_last_important = REAL(x_ref_complx(i - 1), kind=dp)
             END IF
         END DO
-
+        call select_points_evenly(x_ref_complx(1:last_important), last_important, 100d0, x_ref_complx_tmp, n_par)
+        call select_points_evenly(y_ref(1:last_important), last_important, 100d0, y_ref_tmp, n_par)
         ! create model
-        pade_params = create_thiele_pade(last_important, x_ref_complx(1:last_important), &
-                                         y_ref(1:last_important), &
+        pade_params = create_thiele_pade(n_par, x_ref_complx_tmp, &
+                                         y_ref_tmp, &
                                          do_greedy=.FALSE., PRECISION=64)
 
         ! create points where function is interpolated
@@ -72,5 +73,34 @@ CONTAINS
         DEALLOCATE (x_ref_complx)
         DEALLOCATE (x_out_complx)
     END SUBROUTINE interpolate
-
+!> @brief Selects evenly spaced points from `points` according to percentage p
+!> @param[in] points Input array of points (real numbers)
+!> @param[in] N Total number of points in the input array
+!> @param[in] p Percentage of points to select (0 < p <= 100)
+!> @param[out] selected Output array of selected points (must be allocated outside)
+!> @param[out] M Number of selected points (output)
+subroutine select_points_evenly(points, N, p, selected, M)
+    integer, intent(in) :: N    
+    complex(kind=8), dimension(N), intent(in) :: points 
+    real(kind=8), intent(in) :: p        
+    complex(kind=8), dimension(:), allocatable, intent(out) :: selected
+    integer, intent(out) :: M 
+    ! internal variables
+    integer :: i, step
+    if (p <= 0.0d0 .or. p > 100.0d0) then
+        print *, "Error: percentage must be between 0 and 100."
+        M = 0
+        return
+    end if
+    ! Compute how many points to select
+    M = int( (p / 100.0d0) * dble(N) + 0.5d0 )  ! rounded to nearest integer
+    if (M < 1) M = 1
+    if (M > N) M = N
+    allocate(selected(M))
+    ! Select evenly spaced indices
+    do i = 1, M
+        step = int( dble(i - 1) * dble(N - 1) / dble(M - 1) + 0.5d0 ) + 1
+        selected(i) = points(step)
+    end do
+end subroutine select_points_evenly
 END MODULE pade

@@ -174,20 +174,20 @@ PROGRAM vib2d
 !!
 !!    !***************************************************************************
     IF (gs%spectral_type%read_function=='P') THEN
-        CALL read_coord(gs, sys)
+        CALL read_coord(sys%filename, gs, sys)
         CALL masses_charges(gs, sys)
         CALL spec_power(gs, sys, md)
 !        !***************************************************************************
 !        !***************************************************************************
-!    ELSEIF (gs%spectral_type%read_function=='MD-IR') THEN
-!        CALL read_coord(gs, sys, dips)
-!        IF (sys%system=='1' .OR. sys%system=='2' .AND. dips%type_dipole=='wannier') THEN !!fragment approach or whole supercell
-!            IF (sys%cell%cell_type=='1' .OR. sys%cell%cell_type=='2') THEN !!KP or SC
-!                CALL masses_charges(gs, sys)
-!            END IF
-!        END IF
-!
-!        CALL spec_ir(gs, sys, md, dips)
+    ELSEIF (gs%spectral_type%read_function=='MD-IR') THEN
+        CALL read_coord(dips%dip_file, gs, sys, dips)
+      !  IF (sys%system=='1' .OR. sys%system=='2' .AND. dips%type_dipole=='wannier') THEN !!fragment approach or whole supercell
+      !      IF (sys%cell%cell_type=='1' .OR. sys%cell%cell_type=='2') THEN !!KP or SC
+      !          CALL masses_charges(gs, sys)
+      !      END IF
+      !  END IF
+
+        CALL spec_ir(gs, sys, md, dips)
 !        !***************************************************************************
 !
 !        !***************************************************************************
@@ -201,7 +201,7 @@ PROGRAM vib2d
 !
 !        !***************************************************************************
     ELSEIF (gs%spectral_type%read_function=='NMA') THEN
-        CALL read_coord(gs, sys, dips)
+        CALL read_coord(sys%filename, gs, sys, dips)
         CALL masses_charges(gs, sys)
         CALL read_normal_modes(gs, sys, stats)
         CALL normal_mode_analysis(sys, stats)
@@ -209,10 +209,10 @@ PROGRAM vib2d
 !
 !        !***************************************************************************
     ELSEIF (gs%spectral_type%read_function=='IR') THEN
-        CALL read_coord(gs, sys, dips)
+        CALL read_coord(sys%filename, gs, sys, dips)
         CALL masses_charges(gs, sys)
         CALL read_normal_modes(gs, sys, stats)
-        CALL read_static(dips%static_dip_file, dips%static_dip, gs, sys, dips, rams)
+        CALL read_static(dips%dip_file, dips%static_dip, gs, sys, dips, rams)
         IF (stats%diag_hessian=='y') THEN
             CALL normal_mode_analysis(sys, stats)
         END IF
@@ -223,10 +223,10 @@ PROGRAM vib2d
 !
 !        !***************************************************************************
     ELSEIF (gs%spectral_type%read_function=='R') THEN
-        CALL read_coord(gs, sys, dips)
+        CALL read_coord(sys%filename, gs, sys, dips)
         CALL masses_charges(gs, sys)
         CALL read_normal_modes(gs, sys, stats)
-        CALL read_static(dips%static_dip_file, dips%static_dip, gs, sys, dips, rams)
+        CALL read_static(dips%dip_file, dips%static_dip, gs, sys, dips, rams)
       !  IF (type_dipole=='2') THEN
        !     CALL read_static(static_dip_x_file, static_dip_x, gs, sys, rams)
         !    CALL read_static(static_dip_y_file, static_dip_y, gs, sys, rams)
@@ -242,10 +242,10 @@ PROGRAM vib2d
 !
 !        !***************************************************************************
     ELSEIF (gs%spectral_type%read_function=='ABS') THEN
-        CALL read_coord(gs, sys, dips)
-        CALL read_static_resraman(dips%static_dip_x_file, rams%RR%static_dip_x_rtp, sys, rams)
-        CALL read_static_resraman(dips%static_dip_y_file, rams%RR%static_dip_y_rtp, sys, rams)
-        CALL read_static_resraman(dips%static_dip_z_file, rams%RR%static_dip_z_rtp, sys, rams)
+        CALL read_coord(sys%filename, gs, sys, dips)
+        CALL read_static_resraman(dips%dip_x_file, rams%RR%static_dip_x_rtp, sys, rams)
+        CALL read_static_resraman(dips%dip_y_file, rams%RR%static_dip_y_rtp, sys, rams)
+        CALL read_static_resraman(dips%dip_z_file, rams%RR%static_dip_z_rtp, sys, rams)
         CALL finite_diff_static_resraman(rams%RR%static_dip_x_rtp, rams%RR%static_dip_y_rtp, rams%RR%static_dip_z_rtp, sys, rams) !<-- CHANGE ?
 
         CALL spec_abs(gs, sys, dips, rams)
@@ -253,12 +253,12 @@ PROGRAM vib2d
 
         !***************************************************************************
     ELSEIF (gs%spectral_type%read_function=='RR') THEN
-        CALL read_coord(gs, sys, dips)
+        CALL read_coord(sys%filename, gs, sys, dips)
         CALL masses_charges(gs, sys)
         CALL read_normal_modes(gs, sys, stats)
-        CALL read_static_resraman(dips%static_dip_x_file, rams%RR%static_dip_x_rtp, sys, rams)
-        CALL read_static_resraman(dips%static_dip_y_file, rams%RR%static_dip_y_rtp, sys, rams)
-        CALL read_static_resraman(dips%static_dip_z_file, rams%RR%static_dip_z_rtp, sys, rams)
+        CALL read_static_resraman(dips%dip_x_file, rams%RR%static_dip_x_rtp, sys, rams)
+        CALL read_static_resraman(dips%dip_y_file, rams%RR%static_dip_y_rtp, sys, rams)
+        CALL read_static_resraman(dips%dip_z_file, rams%RR%static_dip_z_rtp, sys, rams)
    
         IF (stats%diag_hessian=='y') THEN
             CALL normal_mode_analysis(sys, stats)

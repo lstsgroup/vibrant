@@ -31,7 +31,6 @@ CONTAINS
         REAL(kind=dp), INTENT(OUT)                  :: dt, dt_rtp, box_all, box_x, box_y, box_z, laser_in, dx
         INTEGER, INTENT(OUT)                        :: framecount_rtp, framecount_rtp_pade
 
-!laser_in=9398.50_dp  !cm^-1
         DO
             WRITE (*, *) 'Enter which function you want to calculate (type "P" for Power spectrum , "MD-IR" for MD-based IR spectrum, &
            &         "MD-R" for MD-based Raman spectrum, "MD-RR" for MD-based resonance Raman, "NMA" for normal mode analysis, &
@@ -458,6 +457,9 @@ CONTAINS
             ELSEIF (sys%element(i)=='N') THEN
                 sys%mass_atom(i) = 14.0067_dp
                 sys%charge(i) = 5.0_dp
+            ELSEIF (sys%element(i)=='Fe') THEN
+                sys%mass_atom(i) = 55.845_dp
+                sys%charge(i) = 2.0_dp
             ELSEIF (sys%element(i)=='X') THEN
                 sys%mass_atom(i) = 0.00_dp
                 sys%charge(i) = -2.0_dp
@@ -491,7 +493,7 @@ CONTAINS
         dom_rtp = REAL((1.0_dp/(dt_rtp*1e-15))/speed_light, kind=dp)
 
        ! freq_range = REAL(dom/(2.0_dp*md%t_cor), kind=dp)
-       ! sinc_const = freq_range*dt*1.883652d-4 !!for sinc function
+        !sinc_const = freq_range*dt*1.883652d-4 !!for sinc function
 
     END SUBROUTINE conversion
 

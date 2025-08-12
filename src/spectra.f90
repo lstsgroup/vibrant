@@ -77,31 +77,32 @@ SUBROUTINE spec_ir(gs, sys, md, dips)
 
     INTEGER                                                  :: stat, i
     INTEGER(kind=dp)                                          :: plan
-
-    IF (sys%system=='1' .OR. sys%system=='2' .AND. dips%type_dipole=='wannier') THEN !!fragment approach or whole supercell
-        IF (sys%cell%cell_type=='1' .OR. sys%cell%cell_type=='2') THEN !!KP or SC
-            CALL read_coord_frame(sys%natom, sys%filename, md%coord_v, sys)
-            CALL center_mass(sys%filename, sys%fragments%fragment, gs, sys, md, dips)
-            CALL wannier_frag(sys%fragments%natom_frag, sys%filename, dips%dipole, sys%fragments%fragment, gs, sys, md, dips)
-        ELSEIF (sys%cell%cell_type=='3') THEN !!SC with solvent
-            CALL read_coord_frame(sys%natom, sys%filename, md%coord_v, sys)
-            CALL solv_frag_index(sys%filename, sys%fragments%natom_frag, sys%fragments%fragment, sys, md, dips)
-            CALL wannier_frag(sys%fragments%natom_frag, sys%filename, dips%dipole, sys%fragments%fragment, gs, sys, md, dips)
-        END IF
-    END IF
+    REAL(kind=dp)                                          :: dom, freq_range, sinc_const
+ 
+  !  IF (dips%type_dipole=='wannier') THEN !!fragment approach or whole supercell
+  !      IF (sys%cell%cell_type=='1' .OR. sys%cell%cell_type=='2') THEN !!KP or SC
+  !          CALL read_coord_frame(sys%natom, sys%filename, md%coord_v, sys)
+  !          CALL center_mass(sys%filename, sys%fragments%fragment, gs, sys, md, dips)
+  !          CALL wannier_frag(sys%fragments%natom_frag, sys%filename, dips%dipole, sys%fragments%fragment, gs, sys, md, dips)
+  !      ELSEIF (sys%cell%cell_type=='3') THEN !!SC with solvent
+  !          CALL read_coord_frame(sys%natom, sys%filename, md%coord_v, sys)
+  !          CALL solv_frag_index(sys%filename, sys%fragments%natom_frag, sys%fragments%fragment, sys, md, dips)
+  !          CALL wannier_frag(sys%fragments%natom_frag, sys%filename, dips%dipole, sys%fragments%fragment, gs, sys, md, dips)
+ !       END IF
+!    END IF
 
     ALLOCATE (md%zhat(0:2*md%t_cor - 1))
 
     md%zhat = COMPLEX(0._dp, 0.0_dp)
 
-    IF (sys%system=='2' .AND. dips%type_dipole=='wannier') THEN
-        sys%mol_num = 1
-    END IF
-    IF (sys%system=='1' .OR. (sys%system=='2' .AND. dips%type_dipole=='wannier')) THEN  !!fragment approach or the whole cell
-        CALL central_diff(sys%mol_num, dips%dipole, md%v, sys, md)
-        CALL cvv(sys%fragments%nfrag, md%v, sys, md)
-    ELSEIF (sys%system=='2' .AND. dips%type_dipole=='berry') THEN !!molecular approach
-        CALL read_coord_frame(sys%mol_num, sys%filename, md%coord_v, sys)
+ !   IF (sys%system=='2' .AND. dips%type_dipole=='wannier') THEN 
+ !       sys%mol_num = 1
+ !   END IF
+!    IF (sys%system=='1' .OR. (sys%system=='2' .AND. dips%type_dipole=='wannier')) THEN  !!fragment approach or the whole cell
+ !       CALL central_diff(sys%mol_num, dips%dipole, md%v, sys, md)
+ !       CALL cvv(sys%fragments%nfrag, md%v, sys, md)
+    IF (dips%type_dipole=='berry') THEN !!Berry phase dipoles
+        CALL read_coord_frame(sys%mol_num, dips%dip_file, md%coord_v, sys)
         CALL central_diff(sys%mol_num, md%coord_v, md%v, sys, md)
         CALL cvv(sys%mol_num, md%v, sys, md)
     END IF
@@ -109,14 +110,19 @@ SUBROUTINE spec_ir(gs, sys, md, dips)
     CALL dfftw_plan_dft_r2c_1d(plan, 2*md%t_cor, md%z(0:2*md%t_cor - 1), md%zhat(0:2*md%t_cor - 1), FFTW_ESTIMATE) !!FFT!!
     CALL dfftw_execute_dft_r2c(plan, md%z, md%zhat)
     CALL dfftw_destroy_plan(plan)
-
+    
+    dom = REAL((1.0_dp/(md%dt*fs2s))/speed_light, kind=dp)
+    freq_range = REAL(dom/(2.0_dp*md%t_cor), kind=dp)
+    sinc_const = freq_range*md%dt*1.883652d-4 !!for sinc function
+   
     md%zhat = REAL(md%zhat, kind=dp)
+    
     OPEN (UNIT=61, FILE='IR_spectrum.txt', STATUS='unknown', IOSTAT=stat) !!write output
     DO i = 0, 2*md%t_cor - 1
-        md%zhat(i) = md%zhat(i)*3047.2310_dp*md%dt*(md%sinc_const*(i)/SIN(md%sinc_const*(i)))**2._dp !!unit conv. & sinc func.
-        IF ((i*md%freq_range).GE.5000_dp) CYCLE
+        md%zhat(i) = md%zhat(i)*3047.2310_dp*md%dt*(sinc_const*(i)/SIN(sinc_const*(i)))**2._dp !!unit conv. & sinc func.
+        IF ((i*freq_range).GE.5000_dp) CYCLE
         md%zhat(0) = 0.00_dp
-        WRITE (61, *) i*md%freq_range, -1.0_dp*REAL(md%zhat(i), kind=dp)
+        WRITE (61, *) i*freq_range, -1.0_dp*REAL(md%zhat(i), kind=dp)
     END DO
     CLOSE (61)
 
@@ -542,9 +548,10 @@ END SUBROUTINE spec_raman
         REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE                     :: hessian_new, atomic_displacements
         REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE                 :: hessian
         LOGICAL, DIMENSION(9)                                        :: mk = .TRUE.
-        lwmax = 1000
+
+        lwmax = MAX(1, 3*sys%natom*64)  ! conservative guess; LAPACK recommends this for DSYEV
         lda = sys%natom*3
-        stats%nmodes = 3*sys%natom - 6 !only for non-linear atoms
+        stats%nmodes = 3*sys%natom - 6 !only for non-linear molecules
 
         ALLOCATE (work(lwmax), w(sys%natom*3), w_new(sys%natom*3))
 
@@ -579,7 +586,6 @@ END SUBROUTINE spec_raman
         lwork = -1
         CALL DSYEV('V', 'U', n, hessian_new, lda, w, work, lwork, info)
         lwork = MIN(lwmax, INT(work(1)))
-        PRINT *, "ekin"
 
 ! get eigenvalues and eigenvectors
         CALL dsyev('V', 'U', n, hessian_new, lda, w, work, lwork, info)
@@ -774,7 +780,7 @@ PRINT *, "freq_range: ", freq_range
         TYPE(systems), INTENT(INOUT)        :: sys
         TYPE(dipoles), INTENT(INOUT)        :: dips
         TYPE(raman), INTENT(INOUT)        :: rams
-       
+       CHARACTER(len=256) :: filename
         INTEGER                                                       :: stat, i, j, k, m, x, o, dims, dir
         INTEGER(kind=dp)                                               :: plan
         REAL(kind=dp)                                                  :: rtp_freq_range
@@ -850,10 +856,33 @@ PRINT *, "freq_range: ", freq_range
                             + DIMAG(rams%RR%zhat_pol_rtp(:, :, :, 3, 3, :))
         abs_intens(:, :, :, :) = (4.0_dp*pi*trace(:, :, :, :))/(3.0_dp*speed_light)
     
-        OPEN (UNIT=13, FILE='absorption_spectrum.txt', STATUS='unknown', IOSTAT=stat)
+
+!DO j = 1, sys%natom      !! shifted atom index
+    !DO i = 1, dims          !! displacement direction
+        !DO k = 1, dir      !! + / - shift
+            ! Create a unique file name for this shifted structure
+          !  WRITE(filename, '("absorption_spectrum_",I0,"_",I0,"_",I0,".txt")') j, i, k
+          !  OPEN (UNIT=13, FILE=filename, STATUS='unknown', IOSTAT=stat)
+          !  IF (stat /= 0) THEN
+          !      PRINT *, "Error opening file: ", TRIM(filename)
+         !       STOP
+        !    END IF
+
+            ! Loop over time steps to write the full spectrum
+       !     DO o = 1, rams%RR%framecount_rtp
+     !          WRITE (13, *) o * rtp_freq_range * reccm2ev, &
+      !                        abs_intens(j, i, k, o) * o * rtp_freq_range * (-1.0_dp)
+    !        END DO
+
+   !         CLOSE (13)  ! close after finishing one structure
+  !      END DO
+ !   END DO
+!END DO
+
         DO j = 1, 1 !!atom_num: 1st atom
             DO i = 1, 1 !!dims: x dimension
                 DO k = 1, 1 !! + direction
+                 OPEN (UNIT=13, FILE='absorption_spectrum.txt', STATUS='unknown', IOSTAT=stat)
                     DO o = 1, rams%RR%framecount_rtp
                         WRITE (13, *) o*rtp_freq_range*reccm2ev, abs_intens(j, i, k, o)*o*rtp_freq_range*(-1.0_dp)
                     END DO

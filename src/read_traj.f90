@@ -10,19 +10,20 @@ MODULE read_traj
     PUBLIC :: read_coord, read_coord_frame, read_normal_modes, read_static, read_static_resraman
 
 CONTAINS
-    SUBROUTINE read_coord(gs, sys, dips, rams)
+    SUBROUTINE read_coord(filename, gs, sys, dips, rams)
 
         TYPE(global_settings), INTENT(INOUT)   :: gs
         TYPE(systems), INTENT(INOUT)        :: sys
         TYPE(dipoles), optional        :: dips
         TYPE(raman), optional        :: rams
+        CHARACTER(LEN=40), INTENT(IN)                               :: filename
 
         INTEGER                                                   :: i, j, stat
 
         sys%framecount = 0
 
         IF (gs%spectral_type%read_function/='MD-RR') THEN
-            OPEN (UNIT=50, FILE=sys%filename, STATUS='old', IOSTAT=stat)
+            OPEN (UNIT=50, FILE=filename, STATUS='old', IOSTAT=stat)
             READ (50, *) sys%natom
             CLOSE (50)
         ELSEIF (gs%spectral_type%read_function=='MD-RR') THEN
@@ -31,7 +32,7 @@ CONTAINS
 
         ALLOCATE (sys%element(sys%natom), sys%coord(sys%natom, 3))
 
-        OPEN (UNIT=51, FILE=sys%filename, STATUS='old', IOSTAT=stat)
+        OPEN (UNIT=51, FILE=filename, STATUS='old', IOSTAT=stat)
         DO
             READ (51, *, END=998)
             READ (51, *)
@@ -46,11 +47,11 @@ CONTAINS
         IF (gs%spectral_type%read_function/='P') THEN
         IF (dips%type_dipole=='berry' .OR. dips%type_dipole=='dfpt') THEN !!gas phase
             sys%mol_num = 1
-        ELSEIF ((sys%periodic=='n' .AND. sys%system=='1') .OR. dips%type_dipole=='wannier') THEN !!fragment approach
-            sys%mol_num = 44 !20 !! fix later to 20
+       ! ELSEIF ((sys%periodic=='n' .AND. sys%system=='1') .OR. dips%type_dipole=='wannier') THEN !!fragment approach
+       !     sys%mol_num = 44 !20 !! fix later to 20
         END IF
 ENDIF
-        PRINT *, sys%mol_num, 'mol num'
+        PRINT *, sys%mol_num, 'mol num', sys%framecount
 
     END SUBROUTINE read_coord
 
@@ -142,12 +143,12 @@ ENDIF
 !********************************************************************************************
 !********************************************************************************************
 
-    SUBROUTINE read_static(static_dip_file, static_dip, gs, sys, dips, rams)
+    SUBROUTINE read_static(dip_file, static_dip, gs, sys, dips, rams)
         TYPE(global_settings), INTENT(INOUT)   :: gs
         TYPE(systems), INTENT(INOUT)        :: sys
         TYPE(dipoles), INTENT(INOUT)        :: dips
         TYPE(raman), INTENT(INOUT)        :: rams
-        CHARACTER(LEN=40), INTENT(IN)                               :: static_dip_file
+        CHARACTER(LEN=40), INTENT(IN)                               :: dip_file
         REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE, INTENT(OUT)    :: static_dip
 
         CHARACTER(LEN=40)                                          :: chara
@@ -179,7 +180,7 @@ ENDIF
             CLOSE (52)
 
         ELSEIF (dips%type_dipole=='berry') THEN
-            OPEN (UNIT=53, FILE=static_dip_file, STATUS='old', IOSTAT=stat) !Reading dipoles
+            OPEN (UNIT=53, FILE=dip_file, STATUS='old', IOSTAT=stat) !Reading dipoles
             DO
                 DO k = 1, 2
                     DO i = 1, sys%natom
@@ -201,11 +202,11 @@ ENDIF
 !********************************************************************************************
 !********************************************************************************************
 
-    SUBROUTINE read_static_resraman(static_dip_file, static_dip_rtp, sys,rams)
+    SUBROUTINE read_static_resraman(dip_file, static_dip_rtp, sys,rams)
 
         TYPE(systems), INTENT(INOUT)        :: sys
         TYPE(raman), INTENT(INOUT)        :: rams
-        CHARACTER(LEN=40), INTENT(IN)                               :: static_dip_file
+        CHARACTER(LEN=40), INTENT(IN)                               :: dip_file
         REAL(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE, INTENT(OUT)  :: static_dip_rtp
 
         CHARACTER(LEN=40)                                          :: chara
@@ -213,7 +214,7 @@ ENDIF
 
         ALLOCATE (static_dip_rtp(sys%natom, 3, 2, 3, rams%RR%framecount_rtp + 1))
 
-        OPEN (UNIT=53, FILE=static_dip_file, STATUS='old', IOSTAT=stat) !Reading polarizabilties
+        OPEN (UNIT=53, FILE=dip_file, STATUS='old', IOSTAT=stat) !Reading polarizabilties
         DO
             DO k = 1, 2
                 DO i = 1, sys%natom

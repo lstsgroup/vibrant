@@ -278,21 +278,21 @@ CHARACTER(len=256) :: iomsg
                     READ (line, *) dummy, dips%type_dipole
                     write(*,*) "Type of the dipole moments: ",  dips%type_dipole
                 ENDIF
-                IF (INDEX(to_lower(line), 'static_dip_file')>0) THEN !Type of the dipole moment
-                    READ (line, *) dummy, dips%static_dip_file
-                    write(*,*) "Dipole file: ",  dips%static_dip_file
+                IF (INDEX(to_lower(line), 'dip_file')>0) THEN !Type of the dipole moment
+                    READ (line, *) dummy, dips%dip_file
+                    write(*,*) "Dipole file: ",  dips%dip_file
                 ENDIF
                 IF (INDEX(to_lower(line), 'dip_x_file')>0) THEN !Type of the dipole moment
-                    READ (line, *) dummy, dips%static_dip_x_file
-                    write(*,*) "Dipole file under x-field: ",  dips%static_dip_x_file
+                    READ (line, *) dummy, dips%dip_x_file
+                    write(*,*) "Dipole file under x-field: ",  dips%dip_x_file
                 ENDIF
                 IF (INDEX(to_lower(line), 'dip_y_file')>0) THEN !Type of the dipole moment
-                    READ (line, *) dummy, dips%static_dip_y_file
-                    write(*,*) "Dipole file under y-field: ",  dips%static_dip_y_file
+                    READ (line, *) dummy, dips%dip_y_file
+                    write(*,*) "Dipole file under y-field: ",  dips%dip_y_file
                 ENDIF
                 IF (INDEX(to_lower(line), 'dip_z_file')>0) THEN !Type of the dipole moment
-                    READ (line, *) dummy, dips%static_dip_z_file
-                    write(*,*) "Dipole file under y-field: ",  dips%static_dip_z_file
+                    READ (line, *) dummy, dips%dip_z_file
+                    write(*,*) "Dipole file under y-field: ",  dips%dip_z_file
                 ENDIF
                 IF (INDEX(to_lower(line), 'static_pol_file')>0) THEN !Type of the dipole moment
                     READ (line, *) dummy, rams%static_pol_file
@@ -375,7 +375,7 @@ CHARACTER(len=256) :: iomsg
         IF (trim(gs%spectral_type%read_function) == '') THEN
             print *, 'Error: Spectra not defined in the input'
             stop
-        
+        !check for power spectrum
         ELSEIF (gs%spectral_type%read_function=='P') THEN
             !check for input_type
             IF (trim(sys%type_traj) == '') THEN
@@ -402,7 +402,7 @@ CHARACTER(len=256) :: iomsg
                 print *, 'Error: correlation depth not defined in the input, we will continue with an estimate' !can be worded differently
                 stop
             ENDIF
- 
+        !check for normal mode analysis
         ELSEIF (gs%spectral_type%read_function=='NMA') THEN
             !check for input_dipole not needed for P but set to a default value
             IF (trim(dips%type_dipole) == '') THEN
@@ -424,7 +424,7 @@ CHARACTER(len=256) :: iomsg
                 print *, 'Error: Displacement not defined in the input'
                 stop
             END IF
-
+        !check for static IR
         ELSEIF (gs%spectral_type%read_function=='IR') THEN
             !check for filename
             IF (trim(sys%filename) == '') THEN
@@ -453,7 +453,7 @@ CHARACTER(len=256) :: iomsg
                 stop
             ENDIF
             !check for dipole file
-            IF (trim(dips%static_dip_file) == '') THEN
+            IF (trim(dips%dip_file) == '') THEN
                 print *, 'Error: Dipole filename not defined in the input'
                 stop
             ENDIF
@@ -462,7 +462,7 @@ CHARACTER(len=256) :: iomsg
                 print *, 'Warning: type_dipole not defined in the input setting it to 1'
                 dips%type_dipole = 'berry'
             END IF
-
+        !check for static raman
         ELSEIF (gs%spectral_type%read_function=='R') THEN
             !check for filename
             IF (trim(sys%filename) == '') THEN
@@ -516,15 +516,15 @@ CHARACTER(len=256) :: iomsg
                 stop
             END IF
             !check for dipole file
-            IF (trim(dips%static_dip_x_file) == '') THEN
+            IF (trim(dips%dip_x_file) == '') THEN
                 print *, 'Error: X-field dipole file name not defined in the input'
                 stop
             ENDIF
-            IF (trim(dips%static_dip_y_file) == '') THEN
+            IF (trim(dips%dip_y_file) == '') THEN
                 print *, 'Error: Y-field dipole file name not defined in the input'
                 stop
             ENDIF
-            IF (trim(dips%static_dip_z_file) == '') THEN
+            IF (trim(dips%dip_z_file) == '') THEN
                 print *, 'Error: Z-field dipole file name not defined in the input'
                 stop
             ENDIF
@@ -588,15 +588,15 @@ CHARACTER(len=256) :: iomsg
                 dips%type_dipole = 'berry'
             END IF
             !check for dipole files
-            IF (trim(dips%static_dip_x_file) == '') THEN
+            IF (trim(dips%dip_x_file) == '') THEN
                 print *, 'Error: X-field dipole file name not defined in the input'
                 stop
             ENDIF
-            IF (trim(dips%static_dip_y_file) == '') THEN
+            IF (trim(dips%dip_y_file) == '') THEN
                 print *, 'Error: Y-field dipole file name not defined in the input'
                 stop
             ENDIF
-            IF (trim(dips%static_dip_z_file) == '') THEN
+            IF (trim(dips%dip_z_file) == '') THEN
                 print *, 'Error: Z-field dipole file name not defined in the input'
                 stop
             ENDIF
@@ -624,8 +624,34 @@ CHARACTER(len=256) :: iomsg
                 print *, 'Warning: Incident laser frequency not defined, setting it to 1 0.5 cm⁻1'
                 rams%laser_in = 0.5
             END IF
-
          
+        !check for MD-IR
+        ELSEIF (gs%spectral_type%read_function=='MD-IR') THEN
+            !check for dipole file
+            IF (trim(dips%dip_file) == '') THEN
+                print *, 'Error: Dipole filename not defined in the input'
+                stop
+            ENDIF
+            !check for type_dipole
+            IF (trim(dips%type_dipole) == '') THEN
+                print *, 'Warning: type_dipole not defined in the input setting it to 1'
+                dips%type_dipole = 'berry'
+            END IF
+            !check for dipole file
+            IF (trim(dips%dip_file) == '') THEN
+                print *, 'Error: Dipole filename not defined in the input'
+                stop
+            END IF
+            !check time step
+            IF (md%dt < 0) THEN
+                print *, 'Error: time_step not defined in the input'
+                stop
+            END IF
+            !check t_cor
+            IF (md%t_cor < 0) THEN
+                print *, 'Error: correlation depth not defined in the input, we will continue with an estimate' !can be worded differently
+                stop
+            ENDIF
         ENDIF
 
    END SUBROUTINE check_input

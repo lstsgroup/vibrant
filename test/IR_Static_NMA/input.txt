@@ -13,5 +13,5 @@
 &end static
 &dipoles
  type_dipole berry
- static_dip_file dipole_o-NP_free_static.xyz
+ dip_file dipole_o-NP_free_static.xyz
 &end dipoles

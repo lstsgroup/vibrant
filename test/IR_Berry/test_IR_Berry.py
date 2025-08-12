@@ -7,24 +7,15 @@ import pytest
 def vibrant_binary_path():
     return "../../vibrant"
 
-def run_vibrant(binary_path:str, input_file:str, omp_threads:int=1):
-    """ run vibrant using the specified input file """
-    # read input file
-    with open(input_file) as f:
-        in_data = ""
-        for line in f.readlines():
-            in_data +=line
-    # run vibrant calculation
+def run_vibrant(binary_path: str, input_file: str, omp_threads: int = 1):
+    """Run vibrant using the specified input file as a command-line argument"""
     my_env = {**os.environ, "OMP_NUM_THREADS": str(omp_threads)}
-    calc = subprocess.run([binary_path], 
-                          env = my_env,
-                          input=in_data, 
-                          text=True, 
-                          capture_output=True
-    )
+    calc = subprocess.run([binary_path, input_file],
+                          env=my_env,
+                          text=True,
+                          capture_output=True)
     return calc.returncode, calc.stdout
 
-    
 
 def parse_ir_spectrum_from_file(fname:str):
     """ parse the generated IR spectrum """

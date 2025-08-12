@@ -96,7 +96,7 @@ MODULE constants
     ! Input parameters
 
     ! Damping Constant [eV]
-    REAL(Kind=dp), PARAMETER                            :: damping_constant = 0.10_dp
+    REAL(Kind=dp), PARAMETER                            :: damping_constant = 0.1_dp
 
     ! Correlation depth for MD
     !INTEGER, PARAMETER                                  :: t_cor = 1024
