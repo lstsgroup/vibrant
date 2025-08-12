@@ -155,48 +155,48 @@ SUBROUTINE spec_raman(gs, sys, md, dips, rams)
 !!!!ALLOCATION!!!
     ALLOCATE (alpha_x(sys%framecount, sys%mol_num, 3), alpha_y(sys%framecount, sys%mol_num, 3), alpha_z(sys%framecount, sys%mol_num, 3))
 
-    IF (rams%averaging=='1') THEN
+!    IF (rams%averaging=='1') THEN
 
 !!FIELD_FREE!!!
-        IF (sys%system=='1' .OR. dips%type_dipole=='wannier') THEN
-            IF (sys%cell%cell_type.NE.'3') THEN
-                !CALL read_coord_frame(sys, md)
-                CALL read_coord_frame(sys%natom, rams%wannier_free, md%coord_v, sys) !<- this needs to be ADJUSTED
-                ! filename different and fragment_free different
-                CALL center_mass(rams%wannier_free, fragment_free, gs, sys, md, dips)
-                CALL wannier_frag(sys%fragments%natom_frag, rams%wannier_free, dip_free, fragment_free, gs, sys, md, dips)
-            ELSEIF (sys%cell%cell_type=='3') THEN
-                CALL read_coord_frame(sys%natom, rams%wannier_free, md%coord_v, sys)
-                CALL solv_frag_index(rams%wannier_free, natom_frag_free, fragment_free, sys, md, dips)
-
-                CALL wannier_frag(natom_frag_free, rams%wannier_free, dip_free, fragment_free, gs, sys, md, dips)
-            END IF
-        ELSEIF (sys%system=='2') THEN
+ !       IF (sys%system=='1' .OR. dips%type_dipole=='wannier') THEN
+ !           IF (sys%cell%cell_type.NE.'3') THEN
+ !               !CALL read_coord_frame(sys, md)
+  !              CALL read_coord_frame(sys%natom, rams%wannier_free, md%coord_v, sys) !<- this needs to be ADJUSTED
+  !              ! filename different and fragment_free different
+  !              CALL center_mass(rams%wannier_free, fragment_free, gs, sys, md, dips)
+  !              CALL wannier_frag(sys%fragments%natom_frag, rams%wannier_free, dip_free, fragment_free, gs, sys, md, dips)
+  !          ELSEIF (sys%cell%cell_type=='3') THEN
+  !              CALL read_coord_frame(sys%natom, rams%wannier_free, md%coord_v, sys)
+  !              CALL solv_frag_index(rams%wannier_free, natom_frag_free, fragment_free, sys, md, dips)
+!
+   !             CALL wannier_frag(natom_frag_free, rams%wannier_free, dip_free, fragment_free, gs, sys, md, dips)
+   !         END IF
+   !     ELSEIF (sys%system=='2') THEN
             IF (dips%type_dipole=='berry') THEN
-                CALL read_coord_frame(sys%mol_num, rams%wannier_free, dip_free, sys)
+                CALL read_coord_frame(sys%mol_num, dips%dip_file, dip_free, sys)
             END IF
-        END IF
+   !     END IF
 
 !!!X-FIELD!!!
-        CALL read_coord_frame(sys%natom, rams%wannier_x, md%coord_v, sys)
-        IF (sys%system=='1' .OR. dips%type_dipole=='wannier') THEN
-            IF (sys%cell%cell_type.NE.'3') THEN
-                CALL center_mass(rams%wannier_x, fragment_x, gs, sys, md, dips)
-                CALL wannier_frag(sys%fragments%natom_frag, rams%wannier_x, dip_x, fragment_x, gs, sys, md, dips)
+        CALL read_coord_frame(sys%natom, dips%dip_x_file, md%coord_v, sys)
+   !     IF (sys%system=='1' .OR. dips%type_dipole=='wannier') THEN
+   !         IF (sys%cell%cell_type.NE.'3') THEN
+   !             CALL center_mass(rams%wannier_x, fragment_x, gs, sys, md, dips)
+   !             CALL wannier_frag(sys%fragments%natom_frag, rams%wannier_x, dip_x, fragment_x, gs, sys, md, dips)
 
-            ELSEIF (sys%cell%cell_type=='3') THEN
-                CALL solv_frag_index(rams%wannier_x, natom_frag_x, fragment_x, sys, md, dips)
-                CALL wannier_frag(natom_frag_x, rams%wannier_x, dip_x, fragment_x, gs, sys, md, dips)
-            END IF
-            IF (sys%system=='1') THEN
-                CALL forward_diff(sys%mol_num, alpha_x, dip_free, dip_x, gs, sys)
-            ELSEIF (sys%system=='2' .AND. dips%type_dipole=='wannier') THEN
-                CALL forward_diff(sys%fragments%nfrag, alpha_x, dip_free, dip_x, gs, sys)
-            END IF
-        ELSEIF (sys%system=='2') THEN
+  !          ELSEIF (sys%cell%cell_type=='3') THEN
+  !              CALL solv_frag_index(rams%wannier_x, natom_frag_x, fragment_x, sys, md, dips)
+  !              CALL wannier_frag(natom_frag_x, rams%wannier_x, dip_x, fragment_x, gs, sys, md, dips)
+  !          END IF
+   !         IF (sys%system=='1') THEN
+   !             CALL forward_diff(sys%mol_num, alpha_x, dip_free, dip_x, gs, sys)
+  !          ELSEIF (sys%system=='2' .AND. dips%type_dipole=='wannier') THEN
+  !              CALL forward_diff(sys%fragments%nfrag, alpha_x, dip_free, dip_x, gs, sys)
+  !          END IF
+  !      ELSEIF (sys%system=='2') THEN
 
             IF (dips%type_dipole=='berry') THEN
-                CALL forward_diff(sys%mol_num, alpha_x, dip_free, md%coord_v, gs, sys)
+                CALL forward_diff(sys%mol_num, alpha_x, dip_free, md%coord_v, gs, sys, dips)
 
             ELSEIF (dips%type_dipole=='dfpt') THEN
                 DO i = 1, sys%framecount
@@ -206,75 +206,75 @@ SUBROUTINE spec_raman(gs, sys, md, dips, rams)
                 END DO
                 alpha_x = REAL(alpha_x*((8.988d+15)/(5.142d+11*3.33564d-30)), kind=dp) !conversion to debye/E
             END IF
-        END IF
+       ! END IF
 
-        IF (sys%system=='2' .AND. dips%type_dipole=='wannier') THEN
-            CALL central_diff(sys%fragments%nfrag, alpha_x, alpha_diff_x, sys, md)
-        ELSE
+       ! IF (sys%system=='2' .AND. dips%type_dipole=='wannier') THEN
+       !     CALL central_diff(sys%fragments%nfrag, alpha_x, alpha_diff_x, sys, md)
+       ! ELSE
             CALL central_diff(sys%mol_num, alpha_x, alpha_diff_x, sys, md)
-        END IF
+       ! END IF
 
 !!!Y-FIELD!!!
 
-        CALL read_coord_frame(sys%natom, rams%wannier_y, md%coord_v, sys)
-        IF (sys%system=='1' .OR. dips%type_dipole=='wannier') THEN
-            IF (sys%cell%cell_type.NE.'3') THEN
+        CALL read_coord_frame(sys%natom, dips%dip_y_file, md%coord_v, sys)
+      !  IF (sys%system=='1' .OR. dips%type_dipole=='wannier') THEN
+      !      IF (sys%cell%cell_type.NE.'3') THEN
 
-                CALL center_mass(rams%wannier_y, fragment_y, gs, sys, md, dips)
-                CALL wannier_frag(sys%fragments%natom_frag, rams%wannier_y, dip_y, fragment_y, gs, sys, md, dips)
-            ELSEIF (sys%cell%cell_type=='3') THEN
+       !         CALL center_mass(rams%wannier_y, fragment_y, gs, sys, md, dips)
+       !         CALL wannier_frag(sys%fragments%natom_frag, rams%wannier_y, dip_y, fragment_y, gs, sys, md, dips)
+       !     ELSEIF (sys%cell%cell_type=='3') THEN
 
-                CALL solv_frag_index(rams%wannier_y, natom_frag_y, fragment_y, sys, md, dips)
-                CALL wannier_frag(natom_frag_y, rams%wannier_y, dip_y, fragment_y, gs, sys, md, dips)
-            END IF
-            IF (sys%system=='1') THEN
-                CALL forward_diff(sys%mol_num, alpha_y, dip_free, dip_y, gs, sys)
-            ELSEIF (sys%system=='2' .AND. dips%type_dipole=='wannier') THEN
-                CALL forward_diff(sys%fragments%nfrag, alpha_y, dip_free, dip_y, gs, sys)
-            END IF
-        ELSEIF (sys%system=='2') THEN
+        !        CALL solv_frag_index(rams%wannier_y, natom_frag_y, fragment_y, sys, md, dips)
+        !        CALL wannier_frag(natom_frag_y, rams%wannier_y, dip_y, fragment_y, gs, sys, md, dips)
+        !    END IF
+        !    IF (sys%system=='1') THEN
+        !        CALL forward_diff(sys%mol_num, alpha_y, dip_free, dip_y, gs, sys)
+        !    ELSEIF (sys%system=='2' .AND. dips%type_dipole=='wannier') THEN
+        !        CALL forward_diff(sys%fragments%nfrag, alpha_y, dip_free, dip_y, gs, sys)
+        !    END IF
+       ! ELSEIF (sys%system=='2') THEN
             IF (dips%type_dipole=='berry') THEN
-                CALL forward_diff(sys%mol_num, alpha_y, dip_free, md%coord_v, gs, sys)
+                CALL forward_diff(sys%mol_num, alpha_y, dip_free, md%coord_v, gs, sys, dips)
 
             ELSEIF (dips%type_dipole=='dfpt') THEN
-                DO i = 1, sys%framecount
+               DO i = 1, sys%framecount
                     DO j = 1, 1
                         alpha_y(i, j, :) = md%coord_v(i, j, :)
                     END DO
                 END DO
                 alpha_y = REAL(alpha_y*((8.988d+15)/(5.142d+11*3.33564d-30)), kind=dp) !conversion to debye/E
             END IF
-        END IF
+       ! END IF
 
-        IF (sys%system=='2' .AND. dips%type_dipole=='wannier') THEN
-            CALL central_diff(sys%fragments%nfrag, alpha_y, alpha_diff_y, sys, md)
-        ELSE
+      !  IF (sys%system=='2' .AND. dips%type_dipole=='wannier') THEN
+      !      CALL central_diff(sys%fragments%nfrag, alpha_y, alpha_diff_y, sys, md)
+      !  ELSE
             CALL central_diff(sys%mol_num, alpha_y, alpha_diff_y, sys, md)
-        END IF
+      !  END IF
 
 !!!Z-FIELD!!!
 
-        CALL read_coord_frame(sys%natom, rams%wannier_z, md%coord_v, sys)
-        IF (sys%system=='1' .OR. dips%type_dipole=='wannier') THEN
-            IF (sys%cell%cell_type.NE.'3') THEN
+        CALL read_coord_frame(sys%natom, dips%dip_z_file, md%coord_v, sys)
+     !   IF (sys%system=='1' .OR. dips%type_dipole=='wannier') THEN
+     !       IF (sys%cell%cell_type.NE.'3') THEN
 
-                CALL center_mass(rams%wannier_z, fragment_z, gs, sys, md, dips)
-                CALL wannier_frag(sys%fragments%natom_frag, rams%wannier_z, dip_z, fragment_z, gs, sys, md, dips)
-            ELSEIF (sys%cell%cell_type=='3') THEN
+!                CALL center_mass(rams%wannier_z, fragment_z, gs, sys, md, dips)
+!                CALL wannier_frag(sys%fragments%natom_frag, rams%wannier_z, dip_z, fragment_z, gs, sys, md, dips)
+!            ELSEIF (sys%cell%cell_type=='3') THEN
 
-                CALL solv_frag_index(rams%wannier_z, natom_frag_z, fragment_z, sys, md, dips)
-                CALL wannier_frag(natom_frag_z, rams%wannier_z, dip_z, fragment_z, gs, sys, md, dips)
-            END IF
-            IF (sys%system=='1') THEN
-                CALL forward_diff(sys%mol_num, alpha_z, dip_free, dip_z, gs, sys)
-            ELSEIF (sys%system=='2' .AND. dips%type_dipole=='wannier') THEN
-                CALL forward_diff(sys%fragments%nfrag, alpha_z, dip_free, dip_z, gs, sys)
-            END IF
+ !               CALL solv_frag_index(rams%wannier_z, natom_frag_z, fragment_z, sys, md, dips)
+ !               CALL wannier_frag(natom_frag_z, rams%wannier_z, dip_z, fragment_z, gs, sys, md, dips)
+  !          END IF
+  !          IF (sys%system=='1') THEN
+  !              CALL forward_diff(sys%mol_num, alpha_z, dip_free, dip_z, gs, sys)
+  !          ELSEIF (sys%system=='2' .AND. dips%type_dipole=='wannier') THEN
+  !              CALL forward_diff(sys%fragments%nfrag, alpha_z, dip_free, dip_z, gs, sys)
+  !          END IF
 
-        ELSEIF (sys%system=='2') THEN
+   !     ELSEIF (sys%system=='2') THEN
 
             IF (dips%type_dipole=='berry') THEN
-                CALL forward_diff(sys%mol_num, alpha_z, dip_free, md%coord_v, gs, sys)
+                CALL forward_diff(sys%mol_num, alpha_z, dip_free, md%coord_v, gs, sys, dips)
 
             ELSEIF (dips%type_dipole=='dfpt') THEN
                 DO i = 1, sys%framecount
@@ -284,16 +284,16 @@ SUBROUTINE spec_raman(gs, sys, md, dips, rams)
                 END DO
                 alpha_z = REAL(alpha_z*((8.988d+15)/(5.142d+11*3.33564d-30)), kind=dp) !conversion to debye/E
             END IF
-        END IF
+       ! END IF
 
-        IF (sys%system=='2' .AND. dips%type_dipole=='wannier') THEN
-            CALL central_diff(sys%fragments%nfrag, alpha_z, alpha_diff_z, sys, md)
-        ELSE
+       ! IF (sys%system=='2' .AND. dips%type_dipole=='wannier') THEN
+       !     CALL central_diff(sys%fragments%nfrag, alpha_z, alpha_diff_z, sys, md)
+       ! ELSE
             CALL central_diff(sys%mol_num, alpha_z, alpha_diff_z, sys, md)
-        END IF
+       ! END IF
 
 !!!ACF AND FFT CALC!!!
-        PRINT *, sys%fragments%nfrag, 'sys%fragments%nfrag check'
+     !   PRINT *, sys%fragments%nfrag, 'sys%fragments%nfrag check'
         ALLOCATE (zhat_iso(0:md%t_cor*2), zhat_aniso(0:md%t_cor*2))
         ALLOCATE (zhat_unpol(0:md%t_cor*2), zhat_depol(0:md%t_cor*2), zhat_para_all(0:md%t_cor*2))
 
@@ -302,20 +302,20 @@ SUBROUTINE spec_raman(gs, sys, md, dips, rams)
         zhat_unpol = COMPLEX(0._dp, 0.0_dp)
         zhat_depol = COMPLEX(0._dp, 0.0_dp)
 
-        IF (sys%system=='1' .OR. (sys%system=='2' .AND. dips%type_dipole=='wannier')) THEN
-            CALL cvv_iso(sys%fragments%nfrag, rams%z_iso, alpha_diff_x, alpha_diff_y, alpha_diff_z, sys, md)
-        ELSE
+        !IF (sys%system=='1' .OR. (sys%system=='2' .AND. dips%type_dipole=='wannier')) THEN
+        !    CALL cvv_iso(sys%fragments%nfrag, rams%z_iso, alpha_diff_x, alpha_diff_y, alpha_diff_z, sys, md)
+      !  ELSE
             CALL cvv_iso(sys%mol_num, rams%z_iso, alpha_diff_x, alpha_diff_y, alpha_diff_z, sys, md)
-        END IF
+       ! END IF
 
         CALL dfftw_plan_dft_r2c_1d(plan, 2*md%t_cor, rams%z_iso, zhat_iso, FFTW_ESTIMATE)
         CALL dfftw_execute_dft_r2c(plan, rams%z_iso, zhat_iso)
 
-        IF (sys%system=='1' .OR. (sys%system=='2' .AND. dips%type_dipole=='wannier')) THEN
-            CALL cvv_aniso(sys%fragments%nfrag, rams%z_aniso, alpha_diff_x, alpha_diff_y, alpha_diff_z, sys, md)
-        ELSE
+     !   IF (sys%system=='1' .OR. (sys%system=='2' .AND. dips%type_dipole=='wannier')) THEN
+     !       CALL cvv_aniso(sys%fragments%nfrag, rams%z_aniso, alpha_diff_x, alpha_diff_y, alpha_diff_z, sys, md)
+      !  ELSE
             CALL cvv_aniso(sys%mol_num, rams%z_aniso, alpha_diff_x, alpha_diff_y, alpha_diff_z, sys, md)
-        END IF
+      !  END IF
 
         CALL dfftw_plan_dft_r2c_1d(plan, 2*md%t_cor, rams%z_aniso, zhat_aniso, FFTW_ESTIMATE)
         CALL dfftw_execute_dft_r2c(plan, rams%z_aniso, zhat_aniso)
@@ -365,7 +365,7 @@ SUBROUTINE spec_raman(gs, sys, md, dips, rams)
         OPEN (UNIT=65, FILE='result_fft_water_lib_unpol.txt', STATUS='unknown', IOSTAT=stat)
         zhat_unpol = REAL(zhat_unpol, kind=dp)
         freq_range = REAL(md%dom/(2.0_dp*md%t_cor), kind=dp)
-
+        
         DO i = 0, 2*md%t_cor - 2
             zhat_unpol(i) = zhat_iso(i) + (zhat_aniso(i)*7.0_dp/45.0_dp)
             zhat_unpol(0) = 0.00_dp
@@ -389,150 +389,150 @@ SUBROUTINE spec_raman(gs, sys, md, dips, rams)
         DEALLOCATE (rams%z_iso, rams%z_aniso)
         DEALLOCATE (zhat_depol, zhat_para_all, zhat_unpol)
 
-    ELSEIF (rams%averaging=='2') THEN
+!    ELSEIF (rams%averaging=='2') THEN
 
-        IF (dips%type_dipole=='wannier') THEN
-            CALL read_coord_frame(sys%natom, rams%wannier_free, md%coord_v, sys)
+!        IF (dips%type_dipole=='wannier') THEN
+!            CALL read_coord_frame(sys%natom, rams%wannier_free, md%coord_v, sys)
             !sys%filename = rams%wannier_free
             !CALL read_coord_frame(sys, md)
-            CALL wannier(sys%filename, dip_free, sys, md)
-        ELSEIF (dips%type_dipole=='berry') THEN
+!            CALL wannier(sys%filename, dip_free, sys, md)
+!        ELSEIF (dips%type_dipole=='berry') THEN
 
-            CALL read_coord_frame(sys%natom, rams%wannier_free, dip_free, sys)
-        END IF
+ !           CALL read_coord_frame(sys%natom, rams%wannier_free, dip_free, sys)
+ !       END IF
 
 !!!X-FIELD!!!
-        IF (rams%direction=='1') THEN
+  !      IF (rams%direction=='1') THEN
 !!!X-FIELD!!!
-            sys%filename = rams%wannier_x
+        !    sys%filename = rams%wannier_x
 
-            CALL read_coord_frame(sys%natom, rams%wannier_x, md%coord_v, sys)
-            IF (dips%type_dipole=='wannier') THEN
-                CALL wannier(rams%wannier_x, dip_x, sys, md)
-                CALL forward_diff(sys%mol_num, alpha_x, dip_free, dip_x, gs, sys)
-            ELSEIF (dips%type_dipole=='berry') THEN
-                CALL forward_diff(sys%mol_num, alpha_x, dip_free, md%coord_v, gs, sys)
-            END IF
-            CALL central_diff(sys%natom, alpha_x, alpha_diff_x, sys, md)
+        !    CALL read_coord_frame(sys%natom, rams%wannier_x, md%coord_v, sys)
+        !    IF (dips%type_dipole=='wannier') THEN
+        !        CALL wannier(rams%wannier_x, dip_x, sys, md)
+         !       CALL forward_diff(sys%mol_num, alpha_x, dip_free, dip_x, gs, sys)
+         !   ELSEIF (dips%type_dipole=='berry') THEN
+         !       CALL forward_diff(sys%mol_num, alpha_x, dip_free, md%coord_v, gs, sys)
+         !   END IF
+         !   CALL central_diff(sys%natom, alpha_x, alpha_diff_x, sys, md)
 
 !!!Y-FIELD!!!
-        ELSEIF (rams%direction=='2') THEN
+        !ELSEIF (rams%direction=='2') THEN
 
-            CALL read_coord_frame(sys%natom, rams%wannier_y, md%coord_v, sys)
-            IF (dips%type_dipole=='wannier') THEN
-                CALL wannier(rams%wannier_y, dip_y, sys, md)
-                CALL forward_diff(sys%mol_num, alpha_y, dip_free, dip_y, gs, sys)
-            ELSEIF (dips%type_dipole=='berry') THEN
-                CALL forward_diff(sys%mol_num, alpha_y, dip_free, md%coord_v, gs, sys)
-            END IF
-            CALL central_diff(sys%natom, alpha_y, alpha_diff_y, sys, md)
+         !   CALL read_coord_frame(sys%natom, rams%wannier_y, md%coord_v, sys)
+         !   IF (dips%type_dipole=='wannier') THEN
+          !      CALL wannier(rams%wannier_y, dip_y, sys, md)
+           !     CALL forward_diff(sys%mol_num, alpha_y, dip_free, dip_y, gs, sys)
+           ! ELSEIF (dips%type_dipole=='berry') THEN
+            !    CALL forward_diff(sys%mol_num, alpha_y, dip_free, md%coord_v, gs, sys)
+           ! END IF
+           ! CALL central_diff(sys%natom, alpha_y, alpha_diff_y, sys, md)
 
-        ELSEIF (rams%direction=='3') THEN
+       ! ELSEIF (rams%direction=='3') THEN
 !!!Z-FIELD!!!
-            CALL read_coord_frame(sys%natom, rams%wannier_z, md%coord_v, sys)
-            IF (dips%type_dipole=='wannier') THEN
-                CALL wannier(rams%wannier_z, dip_z, sys, md)
-                CALL forward_diff(sys%mol_num, alpha_z, dip_free, dip_z, gs, sys)
-            ELSEIF (dips%type_dipole=='berry') THEN
-                CALL forward_diff(sys%mol_num, alpha_z, dip_free, md%coord_v, gs, sys)
-            END IF
-            CALL central_diff(sys%natom, alpha_z, alpha_diff_z, sys, md)
+          !  CALL read_coord_frame(sys%natom, rams%wannier_z, md%coord_v, sys)
+         !   IF (dips%type_dipole=='wannier') THEN
+        !        CALL wannier(rams%wannier_z, dip_z, sys, md)
+       !         CALL forward_diff(sys%mol_num, alpha_z, dip_free, dip_z, gs, sys)
+      !      ELSEIF (dips%type_dipole=='berry') THEN
+     !           CALL forward_diff(sys%mol_num, alpha_z, dip_free, md%coord_v, gs, sys)
+    !        END IF
+    !        CALL central_diff(sys%natom, alpha_z, alpha_diff_z, sys, md)
             !CALL central_diff(md%dt, sys%natom, sys%framecount, alpha_z, alpha_diff_z, gs%spectral_type%read_function, sys%mol_num, sys%system)
 
-        END IF
+       ! END IF
 
-        ALLOCATE (zhat_para(0:md%t_cor*2), zhat_unpol_x(0:md%t_cor*2), zhat_ortho(0:md%t_cor*2), zhat_depol_x(0:md%t_cor*2))
+        !ALLOCATE (zhat_para(0:md%t_cor*2), zhat_unpol_x(0:md%t_cor*2), zhat_ortho(0:md%t_cor*2), zhat_depol_x(0:md%t_cor*2))
 
-        zhat_para = COMPLEX(0._dp, 0.0_dp)
-        zhat_ortho = COMPLEX(0._dp, 0.0_dp)
-        zhat_unpol_x = COMPLEX(0._dp, 0.0_dp)
-        zhat_depol_x = COMPLEX(0._dp, 0.0_dp)
+       ! zhat_para = COMPLEX(0._dp, 0.0_dp)
+       ! zhat_ortho = COMPLEX(0._dp, 0.0_dp)
+       ! zhat_unpol_x = COMPLEX(0._dp, 0.0_dp)
+       ! zhat_depol_x = COMPLEX(0._dp, 0.0_dp)
 
 !!IF ONLY ISOTROPIC AVERAGING IS CONSIDERED!!
-        CALL cvv_only_x(sys%mol_num, sys%framecount, rams%z_para, rams%z_ortho, alpha_diff_x, &
-                        alpha_diff_y, alpha_diff_z, rams%direction, md)
+       ! CALL cvv_only_x(sys%mol_num, sys%framecount, rams%z_para, rams%z_ortho, alpha_diff_x, &
+         !               alpha_diff_y, alpha_diff_z, rams%direction, md)
 
-        CALL dfftw_plan_dft_r2c_1d(plan, 2*md%t_cor, rams%z_para, zhat_para, FFTW_ESTIMATE)
-        CALL dfftw_execute_dft_r2c(plan, rams%z_para, zhat_para)
+        !CALL dfftw_plan_dft_r2c_1d(plan, 2*md%t_cor, rams%z_para, zhat_para, FFTW_ESTIMATE)
+        !CALL dfftw_execute_dft_r2c(plan, rams%z_para, zhat_para)
 
-        CALL dfftw_plan_dft_r2c_1d(plan, 2*md%t_cor, rams%z_ortho, zhat_ortho, FFTW_ESTIMATE)
-        CALL dfftw_execute_dft_r2c(plan, rams%z_ortho, zhat_ortho)
+       ! CALL dfftw_plan_dft_r2c_1d(plan, 2*md%t_cor, rams%z_ortho, zhat_ortho, FFTW_ESTIMATE)
+       ! CALL dfftw_execute_dft_r2c(plan, rams%z_ortho, zhat_ortho)
 
 !!ORTHOGONAL!!
-        OPEN (UNIT=68, FILE='result_fft_water_lib_ortho_iso.txt', STATUS='unknown', IOSTAT=stat)
-        zhat_ortho = REAL(zhat_ortho, kind=dp)
-        freq_range = REAL(md%dom/md%t_cor, kind=dp)
-        f = freq_range*md%dt*1.883652d-4
+       ! OPEN (UNIT=68, FILE='result_fft_water_lib_ortho_iso.txt', STATUS='unknown', IOSTAT=stat)
+       ! zhat_ortho = REAL(zhat_ortho, kind=dp)
+       ! freq_range = REAL(md%dom/md%t_cor, kind=dp)
+       ! f = freq_range*md%dt*1.883652d-4
 
-        DO i = 0, 2*md%t_cor - 2
-            zhat_ortho(i + 1) = REAL(zhat_ortho(i + 1), kind=dp)*(f*(i + 1)/SIN(f*(i + 1)))**2._dp
+        !DO i = 0, 2*md%t_cor - 2
+          !  zhat_ortho(i + 1) = REAL(zhat_ortho(i + 1), kind=dp)*(f*(i + 1)/SIN(f*(i + 1)))**2._dp
 
-            zhat_ortho(i) = REAL(zhat_ortho(i), kind=dp)*((const_planck)/(8.0_dp*const_boltz*const_permit*const_permit) &
-                                                          *1d-29*0.421_dp*md%dt &
-                                                          *(((rams%laser_in - ((i)*freq_range))**4)/((i)*freq_range)) &
-                                                          *(1.0_dp/(1.0_dp - EXP((-1.438777_dp*((i)*freq_range)) &
-                                                                                 /temp))))*2.0_dp*pi*2.0_dp
+         !   zhat_ortho(i) = REAL(zhat_ortho(i), kind=dp)*((const_planck)/(8.0_dp*const_boltz*const_permit*const_permit) &
+         !                                                 *1d-29*0.421_dp*md%dt &
+         !                                                 *(((rams%laser_in - ((i)*freq_range))**4)/((i)*freq_range)) &
+         !                                                 *(1.0_dp/(1.0_dp - EXP((-1.438777_dp*((i)*freq_range)) &
+        !                                                                         /temp))))*2.0_dp*pi*2.0_dp
 
-            zhat_ortho(0) = 0.0_dp
-            IF ((i*freq_range).GE.5000_dp) CYCLE
-            WRITE (68, *) i*freq_range, (REAL(zhat_ortho(i), kind=dp))
-        END DO
-        CLOSE (68)
+       !     zhat_ortho(0) = 0.0_dp
+       !     IF ((i*freq_range).GE.5000_dp) CYCLE
+       !     WRITE (68, *) i*freq_range, (REAL(zhat_ortho(i), kind=dp))
+       ! END DO
+       ! CLOSE (68)
 
 !!PARALLEL!!
-        OPEN (UNIT=67, FILE='result_fft_water_lib_para_iso.txt', STATUS='unknown', IOSTAT=stat)
-        zhat_para = REAL(zhat_para, kind=dp)
-        freq_range = REAL(md%dom/md%t_cor, kind=dp)
-        f = freq_range*md%dt*1.883652d-4
+        !OPEN (UNIT=67, FILE='result_fft_water_lib_para_iso.txt', STATUS='unknown', IOSTAT=stat)
+        !zhat_para = REAL(zhat_para, kind=dp)
+        !freq_range = REAL(md%dom/md%t_cor, kind=dp)
+        !f = freq_range*md%dt*1.883652d-4
 
-        DO i = 0, 2*md%t_cor - 2
-            zhat_para(i + 1) = REAL(zhat_para(i + 1), kind=dp)*(f*(i + 1)/SIN(f*(i + 1)))**2._dp
+        !DO i = 0, 2*md%t_cor - 2
+            !zhat_para(i + 1) = REAL(zhat_para(i + 1), kind=dp)*(f*(i + 1)/SIN(f*(i + 1)))**2._dp
 
-            zhat_para(i) = REAL(zhat_para(i), kind=dp)*((const_planck)/(8.0_dp*const_boltz*const_permit*const_permit) &
-                                                        *1d-29*0.421_dp*md%dt &
-                                                        *(((rams%laser_in - ((i)*freq_range))**4)/((i)*freq_range)) &
-                                                        *(1.0_dp/(1.0_dp - EXP((-1.438777_dp*((i)*freq_range)) &
-                                                                               /temp))))*2.0_dp*pi*2.0_dp
-            zhat_para(0) = 0.0_dp
-            IF ((i*freq_range).GE.5000_dp) CYCLE
-            WRITE (67, *) (i)*freq_range, (REAL(zhat_para(i), kind=dp))!,REAL(integral(i),kind=dp)
-        END DO
-        CLOSE (67)
+           ! zhat_para(i) = REAL(zhat_para(i), kind=dp)*((const_planck)/(8.0_dp*const_boltz*const_permit*const_permit) &
+            !                                            *1d-29*0.421_dp*md%dt &
+            !                                            *(((rams%laser_in - ((i)*freq_range))**4)/((i)*freq_range)) &
+            !                                            *(1.0_dp/(1.0_dp - EXP((-1.438777_dp*((i)*freq_range)) &
+           !                                                                    /temp))))*2.0_dp*pi*2.0_dp
+          !  zhat_para(0) = 0.0_dp
+         !   IF ((i*freq_range).GE.5000_dp) CYCLE
+        !    WRITE (67, *) (i)*freq_range, (REAL(zhat_para(i), kind=dp))!,REAL(integral(i),kind=dp)
+       ! END DO
+       ! CLOSE (67)
 
 !!UNPOL!!
-        OPEN (UNIT=69, FILE='result_fft_water_lib_unpol_iso.txt', STATUS='unknown', IOSTAT=stat)
-        freq_range = REAL(md%dom/md%t_cor, kind=dp)
+       ! OPEN (UNIT=69, FILE='result_fft_water_lib_unpol_iso.txt', STATUS='unknown', IOSTAT=stat)
+       ! freq_range = REAL(md%dom/md%t_cor, kind=dp)
 
-        DO i = 0, 2*md%t_cor - 2
-            zhat_unpol_x(i) = zhat_para(i) + zhat_ortho(i)
-            IF ((i*freq_range).GE.5000_dp) CYCLE
-            WRITE (69, *) i*freq_range, REAL(zhat_unpol_x(i), kind=dp)
-        END DO
-        CLOSE (69)
+      !  DO i = 0, 2*md%t_cor - 2
+        !    zhat_unpol_x(i) = zhat_para(i) + zhat_ortho(i)
+       !     IF ((i*freq_range).GE.5000_dp) CYCLE
+      !      WRITE (69, *) i*freq_range, REAL(zhat_unpol_x(i), kind=dp)
+     !   END DO
+     !   CLOSE (69)
 
 !!DEPOL RATIO!!
-        OPEN (UNIT=70, FILE='result_fft_water_lib_depol_iso.txt', STATUS='unknown', IOSTAT=stat)
+       ! OPEN (UNIT=70, FILE='result_fft_water_lib_depol_iso.txt', STATUS='unknown', IOSTAT=stat)
 
-        DO i = 0, 2*md%t_cor - 2
-            zhat_depol_x(i) = REAL(zhat_ortho(i), kind=dp)/REAL(zhat_para(i), kind=dp)
-            IF ((i*freq_range).GE.5000_dp) CYCLE
-            WRITE (70, *) i*freq_range, REAL(zhat_depol_x(i), kind=dp)!REAL(zhat_ortho(i),kind=dp)/REAL(zhat_para(i),kind=dp)
-        END DO
-        CLOSE (70)
+       ! DO i = 0, 2*md%t_cor - 2
+        !    zhat_depol_x(i) = REAL(zhat_ortho(i), kind=dp)/REAL(zhat_para(i), kind=dp)
+        !    IF ((i*freq_range).GE.5000_dp) CYCLE
+       !     WRITE (70, *) i*freq_range, REAL(zhat_depol_x(i), kind=dp)!REAL(zhat_ortho(i),kind=dp)/REAL(zhat_para(i),kind=dp)
+      !  END DO
+     !   CLOSE (70)
 
-        DEALLOCATE (rams%z_para, rams%z_ortho, zhat_unpol_x, zhat_depol_x, zhat_para, zhat_ortho)
-    END IF
+    !    DEALLOCATE (rams%z_para, rams%z_ortho, zhat_unpol_x, zhat_depol_x, zhat_para, zhat_ortho)
+   ! END IF
 
-    CALL dfftw_destroy_plan(plan)
+   ! CALL dfftw_destroy_plan(plan)
 
     !DEALLOCATE(dip_free,dip_x,dip_y,dip_z)
-    IF (sys%system=='1') THEN
-        DEALLOCATE (fragment_x, fragment_y, fragment_z, fragment_free)
+  !  IF (sys%system=='1') THEN
+  !      DEALLOCATE (fragment_x, fragment_y, fragment_z, fragment_free)
         !  DEALLOCATE(natom_frag_x,natom_frag_y,natom_frag_z,natom_frag_free)
-    END IF
+ !   END IF
 
-    DEALLOCATE (alpha_x, alpha_y, alpha_z)
-    DEALLOCATE (alpha_diff_x, alpha_diff_y, alpha_diff_z)
+!    DEALLOCATE (alpha_x, alpha_y, alpha_z)
+!    DEALLOCATE (alpha_diff_x, alpha_diff_y, alpha_diff_z)
 
 END SUBROUTINE spec_raman
 
@@ -1007,6 +1007,7 @@ PRINT *, "freq_range: ", freq_range
         TYPE(global_settings) :: gs
         TYPE(systems)         :: sys
         TYPE(molecular_dynamics)   :: md
+        TYPE(dipoles)   :: dips
         CHARACTER(LEN=40)                                        :: chara
         INTEGER                                                  :: stat, i, j, k, m, t0, t1
         INTEGER(kind=dp)                                          :: plan
@@ -1041,7 +1042,7 @@ PRINT *, "freq_range: ", freq_range
 
 !!X-Field!!
         CALL read_coord_frame(mol_num, rtp_dipole_x, dip_x, sys)
-        CALL forward_diff(mol_num, alpha_x, dip_x, dip_x, gs, sys)
+        CALL forward_diff(mol_num, alpha_x, dip_x, dip_x, gs, sys, dips)
 
         zhat_resraman_x = COMPLEX(0._dp, 0.0_dp)
         zhat_resraman_y = COMPLEX(0._dp, 0.0_dp)
@@ -1083,7 +1084,7 @@ PRINT *, "freq_range: ", freq_range
 !!Y-Field!!
 
         CALL read_coord_frame(natom, rtp_dipole_y, dip_y, sys)
-        CALL forward_diff(mol_num, alpha_y, dip_y, dip_y, gs, sys)
+        CALL forward_diff(mol_num, alpha_y, dip_y, dip_y, gs, sys, dips)
 
         DO i = 1, framecount
             DO j = 1, 3
@@ -1121,7 +1122,7 @@ PRINT *, "freq_range: ", freq_range
 !!Z-Field!!
 
         CALL read_coord_frame(natom, rtp_dipole_z, dip_z, sys)
-        CALL forward_diff(mol_num, alpha_z, dip_z, dip_z, gs, sys)
+        CALL forward_diff(mol_num, alpha_z, dip_z, dip_z, gs, sys, dips)
 
         DO i = 1, framecount
             DO j = 1, 3

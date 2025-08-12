@@ -30,9 +30,10 @@ CONTAINS
     END SUBROUTINE central_diff
 !**************************************************************************************************************!
 !**************************************************************************************************************!
-    SUBROUTINE forward_diff(mol_num, alpha, dip_free, dip_x, gs, sys)
+    SUBROUTINE forward_diff(mol_num, alpha, dip_free, dip_x, gs, sys, dips)
         TYPE(global_settings), INTENT(INOUT) :: gs
         TYPE(systems), INTENT(INOUT)        :: sys
+        TYPE(dipoles), INTENT(INOUT)        :: dips
         INTEGER, INTENT(INOUT)                                    :: mol_num
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(INOUT)  :: dip_free, dip_x
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(OUT)    :: alpha
@@ -46,7 +47,7 @@ CONTAINS
             DO j = 1, sys%framecount
                 DO i = 1, mol_num  !!! change to mol_num later
                     DO k = 1, 3
-                        alpha(j, i, k) = REAL((dip_x(j, i, k) - dip_free(j, i, k))/0.005_dp, kind=dp)
+                        alpha(j, i, k) = REAL((dip_x(j, i, k) - dip_free(j, i, k))/dips%e_field, kind=dp)
                         !alpha_x(j,i,k)=(dip_x(j,i,k)-dip_free(j,i,k))
                     END DO
                 END DO

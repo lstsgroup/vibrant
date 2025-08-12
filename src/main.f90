@@ -191,15 +191,15 @@ PROGRAM vib2d
 !        !***************************************************************************
 !
 !        !***************************************************************************
-!    ELSEIF (gs%spectral_type%read_function=='MD-R') THEN
-!        sys%filename = wannier_free! <----  MUST BE ADJUSTED
-!        CALL read_coord(gs, sys, dips)
-!        CALL masses_charges(gs, sys)
-!
-!        CALL spec_raman(gs, sys, md, dips, rams)
-!        !***************************************************************************
-!
-!        !***************************************************************************
+    ELSEIF (gs%spectral_type%read_function=='MD-R') THEN
+     !   sys%filename = wannier_free! <----  MUST BE ADJUSTED
+        CALL read_coord(dips%dip_file, gs, sys, dips)
+        CALL masses_charges(gs, sys)
+
+        CALL spec_raman(gs, sys, md, dips, rams)
+        !***************************************************************************
+
+        !***************************************************************************
     ELSEIF (gs%spectral_type%read_function=='NMA') THEN
         CALL read_coord(sys%filename, gs, sys, dips)
         CALL masses_charges(gs, sys)

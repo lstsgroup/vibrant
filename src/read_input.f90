@@ -292,7 +292,7 @@ CHARACTER(len=256) :: iomsg
                 ENDIF
                 IF (INDEX(to_lower(line), 'dip_z_file')>0) THEN !Type of the dipole moment
                     READ (line, *) dummy, dips%dip_z_file
-                    write(*,*) "Dipole file under y-field: ",  dips%dip_z_file
+                    write(*,*) "Dipole file under z-field: ",  dips%dip_z_file
                 ENDIF
                 IF (INDEX(to_lower(line), 'static_pol_file')>0) THEN !Type of the dipole moment
                     READ (line, *) dummy, rams%static_pol_file
@@ -652,7 +652,62 @@ CHARACTER(len=256) :: iomsg
                 print *, 'Error: correlation depth not defined in the input, we will continue with an estimate' !can be worded differently
                 stop
             ENDIF
+        !check for MD-Raman
+        ELSEIF (gs%spectral_type%read_function=='MD-R') THEN
+            !check for dipole file
+            IF (trim(dips%dip_file) == '') THEN
+                print *, 'Error: Dipole filename not defined in the input'
+                stop
+            ENDIF
+            !check for type_dipole
+            IF (trim(dips%type_dipole) == '') THEN
+                print *, 'Warning: type_dipole not defined in the input setting it to berry'
+                dips%type_dipole = 'berry' 
+            END IF
+            !check for electric field strength
+            IF (dips%type_dipole.NE.'dfpt' .AND. dips%e_field < 0) THEN
+                print *, 'Error: Electric field strength not defined!'
+                stop
+            ENDIF
+            !check for dipole file
+            IF (trim(dips%dip_file) == '') THEN
+                print *, 'Error: Dipole filename not defined in the input'
+                stop
+            END IF
+            IF (trim(dips%dip_x_file) == '') THEN
+                print *, 'Error: X-field dipole file name not defined in the input'
+                stop
+            ENDIF
+            IF (trim(dips%dip_y_file) == '') THEN
+                print *, 'Error: Y-field dipole file name not defined in the input'
+                stop
+            ENDIF
+            IF (trim(dips%dip_z_file) == '') THEN
+                print *, 'Error: Z-field dipole file name not defined in the input'
+                stop
+            ENDIF
+            IF (rams%RR%dt_rtp < 0) THEN
+                print *, 'Error: RTP time step not defined!'
+                stop
+            ENDIF
+            !check time step
+            IF (md%dt < 0) THEN
+                print *, 'Error: time_step not defined in the input'
+                stop
+            END IF
+            !check t_cor
+            IF (md%t_cor < 0) THEN
+                print *, 'Error: correlation depth not defined in the input, we will continue with an estimate' !can be worded differently
+                stop
+            ENDIF
+            !check for incident laser wavelength
+            IF (rams%laser_in < 0) THEN
+                print *, 'Warning: Incident laser frequency not defined, setting it to 1 0.5 cm⁻1'
+                rams%laser_in = 0.5
+            END IF
+         
         ENDIF
+
 
    END SUBROUTINE check_input
 END MODULE read_input

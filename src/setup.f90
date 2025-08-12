@@ -489,7 +489,7 @@ CONTAINS
         INTEGER                               :: stat   ! error status of OPEN statements
         INTEGER                               :: i, j, k
 
-        !dom = REAL((1.0_dp/(dt*1e-15))/speed_light, kind=dp)
+        dom = REAL((1.0_dp/(dt*1e-15))/speed_light, kind=dp)
         dom_rtp = REAL((1.0_dp/(dt_rtp*1e-15))/speed_light, kind=dp)
 
        ! freq_range = REAL(dom/(2.0_dp*md%t_cor), kind=dp)

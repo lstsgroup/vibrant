@@ -92,7 +92,6 @@ SUBROUTINE cvv(natom, coord_v, sys, md)
         INTEGER, DIMENSION(:), ALLOCATABLE                         :: norm
     
         ALLOCATE (z_iso(0:2*md%t_cor - 1), norm(0:2*md%t_cor - 1))
-    
         norm = 0
         z_iso = 0.0_dp
         DO t0 = 1, sys%framecount - 2

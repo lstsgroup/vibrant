@@ -1,9 +1,18 @@
-MD-R
-2
-2
-2
-1
-9398.50
-n
-2.5
-n
+&global
+ spectra MD-R
+&end global
+&dipoles
+ type_dipole berry
+ field_strength 0.005
+ dip_file berry_dipole_free_5000_sc.xyz
+ dip_x_file berry_dipole_X_5000_sc.xyz
+ dip_y_file berry_dipole_Y_5000_sc.xyz
+ dip_z_file berry_dipole_Z_5000_sc.xyz
+&end dipoles
+&md
+ time_step 2.5
+ correlation_depth 1024
+&end md
+&raman
+ laser_in 9398.50
+&end raman
