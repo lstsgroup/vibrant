@@ -44,7 +44,7 @@ add_test(
 )
 add_test(
     NAME Power_pos_mw
-    COMMAND pytest test_Power_pos_mv.py
+    COMMAND pytest test_Power_pos_mw.py
     WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test/Power/pos_mw
 )
 add_test(

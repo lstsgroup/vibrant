@@ -36,7 +36,7 @@ MODULE constants
    PRIVATE
 
    PUBLIC ::   speed_light, const_planck, const_permit, pi, const_charge, const_boltz, joule_unit, debye, &
-             ev_unit, action_unit, bohr2ang, hartreebohr2evang, at_u, ang, fs2s, reccm2ev, hessian_factor
+             ev_unit, action_unit, bohr2ang, hartreebohr2evang, am_u, at_u, ang, fs2s, reccm2ev, hessian_factor
 
    ! Constants
 
@@ -79,7 +79,10 @@ MODULE constants
    REAL(kind=dp), PARAMETER                            :: hartreebohr2evang = 51.42208619083232_dp
 
    ! [a.m.u.] -> [kg]
-   REAL(kind=dp), PARAMETER                            :: at_u = 1.6605390666e-27_dp
+   REAL(kind=dp), PARAMETER                            :: am_u = 1.6605390666e-27_dp
+   
+   ! [a.t.u.] -> [s]
+   REAL(kind=dp), PARAMETER                            :: at_u = 2.4188843265864e-17_dp
 
    ! [Angstrom] -> [m]
    REAL(kind=dp), PARAMETER                            :: ang = 1.0e-10_dp
@@ -91,6 +94,6 @@ MODULE constants
    REAL(kind=dp), PARAMETER                            :: reccm2ev = 0.000124_dp
 
    ! [eV/(a.m.u*Ang^2)] -> [J/(kg*m^2)]
-   REAL(kind=dp), PARAMETER                            :: hessian_factor = REAL(const_charge/(at_u*ang*ang), kind=dp)
+   REAL(kind=dp), PARAMETER                            :: hessian_factor = REAL(const_charge/(am_u*ang*ang), kind=dp)
 
 END MODULE constants

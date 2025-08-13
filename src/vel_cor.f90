@@ -2,16 +2,17 @@ MODULE vel_cor
 
    USE dipole_calc, ONLY: center_mass
    USE kinds, ONLY: dp
-   USE constants, ONLY: pi
+   USE constants, ONLY: pi, ang, fs2s, at_u, bohr2ang
    USE vib_types, ONLY: global_settings, systems, molecular_dynamics, static, dipoles, raman
 
    IMPLICIT NONE
    PUBLIC :: cvv, cvv_iso, cvv_aniso, cvv_only_x, cvv_resraman
 
 CONTAINS
-   SUBROUTINE cvv(natom, coord_v, sys, md)
+   SUBROUTINE cvv(natom, coord_v, sys, gs, md)
 
       TYPE(systems), INTENT(INOUT)                :: sys
+      TYPE(global_settings), INTENT(INOUT)                :: gs
       TYPE(molecular_dynamics), INTENT(INOUT)     :: md
       INTEGER, INTENT(INOUT)                                    :: natom
       REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(INOUT)  :: coord_v
@@ -46,7 +47,6 @@ CONTAINS
                md%z(0:t1 - t0) = md%z(0:t1 - t0) + (coord_v(t0, k, 1)*coord_v(t0:t1, j, 1) + coord_v(t0, j, 2)* &
                                                     coord_v(t0:t1, j, 2) + coord_v(t0, j, 3)*coord_v(t0:t1, j, 3))*sys%mass_atom(j)
             ELSE
-               !  print*,k,"k",j,"j"
                DO m = 1, 3
                   md%z(0:t1 - t0) = md%z(0:t1 - t0) + coord_v(t0, k, m)*coord_v(t0:t1, k, m)
                END DO
@@ -57,13 +57,20 @@ CONTAINS
 
       md%z(:) = md%z(:)/norm(:) !!Normalization
 
+     !! unit conversion of velocity autocorrelation function to m^2/s^2
+     IF (sys%type_traj == 'pos') THEN
+        md%z(:) = md%z(:)*ang*ang/(fs2s*fs2s)
+     ELSE IF (sys%type_traj == 'vel') THEN
+        md%z(:) = md%z(:)*ang*ang*bohr2ang*bohr2ang/(at_u*at_u)
+     END IF
+
       md%z(md%t_cor) = 0.0_dp
       DO i = 1, md%t_cor - 1
          md%z(md%t_cor + i) = md%z(md%t_cor - i) !!Data mirroring
       END DO
 
       DO i = 0, 2*md%t_cor - 1
-         md%z(i) = md%z(i)*((COS(i/(md%t_cor - 1.0_dp)/2.0_dp*3.14_dp))**2) !!Hann Window function
+         md%z(i) = md%z(i)*((COS(i/(md%t_cor - 1.0_dp)/2.0_dp*pi))**2) !!Hann Window function
       END DO
 
       OPEN (UNIT=61, FILE='result_cvv.txt', STATUS='unknown', IOSTAT=stat) !!Write output

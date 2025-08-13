@@ -5,7 +5,7 @@ MODULE calc_spectra
    USE vib_types, ONLY: global_settings, systems, molecular_dynamics, static, dipoles, raman
 
    USE constants, ONLY: pi, fs2s, debye, speed_light, const_planck, const_boltz, const_permit, &
-                        hartreebohr2evang, hessian_factor, bohr2ang, reccm2ev
+                        hartreebohr2evang, hessian_factor, bohr2ang, reccm2ev, am_u
    USE read_traj, ONLY: read_coord_frame
    USE fin_diff, ONLY: central_diff, forward_diff
    USE vel_cor, ONLY: cvv, cvv_iso, cvv_aniso, cvv_only_x, cvv_resraman
@@ -41,11 +41,11 @@ CONTAINS
       IF (sys%type_traj == 'pos') THEN   !!If it is from positions, do finite differences first
          CALL central_diff(sys%natom, md%coord_v, md%v, sys, md)
 
-         CALL cvv(sys%natom, md%v, sys, md)
+         CALL cvv(sys%natom, md%v, sys, gs, md)
 
       ELSEIF (sys%type_traj == 'vel') THEN   !!If it is from velocities, compute autcorrelation directly
 
-         CALL cvv(sys%natom, md%coord_v, sys, md)
+         CALL cvv(sys%natom, md%coord_v, sys, gs, md)
 
       END IF
 
@@ -57,10 +57,11 @@ CONTAINS
       CALL dfftw_destroy_plan(plan)
 
       md%zhat = REAL(md%zhat, kind=dp)
+      !!Unit conversion to K.cm
+      md%zhat(:) = (md%zhat(:)*md%dt*fs2s*am_u*speed_light/const_boltz)*2.0_dp/(sys%natom*3.0_dp)
 
       OPEN (UNIT=63, FILE='power_spec.txt', STATUS='unknown', IOSTAT=stat) !!write the output
       DO i = 0, 2*md%t_cor - 1
-         md%zhat(i) = (md%zhat(i)*md%dt*7.211349d-9)/(sys%natom*3.0_dp) !!!unit conversion
          IF ((i*freq_range) .GE. 5000_dp) CYCLE
          WRITE (63, *) i*freq_range, REAL(md%zhat(i), kind=dp)
       END DO
@@ -105,7 +106,7 @@ CONTAINS
       IF (dips%type_dipole == 'berry') THEN !!Berry phase dipoles
          CALL read_coord_frame(sys%mol_num, dips%dip_file, md%coord_v, sys)
          CALL central_diff(sys%mol_num, md%coord_v, md%v, sys, md)
-         CALL cvv(sys%mol_num, md%v, sys, md)
+         CALL cvv(sys%mol_num, md%v, sys, gs, md)
       END IF
 
       CALL dfftw_plan_dft_r2c_1d(plan, 2*md%t_cor, md%z(0:2*md%t_cor - 1), md%zhat(0:2*md%t_cor - 1), FFTW_ESTIMATE) !!FFT!!
