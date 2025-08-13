@@ -36,6 +36,7 @@ MODULE vib_types
         INTEGER                                             :: framecount_rtp_pade
         REAL(kind=dp)                                       :: dt_rtp
         REAL(kind=dp)                                       :: dom_rtp
+        REAL(kind=dp)                                       :: damping_constant
         REAL(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE:: static_dip_rtp
         REAL(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE:: static_dip_x_rtp
         REAL(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE:: static_dip_y_rtp
@@ -49,8 +50,9 @@ MODULE vib_types
     !***************************************************************************
     TYPE global_settings
         LOGICAL                                          ::  md !yes/no
-        REAL(kind=dp)                                    ::  temp
         TYPE(spectral_type)                              ::  spectral_type ! global setting of spectral type 'P' , 'IR' , 'R' etc.
+        REAL(kind=dp)                                       ::  temp
+        REAL(kind=dp)                                       ::  fwhm
     END TYPE global_settings
 
     !***************************************************************************

@@ -198,30 +198,27 @@ CHARACTER(len=256) :: iomsg
             IF (in_global) THEN
                 IF (INDEX(to_lower(line), 'temperature')>0) THEN
                     READ (line, *) dummy, gs%temp
-                    write(*,*) "temperature: ", gs%temp
+                    write(*,*) "Temperature (K): ", gs%temp
                     !input%system%cell%present = .TRUE. ! add is present later
+                ELSEIF (INDEX(to_lower(line), 'fwhm')>0) THEN
+                        READ (line, *) dummy, gs%fwhm
+                        write(*,*) "Full width at half-maximum for Gaussian broadening (cm^{-1}): ", gs%fwhm
                 ELSEIF (INDEX(to_lower(line), 'spectra')>0) THEN
                         READ (line, *) dummy, gs%spectral_type%read_function
                         write(*,*) "spectra: ", gs%spectral_type%read_function
-                ELSEIF (INDEX(to_lower(line), 'diag_hessian')>0) THEN
-                    READ (line, *) dummy, stats%diag_hessian !'Do you want the normal modes to be calculated (type "1") or read from an external file (type "2")?'
-                    write(*,*) "hessian diagonalization: ", stats%diag_hessian
-                ELSEIF (INDEX(to_lower(line), 'type_dipole')>0) THEN  !Which one do you want to use: Wannier centers (1) or Berry phase dipole moments (2)?'
-                    READ (line, *) dummy, dips%type_dipole
-                    write(*,*) "type_dipole: ", dips%type_dipole
                 END IF
             END IF
             
             IF (in_system) THEN
                 IF (INDEX(to_lower(line), 'filename')>0) THEN
                     READ (line, *) dummy, sys%filename
-                    write(*,*) "filename: ", sys%filename
+                    write(*,*) "Coordinates will be read from: ", sys%filename
                 ELSEIF (INDEX(to_lower(line), 'type_traj')>0) THEN
                     READ (line, *) dummy, sys%type_traj !'Enter the type of the trajectory (type pos for positions, vel for velocities)'
-                    write(*,*) "type_traj: ", sys%type_traj
+                    write(*,*) "Type of the trajectory for the power spectrum: ", sys%type_traj
                 ELSEIF (INDEX(to_lower(line), 'mass_weighting')>0) THEN !'Do you want to apply mass weighting (y/n)?
                     READ (line, *) dummy, sys%input_mass
-                    write(*,*) "mass_weighting: ",  sys%input_mass
+                    write(*,*) "Mass weighting: ",  sys%input_mass
                 ELSEIF (in_cell) THEN
                     IF (INDEX(to_lower(line), 'cell_type')>0) THEN !'Is it the k-point trajectory (1), supercell trajectory (2) or solvent trajectory (3)? '
                       READ (line, *) dummy, sys%cell%cell_type
@@ -231,9 +228,6 @@ CHARACTER(len=256) :: iomsg
                 !    ELSEIF (INDEX(to_lower(line), 'alpha_beta_gamma')>0) THEN
                 !        !READ (line, *) dummy, input%system%cell%alpha_beta_gamma(1:3)
                     END IF
-                ELSEIF (INDEX(to_lower(line), 'periodic ')>0) THEN !'Does the system contain more than one molecule? (y/n)'
-                    READ (line, *) dummy, sys%periodic
-                    write(*,*) "periodic: ",  sys%periodic
                 ELSEIF (INDEX(to_lower(line), 'frag_type ')>0) THEN !'Does the system contain more than one molecule? (y/n)'
                     READ (line, *) dummy, sys%frag_type
                     write(*,*) "frag_type: ",  sys%frag_type
@@ -244,12 +238,12 @@ CHARACTER(len=256) :: iomsg
                 IF (in_hessian) THEN                
                     IF (INDEX(to_lower(line), 'force_file')>0) THEN
                         READ (line, *) dummy, stats%force_file
-                        write(*,*) "force_file: ", stats%force_file
+                        write(*,*) "Forces will be read from: ", stats%force_file
                     ENDIF
                 ENDIF
                 IF (INDEX(to_lower(ADJUSTL(line)), 'displacement ') == 1) THEN  ! only match if first token
                     READ (line, *) dummy, stats%dx
-                    WRITE(*,*) "displacement in Angstrom: ", stats%dx
+                    WRITE(*,*) "Finite difference displacement (Angstrom): ", stats%dx
                 END IF
                 !READ (line, *, IOSTAT=ios, IOMSG=iomsg) dummy, stats%dx
                 !IF (ios /= 0) THEN
@@ -328,6 +322,10 @@ CHARACTER(len=256) :: iomsg
                     READ (line, *) dummy, rams%RR%framecount_rtp_pade
                     write(*,*) "Requested framecount after Pade: ", rams%RR%framecount_rtp_pade
                 ENDIF
+                IF (INDEX(to_lower(line), 'damping_constant')>0) THEN !RTP time step
+                    READ (line, *) dummy, rams%RR%damping_constant
+                    write(*,*) "Damping constant (eV): ", rams%RR%damping_constant
+                ENDIF
             ENDIF
             !IF (in_coordinates) THEN
             !IF (in_coordinates) THEN
@@ -349,11 +347,11 @@ CHARACTER(len=256) :: iomsg
             IF (in_md) THEN
                 IF (INDEX(line, 'time_step')>0) THEN
                     READ (line, *) dummy, md%dt
-                    write(*,*) "time_step: ",  md%dt
+                    write(*,*) "MD time step (fs): ",  md%dt
                 END IF
                 IF (INDEX(line, 'correlation_depth')>0) THEN
                     READ (line, *) dummy, md%t_cor
-                    write(*,*) "correlation depth: ",  md%t_cor
+                    write(*,*) "Correlation depth: ",  md%t_cor
                 END IF
             END IF
         END DO
@@ -402,6 +400,12 @@ CHARACTER(len=256) :: iomsg
                 print *, 'Error: correlation depth not defined in the input, we will continue with an estimate' !can be worded differently
                 stop
             ENDIF
+            !check for the temperature
+            IF (gs%temp < 0) THEN
+                print *, 'Warning: Temperature is not defined, setting it to 300 K'
+                gs%temp = 300
+            END IF
+            !check for incident laser wavelength
         !check for normal mode analysis
         ELSEIF (gs%spectral_type%read_function=='NMA') THEN
             !check for input_dipole not needed for P but set to a default value
@@ -462,6 +466,15 @@ CHARACTER(len=256) :: iomsg
                 print *, 'Warning: type_dipole not defined in the input setting it to 1'
                 dips%type_dipole = 'berry'
             END IF
+            !check for the temperature
+            IF (gs%temp < 0) THEN
+                print *, 'Warning: Temperature is not defined, setting it to 300 K'
+                gs%temp = 300
+            END IF
+            IF (gs%fwhm < 0) THEN
+                print *, 'Warning: Full width at half-maximum is not defined, setting it to 10 cm^{-1}'
+                gs%temp = 10
+            END IF
         !check for static raman
         ELSEIF (gs%spectral_type%read_function=='R') THEN
             !check for filename
@@ -508,6 +521,15 @@ CHARACTER(len=256) :: iomsg
                 print *, 'Warning: Incident laser frequency not defined, setting it to 1 0.5 cm⁻1'
                 rams%laser_in = 0.5
             END IF
+            !check for the temperature
+            IF (gs%temp < 0) THEN
+                print *, 'Warning: Temperature is not defined, setting it to 300 K'
+                gs%temp = 300
+            END IF
+            IF (gs%fwhm < 0) THEN
+                print *, 'Warning: Full width at half-maximum is not defined, setting it to 10 cm^{-1}'
+                gs%temp = 10
+            END IF
 
          ELSEIF (gs%spectral_type%read_function=='ABS') THEN
             !check for filename
@@ -544,6 +566,10 @@ CHARACTER(len=256) :: iomsg
             IF (rams%RR%framecount_rtp < 0) THEN
                 print *, 'Error: RTP framecount not defined!'
                 stop
+            ENDIF
+            IF (rams%RR%damping_constant < 0) THEN
+                print *, 'Warning: Damping constant not defined, setting it to 0.1 eV!'
+                rams%RR%damping_constant = 0.1_dp
             ENDIF
             IF (trim(rams%RR%check_pade) == '') THEN
                 print *, 'Warning: The calculation will continue without Pade approximants!'
@@ -620,9 +646,22 @@ CHARACTER(len=256) :: iomsg
                 print *, 'Warning: Pade framecount is set to 80000!'
                 rams%RR%framecount_rtp_pade = 80000
             ENDIF
+            IF (rams%RR%damping_constant < 0) THEN
+                print *, 'Warning: Damping constant not defined, setting it to 0.1 eV!'
+                rams%RR%damping_constant = 0.1_dp
+            ENDIF
             IF (rams%laser_in < 0) THEN
                 print *, 'Warning: Incident laser frequency not defined, setting it to 1 0.5 cm⁻1'
                 rams%laser_in = 0.5
+            END IF
+            !check for the temperature
+            IF (gs%temp < 0) THEN
+                print *, 'Warning: Temperature is not defined, setting it to 300 K'
+                gs%temp = 300
+            END IF
+            IF (gs%fwhm < 0) THEN
+                print *, 'Warning: Full width at half-maximum is not defined, setting it to 10 cm^{-1}'
+                gs%temp = 10
             END IF
          
         !check for MD-IR
@@ -652,6 +691,12 @@ CHARACTER(len=256) :: iomsg
                 print *, 'Error: correlation depth not defined in the input, we will continue with an estimate' !can be worded differently
                 stop
             ENDIF
+            !check for the temperature
+            IF (gs%temp < 0) THEN
+                print *, 'Warning: Temperature is not defined, setting it to 300 K'
+                gs%temp = 300
+            END IF
+            !check for incident laser wavelength
         !check for MD-Raman
         ELSEIF (gs%spectral_type%read_function=='MD-R') THEN
             !check for dipole file
@@ -700,6 +745,11 @@ CHARACTER(len=256) :: iomsg
                 print *, 'Error: correlation depth not defined in the input, we will continue with an estimate' !can be worded differently
                 stop
             ENDIF
+            !check for the temperature
+            IF (gs%temp < 0) THEN
+                print *, 'Warning: Temperature is not defined, setting it to 300 K'
+                gs%temp = 300
+            END IF
             !check for incident laser wavelength
             IF (rams%laser_in < 0) THEN
                 print *, 'Warning: Incident laser frequency not defined, setting it to 1 0.5 cm⁻1'

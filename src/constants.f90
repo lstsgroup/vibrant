@@ -35,8 +35,8 @@ MODULE constants
 
     PRIVATE
 
-    PUBLIC ::   speed_light, const_planck, const_permit, pi, const_charge, const_boltz, damping_constant, joule_unit, debye, &
-              ev_unit, action_unit, bohr2ang, hartreebohr2evang, at_u, ang, fs2s, reccm2ev, temp, hessian_factor
+    PUBLIC ::   speed_light, const_planck, const_permit, pi, const_charge, const_boltz, joule_unit, debye, &
+              ev_unit, action_unit, bohr2ang, hartreebohr2evang, at_u, ang, fs2s, reccm2ev, hessian_factor
 
     ! Constants
 
@@ -92,16 +92,5 @@ MODULE constants
 
     ! [eV/(a.m.u*Ang^2)] -> [J/(kg*m^2)]
     REAL(kind=dp), PARAMETER                            :: hessian_factor = REAL(const_charge/(at_u*ang*ang), kind=dp)
-
-    ! Input parameters
-
-    ! Damping Constant [eV]
-    REAL(Kind=dp), PARAMETER                            :: damping_constant = 0.1_dp
-
-    ! Correlation depth for MD
-    !INTEGER, PARAMETER                                  :: t_cor = 1024
-
-    ! Temperature [K]
-    REAL(kind=dp), PARAMETER                            :: temp = 300.0_dp
 
 END MODULE constants

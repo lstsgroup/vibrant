@@ -1,5 +1,6 @@
 &global
  spectra MD-IR
+ temperature 300
 &end global
 &dipoles
  type_dipole berry

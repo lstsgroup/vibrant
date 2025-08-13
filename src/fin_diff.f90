@@ -1,6 +1,6 @@
 MODULE fin_diff
     USE kinds, ONLY: dp
-    USE constants, ONLY: bohr2ang, speed_light, fs2s, damping_constant, joule_unit, ev_unit, action_unit
+    USE constants, ONLY: bohr2ang, speed_light, fs2s, joule_unit, ev_unit, action_unit
     USE vib_types, ONLY: global_settings, systems, molecular_dynamics, static, dipoles, raman
     IMPLICIT NONE
     PUBLIC :: central_diff, forward_diff, finite_diff_static, finite_diff_static_resraman
@@ -155,9 +155,9 @@ CONTAINS
 
         ALLOCATE (rams%RR%pol_rtp(sys%natom, 3, 2, 3, 3, rams%RR%framecount_rtp))
 
-        conv_unit = damping_constant*joule_unit/ev_unit !! J
+        conv_unit = rams%RR%damping_constant*joule_unit/ev_unit !! J
         damping_factor = conv_unit/action_unit*rams%RR%dt_rtp*fs2s !! s-1
-                            
+        
         DO l = 2, rams%RR%framecount_rtp + 1
             rams%RR%pol_rtp(:, :, :, 1, :, l - 1) = static_dipole_x_rtp(:, :, :, :, l) - static_dipole_x_rtp(:, :, :, :, 1)
             rams%RR%pol_rtp(:, :, :, 2, :, l - 1) = static_dipole_y_rtp(:, :, :, :, l) - static_dipole_y_rtp(:, :, :, :, 1)
@@ -168,9 +168,9 @@ CONTAINS
         rams%RR%pol_rtp(:,:,:,:,:,l)= rams%RR%pol_rtp(:,:,:,:,:,l)*(EXP(-1.0d0*damping_factor*l))
       ENDDO
 
-       ! DO i = 1, framecount_rtp
-        !    pol_rtp(:,:,:,:,:,i) = pol_rtp(:,:,:,:,:,i)*((COS(i/(framecount_rtp - 1.0_dp)/2.0_dp*3.14_dp))**2) !!Hann Window function
-        !END DO
+     !   DO i = 1, rams%RR%framecount_rtp
+     !       rams%RR%pol_rtp(:,:,:,:,:,i) = rams%RR%pol_rtp(:,:,:,:,:,i)*((COS(i/(rams%RR%framecount_rtp - 1.0_dp)/2.0_dp*3.14159265359_dp))**2) 
+     !   END DO
     END SUBROUTINE finite_diff_static_resraman
 END MODULE fin_diff
 

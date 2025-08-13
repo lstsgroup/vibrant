@@ -1,5 +1,6 @@
 &global
  spectra MD-R
+ temperature 300
 &end global
 &dipoles
  type_dipole dfpt

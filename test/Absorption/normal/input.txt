@@ -15,4 +15,5 @@
  rtp_time_step 0.00242
  rtp_framecount 1000
  check_pade n
+ damping_constant 0.1
 &end rtp

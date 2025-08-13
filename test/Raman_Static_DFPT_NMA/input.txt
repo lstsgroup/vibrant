@@ -1,5 +1,7 @@
 &global
  spectra R
+ temperature 300
+ fwhm 5
 &end global
 &system
  filename water.xyz

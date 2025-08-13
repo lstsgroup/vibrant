@@ -16,4 +16,5 @@
  rtp_framecount 100
  check_pade y
  pade_framecount 500
+ damping_constant 0.1
 &end rtp

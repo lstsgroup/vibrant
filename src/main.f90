@@ -2,8 +2,8 @@ PROGRAM vib2d
 
     USE, INTRINSIC           :: ISO_C_BINDING
     USE kinds, ONLY: dp, str_len
-    USE constants, ONLY: speed_light, const_planck, const_permit, pi, const_charge, const_boltz, damping_constant, joule_unit, &
-                         debye, ev_unit, action_unit, bohr2ang, hartreebohr2evang, at_u, ang, fs2s, reccm2ev, temp, &
+    USE constants, ONLY: speed_light, const_planck, const_permit, pi, const_charge, const_boltz, joule_unit, &
+                         debye, ev_unit, action_unit, bohr2ang, hartreebohr2evang, at_u, ang, fs2s, reccm2ev, &
                          hessian_factor
     USE read_input, ONLY:  parse_command_line,  parse_input, check_input
     USE vib_types, ONLY: global_settings, systems, molecular_dynamics, static, dipoles, raman,init_global_settings,init_systems, init_molecular_dynamics,init_static, deallocate_types
@@ -39,7 +39,7 @@ PROGRAM vib2d
     REAL(kind=dp)                                    :: dist, box_all, box_x, box_y, box_z, mass_tot
     REAL(kind=dp)                                    :: freq_range, dom, ce, co, h_kbT, raman_eq, a, dt_rtp, dom_rtp
     REAL(kind=dp)                                    ::  laser_in
-    REAL(kind=dp)                                    :: f, tmax, omega, theta, sinth, costh, sinsq
+    REAL(kind=dp)                                    :: f, tmax, fwhm, theta, sinth, costh, sinsq
     REAL(kind=dp)                                    :: cossq, thsq, thcub, alpha, beta, gamma0, dt, multiplier, dx
     REAL(kind=dp)                                    :: time_init, time_final, elapsed_time
     REAL(kind=dp)                                    ::  sinc_const, mass_tot_cell, e_field
@@ -218,7 +218,7 @@ PROGRAM vib2d
         END IF
         CALL finite_diff_static(gs, sys, stats, dips, rams)
 
-        CALL spec_static_ir(sys, stats, dips)
+        CALL spec_static_ir(gs, sys, stats, dips)
 !        !***************************************************************************
 !
 !        !***************************************************************************
