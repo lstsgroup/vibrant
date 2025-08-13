@@ -1,5 +1,7 @@
 &global
  spectra IR
+ temperature 300
+ fwhm 5
 &end global
 &system
  filename o-NP.xyz

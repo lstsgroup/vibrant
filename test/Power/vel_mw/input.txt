@@ -1,5 +1,6 @@
 &global
  spectra P
+ temperature 300
 &end global
 &system
  type_traj vel

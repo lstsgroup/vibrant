@@ -1,5 +1,7 @@
 &global
  spectra RR
+ temperature 300
+ fwhm 5
 &end global
 &system
  filename r-met.xyz
@@ -22,6 +24,7 @@
  rtp_time_step 0.00242
  rtp_framecount 10000
  check_pade n
+ damping_constant 0.1
 &end rtp
 &raman
  laser_in 15808.596424
