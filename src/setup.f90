@@ -481,19 +481,19 @@ CONTAINS
 !!*********************************************************************************************
 !!*********************************************************************************************
 
-   SUBROUTINE conversion(dt, dom, dt_rtp, dom_rtp, freq_range, sinc_const)
+   SUBROUTINE conversion(dt, freq_range, dt_rtp, freq_range_rtp, freq_res, sinc_const)
 
-      REAL(kind=dp), INTENT(OUT)              :: dom, dom_rtp, freq_range, sinc_const
+      REAL(kind=dp), INTENT(OUT)              :: freq_range, freq_range_rtp, freq_res, sinc_const
       REAL(kind=dp), INTENT(IN)               ::  dt, dt_rtp
 
       INTEGER                               :: stat   ! error status of OPEN statements
       INTEGER                               :: i, j, k
 
-      dom = REAL((1.0_dp/(dt*1e-15))/speed_light, kind=dp)
-      dom_rtp = REAL((1.0_dp/(dt_rtp*1e-15))/speed_light, kind=dp)
+      freq_range = REAL((1.0_dp/(dt*1e-15))/speed_light, kind=dp)
+      freq_range_rtp = REAL((1.0_dp/(dt_rtp*1e-15))/speed_light, kind=dp)
 
-      ! freq_range = REAL(dom/(2.0_dp*md%t_cor), kind=dp)
-      !sinc_const = freq_range*dt*1.883652d-4 !!for sinc function
+      ! freq_res = REAL(freq_range/(2.0_dp*md%t_cor), kind=dp)
+      !sinc_const = freq_res*dt*1.883652d-4 !!for sinc function
 
    END SUBROUTINE conversion
 

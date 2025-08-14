@@ -4,7 +4,7 @@ PROGRAM vib2d
    USE kinds, ONLY: dp, str_len
    USE constants, ONLY: speed_light, const_planck, const_permit, pi, const_charge, const_boltz, joule_unit, &
                         debye, ev_unit, action_unit, bohr2ang, hartreebohr2evang, am_u, at_u, ang, fs2s, reccm2ev, &
-                        hessian_factor
+                        hessian_factor, au2vm
    USE read_input, ONLY: parse_command_line, parse_input, check_input
    USE vib_types, ONLY: global_settings, systems, molecular_dynamics, static, dipoles, &
                         raman, init_global_settings, init_systems, init_molecular_dynamics, init_static, deallocate_types
@@ -40,12 +40,12 @@ PROGRAM vib2d
    CHARACTER(LEN=40)                               :: wannier_free, wannier_x, wannier_y, wannier_z, periodic
    CHARACTER(LEN=2), DIMENSION(:), ALLOCATABLE       :: element
    REAL(kind=dp)                                    :: dist, box_all, box_x, box_y, box_z, mass_tot
-   REAL(kind=dp)                                    :: freq_range, dom, ce, co, h_kbT, raman_eq, a, dt_rtp, dom_rtp
-   REAL(kind=dp)                                    ::  laser_in
+   REAL(kind=dp)                                    :: freq_res, freq_range, ce, co, h_kbT, raman_eq, a, dt_rtp, freq_range_rtp
+   REAL(kind=dp)                                    ::  laser_in, debye2cm, avo_num
    REAL(kind=dp)                                    :: f, tmax, fwhm, theta, sinth, costh, sinsq
    REAL(kind=dp)                                    :: cossq, thsq, thcub, alpha, beta, gamma0, dt, multiplier, dx
-   REAL(kind=dp)                                    :: time_init, time_final, elapsed_time
-   REAL(kind=dp)                                    ::  sinc_const, mass_tot_cell, e_field
+   REAL(kind=dp)                                    :: time_init, time_final, elapsed_time, a3_to_debye_per_e
+   REAL(kind=dp)                                    ::  sinc_const, mass_tot_cell, e_field, cm2m
    REAL(kind=dp), DIMENSION(3)                       :: vec, vec_pbc, coord2, coord1
    REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE       :: refpoint, refpoint_free, refpoint_x, refpoint_y, refpoint_z
    REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE       :: alpha_resraman_x, alpha_resraman_y, alpha_resraman_z
@@ -123,7 +123,7 @@ PROGRAM vib2d
 !                    type_dipole, cell_type, rtp_dipole_x, rtp_dipole_y, rtp_dipole_z, framecount_rtp, dt_rtp, &
 !                    frag_type, type_static, force_file, laser_in, check_pade, dx, framecount_rtp_pade)
 
-   CALL conversion(md%dt, md%dom, rams%RR%dt_rtp, rams%RR%dom_rtp, md%freq_range, md%sinc_const)
+   CALL conversion(md%dt, md%freq_range, rams%RR%dt_rtp, rams%RR%freq_range_rtp, md%freq_res, md%sinc_const)
 !
 !    ! TEMP setup
 !    gs%spectral_type%read_function = read_function
@@ -159,15 +159,15 @@ PROGRAM vib2d
 !    rams%direction = direction
 !
 !    rams%RR%dt_rtp = dt_rtp
-!    rams%RR%dom_rtp = dom_rtp
+!    rams%RR%freq_range_rtp = freq_range_rtp
 !    rams%RR%check_pade = check_pade
 !    rams%RR%framecount_rtp_pade = framecount_rtp_pade
 !    rams%RR%framecount_rtp = framecount_rtp
 !
 !
-!    md%freq_range = freq_range
+!    md%freq_res = freq_res
 !    md%dt = dt
-!    md%dom = dom
+!    md%freq_range = freq_range
 !    md%sinc_const = sinc_const
 !
 !!
@@ -276,7 +276,7 @@ PROGRAM vib2d
 !        !framecount = sys%framecount
 !        !mol_num = sys%mol_num
 !        !CALL spec_resraman(natom,framecount,element,rtp_dipole_x,rtp_dipole_y,rtp_dipole_z,type_input,mol_num,system,&
-!        !     read_function,dt,z_iso_resraman,z_aniso_resraman,dom,dom_rtp,laser_in_resraman,y_out)
+!        !     read_function,dt,z_iso_resraman,z_aniso_resraman,freq_range,freq_range_rtp,laser_in_resraman,y_out)
    END IF
 !
    CALL deallocate_types(gs, sys, md, stats, rams, dips)

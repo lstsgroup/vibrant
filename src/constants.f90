@@ -36,7 +36,8 @@ MODULE constants
    PRIVATE
 
    PUBLIC ::   speed_light, const_planck, const_permit, pi, const_charge, const_boltz, joule_unit, debye, &
-             ev_unit, action_unit, bohr2ang, hartreebohr2evang, am_u, at_u, ang, fs2s, reccm2ev, hessian_factor
+             debye2cm, ev_unit, action_unit, bohr2ang, hartreebohr2evang, am_u, at_u, ang, fs2s, reccm2ev, &
+             hessian_factor, avo_num, au2vm, cm2m, a3_to_debye_per_e
 
    ! Constants
 
@@ -57,6 +58,9 @@ MODULE constants
 
    ! Boltzmann constant [m^2*kg*s^-2*K-1] or [J/K]
    REAL(kind=dp), PARAMETER                            :: const_boltz = 1.380649e-23_dp
+   
+   ! Avogadro's number [mol^-1]
+   REAL(kind=dp), PARAMETER                            :: avo_num = 6.02214e+23_dp
 
    ! Conversion factors
 
@@ -68,6 +72,18 @@ MODULE constants
 
    ! [Debye] -> [a.u.]
    REAL(kind=dp), PARAMETER                            :: debye = 0.393456_dp
+   
+   ! [Debye] -> [C*m]
+   REAL(kind=dp), PARAMETER                            :: debye2cm = 3.33564e-30_dp
+   
+   ! [cm] -> [m]
+   REAL(kind=dp), PARAMETER                            :: cm2m = 0.01_dp
+   
+   ! [a.u.] -> [V/m]
+   REAL(kind=dp), PARAMETER                            :: au2vm = 5.14220675112e+11_dp
+   
+   ! [A^3] -> [Debye/E]
+   REAL(kind=dp), PARAMETER                            :: a3_to_debye_per_e = 1.713005_dp
 
    ! [a.u.] -> [eV]
    REAL(kind=dp), PARAMETER                            :: ev_unit = 27.211386_dp

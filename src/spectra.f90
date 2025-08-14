@@ -4,8 +4,8 @@ MODULE calc_spectra
    USE kinds, ONLY: dp
    USE vib_types, ONLY: global_settings, systems, molecular_dynamics, static, dipoles, raman
 
-   USE constants, ONLY: pi, fs2s, debye, speed_light, const_planck, const_boltz, const_permit, &
-                        hartreebohr2evang, hessian_factor, bohr2ang, reccm2ev, am_u
+   USE constants, ONLY: pi, fs2s, debye, speed_light, const_planck, const_boltz, const_permit, cm2m, a3_to_debye_per_e, &
+                        hartreebohr2evang, hessian_factor, bohr2ang, reccm2ev, am_u, debye2cm, avo_num, au2vm
    USE read_traj, ONLY: read_coord_frame
    USE fin_diff, ONLY: central_diff, forward_diff
    USE vel_cor, ONLY: cvv, cvv_iso, cvv_aniso, cvv_only_x, cvv_resraman
@@ -30,9 +30,10 @@ CONTAINS
 
       INTEGER                                                  :: stat, i
       INTEGER(kind=dp)                                          :: plan
-      REAL(kind=dp)                               :: dom, freq_range
+      REAL(kind=dp)                               :: freq_range, freq_res, power_const
+      REAL(kind=dp), DIMENSION(:), ALLOCATABLE      :: power_int, freq
 
-      ALLOCATE (md%zhat(0:md%t_cor*2 - 1))
+      ALLOCATE (md%zhat(0:md%t_cor*2 - 1), power_int(0:md%t_cor*2 - 1), freq(0:md%t_cor*2 - 1))
 
       md%zhat = COMPLEX(0._dp, 0.0_dp)
 
@@ -43,14 +44,14 @@ CONTAINS
 
          CALL cvv(sys%natom, md%v, sys, gs, md)
 
-      ELSEIF (sys%type_traj == 'vel') THEN   !!If it is from velocities, compute autcorrelation directly
+      ELSEIF (sys%type_traj == 'vel') THEN   !!If it is from velocities, compute autocorrelation directly
 
          CALL cvv(sys%natom, md%coord_v, sys, gs, md)
 
       END IF
 
-      dom = REAL((1.0_dp/(md%dt*fs2s))/speed_light, kind=dp)
-      freq_range = REAL(dom/(2.0_dp*md%t_cor), kind=dp)
+      freq_range = REAL((1.0_dp/(md%dt*fs2s))/speed_light, kind=dp)
+      freq_res = REAL(freq_range/(2.0_dp*md%t_cor), kind=dp)
 
       CALL dfftw_plan_dft_r2c_1d(plan, 2*md%t_cor, md%z, md%zhat, FFTW_ESTIMATE) !!!FFT
       CALL dfftw_execute_dft_r2c(plan, md%z, md%zhat)
@@ -58,15 +59,18 @@ CONTAINS
 
       md%zhat = REAL(md%zhat, kind=dp)
       !!Unit conversion to K.cm
-      md%zhat(:) = (md%zhat(:)*md%dt*fs2s*am_u*speed_light/const_boltz)*2.0_dp/(sys%natom*3.0_dp)
+      power_const = (md%dt*fs2s*am_u*speed_light/const_boltz)*2.0_dp/(sys%natom*3.0_dp)
 
       OPEN (UNIT=63, FILE='power_spec.txt', STATUS='unknown', IOSTAT=stat) !!write the output
       DO i = 0, 2*md%t_cor - 1
-         IF ((i*freq_range) .GE. 5000_dp) CYCLE
-         WRITE (63, *) i*freq_range, REAL(md%zhat(i), kind=dp)
+         freq(i) = i*freq_res
+         power_int(i) = md%zhat(i)*power_const
+         IF (freq(i) .GE. 5000_dp) CYCLE
+         WRITE (63, *) freq(i), power_int(i)
       END DO
 
       CLOSE (63)
+      DEALLOCATE (power_int, freq)
 
    END SUBROUTINE spec_power
 !***********************************************************************************************!
@@ -79,7 +83,8 @@ CONTAINS
 
       INTEGER                                                  :: stat, i
       INTEGER(kind=dp)                                          :: plan
-      REAL(kind=dp)                                          :: dom, freq_range, sinc_const
+      REAL(kind=dp)                                          :: freq_range, freq_res, sinc_const, ir_const
+      REAL(kind=dp), DIMENSION(:), ALLOCATABLE               :: ir_int, freq
 
       !  IF (dips%type_dipole=='wannier') THEN !!fragment approach or whole supercell
       !      IF (sys%cell%cell_type=='1' .OR. sys%cell%cell_type=='2') THEN !!KP or SC
@@ -93,7 +98,7 @@ CONTAINS
       !       END IF
 !    END IF
 
-      ALLOCATE (md%zhat(0:2*md%t_cor - 1))
+      ALLOCATE (md%zhat(0:2*md%t_cor - 1), ir_int(0:2*md%t_cor - 1), freq(0:2*md%t_cor - 1))
 
       md%zhat = COMPLEX(0._dp, 0.0_dp)
 
@@ -113,20 +118,28 @@ CONTAINS
       CALL dfftw_execute_dft_r2c(plan, md%z, md%zhat)
       CALL dfftw_destroy_plan(plan)
 
-      dom = REAL((1.0_dp/(md%dt*fs2s))/speed_light, kind=dp)
-      freq_range = REAL(dom/(2.0_dp*md%t_cor), kind=dp)
-      sinc_const = freq_range*md%dt*1.883652d-4 !!for sinc function
+      freq_range = REAL((1.0_dp/(md%dt*fs2s))/speed_light, kind=dp)
+      freq_res = REAL(freq_range/(2.0_dp*md%t_cor), kind=dp)
+      !!sinc function
+      sinc_const = freq_res*md%dt*fs2s*2.0_dp*pi*speed_light
 
       md%zhat = REAL(md%zhat, kind=dp)
+      !!conversion of debye^2 to (C*m)^2
+      md%zhat(:) = md%zhat(:)*debye2cm*debye2cm !!conversion of debye^2 to (C*m)^2
+      !!conversion of IR units to K*cm*km*mol^-1
+      ir_const = avo_num*md%dt*fs2s*2.0_dp*10.0d0/(12.0_dp*const_permit*speed_light*const_boltz)
 
       OPEN (UNIT=61, FILE='IR_spectrum.txt', STATUS='unknown', IOSTAT=stat) !!write output
       DO i = 0, 2*md%t_cor - 1
-         md%zhat(i) = md%zhat(i)*3047.2310_dp*md%dt*(sinc_const*(i)/SIN(sinc_const*(i)))**2._dp !!unit conv. & sinc func.
-         IF ((i*freq_range) .GE. 5000_dp) CYCLE
-         md%zhat(0) = 0.00_dp
-         WRITE (61, *) i*freq_range, -1.0_dp*REAL(md%zhat(i), kind=dp)
+         freq(i) = i*freq_res
+         ir_int(i) = md%zhat(i)*ir_const*(sinc_const*(i)/SIN(sinc_const*(i)))**2._dp
+         IF (freq(i) .GE. 5000_dp) CYCLE
+         ir_int(0) = 0.00_dp
+         WRITE (61, *) freq(i), -1.0_dp*REAL(ir_int(i), kind=dp)
       END DO
       CLOSE (61)
+
+      DEALLOCATE (ir_int, freq)
 
    END SUBROUTINE spec_ir
 
@@ -149,7 +162,7 @@ CONTAINS
       REAL(kind=dp), DIMENSION(:), ALLOCATABLE                    :: zhat_unpol_x, zhat_depol_x, zhat_para_all, zhat_depol
       REAL(kind=dp), DIMENSION(:), ALLOCATABLE                    :: raman_ortho, raman_para, raman_depol, raman_unpol
       REAL(kind=dp), DIMENSION(:), ALLOCATABLE                    :: raman_const, sinc_func, freq
-      REAL(kind=dp)                                             :: f, freq_range
+      REAL(kind=dp)                                             :: f, freq_res
       REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                :: dip_free, dip_x, dip_y, dip_z
       REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                :: alpha_x, alpha_y, alpha_z
       REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                :: alpha_diff_x, alpha_diff_y, alpha_diff_z
@@ -203,8 +216,8 @@ CONTAINS
          CALL forward_diff(sys%mol_num, alpha_x, dip_free, md%coord_v, gs, sys, dips)
 
       ELSEIF (dips%type_dipole == 'dfpt') THEN
-         alpha_x = md%coord_v
-         alpha_x = REAL(alpha_x*((8.988d+15)/(5.142d+11*3.33564d-30)), kind=dp) !conversion to debye/E
+         !alpha_x = REAL(md%coord_v*((8.988d+15)/(5.142d+11*3.33564d-30)), kind=dp) !conversion to debye/E
+         alpha_x = REAL(md%coord_v*a3_to_debye_per_e, kind=dp) !conversion of A^3 to debye/E
       END IF
       ! END IF
 
@@ -237,8 +250,8 @@ CONTAINS
          CALL forward_diff(sys%mol_num, alpha_y, dip_free, md%coord_v, gs, sys, dips)
 
       ELSEIF (dips%type_dipole == 'dfpt') THEN
-         alpha_y = md%coord_v
-         alpha_y = REAL(alpha_y*((8.988d+15)/(5.142d+11*3.33564d-30)), kind=dp) !conversion to debye/E
+         alpha_y = REAL(md%coord_v*a3_to_debye_per_e, kind=dp) !conversion of A^3 to debye/E
+         !alpha_y = REAL(md%coord_v*((8.988d+15)/(5.142d+11*3.33564d-30)), kind=dp) !conversion to debye/E
       END IF
       ! END IF
 
@@ -273,8 +286,7 @@ CONTAINS
          CALL forward_diff(sys%mol_num, alpha_z, dip_free, md%coord_v, gs, sys, dips)
 
       ELSEIF (dips%type_dipole == 'dfpt') THEN
-         alpha_z = md%coord_v
-         alpha_z = REAL(alpha_z*((8.988d+15)/(5.142d+11*3.33564d-30)), kind=dp) !conversion to debye/E
+         alpha_z = REAL(md%coord_v*a3_to_debye_per_e, kind=dp) !conversion of A^3 to debye/E
       END IF
       ! END IF
 
@@ -315,8 +327,8 @@ CONTAINS
       CALL dfftw_execute_dft_r2c(plan, rams%z_aniso, zhat_aniso)
       CALL dfftw_destroy_plan(plan)
 
-      freq_range = REAL(md%dom/(2.0_dp*md%t_cor), kind=dp)
-      f = freq_range*md%dt*1.883652d-4
+      freq_res = REAL(md%freq_range/(2.0_dp*md%t_cor), kind=dp)
+      f = freq_res*md%dt*1.883652d-4
 
       zhat_iso = REAL(zhat_iso, kind=dp)
       zhat_aniso = REAL(zhat_aniso, kind=dp)
@@ -325,11 +337,17 @@ CONTAINS
       raman_unpol = 0.0d0
       raman_depol = 0.0d0
 
+      !!Unit conversion of Debye^2/(E^2*s^2) into C^4*s^2/kg^2
+      zhat_iso(:) = zhat_iso(:)*debye2cm*debye2cm/(au2vm*au2vm)
+      zhat_aniso(:) = zhat_aniso(:)*debye2cm*debye2cm/(au2vm*au2vm)
+
       DO i = 0, 2*md%t_cor - 2
-         freq(i) = i*freq_range
-         raman_const(i) = (const_planck)/(8.0_dp*const_boltz*const_permit*const_permit)*1d-29*0.421_dp*md%dt &
-                          *(((rams%laser_in - freq(i))**4)/freq(i) &
-                            *(1.0_dp/(1.0_dp - EXP((-1.438777_dp*(freq(i))/gs%temp))))*2.0_dp*2.0_dp*pi)
+         freq(i) = i*freq_res
+         !!conversion of the Raman intensities into m^2*K*cm*10^-30!!
+         raman_const(i) = const_planck/(8.0_dp*const_boltz*const_permit*const_permit) &
+                          *1.e+30*md%dt*fs2s*((((rams%laser_in - freq(i))/cm2m)**4)/freq(i))* &
+                          (1.0_dp/(1.0_dp - EXP(-1._dp*const_planck*speed_light*cm2m*freq(i)/ &
+                                                (const_boltz*gs%temp))))*2.0_dp
       END DO
 
 !!!ORTHOGONAL!!!
@@ -450,52 +468,52 @@ CONTAINS
 !!ORTHOGONAL!!
       ! OPEN (UNIT=68, FILE='result_fft_water_lib_ortho_iso.txt', STATUS='unknown', IOSTAT=stat)
       ! zhat_ortho = REAL(zhat_ortho, kind=dp)
-      ! freq_range = REAL(md%dom/md%t_cor, kind=dp)
-      ! f = freq_range*md%dt*1.883652d-4
+      ! freq_res = REAL(md%freq_range/md%t_cor, kind=dp)
+      ! f = freq_res*md%dt*1.883652d-4
 
       !DO i = 0, 2*md%t_cor - 2
       !  zhat_ortho(i + 1) = REAL(zhat_ortho(i + 1), kind=dp)*(f*(i + 1)/SIN(f*(i + 1)))**2._dp
 
       !   zhat_ortho(i) = REAL(zhat_ortho(i), kind=dp)*((const_planck)/(8.0_dp*const_boltz*const_permit*const_permit) &
       !                                                 *1d-29*0.421_dp*md%dt &
-      !                                                 *(((rams%laser_in - ((i)*freq_range))**4)/((i)*freq_range)) &
-      !                                                 *(1.0_dp/(1.0_dp - EXP((-1.438777_dp*((i)*freq_range)) &
+      !                                                 *(((rams%laser_in - ((i)*freq_res))**4)/((i)*freq_res)) &
+      !                                                 *(1.0_dp/(1.0_dp - EXP((-1.438777_dp*((i)*freq_res)) &
       !                                                                         /gs%temp))))*2.0_dp*pi*2.0_dp
 
       !     zhat_ortho(0) = 0.0_dp
-      !     IF ((i*freq_range).GE.5000_dp) CYCLE
-      !     WRITE (68, *) i*freq_range, (REAL(zhat_ortho(i), kind=dp))
+      !     IF ((i*freq_res).GE.5000_dp) CYCLE
+      !     WRITE (68, *) i*freq_res, (REAL(zhat_ortho(i), kind=dp))
       ! END DO
       ! CLOSE (68)
 
 !!PARALLEL!!
       !OPEN (UNIT=67, FILE='result_fft_water_lib_para_iso.txt', STATUS='unknown', IOSTAT=stat)
       !zhat_para = REAL(zhat_para, kind=dp)
-      !freq_range = REAL(md%dom/md%t_cor, kind=dp)
-      !f = freq_range*md%dt*1.883652d-4
+      !freq_res = REAL(md%freq_range/md%t_cor, kind=dp)
+      !f = freq_res*md%dt*1.883652d-4
 
       !DO i = 0, 2*md%t_cor - 2
       !zhat_para(i + 1) = REAL(zhat_para(i + 1), kind=dp)*(f*(i + 1)/SIN(f*(i + 1)))**2._dp
 
       ! zhat_para(i) = REAL(zhat_para(i), kind=dp)*((const_planck)/(8.0_dp*const_boltz*const_permit*const_permit) &
       !                                            *1d-29*0.421_dp*md%dt &
-      !                                            *(((rams%laser_in - ((i)*freq_range))**4)/((i)*freq_range)) &
-      !                                            *(1.0_dp/(1.0_dp - EXP((-1.438777_dp*((i)*freq_range)) &
+      !                                            *(((rams%laser_in - ((i)*freq_res))**4)/((i)*freq_res)) &
+      !                                            *(1.0_dp/(1.0_dp - EXP((-1.438777_dp*((i)*freq_res)) &
       !                                                                    /gs%temp))))*2.0_dp*pi*2.0_dp
       !  zhat_para(0) = 0.0_dp
-      !   IF ((i*freq_range).GE.5000_dp) CYCLE
-      !    WRITE (67, *) (i)*freq_range, (REAL(zhat_para(i), kind=dp))!,REAL(integral(i),kind=dp)
+      !   IF ((i*freq_res).GE.5000_dp) CYCLE
+      !    WRITE (67, *) (i)*freq_res, (REAL(zhat_para(i), kind=dp))!,REAL(integral(i),kind=dp)
       ! END DO
       ! CLOSE (67)
 
 !!UNPOL!!
       ! OPEN (UNIT=69, FILE='result_fft_water_lib_unpol_iso.txt', STATUS='unknown', IOSTAT=stat)
-      ! freq_range = REAL(md%dom/md%t_cor, kind=dp)
+      ! freq_res = REAL(md%freq_range/md%t_cor, kind=dp)
 
       !  DO i = 0, 2*md%t_cor - 2
       !    zhat_unpol_x(i) = zhat_para(i) + zhat_ortho(i)
-      !     IF ((i*freq_range).GE.5000_dp) CYCLE
-      !      WRITE (69, *) i*freq_range, REAL(zhat_unpol_x(i), kind=dp)
+      !     IF ((i*freq_res).GE.5000_dp) CYCLE
+      !      WRITE (69, *) i*freq_res, REAL(zhat_unpol_x(i), kind=dp)
       !   END DO
       !   CLOSE (69)
 
@@ -504,8 +522,8 @@ CONTAINS
 
       ! DO i = 0, 2*md%t_cor - 2
       !    zhat_depol_x(i) = REAL(zhat_ortho(i), kind=dp)/REAL(zhat_para(i), kind=dp)
-      !    IF ((i*freq_range).GE.5000_dp) CYCLE
-      !     WRITE (70, *) i*freq_range, REAL(zhat_depol_x(i), kind=dp)!REAL(zhat_ortho(i),kind=dp)/REAL(zhat_para(i),kind=dp)
+      !    IF ((i*freq_res).GE.5000_dp) CYCLE
+      !     WRITE (70, *) i*freq_res, REAL(zhat_depol_x(i), kind=dp)!REAL(zhat_ortho(i),kind=dp)/REAL(zhat_para(i),kind=dp)
       !  END DO
       !   CLOSE (70)
 
@@ -627,7 +645,7 @@ CONTAINS
       TYPE(dipoles), INTENT(INOUT)        :: dips
 
       REAL(kind=dp), DIMENSION(:), ALLOCATABLE        :: ir_int
-      INTEGER                                                  :: stat, i, k, x, freq_range
+      INTEGER                                                  :: stat, i, k, x, freq_res
       INTEGER                                                  :: start_freq, end_freq
       REAL(kind=dp), DIMENSION(:), ALLOCATABLE                    :: gamma_sq, data2!,broad
       REAL(kind=dp)                                             :: broad, ir_factor
@@ -636,13 +654,13 @@ CONTAINS
 
       start_freq = 1
       end_freq = INT(MAXVAL(stats%freq) + 1000.0_dp)
-      freq_range = INT(end_freq - start_freq)
+      freq_res = INT(end_freq - start_freq)
 
       PRINT *, "Max freq: ", MAXVAL(stats%freq)
       PRINT *, "end_freq: ", end_freq
-      PRINT *, "freq_range: ", freq_range
+      PRINT *, "freq_res: ", freq_res
 
-      ALLOCATE (data2(freq_range + 1))
+      ALLOCATE (data2(freq_res + 1))
       data2 = 0.0_dp
 
       DO k = 1, stats%nmodes
@@ -682,7 +700,7 @@ CONTAINS
       TYPE(dipoles), INTENT(INOUT)        :: dips
       TYPE(raman), INTENT(INOUT)        :: rams
 
-      INTEGER                                                  :: stat, i, j, x, freq_range
+      INTEGER                                                  :: stat, i, j, x, freq_res
       INTEGER                                                  :: start_freq, end_freq
       REAL(kind=dp), DIMENSION(:), ALLOCATABLE                    :: iso_sq, aniso_sq, data2!,broad
       REAL(kind=dp)                                             :: broad
@@ -692,8 +710,8 @@ CONTAINS
 
       start_freq = 1
       end_freq = INT(MAXVAL(stats%freq) + 1000.0_dp)
-      freq_range = INT(end_freq - start_freq)
-      ALLOCATE (data2(freq_range + 1))
+      freq_res = INT(end_freq - start_freq)
+      ALLOCATE (data2(freq_res + 1))
       data2 = 0.0_dp
 
     !!!Isotropic and anisotropic contributions!!
@@ -773,7 +791,7 @@ CONTAINS
       CHARACTER(len=256) :: filename
       INTEGER                                                       :: stat, i, j, k, m, x, o, dims, dir
       INTEGER(kind=dp)                                               :: plan
-      REAL(kind=dp)                                                  :: rtp_freq_range
+      REAL(kind=dp)                                                  :: rtp_freq_res
       REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE                   :: trace, abs_intens
       COMPLEX(kind=dp), DIMENSION(:, :, :, :, :, :), ALLOCATABLE            :: y_out
 
@@ -835,7 +853,7 @@ CONTAINS
       rams%RR%zhat_pol_rtp = rams%RR%zhat_pol_rtp/dips%e_field !!later make this an input variable
 
 !!!Finding frequency range
-      rtp_freq_range = REAL(rams%RR%dom_rtp/rams%RR%framecount_rtp, kind=dp)
+      rtp_freq_res = REAL(rams%RR%freq_range_rtp/rams%RR%framecount_rtp, kind=dp)
 
 !!!Calculate absorption spectra
       ALLOCATE (trace(sys%natom, dims, dir, rams%RR%framecount_rtp))
@@ -859,8 +877,8 @@ CONTAINS
 
       ! Loop over time steps to write the full spectrum
       !     DO o = 1, rams%RR%framecount_rtp
-      !          WRITE (13, *) o * rtp_freq_range * reccm2ev, &
-      !                        abs_intens(j, i, k, o) * o * rtp_freq_range * (-1.0_dp)
+      !          WRITE (13, *) o * rtp_freq_res * reccm2ev, &
+      !                        abs_intens(j, i, k, o) * o * rtp_freq_res * (-1.0_dp)
       !        END DO
 
       !         CLOSE (13)  ! close after finishing one structure
@@ -873,7 +891,7 @@ CONTAINS
             DO k = 1, 1 !! + direction
                OPEN (UNIT=13, FILE='absorption_spectrum.txt', STATUS='unknown', IOSTAT=stat)
                DO o = 1, rams%RR%framecount_rtp
-                  WRITE (13, *) o*rtp_freq_range*reccm2ev, abs_intens(j, i, k, o)*o*rtp_freq_range*(-1.0_dp)
+                  WRITE (13, *) o*rtp_freq_res*reccm2ev, abs_intens(j, i, k, o)*o*rtp_freq_res*(-1.0_dp)
                END DO
             END DO
          END DO
@@ -891,11 +909,11 @@ CONTAINS
       TYPE(static), INTENT(INOUT)        :: stats
       TYPE(raman), INTENT(INOUT)        :: rams
 
-      INTEGER                                                       :: stat, i, j, k, m, x, freq_range, l, o, n, r
+      INTEGER                                                       :: stat, i, j, k, m, x, freq_res, l, o, n, r
       INTEGER                                                       :: start_freq, end_freq, rtp_point
       INTEGER(kind=dp)                                               :: plan
       REAL(kind=dp)                                                  :: broad, factor
-      REAL(kind=dp)                                                  :: rtp_freq_range, pade_freq_range
+      REAL(kind=dp)                                                  :: rtp_freq_res, pade_freq_res
       REAL(kind=dp), DIMENSION(:), ALLOCATABLE                         :: data2
       REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE                       :: iso_sq, aniso_sq, raman_int
       REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE                   :: zhat_pol_dq_rtp
@@ -905,9 +923,9 @@ CONTAINS
       factor = 1._dp/(2.0_dp*stats%dx)
       start_freq = 1.0_dp
       end_freq = INT(MAXVAL(stats%freq) + 1000.0_dp)
-      freq_range = INT(end_freq - start_freq)
+      freq_res = INT(end_freq - start_freq)
 
-      ALLOCATE (data2(freq_range*stats%nmodes))
+      ALLOCATE (data2(freq_res*stats%nmodes))
       ALLOCATE (zhat_pol_dxyz_rtp(sys%natom, 3, 3, 3, rams%RR%framecount_rtp))
       ALLOCATE (zhat_pol_dq_rtp(stats%nmodes, 3, 3, rams%RR%framecount_rtp))
       ALLOCATE (iso_sq(stats%nmodes, rams%RR%framecount_rtp), aniso_sq(stats%nmodes, rams%RR%framecount_rtp))
@@ -917,11 +935,11 @@ CONTAINS
       data2 = 0.0_dp
 
 !!!Finding laser frequency
-      rtp_freq_range = REAL(rams%RR%dom_rtp/rams%RR%framecount_rtp, kind=dp)
-      rtp_point = ANINT(rams%laser_in/rtp_freq_range, kind=dp)
+      rtp_freq_res = REAL(rams%RR%freq_range_rtp/rams%RR%framecount_rtp, kind=dp)
+      rtp_point = ANINT(rams%laser_in/rtp_freq_res, kind=dp)
 
-      PRINT *, rams%laser_in, "rams%laser_in", rtp_freq_range, "rtp_freq_range", &
-         rams%RR%dom_rtp, "rams%RR%dom_rtp", rtp_point, 'rtp_point', rams%RR%framecount_rtp
+      PRINT *, rams%laser_in, "rams%laser_in", rtp_freq_res, "rtp_freq_res", &
+         rams%RR%freq_range_rtp, "rams%RR%freq_range_rtp", rtp_point, 'rtp_point', rams%RR%framecount_rtp
 
 !!!Finite differences
       zhat_pol_dxyz_rtp(:, :, :, :, :) = REAL((REAL(rams%RR%zhat_pol_rtp(:, :, 2, :, :, :), kind=dp) &
@@ -979,15 +997,16 @@ CONTAINS
 !!....................................................................................................................!
 !!....................................................................................................................!
 !
-   SUBROUTINE spec_resraman(natom, framecount, element, rtp_dipole_x, rtp_dipole_y, rtp_dipole_z, type_input, mol_num, system, &
-                            read_function, dt, z_iso_resraman, z_aniso_resraman, dom, dom_rtp, laser_in_resraman, y_out)
+   SUBROUTINE spec_resraman(natom, framecount, element, rtp_dipole_x, rtp_dipole_y, rtp_dipole_z, type_input, &
+                            mol_num, system, read_function, dt, z_iso_resraman, z_aniso_resraman, freq_range, &
+                            freq_range_rtp, laser_in_resraman, y_out)
 
       CHARACTER(LEN=40), INTENT(INOUT)                          :: read_function, system
       CHARACTER(LEN=40), INTENT(INOUT)                          :: type_input
       CHARACTER(LEN=40), INTENT(INOUT)                          :: rtp_dipole_x, rtp_dipole_y, rtp_dipole_z
       CHARACTER(LEN=2), DIMENSION(:), ALLOCATABLE, INTENT(INOUT)  :: element
       INTEGER, INTENT(INOUT)                                    :: natom, framecount, mol_num
-      REAL(kind=dp), INTENT(INOUT)                               :: dt, dom, dom_rtp
+      REAL(kind=dp), INTENT(INOUT)                               :: dt, freq_range, freq_range_rtp
       REAL(kind=dp), INTENT(INOUT)                               :: laser_in_resraman
       COMPLEX(kind=dp), DIMENSION(:, :), ALLOCATABLE, INTENT(INOUT) :: z_iso_resraman, z_aniso_resraman
       COMPLEX(kind=dp), DIMENSION(:), ALLOCATABLE, INTENT(INOUT)   :: y_out
@@ -1002,7 +1021,7 @@ CONTAINS
       COMPLEX(kind=dp), DIMENSION(:, :, :), ALLOCATABLE             :: yx_out, yy_out, yz_out
       COMPLEX(kind=dp), DIMENSION(:, :), ALLOCATABLE               :: zhat_iso_resraman, zhat_aniso_resraman
       COMPLEX(kind=dp), DIMENSION(:, :, :), ALLOCATABLE             :: zhat_resraman_x, zhat_resraman_y, zhat_resraman_z
-      REAL(kind=dp)                                             :: f, freq_range, rtp_freq_range, pade_freq_range, laser_in
+      REAL(kind=dp)                                             :: f, freq_res, rtp_freq_res, pade_freq_res, laser_in
       REAL(kind=dp), DIMENSION(:), ALLOCATABLE                    :: trace, abs_intens, trace_pade, abs_intens_pade
       REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE                  :: zhat_unpol_resraman
       REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                :: alpha_resraman_x, alpha_resraman_y, alpha_resraman_z
@@ -1147,8 +1166,8 @@ CONTAINS
 
 !!!Calculate absorption spectra
 
-      rtp_freq_range = REAL(dom_rtp/(natom), kind=dp)
-      pade_freq_range = REAL(dom_rtp/(10000), kind=dp)
+      rtp_freq_res = REAL(freq_range_rtp/(natom), kind=dp)
+      pade_freq_res = REAL(freq_range_rtp/(10000), kind=dp)
 
       ALLOCATE (abs_intens(natom), trace(natom))
       ALLOCATE (abs_intens_pade(10000), trace_pade(10000))
@@ -1162,7 +1181,7 @@ CONTAINS
 
       OPEN (UNIT=41, FILE='absorption_spectra.txt', STATUS='unknown', IOSTAT=stat)
       DO i = 1, natom
-         WRITE (41, *) i*rtp_freq_range*1.23984198e-4, abs_intens(i)*i*rtp_freq_range
+         WRITE (41, *) i*rtp_freq_res*1.23984198e-4, abs_intens(i)*i*rtp_freq_res
       END DO
       CLOSE (41)
 
@@ -1175,7 +1194,7 @@ CONTAINS
 
       OPEN (UNIT=42, FILE='absorption_spectra_pade.txt', STATUS='unknown', IOSTAT=stat)
       DO i = 1, 10000
-         WRITE (42, *) i*pade_freq_range*1.23984198e-4, abs_intens_pade(i)*i*pade_freq_range
+         WRITE (42, *) i*pade_freq_res*1.23984198e-4, abs_intens_pade(i)*i*pade_freq_res
       END DO
       CLOSE (42)
 
@@ -1203,8 +1222,8 @@ CONTAINS
          CALL dfftw_destroy_plan(plan)
       END DO
 
-      freq_range = REAL(dom/(2*md%t_cor), kind=dp)
-      j = ANINT(laser_in_resraman/rtp_freq_range, kind=dp)
+      freq_res = REAL(freq_range/(2*md%t_cor), kind=dp)
+      j = ANINT(laser_in_resraman/rtp_freq_res, kind=dp)
 
 !!!!UNPOLARIZED!!!!
 
@@ -1217,7 +1236,7 @@ CONTAINS
 !ENDDO
 !CLOSE(30)
 
-      f = freq_range*dt*1.883652d-4
+      f = freq_res*dt*1.883652d-4
       OPEN (UNIT=73, FILE='o-NP_resraman.txt', STATUS='unknown', IOSTAT=stat)
       DO i = 0, 2*md%t_cor - 2
          ! j=22
@@ -1227,12 +1246,12 @@ CONTAINS
 
          zhat_unpol_resraman(i, j) = (zhat_iso_resraman(i, j)) + (zhat_aniso_resraman(i, j)*7.0_dp/45.0_dp)* &
                                      ((const_planck)/(8.0_dp*const_boltz*const_permit*const_permit) &
-                                      *1d-29*0.421_dp*dt*((((laser_in*j) - ((i)*freq_range))**4)/((i)*freq_range)) &
-                                      *(1.0_dp/(1.0_dp - EXP((-1.438777_dp*((i)*freq_range))/gs%temp))))*2.0_dp*2.0_dp*pi
+                                      *1d-29*0.421_dp*dt*((((laser_in*j) - ((i)*freq_res))**4)/((i)*freq_res)) &
+                                      *(1.0_dp/(1.0_dp - EXP((-1.438777_dp*((i)*freq_res))/gs%temp))))*2.0_dp*2.0_dp*pi
          zhat_unpol_resraman(0, j) = 0.0_dp
-         IF ((i*freq_range) .GE. 5000.0_dp) CYCLE
-         !WRITE(73,*) i*freq_range,REAL(zhat_unpol_resraman(i,j),kind=dp),j
-         WRITE (73, *) i*freq_range, zhat_unpol_resraman(i, j), j
+         IF ((i*freq_res) .GE. 5000.0_dp) CYCLE
+         !WRITE(73,*) i*freq_res,REAL(zhat_unpol_resraman(i,j),kind=dp),j
+         WRITE (73, *) i*freq_res, zhat_unpol_resraman(i, j), j
 ! ENDDO
       END DO
       CLOSE (73)

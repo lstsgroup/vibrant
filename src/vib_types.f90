@@ -36,7 +36,7 @@ MODULE vib_types
       INTEGER                                             :: framecount_rtp
       INTEGER                                             :: framecount_rtp_pade
       REAL(kind=dp)                                       :: dt_rtp
-      REAL(kind=dp)                                       :: dom_rtp
+      REAL(kind=dp)                                       :: freq_range_rtp
       REAL(kind=dp)                                       :: damping_constant
       REAL(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE:: static_dip_rtp
       REAL(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE:: static_dip_x_rtp
@@ -85,8 +85,8 @@ MODULE vib_types
       CHARACTER(LEN=40)                                   :: velocity_file   !maybe not needed should be in system type
       REAL(kind=dp)                                       :: snapshot_time_step ! snapshots_time_step equal to dt ?
       REAL(kind=dp)                                       :: dt   ! not quite sure ?
-      REAL(kind=dp)                                       :: dom ! not quite sure ?
-      REAL(kind=dp)                                       :: freq_range ! not sure if right here ?
+      REAL(kind=dp)                                       :: freq_range ! not quite sure ?
+      REAL(kind=dp)                                       :: freq_res ! not sure if right here ?
       REAL(kind=dp)                                       :: sinc_const !<---- CONSTANT ? Is this needed here?
       REAL(kind=dp), DIMENSION(:), ALLOCATABLE            :: z       ! correlations vector ?
       REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE         :: velos_v ! velocity vector
@@ -175,8 +175,8 @@ CONTAINS
       md%velocity_file = ''
       md%snapshot_time_step = -1.0_dp
       md%dt = -1.0_dp
-      md%dom = -1.0_dp
       md%freq_range = -1.0_dp
+      md%freq_res = -1.0_dp
       md%sinc_const = -1.0_dp
    END SUBROUTINE init_molecular_dynamics
 
@@ -299,8 +299,8 @@ CONTAINS
       !IF (ALLOCATED(md%snapshot_time_step)) DEALLOCATE(md%snapshot_time_step)
       !IF (ALLOCATED(md%correlation_depth)) DEALLOCATE(md%correlation_depth)
       !IF (ALLOCATED(md%dt)) DEALLOCATE(md%dt)
-      !IF (ALLOCATED(md%dom)) DEALLOCATE(md%dom)
       !IF (ALLOCATED(md%freq_range)) DEALLOCATE(md%freq_range)
+      !IF (ALLOCATED(md%freq_res)) DEALLOCATE(md%freq_res)
       !IF (ALLOCATED(md%sinc_const)) DEALLOCATE(md%sinc_const)
       IF (ALLOCATED(md%z)) DEALLOCATE (md%z)
       IF (ALLOCATED(md%velos_v)) DEALLOCATE (md%velos_v)
@@ -365,7 +365,7 @@ CONTAINS
       !IF (ALLOCATED(rams%RR%framecount_rtp)) DEALLOCATE(rams%RR%framecount_rtp)
       !IF (ALLOCATED(rams%RR%framecount_rtp_pade)) DEALLOCATE(rams%RR%framecount_rtp_pade)
       !IF (ALLOCATED(rams%RR%dt_rtp)) DEALLOCATE(rams%RR%dt_rtp)
-      !IF (ALLOCATED(rams%RR%dom_rtp)) DEALLOCATE(rams%RR%dom_rtp)
+      !IF (ALLOCATED(rams%RR%freq_range_rtp)) DEALLOCATE(rams%RR%freq_range_rtp)
       IF (ALLOCATED(rams%RR%static_dip_rtp)) DEALLOCATE (rams%RR%static_dip_rtp)
       IF (ALLOCATED(rams%RR%static_dip_x_rtp)) DEALLOCATE (rams%RR%static_dip_x_rtp)
       IF (ALLOCATED(rams%RR%static_dip_y_rtp)) DEALLOCATE (rams%RR%static_dip_y_rtp)
