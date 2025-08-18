@@ -27,5 +27,5 @@
  damping_constant 0.1
 &end rtp
 &raman
- laser_in 15808.596424
+ laser_in 1.96
 &end raman

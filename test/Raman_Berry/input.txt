@@ -15,5 +15,5 @@
  correlation_depth 1024
 &end md
 &raman
- laser_in 9398.50
+ laser_in 1.165256
 &end raman

@@ -5,7 +5,8 @@ MODULE calc_spectra
    USE vib_types, ONLY: global_settings, systems, molecular_dynamics, static, dipoles, raman
 
    USE constants, ONLY: pi, fs2s, debye, speed_light, const_planck, const_boltz, const_permit, cm2m, a3_to_debye_per_e, &
-                        hartreebohr2evang, hessian_factor, bohr2ang, reccm2ev, am_u, debye2cm, avo_num, au2vm
+                        hartreebohr2evang, hessian_factor, bohr2ang, reccm2ev, am_u, debye2cm, avo_num, au2vm, ang, at_u, &
+                        speed_light_au, debye, reccm2au
    USE read_traj, ONLY: read_coord_frame
    USE fin_diff, ONLY: central_diff, forward_diff
    USE vel_cor, ONLY: cvv, cvv_iso, cvv_aniso, cvv_only_x, cvv_resraman
@@ -327,6 +328,7 @@ CONTAINS
       CALL dfftw_execute_dft_r2c(plan, rams%z_aniso, zhat_aniso)
       CALL dfftw_destroy_plan(plan)
 
+      !!!Find the frequency resolution in cm^-1
       freq_res = REAL(md%freq_range/(2.0_dp*md%t_cor), kind=dp)
       f = freq_res*md%dt*1.883652d-4
 
@@ -345,7 +347,7 @@ CONTAINS
          freq(i) = i*freq_res
          !!conversion of the Raman intensities into m^2*K*cm*10^-30!!
          raman_const(i) = const_planck/(8.0_dp*const_boltz*const_permit*const_permit) &
-                          *1.e+30*md%dt*fs2s*((((rams%laser_in - freq(i))/cm2m)**4)/freq(i))* &
+                          *1.e+30*md%dt*fs2s*((((rams%laser_in/reccm2ev - freq(i))/cm2m)**4)/freq(i))* &
                           (1.0_dp/(1.0_dp - EXP(-1._dp*const_planck*speed_light*cm2m*freq(i)/ &
                                                 (const_boltz*gs%temp))))*2.0_dp
       END DO
@@ -667,9 +669,9 @@ CONTAINS
          gamma_sq(k) = SQRT(DOT_PRODUCT(dips%dip_dq(k, :), dips%dip_dq(k, :)))
       END DO
 
-      ir_factor = 42.256_dp
-
-    !!! To convert debye²angstrom⁻²amu⁻¹ to km/mol (cp2k IR unit)
+      !IR factor used in cp2k which is equal to 42.256
+      !! first convert debye²angstrom⁻²amu⁻¹ to C^2/kg then to km/mol
+      ir_factor = (debye2cm/ang)**2.0_dp*avo_num*1.0e-3_dp/(12.0_dp*const_permit*(speed_light*cm2m)**2.0_dp)/am_u
       ir_int(:) = (gamma_sq(:)**2.0_dp)*ir_factor
 
     !!!Broadening the spectrum!!
@@ -702,11 +704,11 @@ CONTAINS
 
       INTEGER                                                  :: stat, i, j, x, freq_res
       INTEGER                                                  :: start_freq, end_freq
-      REAL(kind=dp), DIMENSION(:), ALLOCATABLE                    :: iso_sq, aniso_sq, data2!,broad
+      REAL(kind=dp), DIMENSION(:), ALLOCATABLE                    :: iso_sq, aniso_sq, ram_const, data2!,broad
       REAL(kind=dp)                                             :: broad
 
       ALLOCATE (iso_sq(stats%nmodes), aniso_sq(stats%nmodes))
-      ALLOCATE (rams%raman_int(stats%nmodes))
+      ALLOCATE (rams%raman_int(stats%nmodes), ram_const(stats%nmodes))
 
       start_freq = 1
       end_freq = INT(MAXVAL(stats%freq) + 1000.0_dp)
@@ -723,10 +725,18 @@ CONTAINS
                     + (3.0_dp*((rams%pol_dq(:, 1, 2)**2.0_dp) + (rams%pol_dq(:, 2, 3)**2.0_dp) &
                                + (rams%pol_dq(:, 3, 1)**2.0_dp)))
 
-    !!!Calculation of the intensities!!
-      rams%raman_int(:) = REAL(((7.0_dp*aniso_sq(:)) + (45.0_dp*iso_sq(:)))/45.0_dp, kind=dp) &
-                          *REAL(((rams%laser_in - stats%freq(:))**4.0_dp)/stats%freq(:), kind=dp) &
-                          *REAL(1.0_dp/(1.0_dp - EXP(-1.438777_dp*stats%freq(:)/gs%temp)), kind=dp)
+    !!!Conversion from angstrom^4 amu⁻¹ to m^4 kg -1
+      iso_sq = iso_sq*(ang**4._dp)/am_u
+      aniso_sq = aniso_sq*(ang**4._dp)/am_u
+
+    !!! Conversion of static Raman units into 10^{-30}*cm^2/sr
+      ram_const(:) = (const_planck/(8.0_dp*speed_light*cm2m*const_permit*const_permit)*1.e+30* &
+                      REAL(((rams%laser_in/reccm2ev - stats%freq(:))**4.0_dp)/(stats%freq(:)*cm2m**3.0_dp), kind=dp)* &
+                      (1.0_dp/(1.0_dp - EXP(-1._dp*const_planck*speed_light*cm2m*stats%freq(:)/ &
+                                            (const_boltz*gs%temp)))))/(cm2m**2._dp)
+
+    !!!Calculation of the unpolarized Raman intensities!!
+      rams%raman_int(:) = REAL(((7.0_dp*aniso_sq(:)) + (45.0_dp*iso_sq(:)))/45.0_dp, kind=dp)*ram_const(:)
 
     !!!Broadening the spectrum!!
       DO i = start_freq, end_freq
@@ -777,7 +787,7 @@ CONTAINS
       END DO
       CLOSE (15)
 
-      DEALLOCATE (iso_sq, aniso_sq, data2, rams%raman_int)
+      DEALLOCATE (iso_sq, aniso_sq, data2, ram_const)
 
    END SUBROUTINE spec_static_raman
 !....................................................................................................................!
@@ -791,7 +801,7 @@ CONTAINS
       CHARACTER(len=256) :: filename
       INTEGER                                                       :: stat, i, j, k, m, x, o, dims, dir
       INTEGER(kind=dp)                                               :: plan
-      REAL(kind=dp)                                                  :: rtp_freq_res
+      REAL(kind=dp)                                                  :: rtp_freq_res, freq_au
       REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE                   :: trace, abs_intens
       COMPLEX(kind=dp), DIMENSION(:, :, :, :, :, :), ALLOCATABLE            :: y_out
 
@@ -849,8 +859,9 @@ CONTAINS
          DEALLOCATE (y_out)
       END IF
 
-!!!Dividing by electric field
-      rams%RR%zhat_pol_rtp = rams%RR%zhat_pol_rtp/dips%e_field !!later make this an input variable
+!!!Dividing by electric field and multiplying by rams%RR%dt_rtp which is coming from FFT
+      !rams%RR%zhat_pol_rtp = rams%RR%zhat_pol_rtp/dips%e_field 
+      rams%RR%zhat_pol_rtp = rams%RR%zhat_pol_rtp*(rams%RR%dt_rtp*fs2s)/dips%e_field 
 
 !!!Finding frequency range
       rtp_freq_res = REAL(rams%RR%freq_range_rtp/rams%RR%framecount_rtp, kind=dp)
@@ -862,40 +873,45 @@ CONTAINS
       trace = 0.0_dp
       trace(:, :, :, :) = DIMAG(rams%RR%zhat_pol_rtp(:, :, :, 1, 1, :)) + DIMAG(rams%RR%zhat_pol_rtp(:, :, :, 2, 2, :)) &
                           + DIMAG(rams%RR%zhat_pol_rtp(:, :, :, 3, 3, :))
-      abs_intens(:, :, :, :) = (4.0_dp*pi*trace(:, :, :, :))/(3.0_dp*speed_light)
 
-!DO j = 1, sys%natom      !! shifted atom index
-      !DO i = 1, dims          !! displacement direction
-      !DO k = 1, dir      !! + / - shift
-      ! Create a unique file name for this shifted structure
-      !  WRITE(filename, '("absorption_spectrum_",I0,"_",I0,"_",I0,".txt")') j, i, k
-      !  OPEN (UNIT=13, FILE=filename, STATUS='unknown', IOSTAT=stat)
-      !  IF (stat /= 0) THEN
-      !      PRINT *, "Error opening file: ", TRIM(filename)
-      !       STOP
-      !    END IF
+      !!Conversion of absorption spectrum units into a.u.
+      abs_intens(:, :, :, :) = (4.0_dp*pi*debye*trace(:, :, :, :))/(3.0_dp*speed_light_au*at_u)
 
-      ! Loop over time steps to write the full spectrum
-      !     DO o = 1, rams%RR%framecount_rtp
-      !          WRITE (13, *) o * rtp_freq_res * reccm2ev, &
-      !                        abs_intens(j, i, k, o) * o * rtp_freq_res * (-1.0_dp)
-      !        END DO
+     ! DO j = 1, sys%natom      !! shifted atom index
+        ! DO i = 1, dims          !! displacement direction
+        ! DO k = 1, dir      !! + / - shift
+            !    Create a unique file name for this shifted structure
+          !  WRITE (filename, '("absorption_spectrum_",I0,"_",I0,"_",I0,".txt")') j, i, k
+          !  OPEN (UNIT=13, FILE=filename, STATUS='unknown', IOSTAT=stat)
+          !  IF (stat /= 0) THEN
+          !     PRINT *, "Error opening file: ", TRIM(filename)
+         !      STOP
+        !    END IF
 
-      !         CLOSE (13)  ! close after finishing one structure
-      !      END DO
-      !   END DO
-!END DO
+            !   Loop over time steps to write the full spectrum
+       !     DO o = 1, rams%RR%framecount_rtp
+      !         WRITE (13, *) o*rtp_freq_res*reccm2ev, &
+     !             abs_intens(j, i, k, o)*o*rtp_freq_res*(-1.0_dp)
+    !        END DO
 
-      DO j = 1, 1 !!atom_num: 1st atom
-         DO i = 1, 1 !!dims: x dimension
-            DO k = 1, 1 !! + direction
-               OPEN (UNIT=13, FILE='absorption_spectrum.txt', STATUS='unknown', IOSTAT=stat)
+   !         CLOSE (13)  ! close after finishing one structure
+  !       END DO
+ !        END DO
+!      END DO
+
+      !! Conversion from cm-1 to a.u. 
+      freq_au = rtp_freq_res*(-1.0_dp)*reccm2au
+
+       DO j = 1, 1 !!atom_num: 1st atom
+        DO i = 1, 1 !!dims: x dimension
+          DO k = 1, 1 !! + direction
+              OPEN (UNIT=13, FILE='absorption_spectrum.txt', STATUS='unknown', IOSTAT=stat)
                DO o = 1, rams%RR%framecount_rtp
-                  WRITE (13, *) o*rtp_freq_res*reccm2ev, abs_intens(j, i, k, o)*o*rtp_freq_res*(-1.0_dp)
+                   WRITE (13, *) o*rtp_freq_res*reccm2ev, abs_intens(j, i, k, o)*o*freq_au
+                 END DO
                END DO
-            END DO
-         END DO
-      END DO
+             END DO
+           END DO
       CLOSE (13)
       DEALLOCATE (rams%RR%pol_rtp, trace, abs_intens)
 
@@ -914,7 +930,7 @@ CONTAINS
       INTEGER(kind=dp)                                               :: plan
       REAL(kind=dp)                                                  :: broad, factor
       REAL(kind=dp)                                                  :: rtp_freq_res, pade_freq_res
-      REAL(kind=dp), DIMENSION(:), ALLOCATABLE                         :: data2
+      REAL(kind=dp), DIMENSION(:), ALLOCATABLE                         :: data2, ram_const
       REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE                       :: iso_sq, aniso_sq, raman_int
       REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE                   :: zhat_pol_dq_rtp
       REAL(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE                 :: zhat_pol_dxyz_rtp
@@ -929,14 +945,14 @@ CONTAINS
       ALLOCATE (zhat_pol_dxyz_rtp(sys%natom, 3, 3, 3, rams%RR%framecount_rtp))
       ALLOCATE (zhat_pol_dq_rtp(stats%nmodes, 3, 3, rams%RR%framecount_rtp))
       ALLOCATE (iso_sq(stats%nmodes, rams%RR%framecount_rtp), aniso_sq(stats%nmodes, rams%RR%framecount_rtp))
-      ALLOCATE (raman_int(stats%nmodes, rams%RR%framecount_rtp))
+      ALLOCATE (raman_int(stats%nmodes, rams%RR%framecount_rtp), ram_const(stats%nmodes))
 
       zhat_pol_dq_rtp = 0.0_dp
       data2 = 0.0_dp
 
 !!!Finding laser frequency
       rtp_freq_res = REAL(rams%RR%freq_range_rtp/rams%RR%framecount_rtp, kind=dp)
-      rtp_point = ANINT(rams%laser_in/rtp_freq_res, kind=dp)
+      rtp_point = ANINT(rams%laser_in/(rtp_freq_res*reccm2ev), kind=dp)
 
       PRINT *, rams%laser_in, "rams%laser_in", rtp_freq_res, "rtp_freq_res", &
          rams%RR%freq_range_rtp, "rams%RR%freq_range_rtp", rtp_point, 'rtp_point', rams%RR%framecount_rtp
@@ -968,10 +984,23 @@ CONTAINS
                                   + (zhat_pol_dq_rtp(:, 2, 3, :)**2.0_dp) &
                                   + (zhat_pol_dq_rtp(:, 3, 1, :)**2.0_dp)))
 
-!!!Calculation of the intensities!!
-      raman_int(:, rtp_point) = REAL(((7.0_dp*aniso_sq(:, rtp_point)) + (45.0_dp*iso_sq(:, rtp_point)))/45.0_dp, kind=dp)* &
-                                REAL(((rams%laser_in - stats%freq(:))**4.0_dp)/stats%freq(:), kind=dp) &
-                                *REAL(1.0_dp/(1.0_dp - EXP(-1.438777_dp*stats%freq(:)/gs%temp)), kind=dp)
+!!!Conversion from (debye/E)^2 angstrom^-2 amu⁻¹ to angstrom^6 angstrom^-2 amu⁻¹
+      iso_sq = iso_sq/(a3_to_debye_per_e*a3_to_debye_per_e)
+      aniso_sq = aniso_sq/(a3_to_debye_per_e*a3_to_debye_per_e)
+
+!!!Conversion from angstrom^4 amu⁻¹ to m^4 kg^-1
+      iso_sq = iso_sq*(ang**4._dp)/am_u
+      aniso_sq = aniso_sq*(ang**4._dp)/am_u
+
+!!! Conversion of static resonance Raman units into 10^{-30}*cm^2/sr
+      ram_const(:) = (const_planck/(8.0_dp*speed_light*cm2m*const_permit*const_permit)*1.e+30*&
+                    REAL(((rams%laser_in/reccm2ev - stats%freq(:))**4.0_dp)/(stats%freq(:)*cm2m**3.0_dp), kind=dp)* &
+                    (1.0_dp/(1.0_dp - EXP(-1._dp*const_planck*speed_light*cm2m*stats%freq(:)/ &
+                                            (const_boltz*gs%temp)))))/(cm2m**2._dp)
+
+!!!Calculation of the unpolarized resonance Raman intensities!!
+      raman_int(:, rtp_point) = REAL(((7.0_dp*aniso_sq(:, rtp_point)) + (45.0_dp*iso_sq(:, rtp_point)))/45.0_dp, kind=dp)*&
+                                  ram_const(:)
 
 !!!Broadening the spectrum!!
       DO x = start_freq, end_freq
@@ -989,7 +1018,7 @@ CONTAINS
       END DO
       CLOSE (98)
 
-      DEALLOCATE (iso_sq, aniso_sq, data2, raman_int, stats%disp, stats%freq)
+      DEALLOCATE (iso_sq, aniso_sq, data2, ram_const, raman_int, stats%disp, stats%freq)
       DEALLOCATE (rams%RR%zhat_pol_rtp, zhat_pol_dxyz_rtp, zhat_pol_dq_rtp)
 
    END SUBROUTINE spec_static_resraman

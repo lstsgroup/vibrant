@@ -37,12 +37,15 @@ MODULE constants
 
    PUBLIC ::   speed_light, const_planck, const_permit, pi, const_charge, const_boltz, joule_unit, debye, &
              debye2cm, ev_unit, action_unit, bohr2ang, hartreebohr2evang, am_u, at_u, ang, fs2s, reccm2ev, &
-             hessian_factor, avo_num, au2vm, cm2m, a3_to_debye_per_e
+             hessian_factor, avo_num, au2vm, cm2m, a3_to_debye_per_e, speed_light_au, reccm2au
 
    ! Constants
 
    ! Speed of light in vacuum [cm/s]
    REAL(kind=dp), PARAMETER                            :: speed_light = 2.9979246e+10_dp
+   
+   ! Speed of light in vacuum [a.u.]
+   REAL(kind=dp), PARAMETER                            :: speed_light_au = 137_dp
 
    ! Planck constant [m^2*kg/s] or [J.s]
    REAL(kind=dp), PARAMETER                            :: const_planck = 6.62607015e-34_dp
@@ -76,13 +79,16 @@ MODULE constants
    ! [Debye] -> [C*m]
    REAL(kind=dp), PARAMETER                            :: debye2cm = 3.33564e-30_dp
    
+   ! [Debye] -> [C*m]
+   REAL(kind=dp), PARAMETER                            :: reccm2au = 4.556335e-6_dp 
+   
    ! [cm] -> [m]
    REAL(kind=dp), PARAMETER                            :: cm2m = 0.01_dp
    
    ! [a.u.] -> [V/m]
    REAL(kind=dp), PARAMETER                            :: au2vm = 5.14220675112e+11_dp
    
-   ! [A^3] -> [Debye/E]
+   ! [A^3] -> [Debye/E (a.u.)]
    REAL(kind=dp), PARAMETER                            :: a3_to_debye_per_e = 1.713005_dp
 
    ! [a.u.] -> [eV]
