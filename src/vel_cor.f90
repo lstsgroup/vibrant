@@ -2,16 +2,17 @@ MODULE vel_cor
 
    USE dipole_calc, ONLY: center_mass
    USE kinds, ONLY: dp
-   USE constants, ONLY: pi
+   USE constants, ONLY: pi, ang, fs2s, at_u, bohr2ang
    USE vib_types, ONLY: global_settings, systems, molecular_dynamics, static, dipoles, raman
 
    IMPLICIT NONE
    PUBLIC :: cvv, cvv_iso, cvv_aniso, cvv_only_x, cvv_resraman
 
 CONTAINS
-   SUBROUTINE cvv(natom, coord_v, sys, md)
+   SUBROUTINE cvv(natom, coord_v, sys, gs, md)
 
       TYPE(systems), INTENT(INOUT)                :: sys
+      TYPE(global_settings), INTENT(INOUT)                :: gs
       TYPE(molecular_dynamics), INTENT(INOUT)     :: md
       INTEGER, INTENT(INOUT)                                    :: natom
       REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(INOUT)  :: coord_v
@@ -46,7 +47,6 @@ CONTAINS
                md%z(0:t1 - t0) = md%z(0:t1 - t0) + (coord_v(t0, k, 1)*coord_v(t0:t1, j, 1) + coord_v(t0, j, 2)* &
                                                     coord_v(t0:t1, j, 2) + coord_v(t0, j, 3)*coord_v(t0:t1, j, 3))*sys%mass_atom(j)
             ELSE
-               !  print*,k,"k",j,"j"
                DO m = 1, 3
                   md%z(0:t1 - t0) = md%z(0:t1 - t0) + coord_v(t0, k, m)*coord_v(t0:t1, k, m)
                END DO
@@ -57,13 +57,25 @@ CONTAINS
 
       md%z(:) = md%z(:)/norm(:) !!Normalization
 
+      !! unit conversion of dipole autocorrelation function to debye^2/s^2
+      IF (gs%spectral_type%read_function == 'MD-IR') THEN
+         md%z(:) = md%z(:)/(fs2s*fs2s)
+      !! unit conversion of velocity autocorrelation function to m^2/s^2
+      ELSE IF (gs%spectral_type%read_function == 'P') THEN
+         IF (sys%type_traj == 'pos') THEN
+            md%z(:) = md%z(:)*ang*ang/(fs2s*fs2s)
+         ELSE IF (sys%type_traj == 'vel') THEN
+            md%z(:) = md%z(:)*ang*ang*bohr2ang*bohr2ang/(at_u*at_u)
+         END IF
+      END IF
+
       md%z(md%t_cor) = 0.0_dp
       DO i = 1, md%t_cor - 1
          md%z(md%t_cor + i) = md%z(md%t_cor - i) !!Data mirroring
       END DO
 
       DO i = 0, 2*md%t_cor - 1
-         md%z(i) = md%z(i)*((COS(i/(md%t_cor - 1.0_dp)/2.0_dp*3.14_dp))**2) !!Hann Window function
+         md%z(i) = md%z(i)*((COS(i/(md%t_cor - 1.0_dp)/2.0_dp*pi))**2) !!Hann Window function
       END DO
 
       OPEN (UNIT=61, FILE='result_cvv.txt', STATUS='unknown', IOSTAT=stat) !!Write output
@@ -112,20 +124,20 @@ CONTAINS
 
       PRINT *, norm(0:3), 'iso norm'
       PRINT *, z_iso(0:3), 'iso z'
-      z_iso(:) = z_iso(:)/norm(:)
-      z_iso(:) = z_iso(:)/9._dp
-      z_iso(:) = z_iso(:)/(2.0_dp*pi)
+      z_iso(:) = z_iso(:)/(norm(:)*9._dp)  !!Normalization
+      !   z_iso(:) = z_iso(:)/(2.0_dp*pi)
       !z_iso(:)=z_iso(:)/mol_num
 
+      !!Unit conversion of Debye^2/(E^2*fs^2) into Debye^2/(E^2*s^2)
+      z_iso(:) = z_iso(:)/(fs2s*fs2s)
+
       DO i = 0, md%t_cor - 1
-         z_iso(i) = z_iso(i)*((COS(i/(md%t_cor - 1.0_dp)/2.0_dp*3.14_dp))**2)
-         !z_iso(i)=z_iso(i)*0.5_dp*(1+COS(2.0_dp*3.14_dp*i/(2.0_dp*(md%t_cor-1))))
+         z_iso(i) = z_iso(i)*((COS(i/(md%t_cor - 1.0_dp)/2.0_dp*pi))**2) !!Hann window function
       END DO
 
       z_iso(md%t_cor) = 0.0_dp
-
       DO i = 1, md%t_cor - 1
-         z_iso(md%t_cor + i) = z_iso(md%t_cor - i)
+         z_iso(md%t_cor + i) = z_iso(md%t_cor - i) !!Data mirroring
       END DO
 
       OPEN (UNIT=61, FILE='result_cvv_iso.txt', STATUS='unknown', IOSTAT=stat)
@@ -186,17 +198,19 @@ CONTAINS
       PRINT *, norm(0:3), 'aniso norm'
       PRINT *, z_aniso(0:3), 'aniso z'
       z_aniso(:) = z_aniso(:)/norm(:)
-      z_aniso(:) = z_aniso(:)/(2.0_dp*pi)
+      !  z_aniso(:) = z_aniso(:)/(2.0_dp*pi)
       !z_aniso(:)=REAL(z_aniso(:)/mol_num,kind=dp)
 
+      !!Unit conversion of Debye^2/(E^2*fs^2) into C^4*s^2/kg^2
+      z_aniso(:) = z_aniso(:)/(fs2s*fs2s)
+
       DO i = 0, md%t_cor - 1
-         z_aniso(i) = z_aniso(i)*((COS(i/(md%t_cor - 1.0_dp)/2.0_dp*3.14_dp))**2)
+         z_aniso(i) = z_aniso(i)*((COS(i/(md%t_cor - 1.0_dp)/2.0_dp*pi))**2) !!Hann window function
       END DO
 
       z_aniso(md%t_cor) = 0.0_dp
-
       DO i = 1, md%t_cor - 1
-         z_aniso(md%t_cor + i) = z_aniso(md%t_cor - i)
+         z_aniso(md%t_cor + i) = z_aniso(md%t_cor - i) !!Data mirroring
       END DO
 
       OPEN (UNIT=61, FILE='result_cvv_aniso.txt', STATUS='unknown', IOSTAT=stat)

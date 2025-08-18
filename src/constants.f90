@@ -36,12 +36,16 @@ MODULE constants
    PRIVATE
 
    PUBLIC ::   speed_light, const_planck, const_permit, pi, const_charge, const_boltz, joule_unit, debye, &
-             ev_unit, action_unit, bohr2ang, hartreebohr2evang, at_u, ang, fs2s, reccm2ev, hessian_factor
+             debye2cm, ev_unit, action_unit, bohr2ang, hartreebohr2evang, am_u, at_u, ang, fs2s, reccm2ev, &
+             hessian_factor, avo_num, au2vm, cm2m, a3_to_debye_per_e, speed_light_au, reccm2au
 
    ! Constants
 
    ! Speed of light in vacuum [cm/s]
    REAL(kind=dp), PARAMETER                            :: speed_light = 2.9979246e+10_dp
+   
+   ! Speed of light in vacuum [a.u.]
+   REAL(kind=dp), PARAMETER                            :: speed_light_au = 137_dp
 
    ! Planck constant [m^2*kg/s] or [J.s]
    REAL(kind=dp), PARAMETER                            :: const_planck = 6.62607015e-34_dp
@@ -57,6 +61,9 @@ MODULE constants
 
    ! Boltzmann constant [m^2*kg*s^-2*K-1] or [J/K]
    REAL(kind=dp), PARAMETER                            :: const_boltz = 1.380649e-23_dp
+   
+   ! Avogadro's number [mol^-1]
+   REAL(kind=dp), PARAMETER                            :: avo_num = 6.02214e+23_dp
 
    ! Conversion factors
 
@@ -68,6 +75,21 @@ MODULE constants
 
    ! [Debye] -> [a.u.]
    REAL(kind=dp), PARAMETER                            :: debye = 0.393456_dp
+   
+   ! [Debye] -> [C*m]
+   REAL(kind=dp), PARAMETER                            :: debye2cm = 3.33564e-30_dp
+   
+   ! [Debye] -> [C*m]
+   REAL(kind=dp), PARAMETER                            :: reccm2au = 4.556335e-6_dp 
+   
+   ! [cm] -> [m]
+   REAL(kind=dp), PARAMETER                            :: cm2m = 0.01_dp
+   
+   ! [a.u.] -> [V/m]
+   REAL(kind=dp), PARAMETER                            :: au2vm = 5.14220675112e+11_dp
+   
+   ! [A^3] -> [Debye/E (a.u.)]
+   REAL(kind=dp), PARAMETER                            :: a3_to_debye_per_e = 1.713005_dp
 
    ! [a.u.] -> [eV]
    REAL(kind=dp), PARAMETER                            :: ev_unit = 27.211386_dp
@@ -79,7 +101,10 @@ MODULE constants
    REAL(kind=dp), PARAMETER                            :: hartreebohr2evang = 51.42208619083232_dp
 
    ! [a.m.u.] -> [kg]
-   REAL(kind=dp), PARAMETER                            :: at_u = 1.6605390666e-27_dp
+   REAL(kind=dp), PARAMETER                            :: am_u = 1.6605390666e-27_dp
+   
+   ! [a.t.u.] -> [s]
+   REAL(kind=dp), PARAMETER                            :: at_u = 2.4188843265864e-17_dp
 
    ! [Angstrom] -> [m]
    REAL(kind=dp), PARAMETER                            :: ang = 1.0e-10_dp
@@ -91,6 +116,6 @@ MODULE constants
    REAL(kind=dp), PARAMETER                            :: reccm2ev = 0.000124_dp
 
    ! [eV/(a.m.u*Ang^2)] -> [J/(kg*m^2)]
-   REAL(kind=dp), PARAMETER                            :: hessian_factor = REAL(const_charge/(at_u*ang*ang), kind=dp)
+   REAL(kind=dp), PARAMETER                            :: hessian_factor = REAL(const_charge/(am_u*ang*ang), kind=dp)
 
 END MODULE constants

@@ -301,7 +301,7 @@ CONTAINS
          IF (in_raman) THEN
             IF (INDEX(to_lower(line), 'laser_in') > 0) THEN !Type of the dipole moment
                READ (line, *) dummy, rams%laser_in
-               write (*, *) "Incident laser wavelength in cm^{-1}: ", rams%laser_in
+               write (*, *) "Incident laser frequency (eV): ", rams%laser_in
             END IF
          END IF
 

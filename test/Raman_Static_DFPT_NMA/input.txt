@@ -18,5 +18,5 @@
  static_pol_file polarizabilities_water.dat
 &end dipoles
 &raman
- laser_in 9398.50
+ laser_in 2.540639
 &end raman
