@@ -860,8 +860,8 @@ CONTAINS
       END IF
 
 !!!Dividing by electric field and multiplying by rams%RR%dt_rtp which is coming from FFT
-      !rams%RR%zhat_pol_rtp = rams%RR%zhat_pol_rtp/dips%e_field 
-      rams%RR%zhat_pol_rtp = rams%RR%zhat_pol_rtp*(rams%RR%dt_rtp*fs2s)/dips%e_field 
+      !rams%RR%zhat_pol_rtp = rams%RR%zhat_pol_rtp/dips%e_field
+      rams%RR%zhat_pol_rtp = rams%RR%zhat_pol_rtp*(rams%RR%dt_rtp*fs2s)/dips%e_field
 
 !!!Finding frequency range
       rtp_freq_res = REAL(rams%RR%freq_range_rtp/rams%RR%framecount_rtp, kind=dp)
@@ -877,41 +877,41 @@ CONTAINS
       !!Conversion of absorption spectrum units into a.u.
       abs_intens(:, :, :, :) = (4.0_dp*pi*debye*trace(:, :, :, :))/(3.0_dp*speed_light_au*at_u)
 
-     ! DO j = 1, sys%natom      !! shifted atom index
-        ! DO i = 1, dims          !! displacement direction
-        ! DO k = 1, dir      !! + / - shift
-            !    Create a unique file name for this shifted structure
-          !  WRITE (filename, '("absorption_spectrum_",I0,"_",I0,"_",I0,".txt")') j, i, k
-          !  OPEN (UNIT=13, FILE=filename, STATUS='unknown', IOSTAT=stat)
-          !  IF (stat /= 0) THEN
-          !     PRINT *, "Error opening file: ", TRIM(filename)
-         !      STOP
-        !    END IF
+      ! DO j = 1, sys%natom      !! shifted atom index
+      ! DO i = 1, dims          !! displacement direction
+      ! DO k = 1, dir      !! + / - shift
+      !    Create a unique file name for this shifted structure
+      !  WRITE (filename, '("absorption_spectrum_",I0,"_",I0,"_",I0,".txt")') j, i, k
+      !  OPEN (UNIT=13, FILE=filename, STATUS='unknown', IOSTAT=stat)
+      !  IF (stat /= 0) THEN
+      !     PRINT *, "Error opening file: ", TRIM(filename)
+      !      STOP
+      !    END IF
 
-            !   Loop over time steps to write the full spectrum
-       !     DO o = 1, rams%RR%framecount_rtp
+      !   Loop over time steps to write the full spectrum
+      !     DO o = 1, rams%RR%framecount_rtp
       !         WRITE (13, *) o*rtp_freq_res*reccm2ev, &
-     !             abs_intens(j, i, k, o)*o*rtp_freq_res*(-1.0_dp)
-    !        END DO
+      !             abs_intens(j, i, k, o)*o*rtp_freq_res*(-1.0_dp)
+      !        END DO
 
-   !         CLOSE (13)  ! close after finishing one structure
-  !       END DO
- !        END DO
+      !         CLOSE (13)  ! close after finishing one structure
+      !       END DO
+      !        END DO
 !      END DO
 
-      !! Conversion from cm-1 to a.u. 
+      !! Conversion from cm-1 to a.u.
       freq_au = rtp_freq_res*(-1.0_dp)*reccm2au
 
-       DO j = 1, 1 !!atom_num: 1st atom
-        DO i = 1, 1 !!dims: x dimension
-          DO k = 1, 1 !! + direction
-              OPEN (UNIT=13, FILE='absorption_spectrum.txt', STATUS='unknown', IOSTAT=stat)
+      DO j = 1, 1 !!atom_num: 1st atom
+         DO i = 1, 1 !!dims: x dimension
+            DO k = 1, 1 !! + direction
+               OPEN (UNIT=13, FILE='absorption_spectrum.txt', STATUS='unknown', IOSTAT=stat)
                DO o = 1, rams%RR%framecount_rtp
-                   WRITE (13, *) o*rtp_freq_res*reccm2ev, abs_intens(j, i, k, o)*o*freq_au
-                 END DO
+                  WRITE (13, *) o*rtp_freq_res*reccm2ev, abs_intens(j, i, k, o)*o*freq_au
                END DO
-             END DO
-           END DO
+            END DO
+         END DO
+      END DO
       CLOSE (13)
       DEALLOCATE (rams%RR%pol_rtp, trace, abs_intens)
 
@@ -993,14 +993,14 @@ CONTAINS
       aniso_sq = aniso_sq*(ang**4._dp)/am_u
 
 !!! Conversion of static resonance Raman units into 10^{-30}*cm^2/sr
-      ram_const(:) = (const_planck/(8.0_dp*speed_light*cm2m*const_permit*const_permit)*1.e+30*&
-                    REAL(((rams%laser_in/reccm2ev - stats%freq(:))**4.0_dp)/(stats%freq(:)*cm2m**3.0_dp), kind=dp)* &
-                    (1.0_dp/(1.0_dp - EXP(-1._dp*const_planck*speed_light*cm2m*stats%freq(:)/ &
+      ram_const(:) = (const_planck/(8.0_dp*speed_light*cm2m*const_permit*const_permit)*1.e+30* &
+                      REAL(((rams%laser_in/reccm2ev - stats%freq(:))**4.0_dp)/(stats%freq(:)*cm2m**3.0_dp), kind=dp)* &
+                      (1.0_dp/(1.0_dp - EXP(-1._dp*const_planck*speed_light*cm2m*stats%freq(:)/ &
                                             (const_boltz*gs%temp)))))/(cm2m**2._dp)
 
 !!!Calculation of the unpolarized resonance Raman intensities!!
-      raman_int(:, rtp_point) = REAL(((7.0_dp*aniso_sq(:, rtp_point)) + (45.0_dp*iso_sq(:, rtp_point)))/45.0_dp, kind=dp)*&
-                                  ram_const(:)
+      raman_int(:, rtp_point) = REAL(((7.0_dp*aniso_sq(:, rtp_point)) + (45.0_dp*iso_sq(:, rtp_point)))/45.0_dp, kind=dp)* &
+                                ram_const(:)
 
 !!!Broadening the spectrum!!
       DO x = start_freq, end_freq
