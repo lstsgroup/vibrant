@@ -4,7 +4,6 @@
 &end global
 &dipoles
  type_dipole dfpt
- dip_file alpha_x_solv_5000_new.xyz
  dip_x_file alpha_x_solv_5000_new.xyz
  dip_y_file alpha_y_solv_5000_new.xyz
  dip_z_file alpha_z_solv_5000_new.xyz

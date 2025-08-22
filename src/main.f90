@@ -192,7 +192,11 @@ PROGRAM vib2d
 !        !***************************************************************************
    ELSEIF (gs%spectral_type%read_function == 'MD-R') THEN
       !   sys%filename = wannier_free! <----  MUST BE ADJUSTED
-      CALL read_coord(dips%dip_file, gs, sys, dips)
+      IF (dips%type_dipole=='berry') THEN
+          CALL read_coord(dips%dip_file, gs, sys, dips)
+      ELSEIF (dips%type_dipole=='dfpt') THEN
+          CALL read_coord(dips%dip_x_file, gs, sys, dips)
+      ENDIF
       CALL masses_charges(gs, sys)
 
       CALL spec_raman(gs, sys, md, dips, rams)
