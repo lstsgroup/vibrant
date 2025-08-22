@@ -222,11 +222,24 @@ CONTAINS
             ELSEIF (in_cell) THEN
                IF (INDEX(to_lower(line), 'cell_type') > 0) THEN !'Is it the k-point trajectory (1), supercell trajectory (2) or solvent trajectory (3)? '
                   READ (line, *) dummy, sys%cell%cell_type
-                  !    ELSEIF (INDEX(to_lower(line), 'abc')>0) THEN
-                  !        !READ (line, *) dummy, sys%cell%abc(1:3)
-                  !        !input%system%cell%present = .TRUE.
-                  !    ELSEIF (INDEX(to_lower(line), 'alpha_beta_gamma')>0) THEN
-                  !        !READ (line, *) dummy, input%system%cell%alpha_beta_gamma(1:3)
+                  write (*, *) "cell type: ", sys%cell%cell_type
+               ENDIF
+               IF (INDEX(to_lower(line), 'box_x') > 0) THEN !'Is it the k-point trajectory (1), supercell trajectory (2) or solvent trajectory (3)? '
+                  READ (line, *) dummy, sys%cell%box_x
+                  write (*, *) "cell vector x: ", sys%cell%box_x
+               ENDIF
+               IF (INDEX(to_lower(line), 'box_y') > 0) THEN !'Is it the k-point trajectory (1), supercell trajectory (2) or solvent trajectory (3)? '
+                  READ (line, *) dummy, sys%cell%box_y
+                  write (*, *) "cell vector y: ", sys%cell%box_y
+               ENDIF
+               IF (INDEX(to_lower(line), 'box_z') > 0) THEN !'Is it the k-point trajectory (1), supercell trajectory (2) or solvent trajectory (3)? '
+                  READ (line, *) dummy, sys%cell%box_z
+                  write (*, *) "cell vector z: ", sys%cell%box_z
+                 !     ELSEIF (INDEX(to_lower(line), 'abc')>0) THEN
+                 !         READ (line, *) dummy, sys%cell%abc(1:3)
+                 !         input%system%cell%present = .TRUE.
+                 !     ELSEIF (INDEX(to_lower(line), 'alpha_beta_gamma')>0) THEN
+                 !         READ (line, *) dummy, input%system%cell%alpha_beta_gamma(1:3)
                END IF
             ELSEIF (INDEX(to_lower(line), 'frag_type ') > 0) THEN !'Does the system contain more than one molecule? (y/n)'
                READ (line, *) dummy, sys%frag_type

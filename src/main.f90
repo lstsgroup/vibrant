@@ -10,7 +10,7 @@ PROGRAM vib2d
                         raman, init_global_settings, init_systems, init_molecular_dynamics, init_static, deallocate_types
    USE setup, ONLY: read_input, masses_charges, conversion, pbc_orthorombic, pbc_hexagonal
    USE read_traj, ONLY: read_coord, read_coord_frame, read_normal_modes, read_static, read_static_resraman
-   USE dipole_calc, ONLY: center_mass, wannier, wannier_frag, solv_frag_index
+   USE dipole_calc, ONLY: center_mass, wannier, wannier_frag
    USE vel_cor, ONLY: cvv, cvv_iso, cvv_aniso, cvv_only_x, cvv_resraman
    USE fin_diff, ONLY: central_diff, forward_diff, finite_diff_static, finite_diff_static_resraman
    USE calc_spectra, ONLY: spec_power, normal_mode_analysis, spec_static_ir, spec_static_raman, &
@@ -47,7 +47,7 @@ PROGRAM vib2d
    REAL(kind=dp)                                    :: time_init, time_final, elapsed_time, a3_to_debye_per_e
    REAL(kind=dp)                                    ::  sinc_const, mass_tot_cell, e_field, cm2m
    REAL(kind=dp), DIMENSION(3)                       :: vec, vec_pbc, coord2, coord1
-   REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE       :: refpoint, refpoint_free, refpoint_x, refpoint_y, refpoint_z
+   REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE       :: refpoint, refpoint_free, refpoint_x, refpoint_y, refpoint_z
    REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE       :: alpha_resraman_x, alpha_resraman_y, alpha_resraman_z
    REAL(kind=dp), DIMENSION(:), ALLOCATABLE           :: kissfft, z, norm, mass_atom, z_aniso, z_iso, z_ortho, z_para, zhat_depol
    REAL(kind=dp), DIMENSION(:), ALLOCATABLE           :: atom_mass_inv_sqrt, charge
@@ -181,9 +181,10 @@ PROGRAM vib2d
    ELSEIF (gs%spectral_type%read_function == 'MD-IR') THEN
       CALL read_coord(dips%dip_file, gs, sys, dips)
       !  IF (sys%system=='1' .OR. sys%system=='2' .AND. dips%type_dipole=='wannier') THEN !!fragment approach or whole supercell
+        IF (dips%type_dipole=='wannier') THEN !!fragment approach or whole supercell
       !      IF (sys%cell%cell_type=='1' .OR. sys%cell%cell_type=='2') THEN !!KP or SC
-      !          CALL masses_charges(gs, sys)
-      !      END IF
+                CALL masses_charges(gs, sys)
+        END IF
       !  END IF
 
       CALL spec_ir(gs, sys, md, dips)

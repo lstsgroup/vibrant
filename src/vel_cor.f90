@@ -36,13 +36,13 @@ CONTAINS
       DO t0 = 1, sys%framecount - 2
          t1 = MIN(sys%framecount - 2, t0 + md%t_cor)
          DO j = 1, natom
-            IF (sys%frag_type == '2') THEN
-               k = j + 8
-            ELSEIF (sys%frag_type == '3') THEN
-               k = j + 20
-            ELSE
+          !  IF (sys%frag_type == '2') THEN
+          !     k = j + 8
+          !  ELSEIF (sys%frag_type == '3') THEN
+          !     k = j + 20
+          !  ELSE
                k = j
-            END IF
+          !  END IF
             IF (sys%input_mass == 'y') THEN
                md%z(0:t1 - t0) = md%z(0:t1 - t0) + (coord_v(t0, k, 1)*coord_v(t0:t1, j, 1) + coord_v(t0, j, 2)* &
                                                     coord_v(t0:t1, j, 2) + coord_v(t0, j, 3)*coord_v(t0:t1, j, 3))*sys%mass_atom(j)

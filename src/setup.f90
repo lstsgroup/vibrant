@@ -8,7 +8,8 @@ MODULE setup
 
    PRIVATE
 
-   PUBLIC :: read_input, masses_charges, conversion, pbc_orthorombic, pbc_hexagonal, pbc_hexagonal_old, pbc_orthorombic_old !constants,
+   PUBLIC :: read_input, masses_charges, conversion, pbc_orthorombic, pbc_hexagonal, pbc_hexagonal_old, pbc_orthorombic_old, invert3x3, &
+             build_hexagonal_hmat, build_oblique_hmat !constants,
 
 CONTAINS
 
@@ -445,15 +446,19 @@ CONTAINS
          IF (sys%element(i) == 'O') THEN
             sys%mass_atom(i) = 15.999_dp
             sys%charge(i) = 6.0_dp
+            !sys%wc_number(i) = 4
          ELSEIF (sys%element(i) == 'H') THEN
             sys%mass_atom(i) = 1.00784_dp
             sys%charge(i) = 1.0_dp
+            !sys%wc_number(i) = 0
          ELSEIF (sys%element(i) == 'C') THEN
             sys%mass_atom(i) = 12.011_dp
             sys%charge(i) = 4.0_dp
+            !sys%wc_number(i) = 2
          ELSEIF (sys%element(i) == 'B') THEN
             sys%mass_atom(i) = 10.811_dp
             sys%charge(i) = 3.0_dp
+          !  sys%wc_number(i) = 1
          ELSEIF (sys%element(i) == 'N') THEN
             sys%mass_atom(i) = 14.0067_dp
             sys%charge(i) = 5.0_dp
@@ -466,7 +471,7 @@ CONTAINS
          END IF
          sys%mass_tot = sys%mass_tot + sys%mass_atom(i)
       END DO
-
+       PRINT *, "Total charge system:", SUM(sys%charge(:))
       sys%atom_mass_inv_sqrt(:) = SQRT(REAL(1.0_dp/sys%mass_atom(:), kind=dp))
 
       mat1(:, :) = RESHAPE(sys%atom_mass_inv_sqrt(:), (/sys%natom, 1/))
@@ -515,56 +520,26 @@ CONTAINS
 
 !********************************************************************************************
 !********************************************************************************************
+SUBROUTINE pbc_hexagonal(coord2, coord1, sys, dr)
+   USE kinds, ONLY: dp
+   TYPE(systems), INTENT(INOUT) :: sys
+   REAL(dp), DIMENSION(3), INTENT(IN)  :: coord2, coord1
+   REAL(dp), DIMENSION(3), INTENT(OUT) :: dr
+   REAL(dp) :: hmat(3,3), h_inv(3,3)
+   REAL(dp) :: s(3), vec(3)
 
-   SUBROUTINE pbc_hexagonal(coord2, coord1, sys)
+   CALL build_hexagonal_hmat(sys, hmat)
+   CALL invert3x3(hmat, h_inv)
 
-      TYPE(systems), INTENT(INOUT)                :: sys
-      REAL(kind=dp), DIMENSION(3), INTENT(INOUT)                :: coord2, coord1
-      REAL(kind=dp)                                           :: h_inv(3, 3), a, s(3), hmat(3, 3)
-      REAL(kind=dp)                                           :: acosa, asina, sqrt3, det_a
+   sys%cell%vec = coord2 - coord1
+   s   = MATMUL(h_inv, sys%cell%vec)
 
-      sqrt3 = 1.73205080756887729352744634_dp
+   ! Minimum-image in fractional space ([-0.5,0.5))
+   s = s - ANINT(s)
 
-      a = 0.5_dp*(sys%cell%box_x + sys%cell%box_y)
-      acosa = 0.5_dp*a
-      asina = sqrt3*acosa
-      hmat(1, 1) = a; hmat(1, 2) = acosa; hmat(1, 3) = 0.0_dp
-      hmat(2, 1) = 0.0_dp; hmat(2, 2) = asina; hmat(2, 3) = 0.0_dp
-      hmat(3, 1) = 0.0_dp; hmat(3, 2) = 0.0_dp; hmat(3, 3) = sys%cell%box_z
+   dr = MATMUL(hmat, s)
+END SUBROUTINE pbc_hexagonal
 
-      det_a = hmat(1, 1)*(hmat(2, 2)*hmat(3, 3) - hmat(2, 3)*hmat(3, 2)) - &
-              hmat(1, 2)*(hmat(2, 3)*hmat(3, 1) - hmat(2, 1)*hmat(3, 3)) + &
-              hmat(1, 3)*(hmat(2, 1)*hmat(3, 2) - hmat(2, 2)*hmat(3, 1))
-
-      det_a = 1./det_a
-
-      h_inv(1, 1) = (hmat(2, 2)*hmat(3, 3) - hmat(3, 2)*hmat(2, 3))*det_a
-      h_inv(2, 1) = (hmat(2, 3)*hmat(3, 1) - hmat(3, 3)*hmat(2, 1))*det_a
-      h_inv(3, 1) = (hmat(2, 1)*hmat(3, 2) - hmat(3, 1)*hmat(2, 2))*det_a
-
-      h_inv(1, 2) = (hmat(1, 3)*hmat(3, 2) - hmat(3, 3)*hmat(1, 2))*det_a
-      h_inv(2, 2) = (hmat(1, 1)*hmat(3, 3) - hmat(3, 1)*hmat(1, 3))*det_a
-      h_inv(3, 2) = (hmat(1, 2)*hmat(3, 1) - hmat(3, 2)*hmat(1, 1))*det_a
-
-      h_inv(1, 3) = (hmat(1, 2)*hmat(2, 3) - hmat(2, 2)*hmat(1, 3))*det_a
-      h_inv(2, 3) = (hmat(1, 3)*hmat(2, 1) - hmat(2, 3)*hmat(1, 1))*det_a
-      h_inv(3, 3) = (hmat(1, 1)*hmat(2, 2) - hmat(2, 1)*hmat(1, 2))*det_a
-
-      sys%cell%vec(:) = coord2(:) - coord1(:)
-
-      s(1) = h_inv(1, 1)*sys%cell%vec(1) + h_inv(1, 2)*sys%cell%vec(2) + h_inv(1, 3)*sys%cell%vec(3)
-      s(2) = h_inv(2, 1)*sys%cell%vec(1) + h_inv(2, 2)*sys%cell%vec(2) + h_inv(2, 3)*sys%cell%vec(3)
-      s(3) = h_inv(3, 1)*sys%cell%vec(1) + h_inv(3, 2)*sys%cell%vec(2) + h_inv(3, 3)*sys%cell%vec(3)
-
-      s(1) = s(1) - ANINT(s(1))
-      s(2) = s(2) - ANINT(s(2))
-      s(3) = s(3) - ANINT(s(3))
-
-      sys%cell%vec_pbc(1) = hmat(1, 1)*s(1) + hmat(1, 2)*s(2) + hmat(1, 3)*s(3)
-      sys%cell%vec_pbc(2) = hmat(2, 1)*s(1) + hmat(2, 2)*s(2) + hmat(2, 3)*s(3)
-      sys%cell%vec_pbc(3) = hmat(3, 1)*s(1) + hmat(3, 2)*s(2) + hmat(3, 3)*s(3)
-
-   END SUBROUTINE pbc_hexagonal
 
    SUBROUTINE pbc_hexagonal_old(coord2, coord1, vec, vec_pbc, box_all, box_x, box_y, box_z)
 
@@ -628,5 +603,85 @@ CONTAINS
       vec_pbc(3) = vec(3) - box_z*ANINT((1./box_z)*vec(3))
 
    END SUBROUTINE pbc_orthorombic_old
+
+SUBROUTINE invert3x3(a, ainv)
+   USE kinds, ONLY: dp
+   REAL(dp), INTENT(IN)  :: a(3,3)
+   REAL(dp), INTENT(OUT) :: ainv(3,3)
+   REAL(dp) :: det
+
+   det = a(1,1)*(a(2,2)*a(3,3) - a(2,3)*a(3,2)) - &
+         a(1,2)*(a(2,1)*a(3,3) - a(2,3)*a(3,1)) + &
+         a(1,3)*(a(2,1)*a(3,2) - a(2,2)*a(3,1))
+
+   IF (ABS(det) < 1e-12_dp) STOP "Singular matrix in invert3x3"
+   det = 1.0_dp/det
+
+   ainv(1,1) = (a(2,2)*a(3,3) - a(2,3)*a(3,2))*det
+   ainv(1,2) = (a(1,3)*a(3,2) - a(1,2)*a(3,3))*det
+   ainv(1,3) = (a(1,2)*a(2,3) - a(1,3)*a(2,2))*det
+
+   ainv(2,1) = (a(2,3)*a(3,1) - a(2,1)*a(3,3))*det
+   ainv(2,2) = (a(1,1)*a(3,3) - a(1,3)*a(3,1))*det
+   ainv(2,3) = (a(1,3)*a(2,1) - a(1,1)*a(2,3))*det
+
+   ainv(3,1) = (a(2,1)*a(3,2) - a(2,2)*a(3,1))*det
+   ainv(3,2) = (a(1,2)*a(3,1) - a(1,1)*a(3,2))*det
+   ainv(3,3) = (a(1,1)*a(2,2) - a(1,2)*a(2,1))*det
+END SUBROUTINE invert3x3
+
+
+SUBROUTINE build_hexagonal_hmat(sys, hmat)
+   USE kinds, ONLY : dp
+   TYPE(systems), INTENT(IN) :: sys
+   REAL(dp), INTENT(OUT) :: hmat(3,3)
+
+   REAL(dp) :: a, sqrt3, acosa, asina
+   sqrt3 = 1.73205080756887729353_dp
+
+   ! Use the same averaged a that worked for you (important!)
+   a     = sys%cell%box_x 
+   !a     = 0.5_dp*(sys%cell%box_x + sys%cell%box_y)
+   acosa = 0.5_dp*a
+   asina = sqrt3*acosa
+
+   hmat(1,1) = a;      hmat(1,2) = acosa;  hmat(1,3) = 0.0_dp
+   hmat(2,1) = 0.0_dp; hmat(2,2) = asina;  hmat(2,3) = 0.0_dp
+   hmat(3,1) = 0.0_dp; hmat(3,2) = 0.0_dp; hmat(3,3) = sys%cell%box_z
+
+!hmat(1,1) = a
+!hmat(1,2) = 0.0_dp
+!hmat(1,3) = 0.0_dp
+
+!hmat(2,1) = 0.5_dp * a
+!hmat(2,2) = 0.5_dp * sqrt(3.0_dp) * a   ! for 60°
+!hmat(2,3) = 0.0_dp
+
+!hmat(3,1) = 0.0_dp
+!hmat(3,2) = 0.0_dp
+!hmat(3,3) = sys%cell%box_z
+
+
+END SUBROUTINE build_hexagonal_hmat
+
+SUBROUTINE build_oblique_hmat(sys, hmat)
+   USE kinds, ONLY: dp
+   TYPE(systems), INTENT(IN) :: sys
+   REAL(dp), INTENT(OUT) :: hmat(3,3)
+   REAL(dp) :: ax, by, cz, gamma_deg, cg, sg
+
+   ax = sys%cell%box_x          ! |a|
+   by = sys%cell%box_y          ! |b|
+   cz = sys%cell%box_z          ! |c|
+   gamma_deg = 60.0 ! sys%cell%gamma   ! e.g. 120.0
+   cg = COS(gamma_deg*acos(-1.0_dp)/180.0_dp)
+   sg = SIN(gamma_deg*acos(-1.0_dp)/180.0_dp)
+
+   hmat = 0.0_dp
+   hmat(1,:) = (/ ax,     0.0_dp, 0.0_dp /)           ! a1
+   hmat(2,:) = (/ by*cg,  by*sg,  0.0_dp /)           ! a2
+   hmat(3,:) = (/ 0.0_dp, 0.0_dp, cz     /)           ! a3
+END SUBROUTINE
+
 END MODULE setup
 

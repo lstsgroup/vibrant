@@ -10,7 +10,7 @@ MODULE calc_spectra
    USE read_traj, ONLY: read_coord_frame
    USE fin_diff, ONLY: central_diff, forward_diff
    USE vel_cor, ONLY: cvv, cvv_iso, cvv_aniso, cvv_only_x, cvv_resraman
-   USE dipole_calc, ONLY: center_mass, solv_frag_index, wannier_frag, wannier
+   USE dipole_calc, ONLY: center_mass, wannier_frag, wannier
    USE pade, ONLY: interpolate
 
    USE, INTRINSIC                              :: ISO_C_BINDING
@@ -87,17 +87,18 @@ CONTAINS
       REAL(kind=dp)                                          :: freq_range, freq_res, sinc_const, ir_const
       REAL(kind=dp), DIMENSION(:), ALLOCATABLE               :: ir_int, freq
 
-      !  IF (dips%type_dipole=='wannier') THEN !!fragment approach or whole supercell
+        IF (dips%type_dipole=='wannier') THEN !!fragment approach or whole supercell
       !      IF (sys%cell%cell_type=='1' .OR. sys%cell%cell_type=='2') THEN !!KP or SC
-      !          CALL read_coord_frame(sys%natom, sys%filename, md%coord_v, sys)
-      !          CALL center_mass(sys%filename, sys%fragments%fragment, gs, sys, md, dips)
-      !          CALL wannier_frag(sys%fragments%natom_frag, sys%filename, dips%dipole, sys%fragments%fragment, gs, sys, md, dips)
+                CALL read_coord_frame(sys%natom, dips%dip_file, md%coord_v, sys)
+                print*, sys%cell%box_x, dips%dip_file
+                CALL center_mass(dips%dip_file, sys%fragments%fragment, gs, sys, md, dips)
+                CALL wannier_frag(sys%fragments%natom_frag, sys%filename, dips%dipole, sys%fragments%fragment, gs, sys, md, dips)
       !      ELSEIF (sys%cell%cell_type=='3') THEN !!SC with solvent
       !          CALL read_coord_frame(sys%natom, sys%filename, md%coord_v, sys)
       !          CALL solv_frag_index(sys%filename, sys%fragments%natom_frag, sys%fragments%fragment, sys, md, dips)
       !          CALL wannier_frag(sys%fragments%natom_frag, sys%filename, dips%dipole, sys%fragments%fragment, gs, sys, md, dips)
       !       END IF
-!    END IF
+    END IF
 
       ALLOCATE (md%zhat(0:2*md%t_cor - 1), ir_int(0:2*md%t_cor - 1), freq(0:2*md%t_cor - 1))
 
@@ -109,11 +110,13 @@ CONTAINS
 !    IF (sys%system=='1' .OR. (sys%system=='2' .AND. dips%type_dipole=='wannier')) THEN  !!fragment approach or the whole cell
       !       CALL central_diff(sys%mol_num, dips%dipole, md%v, sys, md)
       !       CALL cvv(sys%fragments%nfrag, md%v, sys, md)
-      IF (dips%type_dipole == 'berry') THEN !!Berry phase dipoles
-         CALL read_coord_frame(sys%mol_num, dips%dip_file, md%coord_v, sys)
-         CALL central_diff(sys%mol_num, md%coord_v, md%v, sys, md)
+     
+   ! IF (dips%type_dipole == 'berry') THEN !!Berry phase dipoles
+      !   CALL read_coord_frame(sys%mol_num, dips%dip_file, md%coord_v, sys)
+     !    CALL central_diff(sys%mol_num, md%coord_v, md%v, sys, md)
+         CALL central_diff(sys%mol_num, dips%dipole, md%v, sys, md)
          CALL cvv(sys%mol_num, md%v, sys, gs, md)
-      END IF
+    !  END IF
 
       CALL dfftw_plan_dft_r2c_1d(plan, 2*md%t_cor, md%z(0:2*md%t_cor - 1), md%zhat(0:2*md%t_cor - 1), FFTW_ESTIMATE) !!FFT!!
       CALL dfftw_execute_dft_r2c(plan, md%z, md%zhat)

@@ -21,7 +21,7 @@ MODULE vib_types
       INTEGER, DIMENSION(:, :, :), ALLOCATABLE            :: fragment
       REAL(kind=dp)                                       :: mass_tot_cell
       REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE         :: mass_tot_frag
-      REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE      :: refpoint
+      REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE      :: refpoint
    END TYPE fragments
 
    !***************************************************************************
@@ -61,6 +61,7 @@ MODULE vib_types
       INTEGER                                             :: natom               ! number of atoms
       INTEGER                                             :: framecount          ! number of frames
       INTEGER                                             :: mol_num             ! number of moleces ?
+      INTEGER, DIMENSION(:),ALLOCATABLE                                             :: wc_number
       CHARACTER(LEN=40)                                   :: filename            ! read in file
       CHARACTER(LEN=40)                                   :: frag_type           !  ???
       CHARACTER(LEN=40)                                   :: type_traj           !  trajectory type for power spec
@@ -68,13 +69,15 @@ MODULE vib_types
       CHARACTER(LEN=40)                                   :: system              ! fragment approach (1) or molecular approach? (2)
       CHARACTER(LEN=40)                                   :: periodic !          ! contain more than one molecule? (y/n)
       CHARACTER(LEN=2), DIMENSION(:), ALLOCATABLE         :: element              ! ALLOCATE sys%element(sys%natom)
-      REAL(kind=dp)                                       :: mass_tot
+REAL(dp), ALLOCATABLE :: wc_coord(:,:,:)      
+REAL(kind=dp)                                       :: mass_tot
       REAL(kind=dp), DIMENSION(:), ALLOCATABLE            :: atom_mass_inv_sqrt   ! ALLOCATE sys%atom_mass_inv_sqrt(sys%natom)
       REAL(kind=dp), DIMENSION(:), ALLOCATABLE            :: charge               ! ALLOCATE sys%charge(sys%natom)
       REAL(kind=dp), DIMENSION(:), ALLOCATABLE            :: mass_atom            ! ALLOCATE sys%mass_atom(sys%natom)
       REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE         :: coord                ! ALLOCATE sys%coord(sys%natom, 3)
       REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE         :: mass_mat             ! ALLOCATE sys%mass_mat(sys%natom, sys%natom)
-      TYPE(CELL)                                          :: cell
+INTEGER, ALLOCATABLE :: wc_parent(:,:)   ! parent atom index for each WC      
+TYPE(CELL)                                          :: cell
       TYPE(fragments)                                     :: fragments! <--- NEEDED?
    END TYPE systems
 
