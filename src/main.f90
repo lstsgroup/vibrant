@@ -218,7 +218,7 @@ PROGRAM vib2d
       CALL read_coord(sys%filename, gs, sys, dips)
       CALL masses_charges(gs, sys)
       CALL read_normal_modes(gs, sys, stats)
-      CALL read_static(dips%dip_file, dips%static_dip, gs, sys, dips, rams)
+      CALL read_static(gs, sys, dips, rams)
       IF (stats%diag_hessian == 'y') THEN
          CALL normal_mode_analysis(sys, stats)
       END IF
@@ -232,7 +232,7 @@ PROGRAM vib2d
       CALL read_coord(sys%filename, gs, sys, dips)
       CALL masses_charges(gs, sys)
       CALL read_normal_modes(gs, sys, stats)
-      CALL read_static(dips%dip_file, dips%static_dip, gs, sys, dips, rams)
+      CALL read_static(gs, sys, dips, rams)
       !  IF (type_dipole=='2') THEN
       !     CALL read_static(static_dip_x_file, static_dip_x, gs, sys, rams)
       !    CALL read_static(static_dip_y_file, static_dip_y, gs, sys, rams)
@@ -252,7 +252,7 @@ PROGRAM vib2d
       CALL read_static_resraman(dips%dip_x_file, rams%RR%static_dip_x_rtp, sys, rams)
       CALL read_static_resraman(dips%dip_y_file, rams%RR%static_dip_y_rtp, sys, rams)
       CALL read_static_resraman(dips%dip_z_file, rams%RR%static_dip_z_rtp, sys, rams)
-      CALL finite_diff_static_resraman(rams%RR%static_dip_x_rtp, rams%RR%static_dip_y_rtp, rams%RR%static_dip_z_rtp, sys, rams) !<-- CHANGE ?
+      CALL finite_diff_static_resraman(sys, rams) !<-- CHANGE ?
 
       CALL spec_abs(gs, sys, dips, rams)
       !***************************************************************************
@@ -270,7 +270,7 @@ PROGRAM vib2d
          CALL normal_mode_analysis(sys, stats)
       END IF
 
-      CALL finite_diff_static_resraman(rams%RR%static_dip_x_rtp, rams%RR%static_dip_y_rtp, rams%RR%static_dip_z_rtp, sys, rams)
+      CALL finite_diff_static_resraman(sys, rams)
       CALL spec_abs(gs, sys, dips, rams)
 
       CALL spec_static_resraman(gs, sys, stats, rams)

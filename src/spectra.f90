@@ -75,6 +75,7 @@ CONTAINS
 
    END SUBROUTINE spec_power
 !***********************************************************************************************!
+
 !***********************************************************************************************!
    SUBROUTINE spec_ir(gs, sys, md, dips)
       TYPE(global_settings), INTENT(INOUT)        :: gs
@@ -145,6 +146,7 @@ CONTAINS
    END SUBROUTINE spec_ir
 
 !!!****************************************************************************************!
+
 !!!****************************************************************************************!
 SUBROUTINE spec_raman(gs, sys, md, dips, rams)
     TYPE(global_settings), INTENT(INOUT)        :: gs
@@ -171,9 +173,9 @@ SUBROUTINE spec_raman(gs, sys, md, dips, rams)
       !REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                ::rams%e_field(1)%alpha_diff_xyz,rams%e_field(2)%alpha_diff_xyz,rams%e_field(3)%alpha_diff_xyz
 
 !!!!ALLOCATION!!!
-    ALLOCATE (rams%e_field(1)%alpha_xyz(sys%framecount, sys%mol_num, 3))
-    ALLOCATE (rams%e_field(2)%alpha_xyz(sys%framecount, sys%mol_num, 3))
-    ALLOCATE (rams%e_field(3)%alpha_xyz(sys%framecount, sys%mol_num, 3))
+        ALLOCATE (rams%e_field(1)%alpha_xyz(sys%framecount, sys%mol_num, 3))
+        ALLOCATE (rams%e_field(2)%alpha_xyz(sys%framecount, sys%mol_num, 3))
+        ALLOCATE (rams%e_field(3)%alpha_xyz(sys%framecount, sys%mol_num, 3))
 
 !    IF (rams%averaging=='1') THEN
 
@@ -492,12 +494,11 @@ SUBROUTINE spec_raman(gs, sys, md, dips, rams)
 !        !  DEALLOCATE(natom_frag_x,natom_frag_y,natom_frag_z,natom_frag_free)
 !    END IF
 
-    !DEALLOCATE (alpha_xyz)
-    !DEALLOCATE (alpha_diff_xyz)
+        !DEALLOCATE (alpha_xyz)
+        !DEALLOCATE (alpha_diff_xyz)
 
    END SUBROUTINE spec_raman
 
-!!....................................................................................................................!
 !....................................................................................................................!
     SUBROUTINE normal_mode_analysis(sys, stats)
         TYPE(systems), INTENT(INOUT)        :: sys
@@ -525,7 +526,7 @@ SUBROUTINE spec_raman(gs, sys, md, dips, rams)
             DO j = 0, sys%natom - 1
                 DO n = 0, 2
                     hessian(i + m + p, j + n + k) = sys%mass_mat(i + 1, j + 1)*hartreebohr2evang*factor*hessian_factor* &
-                    (stats%force(j+1,n+1)%atom(i+1)%displacement(2)%XYZ(m+1) - stats%force(j+1,n+1)%atom(i+1)%displacement(1)%XYZ(m+1))
+                    (stats%force(j+1,n+1)%atom(i+1)%displacement(2)%XYZ(m+1)%frame(1) - stats%force(j+1,n+1)%atom(i+1)%displacement(1)%XYZ(m+1)%frame(1))
                 END DO
                 k = k + 2
             END DO
@@ -533,10 +534,10 @@ SUBROUTINE spec_raman(gs, sys, md, dips, rams)
         p = p + 2
     END DO
 
-    hessian(:, :) = REAL((hessian(:, :) + TRANSPOSE(hessian(:, :)))/2.0_dp, kind=dp)
-    n = SIZE(hessian, 1)
+        hessian(:, :) = REAL((hessian(:, :) + TRANSPOSE(hessian(:, :)))/2.0_dp, kind=dp)
+        n = SIZE(hessian, 1)
 
-    PRINT *, hessian(1, 1), "hess"
+        PRINT *, hessian(1, 1), "hess"
 
 ! work size query
     lwork = -1
@@ -544,42 +545,42 @@ SUBROUTINE spec_raman(gs, sys, md, dips, rams)
     lwork = MIN(lwmax, INT(work(1)))
 
 ! get eigenvalues and eigenvectors
-    CALL dsyev('V', 'U', n, hessian, lda, w, work, lwork, info)
+        CALL dsyev('V', 'U', n, hessian, lda, w, work, lwork, info)
 
-    hessian = TRANSPOSE(hessian)
+        hessian = TRANSPOSE(hessian)
 
-    w = REAL(w*SQRT(ABS(w))/ABS(w), kind=dp)
-    w = REAL(w/(2.0_dp*pi*speed_light), kind=dp)
+        w = REAL(w*SQRT(ABS(w))/ABS(w), kind=dp)
+        w = REAL(w/(2.0_dp*pi*speed_light), kind=dp)
 
-    ALLOCATE (stats%freq(stats%nmodes), atomic_displacements(stats%nmodes, sys%natom*3), stats%disp(stats%nmodes, sys%natom, 3))
+        ALLOCATE (stats%freq(stats%nmodes), atomic_displacements(stats%nmodes, sys%natom*3), stats%disp(stats%nmodes, sys%natom, 3))
 
-    DO i = 7, sys%natom*3
-        stats%freq(i - 6) = w(i)
-    END DO
-
-    atomic_displacements(1:stats%nmodes, 1:sys%natom*3) = hessian(6:3*sys%natom - 1, :)
-
-    m = 0
-    DO j = 0, sys%natom - 1 !sys%natom
-        DO k = 0, 2 !dims
-            stats%disp(1:stats%nmodes, j + 1, k + 1) = atomic_displacements(1:stats%nmodes, j + k + 1 + m)
+        DO i = 7, sys%natom*3
+            stats%freq(i - 6) = w(i)
         END DO
-        m = m + 2
-    END DO
 
-    PRINT *, stats%freq(1:3)
+        atomic_displacements(1:stats%nmodes, 1:sys%natom*3) = hessian(6:3*sys%natom - 1, :)
 
-    OPEN (UNIT=13, FILE='normal_mode_freq.txt', STATUS='unknown', IOSTAT=stat)
-    DO i = 1, stats%nmodes !!atom_num: 1st atom
-        WRITE (13, *) stats%freq(i)
-    END DO
-
-    OPEN (UNIT=14, FILE='normal_mode_displ.txt', STATUS='unknown', IOSTAT=stat)
-    DO i = 1, stats%nmodes !!atom_num: 1st atom
-        DO j = 1, sys%natom !!dims: x dimension
-            WRITE (14, *) stats%disp(i, j, 1:3)
+        m = 0
+        DO j = 0, sys%natom - 1 !sys%natom
+            DO k = 0, 2 !dims
+                stats%disp(1:stats%nmodes, j + 1, k + 1) = atomic_displacements(1:stats%nmodes, j + k + 1 + m)
+            END DO
+            m = m + 2
         END DO
-    END DO
+
+        PRINT *, stats%freq(1:3)
+
+        OPEN (UNIT=13, FILE='normal_mode_freq.txt', STATUS='unknown', IOSTAT=stat)
+        DO i = 1, stats%nmodes !!atom_num: 1st atom
+            WRITE (13, *) stats%freq(i)
+        END DO
+
+        OPEN (UNIT=14, FILE='normal_mode_displ.txt', STATUS='unknown', IOSTAT=stat)
+        DO i = 1, stats%nmodes !!atom_num: 1st atom
+            DO j = 1, sys%natom !!dims: x dimension
+                WRITE (14, *) stats%disp(i, j, 1:3)
+            END DO
+        END DO
 
    END SUBROUTINE normal_mode_analysis
 
@@ -740,6 +741,7 @@ SUBROUTINE spec_raman(gs, sys, md, dips, rams)
 
    END SUBROUTINE spec_static_raman
 !....................................................................................................................!
+
 !....................................................................................................................!
 
    SUBROUTINE spec_abs(gs, sys, dips, rams)
@@ -774,10 +776,11 @@ SUBROUTINE spec_raman(gs, sys, md, dips, rams)
                DO m = 1, 3
                   DO o = 1, 3
                      CALL dfftw_plan_dft_r2c_1d(plan, rams%RR%framecount_rtp, &
-                                                rams%RR%pol_rtp(j, i, k, m, o, 1:rams%RR%framecount_rtp), &
-                                                rams%RR%zhat_pol_rtp(j, i, k, m, o, 1:rams%RR%framecount_rtp), FFTW_ESTIMATE)
-                     CALL dfftw_execute_dft_r2c(plan, rams%RR%pol_rtp(j, i, k, m, o, 1:rams%RR%framecount_rtp), &
-                                                rams%RR%zhat_pol_rtp(j, i, k, m, o, 1:rams%RR%framecount_rtp))
+                            rams%RR%pol_rtp(m, o)%atom(j)%displacement(k)%XYZ(i)%frame(1:rams%RR%framecount_rtp), &
+                            rams%RR%zhat_pol_rtp(j, i, k, m, o, 1:rams%RR%framecount_rtp), FFTW_ESTIMATE)
+                     CALL dfftw_execute_dft_r2c(plan, &
+                            rams%RR%pol_rtp(m, o)%atom(j)%displacement(k)%XYZ(i)%frame(1:rams%RR%framecount_rtp), &
+                            rams%RR%zhat_pol_rtp(j, i, k, m, o, 1:rams%RR%framecount_rtp))
                      CALL dfftw_destroy_plan(plan)
                   END DO
                END DO
@@ -812,6 +815,7 @@ SUBROUTINE spec_raman(gs, sys, md, dips, rams)
       !rams%RR%zhat_pol_rtp = rams%RR%zhat_pol_rtp/dips%e_field
       rams%RR%zhat_pol_rtp = rams%RR%zhat_pol_rtp*(rams%RR%dt_rtp*fs2s)/dips%e_field
 
+        !rams%RR%zhat_pol_rtp=rams%RR%zhat_pol_rtp/0.001_dp !!later make this an input variable
 !!!Finding frequency range
       rtp_freq_res = REAL(rams%RR%freq_range_rtp/rams%RR%framecount_rtp, kind=dp)
 
@@ -862,10 +866,11 @@ SUBROUTINE spec_raman(gs, sys, md, dips, rams)
          END DO
       END DO
       CLOSE (13)
-      DEALLOCATE (rams%RR%pol_rtp, trace, abs_intens)
+      DEALLOCATE (trace, abs_intens)
 
    END SUBROUTINE spec_abs
 !....................................................................................................................!
+
 !....................................................................................................................!
    SUBROUTINE spec_static_resraman(gs, sys, stats, rams)
 
@@ -912,8 +917,8 @@ SUBROUTINE spec_raman(gs, sys, md, dips, rams)
 
 !!!Derivatives w.r.t. mass weighted normal coordinates
       DO i = 1, stats%nmodes
-         DO j = 1, sys%natom
-            DO o = 1, rams%RR%framecount_rtp
+         DO o = 1, rams%RR%framecount_rtp
+            DO j = 1, sys%natom
                zhat_pol_dq_rtp(i, :, :, o) = zhat_pol_dq_rtp(i, :, :, o) &
                                              + (zhat_pol_dxyz_rtp(j, 1, :, :, o)*stats%disp(i, j, 1)*sys%atom_mass_inv_sqrt(j)) &
                                              + (zhat_pol_dxyz_rtp(j, 2, :, :, o)*stats%disp(i, j, 2)*sys%atom_mass_inv_sqrt(j)) &
@@ -973,6 +978,7 @@ SUBROUTINE spec_raman(gs, sys, md, dips, rams)
    END SUBROUTINE spec_static_resraman
 
 !!....................................................................................................................!
+
 !!....................................................................................................................!
 !
    SUBROUTINE spec_resraman(natom, framecount, element, rtp_dipole_x, rtp_dipole_y, rtp_dipole_z, type_input, &

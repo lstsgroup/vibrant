@@ -29,6 +29,7 @@ CONTAINS
 
    END SUBROUTINE central_diff
 !**************************************************************************************************************!
+
 !**************************************************************************************************************!
    SUBROUTINE forward_diff(mol_num, alpha, dip_free, dip_x, gs, sys, dips)
       TYPE(global_settings), INTENT(INOUT) :: gs
@@ -77,99 +78,113 @@ CONTAINS
 
 !**************************************************************************************************************!
 !**************************************************************************************************************!
-   SUBROUTINE finite_diff_static(gs, sys, stats, dips, rams)
+    SUBROUTINE finite_diff_static(gs, sys, stats, dips, rams)
 
-      TYPE(global_settings), INTENT(INOUT) :: gs
-      TYPE(systems), INTENT(INOUT)   :: sys
-      TYPE(static), INTENT(INOUT):: stats
-      TYPE(dipoles), INTENT(INOUT)    ::  dips
-      TYPE(raman), INTENT(INOUT)   :: rams
+        TYPE(global_settings), INTENT(INOUT) :: gs
+        TYPE(systems), INTENT(INOUT)   :: sys
+        TYPE(static), INTENT(INOUT):: stats
+        TYPE(dipoles), INTENT(INOUT)    ::  dips
+        TYPE(raman), INTENT(INOUT)   :: rams
+    
+        INTEGER :: i_pol, j_pol, k, l, j, xyz
+        REAL(kind=dp) :: factor, delta, coeff
 
-      INTEGER                                                      :: stat, i, j, k, l, m
-      INTEGER                                                      :: i_pol, j_pol
-      REAL(kind=dp)                                                 :: factor
-      !REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE                  :: pol_dxyz
-      REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                  :: dip_dxyz
+        factor = 1.0_dp/(2.0_dp*stats%dx)
+    
+        IF (gs%spectral_type%read_function=='R') THEN
+            !ALLOCATE (pol_dxyz(sys%natom, 3, 3, 3))
+            ALLOCATE (rams%pol_dq(stats%nmodes, 3, 3))
+    
+            rams%pol_dq = 0.0_dp
+    
+            DO i_pol = 1, 3
+                DO j_pol = 1, 3
+                    DO k = 1, sys%natom
+                        DO l = 1, 3
+                            coeff = factor*sys%atom_mass_inv_sqrt(k)
+                            delta = rams%pol(i_pol, j_pol)%atom(k)%displacement(1)%XYZ(l)%frame(1) &
+                                    - rams%pol(i_pol, j_pol)%atom(k)%displacement(2)%XYZ(l)%frame(1)
 
-      factor = REAL(1.0_dp/(2.0_dp*stats%dx), kind=dp)
-
-      IF (gs%spectral_type%read_function == 'R') THEN
-         !ALLOCATE (pol_dxyz(sys%natom, 3, 3, 3))
-         ALLOCATE (rams%pol_dq(stats%nmodes, 3, 3))
-
-         rams%pol_dq = 0.0_dp
-
-
-      ELSEIF (gs%spectral_type%read_function == 'IR') THEN
-
-         ALLOCATE (dip_dxyz(sys%natom, 3, 3))
-         ALLOCATE (dips%dip_dq(stats%nmodes, 3))
-
-         dips%dip_dq = 0.0_dp
-
-         dip_dxyz(:, :, :) = REAL((dips%static_dip(:, :, 1, :) - dips%static_dip(:, :, 2, :))*factor, kind=dp)
-
-         DEALLOCATE (dips%static_dip)
-      END IF
-
-      DO j = 1, stats%nmodes !Number of Normal Modes
-         DO k = 1, sys%natom !Number of Atoms
-            Do l = 1, 3 !Displacement
-               IF (gs%spectral_type%read_function=='R') THEN
-                  !rams%pol_dq(j, :, :) = rams%pol_dq(j, :, :) + factor * stats%disp(j, k, l) * sys%atom_mass_inv_sqrt(k) * &
-                  !                  (rams%atom(k)%displacement(1)%XYZ(l)%pol(:,:) - rams%atom(k)%displacement(2)%XYZ(l)%pol(:,:))
-                  DO i_pol = 1, 3
-                            DO j_pol = 1, 3
-                                rams%pol_dq(j, i_pol, j_pol) = rams%pol_dq(j, i_pol, j_pol) + factor * stats%disp(j, k, l) * sys%atom_mass_inv_sqrt(k) * &
-                                    (rams%pol(i_pol,j_pol)%atom(k)%displacement(1)%XYZ(l)- rams%pol(i_pol,j_pol)%atom(k)%displacement(2)%XYZ(l))
+                            DO j = 1, stats%nmodes
+                                rams%pol_dq(j, i_pol, j_pol) = rams%pol_dq(j, i_pol, j_pol) &
+                                                               + coeff*stats%disp(j, k, l)*delta
                             END DO
                         END DO
-               ELSEIF (gs%spectral_type%read_function=='IR') THEN
-                  dips%dip_dq(j, :) = dips%dip_dq(j, :) + (dip_dxyz(k, l, :)*stats%disp(j, k, l)*sys%atom_mass_inv_sqrt(k))
-               END IF
+                    END DO
+                END DO
             END DO
-         END DO
-      END DO
+    
+        ELSEIF (gs%spectral_type%read_function=='IR') THEN
+    
+            ALLOCATE (dips%dip_dq(stats%nmodes, 3))
+    
+            dips%dip_dq = 0.0_dp
+    
+            DO xyz = 1, 3
+                DO k = 1, sys%natom
+                    DO l = 1, 3
+                        coeff = factor*sys%atom_mass_inv_sqrt(k)
+                        delta = dips%static_dip(xyz)%atom(k)%displacement(2)%XYZ(l)%frame(1) &
+                                - dips%static_dip(xyz)%atom(k)%displacement(1)%XYZ(l)%frame(1)
 
-      IF (gs%spectral_type%read_function == 'R') THEN
-         !DEALLOCATE (rams%pol)
-      ELSEIF (gs%spectral_type%read_function == 'IR') THEN
-         DEALLOCATE (dip_dxyz)
-      END IF
+                        DO j = 1, stats%nmodes
+                            dips%dip_dq(j, xyz) = dips%dip_dq(j, xyz) + coeff*stats%disp(j, k, l)*delta
+                        
+                        END DO
+                    END DO
+                END DO
+            END DO
+        END IF
 
-   END SUBROUTINE finite_diff_static
+    END SUBROUTINE finite_diff_static
 
 !**************************************************************************************************************!
 !**************************************************************************************************************!
-   SUBROUTINE finite_diff_static_resraman(static_dipole_x_rtp, static_dipole_y_rtp, static_dipole_z_rtp, sys, rams)
+    SUBROUTINE finite_diff_static_resraman(sys, rams)
 
-      TYPE(systems), INTENT(INOUT)        :: sys
-      TYPE(raman), INTENT(INOUT)        :: rams
-      REAL(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE, INTENT(INOUT)  :: static_dipole_x_rtp
-      REAL(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE, INTENT(INOUT)  :: static_dipole_y_rtp
-      REAL(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE, INTENT(INOUT)  :: static_dipole_z_rtp
+        TYPE(raman), INTENT(INOUT)        :: rams
+        TYPE(systems), INTENT(INOUT)        :: sys
 
-      INTEGER                                                      ::  i, j, k, m, l
-      REAL(kind=dp)                                                 :: damping_factor, conv_unit
+        INTEGER                                                      ::  x, y, i, j, k, m, l, i_pol, j_pol, stat
+        REAL(kind=dp)                                                 :: damping_factor, conv_unit
 
-      ALLOCATE (rams%RR%pol_rtp(sys%natom, 3, 2, 3, 3, rams%RR%framecount_rtp))
+        !ALLOCATE
+        CALL rams%RR%init_rr_pol(sys%natom, rams%RR%framecount_rtp)
 
-      conv_unit = rams%RR%damping_constant*joule_unit/ev_unit !! J
-      damping_factor = conv_unit/action_unit*rams%RR%dt_rtp*fs2s !! s-1
+        conv_unit = rams%RR%damping_constant*joule_unit/ev_unit !! J
+        damping_factor = conv_unit/action_unit*rams%RR%dt_rtp*fs2s !! s-1
 
-      DO l = 2, rams%RR%framecount_rtp + 1
-         rams%RR%pol_rtp(:, :, :, 1, :, l - 1) = static_dipole_x_rtp(:, :, :, :, l) - static_dipole_x_rtp(:, :, :, :, 1)
-         rams%RR%pol_rtp(:, :, :, 2, :, l - 1) = static_dipole_y_rtp(:, :, :, :, l) - static_dipole_y_rtp(:, :, :, :, 1)
-         rams%RR%pol_rtp(:, :, :, 3, :, l - 1) = static_dipole_z_rtp(:, :, :, :, l) - static_dipole_z_rtp(:, :, :, :, 1)
-      END DO
+        DO k = 1, 2
+            DO i = 1, sys%natom
+                DO j = 1, 3
+                    DO j_pol = 1, 3
+                        DO l = 2, rams%RR%framecount_rtp + 1
+                            rams%RR%pol_rtp(1, j_pol)%atom(i)%displacement(k)%XYZ(j)%frame(l-1) = (rams%RR%static_dip_x_rtp(j_pol)%atom(i)%displacement(k)%XYZ(j)%frame(l)- rams%RR%static_dip_x_rtp(j_pol)%atom(i)%displacement(k)%XYZ(j)%frame(1))
+                            rams%RR%pol_rtp(2, j_pol)%atom(i)%displacement(k)%XYZ(j)%frame(l-1) = (rams%RR%static_dip_y_rtp(j_pol)%atom(i)%displacement(k)%XYZ(j)%frame(l)- rams%RR%static_dip_y_rtp(j_pol)%atom(i)%displacement(k)%XYZ(j)%frame(1))
+                            rams%RR%pol_rtp(3, j_pol)%atom(i)%displacement(k)%XYZ(j)%frame(l-1) = (rams%RR%static_dip_z_rtp(j_pol)%atom(i)%displacement(k)%XYZ(j)%frame(l)- rams%RR%static_dip_z_rtp(j_pol)%atom(i)%displacement(k)%XYZ(j)%frame(1))
+                        END DO
+                    END DO
+                END DO
+            END DO
+        END DO
 
-      DO l = 1, rams%RR%framecount_rtp
-         rams%RR%pol_rtp(:, :, :, :, :, l) = rams%RR%pol_rtp(:, :, :, :, :, l)*(EXP(-1.0d0*damping_factor*l))
-      END DO
 
-      !   DO i = 1, rams%RR%framecount_rtp
-      !       rams%RR%pol_rtp(:,:,:,:,:,i) = rams%RR%pol_rtp(:,:,:,:,:,i)*((COS(i/(rams%RR%framecount_rtp - 1.0_dp)/2.0_dp*3.14159265359_dp))**2)
-      !   END DO
-   END SUBROUTINE finite_diff_static_resraman
+        DO k = 1, 2
+            DO i = 1, sys%natom
+                DO j = 1, 3
+                    DO j_pol = 1, 3
+                        DO l = 1, rams%RR%framecount_rtp 
+                            rams%RR%pol_rtp(1, j_pol)%atom(i)%displacement(k)%XYZ(j)%frame(l) = rams%RR%pol_rtp(1, j_pol)%atom(i)%displacement(k)%XYZ(j)%frame(l)  * EXP(-1.0_dp*damping_factor*l)
+                            rams%RR%pol_rtp(2, j_pol)%atom(i)%displacement(k)%XYZ(j)%frame(l) = rams%RR%pol_rtp(2, j_pol)%atom(i)%displacement(k)%XYZ(j)%frame(l)  * EXP(-1.0_dp*damping_factor*l)
+                            rams%RR%pol_rtp(3, j_pol)%atom(i)%displacement(k)%XYZ(j)%frame(l) = rams%RR%pol_rtp(3, j_pol)%atom(i)%displacement(k)%XYZ(j)%frame(l)  * EXP(-1.0_dp*damping_factor*l)
+                        END DO
+                    END DO
+                END DO
+            END DO
+        END DO
+
+        ! DO i = 1, framecount_rtp
+        !    pol_rtp(:,:,:,:,:,i) = pol_rtp(:,:,:,:,:,i)*((COS(i/(framecount_rtp - 1.0_dp)/2.0_dp*3.14_dp))**2) !!Hann Window function
+        !END DO
+    END SUBROUTINE finite_diff_static_resraman
 END MODULE fin_diff
-
