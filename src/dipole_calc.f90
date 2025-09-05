@@ -987,7 +987,7 @@ CONTAINS
         pox_z = 40.0_dp
         pox_all = 40.0_dp
 
-        sqrt3 = 1.73205080756887729352744634_dp
+        sqrt3 = 1.73205080756887729352744634_dp ! <-- MAGIC NUMBER ? 
         a = 0.5_dp*(sys%cell%box_x + sys%cell%box_y)
         acosa = 0.5_dp*a
         asina = sqrt3*acosa
@@ -1000,11 +1000,11 @@ CONTAINS
                 DO j = 1, natom_frag(i)
                     IF (sys%system=='1') THEN
                         CALL pbc_hexagonal(md%coord_v(m, fragment(m, i, j), :), sys%fragments%refpoint(m, i, :), sys) !! If fragment approach!!!
-                        dipole(m, i, :) = dipole(m, i, :) + sys%cell%vec_pbc*1.889725989_dp*sys%charge(fragment(m, i, j))
+                        dipole(m, i, :) = dipole(m, i, :) + sys%cell%vec_pbc*1.889725989_dp*sys%charge(fragment(m, i, j)) ! <-- MAGIC NUMBER ? 
                     ELSEIF (gs%spectral_type%type_dipole=='1' .AND. sys%system=='2') THEN
                         CALL pbc_orthorombic_old(md%coord_v(m, fragment(m, i, j), :), sys%fragments%refpoint(m, 1, :), sys%cell%vec, sys%cell%vec_pbc, &
                                                  pox_all, pox_x, pox_y, pox_z) !! IF COM is for whole supercel!!!
-                        dipole(m, 1, :) = dipole(m, 1, :) + sys%cell%vec_pbc*1.889725989_dp*sys%charge(fragment(m, i, j))
+                        dipole(m, 1, :) = dipole(m, 1, :) + sys%cell%vec_pbc*1.889725989_dp*sys%charge(fragment(m, i, j)) ! <-- MAGIC NUMBER ? 
                     END IF
                 END DO
             END DO
@@ -1015,14 +1015,14 @@ CONTAINS
         DO m = 1, sys%framecount
             IF (sys%system=='2' .AND. gs%spectral_type%type_dipole=='1') THEN
                 IF (dipole(m, 1, 1)>120) THEN
-                    dipole(m, 1, 1) = dipole(m, 1, 1) - (hmat(1, 1)*3*1.889725989)
+                    dipole(m, 1, 1) = dipole(m, 1, 1) - (hmat(1, 1)*3*1.889725989) ! <-- MAGIC NUMBER ? 
                 END IF
 !  dipole(m,1,1)=dipole(m,1,1)-(hmat(1,1)*3*1.889725989)
-                dipole(m, 1, 2) = dipole(m, 1, 2) + (hmat(2, 2)*4*1.889725989)!+(hmat(1,2)*3*1.889725989)
-                dipole(m, 1, :) = REAL((dipole(m, 1, :)*2.54174622741_dp)/sys%fragments%mass_tot_cell, kind=dp) !!Dividing by total mass, change it later
+                dipole(m, 1, 2) = dipole(m, 1, 2) + (hmat(2, 2)*4*1.889725989)!+(hmat(1,2)*3*1.889725989) ! <-- MAGIC NUMBER ? 
+                dipole(m, 1, :) = REAL((dipole(m, 1, :)*2.54174622741_dp)/sys%fragments%mass_tot_cell, kind=dp) ! <-- MAGIC NUMBER ?  !!Dividing by total mass, change it later
             ELSEIF (sys%system=='1') THEN
                 DO i = 1, sys%mol_num !! define something for this
-                    dipole(m, i, :) = REAL((dipole(m, i, :)*2.54174622741_dp)/sys%fragments%mass_tot_frag(m, i), kind=dp) !!Dividing by total mass, change it later
+                    dipole(m, i, :) = REAL((dipole(m, i, :)*2.54174622741_dp)/sys%fragments%mass_tot_frag(m, i), kind=dp)! <-- MAGIC NUMBER ?  !!Dividing by total mass, change it later
                 END DO
             END IF
         END DO

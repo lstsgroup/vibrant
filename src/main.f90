@@ -108,14 +108,14 @@ PROGRAM vib2d
     sys%cell%box_x = box_x
     sys%cell%box_y = box_y
     sys%cell%box_z = box_z
-    
+
     stats%force_file = force_file
     stats%normal_freq_file = normal_freq_file
     stats%normal_displ_file = normal_displ_file
     stats%dx = dx
-    
+
     dips%static_dip_file = static_dip_free_file
-    
+
     rams%static_pol_file = static_pol_file
     rams%wannier_free = wannier_free
     rams%wannier_x = wannier_x
@@ -126,7 +126,6 @@ PROGRAM vib2d
     rams%e_field(2)%wannier_xyz = wannier_y
     rams%e_field(3)%wannier_xyz = wannier_z
 
-
     rams%averaging = averaging
     rams%direction = direction
 
@@ -136,7 +135,6 @@ PROGRAM vib2d
     rams%RR%framecount_rtp_pade = framecount_rtp_pade
     rams%RR%framecount_rtp = framecount_rtp
 
-    
     md%freq_range = freq_range
     md%dt = dt
     md%dom = dom
@@ -158,7 +156,6 @@ PROGRAM vib2d
                 CALL masses_charges(gs, sys)
             END IF
         END IF
-
         CALL spec_ir(gs, sys, md, dips)
         !***************************************************************************
 
@@ -167,7 +164,6 @@ PROGRAM vib2d
         sys%filename = wannier_free! <----  MUST BE ADJUSTED
         CALL read_coord(gs, sys)
         CALL masses_charges(gs, sys)
-
         CALL spec_raman(gs, sys, md, dips, rams)
         !***************************************************************************
 
@@ -176,7 +172,6 @@ PROGRAM vib2d
         CALL read_coord(gs, sys)
         CALL masses_charges(gs, sys)
         CALL read_normal_modes(gs, sys, stats)
-
         CALL normal_mode_analysis(sys, stats)
         !***************************************************************************
 
@@ -185,7 +180,7 @@ PROGRAM vib2d
         CALL read_coord(gs, sys)
         CALL masses_charges(gs, sys)
         CALL read_normal_modes(gs, sys, stats)
-        CALL read_static(dips%static_dip_file, dips%static_dip, gs, sys, rams)
+        CALL read_static(gs, sys, rams, dips)
         IF (type_static=='1') THEN
             CALL normal_mode_analysis(sys, stats)
         END IF
@@ -199,13 +194,13 @@ PROGRAM vib2d
         CALL read_coord(gs, sys)
         CALL masses_charges(gs, sys)
         CALL read_normal_modes(gs, sys, stats)
-        CALL read_static(dips%static_dip_file, dips%static_dip, gs, sys, rams)
+        CALL read_static(gs, sys, rams, dips)
 
-        IF (type_dipole=='2') THEN
-            !CALL read_static(static_dip_x_file, static_dip_x, gs, sys, rams)
-            !CALL read_static(static_dip_y_file, static_dip_y, gs, sys, rams)
-            !CALL read_static(static_dip_z_file, static_dip_z, gs, sys, rams)
-        END IF
+        !IF (type_dipole=='2') THEN
+        !    !CALL read_static(static_dip_x_file, static_dip_x, gs, sys, rams)
+        !    !CALL read_static(static_dip_y_file, static_dip_y, gs, sys, rams)
+        !    !CALL read_static(static_dip_z_file, static_dip_z, gs, sys, rams)
+        !END IF
         IF (type_static=='1') THEN
             CALL normal_mode_analysis(sys, stats)
         END IF
@@ -220,7 +215,7 @@ PROGRAM vib2d
         CALL read_static_resraman(static_dip_x_file, rams%RR%static_dip_x_rtp, sys, rams)
         CALL read_static_resraman(static_dip_y_file, rams%RR%static_dip_y_rtp, sys, rams)
         CALL read_static_resraman(static_dip_z_file, rams%RR%static_dip_z_rtp, sys, rams)
-        CALL finite_diff_static_resraman(rams%RR%static_dip_x_rtp, rams%RR%static_dip_y_rtp, rams%RR%static_dip_z_rtp, sys, rams) !<-- CHANGE ?
+        CALL finite_diff_static_resraman(sys, rams) !<-- CHANGE ?
 
         CALL spec_abs(gs, sys, rams)
         !***************************************************************************
@@ -237,7 +232,7 @@ PROGRAM vib2d
             CALL normal_mode_analysis(sys, stats)
         END IF
 
-        CALL finite_diff_static_resraman(rams%RR%static_dip_x_rtp, rams%RR%static_dip_y_rtp, rams%RR%static_dip_z_rtp, sys, rams)
+        CALL finite_diff_static_resraman(sys, rams)
         CALL spec_abs(gs, sys, rams)
 
         CALL spec_static_resraman(gs, sys, stats, rams)

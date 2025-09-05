@@ -59,7 +59,7 @@ SUBROUTINE cvv(natom, coord_v, sys, md)
     END DO
     
     DO i = 0, 2*t_cor - 1
-    md%z(i) = md%z(i)*((COS(i/(t_cor - 1.0_dp)/2.0_dp*3.14_dp))**2) !!Hann Window function
+    md%z(i) = md%z(i)*((COS(i/(t_cor - 1.0_dp)/2.0_dp*3.14_dp))**2) !!Hann Window function ! <-- MAGIC NUMBER ? 
     END DO
     
     OPEN (UNIT=61, FILE='result_cvv.txt', STATUS='unknown', IOSTAT=stat) !!Write output
@@ -114,7 +114,7 @@ SUBROUTINE cvv(natom, coord_v, sys, md)
     !z_iso(:)=z_iso(:)/mol_num
     
         DO i = 0, t_cor - 1
-            z_iso(i) = z_iso(i)*((COS(i/(t_cor - 1.0_dp)/2.0_dp*3.14_dp))**2)
+            z_iso(i) = z_iso(i)*((COS(i/(t_cor - 1.0_dp)/2.0_dp*3.14_dp))**2) ! <-- MAGIC NUMBER ? 
             !z_iso(i)=z_iso(i)*0.5_dp*(1+COS(2.0_dp*3.14_dp*i/(2.0_dp*(t_cor-1))))
         END DO
     
@@ -185,7 +185,7 @@ SUBROUTINE cvv(natom, coord_v, sys, md)
         !z_aniso(:)=REAL(z_aniso(:)/mol_num,kind=dp)
         
         DO i = 0, t_cor - 1
-        z_aniso(i) = z_aniso(i)*((COS(i/(t_cor - 1.0_dp)/2.0_dp*3.14_dp))**2)
+        z_aniso(i) = z_aniso(i)*((COS(i/(t_cor - 1.0_dp)/2.0_dp*3.14_dp))**2) ! <-- MAGIC NUMBER ? 
         END DO
         
         z_aniso(t_cor) = 0.0_dp
@@ -275,7 +275,7 @@ SUBROUTINE cvv(natom, coord_v, sys, md)
 
         DO i = 0, t_cor - 1
             DO j = 1, natom - 1
-                z_iso_resraman(i, j) = z_iso_resraman(i, j)*((COS(i/(t_cor - 1.0_dp)/2.0_dp*3.14_dp))**2)
+                z_iso_resraman(i, j) = z_iso_resraman(i, j)*((COS(i/(t_cor - 1.0_dp)/2.0_dp*3.14_dp))**2) ! <-- MAGIC NUMBER ? 
             END DO
         END DO
 
@@ -437,7 +437,7 @@ SUBROUTINE cvv(natom, coord_v, sys, md)
 
         DO i = 0, t_cor - 1
             DO j = 1, natom - 1
-                z_aniso_resraman(i, j) = z_aniso_resraman(i, j)*0.5_dp*(1 + COS(2.0_dp*3.14_dp*i/(2.0_dp*(t_cor - 1))))
+                z_aniso_resraman(i, j) = z_aniso_resraman(i, j)*0.5_dp*(1 + COS(2.0_dp*3.14_dp*i/(2.0_dp*(t_cor - 1)))) ! <-- MAGIC NUMBER ? 
             END DO
         END DO
 
@@ -514,8 +514,8 @@ SUBROUTINE cvv(natom, coord_v, sys, md)
         z_ortho(:) = z_ortho(:)/(2.0_dp*pi)
 
         DO i = 0, t_cor - 1
-            z_para(i) = z_para(i)*0.5_dp*(1 + COS(2.0_dp*3.14_dp*i/(2.0_dp*(t_cor - 1))))
-            z_ortho(i) = z_ortho(i)*0.5_dp*(1 + COS(2.0_dp*3.14_dp*i/(2.0_dp*(t_cor - 1))))
+            z_para(i) = z_para(i)*0.5_dp*(1 + COS(2.0_dp*3.14_dp*i/(2.0_dp*(t_cor - 1)))) ! <-- MAGIC NUMBER ? 
+            z_ortho(i) = z_ortho(i)*0.5_dp*(1 + COS(2.0_dp*3.14_dp*i/(2.0_dp*(t_cor - 1)))) ! <-- MAGIC NUMBER ? 
         END DO
 
         z_para(t_cor) = 0.0_dp

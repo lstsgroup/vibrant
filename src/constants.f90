@@ -36,8 +36,8 @@ MODULE constants
     PRIVATE
 
     PUBLIC ::   speed_light, const_planck, const_permit, pi, const_charge, const_boltz, damping_constant, joule_unit, debye, &
-              ev_unit, action_unit, bohr2ang, hartreebohr2evang, at_u, ang, fs2s, reccm2ev, t_cor, temp, hessian_factor
-
+              ev_unit, action_unit, bohr2ang, hartreebohr2evang, at_u, ang, fs2s, reccm2ev, t_cor, temp, hessian_factor, &
+              ir_factor, r_factor, frq_factor, power_factor, rtp_factor, int_rman_factor, int_ir_factor
     ! Constants
 
     ! Speed of light in vacuum [cm/s]
@@ -103,5 +103,27 @@ MODULE constants
 
     ! Temperature [K]
     REAL(kind=dp), PARAMETER                            :: temp = 300.0_dp
+
+    !! MAGIC NUMBERS
+    ! spec_ir
+    REAL(kind=dp), PARAMETER                            :: ir_factor = 42.256_dp
+
+    ! raman
+    REAL(kind=dp), PARAMETER                            :: r_factor = -1.438777_dp
+
+    ! refquencey
+    REAL(kind=dp), PARAMETER                            :: frq_factor = 1.883652d-4
+
+    ! refquencey
+    REAL(kind=dp), PARAMETER                            :: power_factor = 7.211349d-9
+
+    ! refquencey
+    REAL(kind=dp), PARAMETER                            :: rtp_factor = 1.23984198e-4
+
+    ! refquencey
+    REAL(kind=dp), PARAMETER                            :: int_rman_factor = 1d-29*0.421_dp
+
+    ! refquencey
+    REAL(kind=dp), PARAMETER                            :: int_ir_factor = 3047.2310_dp
 
 END MODULE constants

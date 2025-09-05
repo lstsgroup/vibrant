@@ -4,7 +4,7 @@ MODULE calc_spectra
     USE kinds, ONLY: dp
     USE vib_types, ONLY: global_settings, systems, molecular_dynamics, static, dipoles, raman
 
-    USE constants, ONLY: pi, t_cor, debye, speed_light, const_planck, const_boltz, const_permit, temp, pi, hartreebohr2evang, hessian_factor, bohr2ang, reccm2ev
+   USE constants, ONLY: pi, t_cor, debye, speed_light, const_planck, const_boltz, const_permit, temp, pi, hartreebohr2evang, hessian_factor, bohr2ang, reccm2ev, ir_factor, r_factor, frq_factor, power_factor, rtp_factor, int_rman_factor, int_ir_factor
     USE read_traj, ONLY: read_coord_frame
     USE fin_diff, ONLY: central_diff, forward_diff
     USE vel_cor, ONLY: cvv, cvv_iso, cvv_aniso, cvv_only_x, cvv_resraman
@@ -21,501 +21,500 @@ MODULE calc_spectra
     PUBLIC :: spec_power, normal_mode_analysis, spec_static_ir, spec_static_raman, spec_ir, spec_raman, spec_abs, spec_static_resraman!, spec_resraman
 
 CONTAINS
-SUBROUTINE spec_power(gs, sys, md)
-   
-    TYPE(global_settings), INTENT(INOUT)        :: gs
-    TYPE(systems), INTENT(INOUT)                :: sys
-    TYPE(molecular_dynamics), INTENT(INOUT)     :: md
 
-    INTEGER                                                  :: stat, i
-    INTEGER(kind=dp)                                          :: plan
+    SUBROUTINE spec_power(gs, sys, md)
 
-    ALLOCATE (md%zhat(0:t_cor*2 - 1))
+        TYPE(global_settings), INTENT(INOUT)        :: gs
+        TYPE(systems), INTENT(INOUT)                :: sys
+        TYPE(molecular_dynamics), INTENT(INOUT)     :: md
 
-    md%zhat = COMPLEX(0._dp, 0.0_dp)
+        INTEGER                                                  :: stat, i
+        INTEGER(kind=dp)                                          :: plan
 
-    CALL read_coord_frame(sys%natom, sys%filename, md%coord_v, sys)
+        ALLOCATE (md%zhat(0:t_cor*2 - 1))
 
-    IF (gs%spectral_type%type_input=='1') THEN   !!If it is from positions, do finite differences first
-        CALL central_diff(sys%natom, md%coord_v, md%v, sys, md)
+        md%zhat = COMPLEX(0._dp, 0.0_dp)
 
-        CALL cvv(sys%natom, md%v, sys, md)
+        CALL read_coord_frame(sys%natom, sys%filename, md%coord_v, sys)
 
-    ELSEIF (gs%spectral_type%type_input=='2') THEN   !!If it is from velocities, compute autcorrelation directly
+        IF (gs%spectral_type%type_input=='1') THEN   !!If it is from positions, do finite differences first
+            CALL central_diff(sys%natom, md%coord_v, md%v, sys, md)
 
-        CALL cvv(sys%natom, md%coord_v, sys, md)
+            CALL cvv(sys%natom, md%v, sys, md)
 
-    END IF
+        ELSEIF (gs%spectral_type%type_input=='2') THEN   !!If it is from velocities, compute autcorrelation directly
 
-    CALL dfftw_plan_dft_r2c_1d(plan, 2*t_cor, md%z, md%zhat, FFTW_ESTIMATE) !!!FFT
-    CALL dfftw_execute_dft_r2c(plan, md%z, md%zhat)
-    CALL dfftw_destroy_plan(plan)
+            CALL cvv(sys%natom, md%coord_v, sys, md)
 
-    md%zhat = REAL(md%zhat, kind=dp)
-
-    OPEN (UNIT=63, FILE='power_spec.txt', STATUS='unknown', IOSTAT=stat) !!write the output
-    DO i = 0, 2*t_cor - 1
-        md%zhat(i) = (md%zhat(i)*md%dt*7.211349d-9)/(sys%natom*3.0_dp) !!!unit conversion
-        IF ((i*md%freq_range).GE.5000_dp) CYCLE
-        WRITE (63, *) i*md%freq_range, REAL(md%zhat(i), kind=dp)
-    END DO
-
-    CLOSE (63)
-
-END SUBROUTINE spec_power
-!***********************************************************************************************!
-!***********************************************************************************************!
-SUBROUTINE spec_ir(gs, sys, md, dips)
-    TYPE(global_settings), INTENT(INOUT)        :: gs
-    TYPE(systems), INTENT(INOUT)                :: sys
-    TYPE(molecular_dynamics), INTENT(INOUT)     :: md
-    TYPE(dipoles), INTENT(INOUT)     :: dips
-
-    INTEGER                                                  :: stat, i
-    INTEGER(kind=dp)                                          :: plan
-
-    IF (sys%system=='1' .OR. sys%system=='2' .AND. gs%spectral_type%type_dipole=='1') THEN !!fragment approach or whole supercell
-        IF (sys%cell%cell_type=='1' .OR. sys%cell%cell_type=='2') THEN !!KP or SC
-            CALL read_coord_frame(sys%natom, sys%filename, md%coord_v, sys)
-            CALL center_mass(sys%filename, sys%fragments%fragment, gs, sys, md, dips)
-            CALL wannier_frag(sys%fragments%natom_frag, sys%filename, dips%dipole, sys%fragments%fragment, gs, sys, md, dips)
-        ELSEIF (sys%cell%cell_type=='3') THEN !!SC with solvent
-            CALL read_coord_frame(sys%natom, sys%filename, md%coord_v, sys)
-            CALL solv_frag_index(sys%filename, sys%fragments%natom_frag, sys%fragments%fragment, sys, md, dips)
-            CALL wannier_frag(sys%fragments%natom_frag, sys%filename, dips%dipole, sys%fragments%fragment, gs, sys, md, dips)
-        END IF
-    END IF
-
-    ALLOCATE (md%zhat(0:2*t_cor - 1))
-
-    md%zhat = COMPLEX(0._dp, 0.0_dp)
-
-    IF (sys%system=='2' .AND. gs%spectral_type%type_dipole=='1') THEN
-        sys%mol_num = 1
-    END IF
-    IF (sys%system=='1' .OR. (sys%system=='2' .AND. gs%spectral_type%type_dipole=='1')) THEN  !!fragment approach or the whole cell
-        CALL central_diff(sys%mol_num, dips%dipole, md%v, sys, md)
-        CALL cvv(sys%fragments%nfrag, md%v, sys, md)
-    ELSEIF (sys%system=='2' .AND. gs%spectral_type%type_dipole=='2') THEN !!molecular approach
-        CALL read_coord_frame(sys%mol_num, sys%filename, md%coord_v, sys)
-        CALL central_diff(sys%mol_num, md%coord_v, md%v, sys, md)
-        CALL cvv(sys%mol_num, md%v, sys, md)
-    END IF
-
-    CALL dfftw_plan_dft_r2c_1d(plan, 2*t_cor, md%z(0:2*t_cor - 1), md%zhat(0:2*t_cor - 1), FFTW_ESTIMATE) !!FFT!!
-    CALL dfftw_execute_dft_r2c(plan, md%z, md%zhat)
-    CALL dfftw_destroy_plan(plan)
-
-    md%zhat = REAL(md%zhat, kind=dp)
-    OPEN (UNIT=61, FILE='IR_spectrum.txt', STATUS='unknown', IOSTAT=stat) !!write output
-    DO i = 0, 2*t_cor - 1
-        md%zhat(i) = md%zhat(i)*3047.2310_dp*md%dt*(md%sinc_const*(i)/SIN(md%sinc_const*(i)))**2._dp !!unit conv. & sinc func.
-        IF ((i*md%freq_range).GE.5000_dp) CYCLE
-        md%zhat(0) = 0.00_dp
-        WRITE (61, *) i*md%freq_range, -1.0_dp*REAL(md%zhat(i), kind=dp)
-    END DO
-    CLOSE (61)
-
-END SUBROUTINE spec_ir
-
-!!!****************************************************************************************!
-!!!****************************************************************************************!
-SUBROUTINE spec_raman(gs, sys, md, dips, rams)
-    TYPE(global_settings), INTENT(INOUT)        :: gs
-    TYPE(systems), INTENT(INOUT)        :: sys
-    TYPE(molecular_dynamics), INTENT(INOUT)        :: md
-    TYPE(dipoles), INTENT(INOUT)        :: dips
-    TYPE(raman), INTENT(INOUT)        :: rams
-
-
-    INTEGER                                                  :: stat, i, j, xyz
-    INTEGER(kind=dp)                                          :: plan
-    INTEGER, DIMENSION(:), ALLOCATABLE                         :: natom_frag_free
-    !INTEGER, DIMENSION(:), ALLOCATABLE                         :: natom_frag_y, natom_frag_z
-    INTEGER, DIMENSION(:, :, :), ALLOCATABLE                     :: fragment_free
-    !INTEGER, DIMENSION(:,:, :, :), ALLOCATABLE                     :: fragment_xyz
-    COMPLEX(kind=dp), DIMENSION(:), ALLOCATABLE                 :: zhat_iso, zhat_aniso, zhat_para
-    COMPLEX(kind=dp), DIMENSION(:), ALLOCATABLE                 :: zhat_ortho, zhat_unpol
-    REAL(kind=dp), DIMENSION(:), ALLOCATABLE                    :: zhat_unpol_x, zhat_depol_x, zhat_para_all, zhat_depol
-    REAL(kind=dp)                                             :: f, freq_range
-    REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                :: dip_free!,rams%e_field(1)%dip_xyz,rams%e_field(2)%dip_xyz,rams%e_field(3)%dip_xyz
-    !REAL(kind=dp), DIMENSION(:,:, :, :), ALLOCATABLE                :: alpha_xyz, dip_xyz, alpha_diff_xyz
-    !REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                ::rams%e_field(1)%alpha_diff_xyz,rams%e_field(2)%alpha_diff_xyz,rams%e_field(3)%alpha_diff_xyz
-
-!!!!ALLOCATION!!!
-    ALLOCATE (rams%e_field(1)%alpha_xyz(sys%framecount, sys%mol_num, 3))
-    ALLOCATE (rams%e_field(2)%alpha_xyz(sys%framecount, sys%mol_num, 3))
-    ALLOCATE (rams%e_field(3)%alpha_xyz(sys%framecount, sys%mol_num, 3))
-
-    IF (rams%averaging=='1') THEN
-
-!!FIELD_FREE!!!
-        IF (sys%system=='1' .OR. gs%spectral_type%type_dipole=='1') THEN
-            IF (sys%cell%cell_type.NE.'3') THEN
-                !CALL read_coord_frame(sys, md)
-                CALL read_coord_frame(sys%natom, rams%wannier_free, md%coord_v, sys) !<- this needs to be ADJUSTED
-                ! filename different and fragment_free different
-                CALL center_mass(rams%wannier_free, fragment_free, gs, sys, md, dips)
-                CALL wannier_frag(sys%fragments%natom_frag, rams%wannier_free, dip_free, fragment_free, gs, sys, md, dips)
-            ELSEIF (sys%cell%cell_type=='3') THEN
-                CALL read_coord_frame(sys%natom, rams%wannier_free, md%coord_v, sys)
-                CALL solv_frag_index(rams%wannier_free, natom_frag_free, fragment_free, sys, md, dips)
-
-                CALL wannier_frag(natom_frag_free, rams%wannier_free, dip_free, fragment_free, gs, sys, md, dips)
-            END IF
-        ELSEIF (sys%system=='2') THEN
-            IF (gs%spectral_type%type_dipole=='2') THEN
-                CALL read_coord_frame(sys%mol_num, rams%wannier_free, dip_free, sys)
-            END IF
         END IF
 
-    !!!!ELECTRIC FIELD!!!
-    DO xyz = 1, 3 !X-FIELD Y-FIELD Z-FIELD
-        CALL read_coord_frame(sys%natom, rams%e_field(xyz)%wannier_xyz, md%coord_v, sys)
-        IF (sys%system=='1' .OR. gs%spectral_type%type_dipole=='1') THEN
-            IF (sys%cell%cell_type.NE.'3') THEN
-                CALL center_mass(rams%e_field(xyz)%wannier_xyz, rams%e_field(xyz)%fragment_xyz, gs, sys, md, dips)
-                CALL wannier_frag(sys%fragments%natom_frag, rams%e_field(xyz)%wannier_xyz,rams%e_field(xyz)%dip_xyz, rams%e_field(xyz)%fragment_xyz, gs, sys, md, dips)
-    
-            ELSEIF (sys%cell%cell_type=='3') THEN
-                CALL solv_frag_index(rams%e_field(xyz)%wannier_xyz, rams%e_field(xyz)%natom_frag_xyz, rams%e_field(xyz)%fragment_xyz, sys, md, dips)
-                CALL wannier_frag(rams%e_field(xyz)%natom_frag_xyz, rams%e_field(xyz)%wannier_xyz,rams%e_field(xyz)%dip_xyz, rams%e_field(xyz)%fragment_xyz, gs, sys, md, dips)
-            END IF
-            IF (sys%system=='1') THEN
-                CALL forward_diff(sys%mol_num, rams%e_field(xyz)%alpha_xyz, dip_free,rams%e_field(xyz)%dip_xyz, gs, sys)
-            ELSEIF (sys%system=='2' .AND. gs%spectral_type%type_dipole=='1') THEN
-                CALL forward_diff(sys%fragments%nfrag, rams%e_field(xyz)%alpha_xyz, dip_free,rams%e_field(xyz)%dip_xyz, gs, sys)
-            END IF
-        ELSEIF (sys%system=='2') THEN
-    
-            IF (gs%spectral_type%type_dipole=='2') THEN
-                CALL forward_diff(sys%mol_num, rams%e_field(xyz)%alpha_xyz, dip_free, md%coord_v, gs, sys)
-    
-            ELSEIF (gs%spectral_type%type_dipole=='3') THEN
-                DO i = 1, sys%framecount
-                    DO j = 1, 1
-                        rams%e_field(xyz)%alpha_xyz(i, j, :) = md%coord_v(i, j, :)
-                    END DO
-                END DO
-                rams%e_field(xyz)%alpha_xyz = REAL(rams%e_field(xyz)%alpha_xyz*((8.988d+15)/(5.142d+11*3.33564d-30)), kind=dp) !conversion to debye/E
-            END IF
-        END IF
-    
-        IF (sys%system=='2' .AND. gs%spectral_type%type_dipole=='1') THEN
-            CALL central_diff(sys%fragments%nfrag, rams%e_field(xyz)%alpha_xyz,rams%e_field(xyz)%alpha_diff_xyz, sys, md)
-        ELSE
-            CALL central_diff(sys%mol_num, rams%e_field(xyz)%alpha_xyz,rams%e_field(xyz)%alpha_diff_xyz, sys, md)
-        END IF
-    END DO
+        CALL dfftw_plan_dft_r2c_1d(plan, 2*t_cor, md%z, md%zhat, FFTW_ESTIMATE) !!!FFT
+        CALL dfftw_execute_dft_r2c(plan, md%z, md%zhat)
+        CALL dfftw_destroy_plan(plan)
 
+        md%zhat = REAL(md%zhat, kind=dp)
 
-
-!!!ACF AND FFT CALC!!!
-        PRINT *, sys%fragments%nfrag, 'sys%fragments%nfrag check'
-        ALLOCATE (zhat_iso(0:t_cor*2), zhat_aniso(0:t_cor*2))
-        ALLOCATE (zhat_unpol(0:t_cor*2), zhat_depol(0:t_cor*2), zhat_para_all(0:t_cor*2))
-
-        zhat_iso = COMPLEX(0._dp, 0.0_dp)
-        zhat_aniso = COMPLEX(0._dp, 0.0_dp)
-        zhat_unpol = COMPLEX(0._dp, 0.0_dp)
-        zhat_depol = COMPLEX(0._dp, 0.0_dp)
-
-        IF (sys%system=='1' .OR. (sys%system=='2' .AND. gs%spectral_type%type_dipole=='1')) THEN
-            CALL cvv_iso(sys%fragments%nfrag, rams%z_iso,rams%e_field(1)%alpha_diff_xyz,rams%e_field(2)%alpha_diff_xyz,rams%e_field(3)%alpha_diff_xyz, sys)
-        ELSE
-            CALL cvv_iso(sys%mol_num, rams%z_iso,rams%e_field(1)%alpha_diff_xyz,rams%e_field(2)%alpha_diff_xyz,rams%e_field(3)%alpha_diff_xyz, sys)
-        END IF
-
-        CALL dfftw_plan_dft_r2c_1d(plan, 2*t_cor, rams%z_iso, zhat_iso, FFTW_ESTIMATE)
-        CALL dfftw_execute_dft_r2c(plan, rams%z_iso, zhat_iso)
-
-        IF (sys%system=='1' .OR. (sys%system=='2' .AND. gs%spectral_type%type_dipole=='1')) THEN
-            CALL cvv_aniso(sys%fragments%nfrag, rams%z_aniso,rams%e_field(1)%alpha_diff_xyz,rams%e_field(2)%alpha_diff_xyz,rams%e_field(3)%alpha_diff_xyz, sys)
-        ELSE
-            CALL cvv_aniso(sys%mol_num, rams%z_aniso,rams%e_field(1)%alpha_diff_xyz,rams%e_field(2)%alpha_diff_xyz,rams%e_field(3)%alpha_diff_xyz, sys)
-        END IF
-
-        CALL dfftw_plan_dft_r2c_1d(plan, 2*t_cor, rams%z_aniso, zhat_aniso, FFTW_ESTIMATE)
-        CALL dfftw_execute_dft_r2c(plan, rams%z_aniso, zhat_aniso)
-
-!!!ORTHOGONAL!!!
-        OPEN (UNIT=63, FILE='result_fft_water_lib_ortho.txt', STATUS='unknown', IOSTAT=stat)
-        zhat_aniso = REAL(zhat_aniso, kind=dp)
-        freq_range = REAL(md%dom/(2.0_dp*t_cor), kind=dp)
-        f = freq_range*md%dt*1.883652d-4
-
-        DO i = 0, 2*t_cor - 2
-            zhat_aniso(i + 1) = REAL(zhat_aniso(i + 1), kind=dp)*(f*(i + 1)/SIN(f*(i + 1)))**2._dp
-            zhat_aniso(i) = zhat_aniso(i)*((const_planck)/(8.0_dp*const_boltz*const_permit*const_permit)*1d-29*0.421_dp*md%dt &
-                                           *(((gs%laser_in - ((i)*freq_range))**4)/((i)*freq_range)) &
-                                           *(1.0_dp/(1.0_dp - EXP((-1.438777_dp*((i)*freq_range)) &
-                                                                  /temp))))*2.0_dp*2.0_dp*pi!*((-1.438777_dp*i*freq_range)/temp)*(1.0_dp/(1.0_dp-EXP((-1.438777_dp*&
-            !((i)*freq_range))/temp)))
-
-            zhat_aniso(0) = 0.0_dp
-            IF ((i*freq_range).GE.5000.0_dp) CYCLE
-            WRITE (63, *) i*freq_range, ((REAL(zhat_aniso(i), kind=dp))/15.0_dp)
+        OPEN (UNIT=63, FILE='power_spec.txt', STATUS='unknown', IOSTAT=stat) !!write the output
+        DO i = 0, 2*t_cor - 1
+            md%zhat(i) = (md%zhat(i)*md%dt*power_factor)/(sys%natom*3.0_dp) !!!unit conversion
+            IF ((i*md%freq_range).GE.5000_dp) CYCLE
+            WRITE (63, *) i*md%freq_range, REAL(md%zhat(i), kind=dp)
         END DO
+
         CLOSE (63)
 
-!!!PARALLEL!!!
-        OPEN (UNIT=64, FILE='result_fft_water_lib_para.txt', STATUS='unknown', IOSTAT=stat)
-        zhat_iso = REAL(zhat_iso, kind=dp)
-        zhat_para_all = REAL(zhat_para_all, kind=dp)
-        freq_range = REAL(md%dom/(2.0_dp*t_cor), kind=dp)
-        f = freq_range*md%dt*1.883652d-4
+    END SUBROUTINE spec_power
+!***********************************************************************************************!
 
-        DO i = 0, 2*t_cor - 2
+!***********************************************************************************************!
+    SUBROUTINE spec_ir(gs, sys, md, dips)
+        TYPE(global_settings), INTENT(INOUT)        :: gs
+        TYPE(systems), INTENT(INOUT)                :: sys
+        TYPE(molecular_dynamics), INTENT(INOUT)     :: md
+        TYPE(dipoles), INTENT(INOUT)     :: dips
 
-            zhat_iso(i + 1) = REAL(zhat_iso(i + 1), kind=dp)*(f*(i + 1)/SIN(f*(i + 1)))**2._dp
-            zhat_iso(i) = zhat_iso(i)*((const_planck)/(8.0_dp*const_boltz*const_permit*const_permit)*1d-29*0.421_dp*md%dt &
-                                       *(((gs%laser_in - ((i)*freq_range))**4)/((i)*freq_range)) &
-                                       *(1.0_dp/(1.0_dp - EXP((-1.438777_dp*((i)*freq_range))/temp))))*2.0_dp*2.0_dp*pi
+        INTEGER                                                  :: stat, i
+        INTEGER(kind=dp)                                          :: plan
 
-            zhat_para_all(i) = zhat_iso(i) + (zhat_aniso(i)*4.0_dp/45.0_dp)
-            zhat_para_all(0) = 0.0_dp
-            IF ((i*freq_range).GE.5000.0_dp) CYCLE
-            WRITE (64, *) i*freq_range, REAL(zhat_para_all(i), kind=dp)
-        END DO
-        CLOSE (64)
-
-!!!UNPOL!!!
-        OPEN (UNIT=65, FILE='result_fft_water_lib_unpol.txt', STATUS='unknown', IOSTAT=stat)
-        zhat_unpol = REAL(zhat_unpol, kind=dp)
-        freq_range = REAL(md%dom/(2.0_dp*t_cor), kind=dp)
-
-        DO i = 0, 2*t_cor - 2
-            zhat_unpol(i) = zhat_iso(i) + (zhat_aniso(i)*7.0_dp/45.0_dp)
-            zhat_unpol(0) = 0.00_dp
-            IF ((i*freq_range).GE.5000.0_dp) CYCLE
-            WRITE (65, *) i*freq_range, REAL(zhat_unpol(i), kind=dp)
-        END DO
-        CLOSE (65)
-
-!!!DEPOL RATIO!!!
-        OPEN (UNIT=66, FILE='result_fft_water_lib_depol.txt', STATUS='unknown', IOSTAT=stat)
-        zhat_depol = REAL(zhat_depol, kind=dp)
-        freq_range = REAL(md%dom/(2.0_dp*t_cor), kind=dp)
-
-        DO i = 0, 2*t_cor - 2
-            zhat_depol(i) = (REAL(zhat_aniso(i), kind=dp)/15.0_dp)/REAL(zhat_para_all(i), kind=dp)
-            IF ((i*freq_range).GE.5000.0_dp) CYCLE
-            WRITE (66, *) i*freq_range, REAL(zhat_depol(i), kind=dp)
-        END DO
-
-        CLOSE (66)
-        DEALLOCATE (rams%z_iso, rams%z_aniso)
-        DEALLOCATE (zhat_depol, zhat_para_all, zhat_unpol)
-
-    ELSEIF (rams%averaging=='2') THEN
-
-        IF (gs%spectral_type%type_dipole=='1') THEN
-            CALL read_coord_frame(sys%natom, rams%wannier_free, md%coord_v, sys)
-            !sys%filename = rams%wannier_free
-            !CALL read_coord_frame(sys, md)
-            CALL wannier(sys%filename, dip_free, sys, md)
-        ELSEIF (gs%spectral_type%type_dipole=='2') THEN
-
-            CALL read_coord_frame(sys%natom, rams%wannier_free, dip_free, sys)
+        IF (sys%system=='1' .OR. sys%system=='2' .AND. gs%spectral_type%type_dipole=='1') THEN !!fragment approach or whole supercell
+            IF (sys%cell%cell_type=='1' .OR. sys%cell%cell_type=='2') THEN !!KP or SC
+                CALL read_coord_frame(sys%natom, sys%filename, md%coord_v, sys)
+                CALL center_mass(sys%filename, sys%fragments%fragment, gs, sys, md, dips)
+                CALL wannier_frag(sys%fragments%natom_frag, sys%filename, dips%dipole, sys%fragments%fragment, gs, sys, md, dips)
+            ELSEIF (sys%cell%cell_type=='3') THEN !!SC with solvent
+                CALL read_coord_frame(sys%natom, sys%filename, md%coord_v, sys)
+                CALL solv_frag_index(sys%filename, sys%fragments%natom_frag, sys%fragments%fragment, sys, md, dips)
+                CALL wannier_frag(sys%fragments%natom_frag, sys%filename, dips%dipole, sys%fragments%fragment, gs, sys, md, dips)
+            END IF
         END IF
 
-        !!!!ELECTRIC FIELD!!!
-        DO xyz = 1, 3 !X-FIELD Y-FIELD Z-FIELD
-            IF (rams%direction==CHAR(48 + xyz)) THEN !<-- maybe change direction to INTEGER input
-                CALL read_coord_frame(sys%natom, rams%e_field(xyz)%wannier_xyz, md%coord_v, sys)
-                IF (gs%spectral_type%type_dipole=='1') THEN
-                    CALL wannier(rams%e_field(xyz)%wannier_xyz,rams%e_field(xyz)%dip_xyz, sys, md)
-                    CALL forward_diff(sys%mol_num, rams%e_field(xyz)%alpha_xyz, dip_free,rams%e_field(xyz)%dip_xyz, gs, sys)
-                ELSEIF (gs%spectral_type%type_dipole=='2') THEN
-                    CALL forward_diff(sys%mol_num, rams%e_field(xyz)%alpha_xyz, dip_free, md%coord_v, gs, sys)
-                END IF
-                CALL central_diff(sys%natom, rams%e_field(xyz)%alpha_xyz,rams%e_field(xyz)%alpha_diff_xyz, sys, md)
-            END IF
+        ALLOCATE (md%zhat(0:2*t_cor - 1))
+
+        md%zhat = COMPLEX(0._dp, 0.0_dp)
+
+        IF (sys%system=='2' .AND. gs%spectral_type%type_dipole=='1') THEN
+            sys%mol_num = 1
+        END IF
+        IF (sys%system=='1' .OR. (sys%system=='2' .AND. gs%spectral_type%type_dipole=='1')) THEN  !!fragment approach or the whole cell
+            CALL central_diff(sys%mol_num, dips%dipole, md%v, sys, md)
+            CALL cvv(sys%fragments%nfrag, md%v, sys, md)
+        ELSEIF (sys%system=='2' .AND. gs%spectral_type%type_dipole=='2') THEN !!molecular approach
+            CALL read_coord_frame(sys%mol_num, sys%filename, md%coord_v, sys)
+            CALL central_diff(sys%mol_num, md%coord_v, md%v, sys, md)
+            CALL cvv(sys%mol_num, md%v, sys, md)
+        END IF
+
+        CALL dfftw_plan_dft_r2c_1d(plan, 2*t_cor, md%z(0:2*t_cor - 1), md%zhat(0:2*t_cor - 1), FFTW_ESTIMATE) !!FFT!!
+        CALL dfftw_execute_dft_r2c(plan, md%z, md%zhat)
+        CALL dfftw_destroy_plan(plan)
+
+        md%zhat = REAL(md%zhat, kind=dp)
+        OPEN (UNIT=61, FILE='IR_spectrum.txt', STATUS='unknown', IOSTAT=stat) !!write output
+        DO i = 0, 2*t_cor - 1
+            md%zhat(i) = md%zhat(i)*int_ir_factor*md%dt*(md%sinc_const*(i)/SIN(md%sinc_const*(i)))**2._dp !!unit conv. & sinc func.
+            IF ((i*md%freq_range).GE.5000_dp) CYCLE
+            md%zhat(0) = 0.00_dp
+            WRITE (61, *) i*md%freq_range, -1.0_dp*REAL(md%zhat(i), kind=dp)
         END DO
+        CLOSE (61)
 
-        ALLOCATE (zhat_para(0:t_cor*2), zhat_unpol_x(0:t_cor*2), zhat_ortho(0:t_cor*2), zhat_depol_x(0:t_cor*2))
+    END SUBROUTINE spec_ir
 
-        zhat_para = COMPLEX(0._dp, 0.0_dp)
-        zhat_ortho = COMPLEX(0._dp, 0.0_dp)
-        zhat_unpol_x = COMPLEX(0._dp, 0.0_dp)
-        zhat_depol_x = COMPLEX(0._dp, 0.0_dp)
+!!!****************************************************************************************!
+
+!!!****************************************************************************************!
+    SUBROUTINE spec_raman(gs, sys, md, dips, rams)
+        TYPE(global_settings), INTENT(INOUT)        :: gs
+        TYPE(systems), INTENT(INOUT)        :: sys
+        TYPE(molecular_dynamics), INTENT(INOUT)        :: md
+        TYPE(dipoles), INTENT(INOUT)        :: dips
+        TYPE(raman), INTENT(INOUT)        :: rams
+
+        INTEGER                                                  :: stat, i, j, xyz
+        INTEGER(kind=dp)                                          :: plan
+        INTEGER, DIMENSION(:), ALLOCATABLE                         :: natom_frag_free
+        !INTEGER, DIMENSION(:), ALLOCATABLE                         :: natom_frag_y, natom_frag_z
+        INTEGER, DIMENSION(:, :, :), ALLOCATABLE                     :: fragment_free
+        !INTEGER, DIMENSION(:,:, :, :), ALLOCATABLE                     :: fragment_xyz
+        COMPLEX(kind=dp), DIMENSION(:), ALLOCATABLE                 :: zhat_iso, zhat_aniso, zhat_para
+        COMPLEX(kind=dp), DIMENSION(:), ALLOCATABLE                 :: zhat_ortho, zhat_unpol
+        REAL(kind=dp), DIMENSION(:), ALLOCATABLE                    :: zhat_unpol_x, zhat_depol_x, zhat_para_all, zhat_depol
+        REAL(kind=dp)                                             :: f, freq_range
+        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                :: dip_free!,rams%e_field(1)%dip_xyz,rams%e_field(2)%dip_xyz,rams%e_field(3)%dip_xyz
+        !REAL(kind=dp), DIMENSION(:,:, :, :), ALLOCATABLE                :: alpha_xyz, dip_xyz, alpha_diff_xyz
+        !REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                ::rams%e_field(1)%alpha_diff_xyz,rams%e_field(2)%alpha_diff_xyz,rams%e_field(3)%alpha_diff_xyz
+
+!!!!ALLOCATION!!!
+        ALLOCATE (rams%e_field(1)%alpha_xyz(sys%framecount, sys%mol_num, 3))
+        ALLOCATE (rams%e_field(2)%alpha_xyz(sys%framecount, sys%mol_num, 3))
+        ALLOCATE (rams%e_field(3)%alpha_xyz(sys%framecount, sys%mol_num, 3))
+
+        IF (rams%averaging=='1') THEN
+
+!!FIELD_FREE!!!
+            IF (sys%system=='1' .OR. gs%spectral_type%type_dipole=='1') THEN
+                IF (sys%cell%cell_type.NE.'3') THEN
+                    !CALL read_coord_frame(sys, md)
+                    CALL read_coord_frame(sys%natom, rams%wannier_free, md%coord_v, sys) !<- this needs to be ADJUSTED
+                    ! filename different and fragment_free different
+                    CALL center_mass(rams%wannier_free, fragment_free, gs, sys, md, dips)
+                    CALL wannier_frag(sys%fragments%natom_frag, rams%wannier_free, dip_free, fragment_free, gs, sys, md, dips)
+                ELSEIF (sys%cell%cell_type=='3') THEN
+                    CALL read_coord_frame(sys%natom, rams%wannier_free, md%coord_v, sys)
+                    CALL solv_frag_index(rams%wannier_free, natom_frag_free, fragment_free, sys, md, dips)
+
+                    CALL wannier_frag(natom_frag_free, rams%wannier_free, dip_free, fragment_free, gs, sys, md, dips)
+                END IF
+            ELSEIF (sys%system=='2') THEN
+                IF (gs%spectral_type%type_dipole=='2') THEN
+                    CALL read_coord_frame(sys%mol_num, rams%wannier_free, dip_free, sys)
+                END IF
+            END IF
+
+    !!!!ELECTRIC FIELD!!!
+            DO xyz = 1, 3 !X-FIELD Y-FIELD Z-FIELD
+                CALL read_coord_frame(sys%natom, rams%e_field(xyz)%wannier_xyz, md%coord_v, sys)
+                IF (sys%system=='1' .OR. gs%spectral_type%type_dipole=='1') THEN
+                    IF (sys%cell%cell_type.NE.'3') THEN
+                        CALL center_mass(rams%e_field(xyz)%wannier_xyz, rams%e_field(xyz)%fragment_xyz, gs, sys, md, dips)
+                        CALL wannier_frag(sys%fragments%natom_frag, rams%e_field(xyz)%wannier_xyz, rams%e_field(xyz)%dip_xyz, rams%e_field(xyz)%fragment_xyz, gs, sys, md, dips)
+
+                    ELSEIF (sys%cell%cell_type=='3') THEN
+                        CALL solv_frag_index(rams%e_field(xyz)%wannier_xyz, rams%e_field(xyz)%natom_frag_xyz, rams%e_field(xyz)%fragment_xyz, sys, md, dips)
+                        CALL wannier_frag(rams%e_field(xyz)%natom_frag_xyz, rams%e_field(xyz)%wannier_xyz, rams%e_field(xyz)%dip_xyz, rams%e_field(xyz)%fragment_xyz, gs, sys, md, dips)
+                    END IF
+                    IF (sys%system=='1') THEN
+                        CALL forward_diff(sys%mol_num, rams%e_field(xyz)%alpha_xyz, dip_free, rams%e_field(xyz)%dip_xyz, gs, sys)
+                    ELSEIF (sys%system=='2' .AND. gs%spectral_type%type_dipole=='1') THEN
+                        CALL forward_diff(sys%fragments%nfrag, rams%e_field(xyz)%alpha_xyz, dip_free, rams%e_field(xyz)%dip_xyz, gs, sys)
+                    END IF
+                ELSEIF (sys%system=='2') THEN
+
+                    IF (gs%spectral_type%type_dipole=='2') THEN
+                        CALL forward_diff(sys%mol_num, rams%e_field(xyz)%alpha_xyz, dip_free, md%coord_v, gs, sys)
+
+                    ELSEIF (gs%spectral_type%type_dipole=='3') THEN
+                        DO i = 1, sys%framecount
+                            DO j = 1, 1
+                                rams%e_field(xyz)%alpha_xyz(i, j, :) = md%coord_v(i, j, :)
+                            END DO
+                        END DO
+                        rams%e_field(xyz)%alpha_xyz = REAL(rams%e_field(xyz)%alpha_xyz*((8.988d+15)/(5.142d+11*3.33564d-30)), kind=dp) !conversion to debye/E
+                    END IF
+                END IF
+
+                IF (sys%system=='2' .AND. gs%spectral_type%type_dipole=='1') THEN
+                    CALL central_diff(sys%fragments%nfrag, rams%e_field(xyz)%alpha_xyz, rams%e_field(xyz)%alpha_diff_xyz, sys, md)
+                ELSE
+                    CALL central_diff(sys%mol_num, rams%e_field(xyz)%alpha_xyz, rams%e_field(xyz)%alpha_diff_xyz, sys, md)
+                END IF
+            END DO
+
+!!!ACF AND FFT CALC!!!
+            PRINT *, sys%fragments%nfrag, 'sys%fragments%nfrag check'
+            ALLOCATE (zhat_iso(0:t_cor*2), zhat_aniso(0:t_cor*2))
+            ALLOCATE (zhat_unpol(0:t_cor*2), zhat_depol(0:t_cor*2), zhat_para_all(0:t_cor*2))
+
+            zhat_iso = COMPLEX(0._dp, 0.0_dp)
+            zhat_aniso = COMPLEX(0._dp, 0.0_dp)
+            zhat_unpol = COMPLEX(0._dp, 0.0_dp)
+            zhat_depol = COMPLEX(0._dp, 0.0_dp)
+
+            IF (sys%system=='1' .OR. (sys%system=='2' .AND. gs%spectral_type%type_dipole=='1')) THEN
+                CALL cvv_iso(sys%fragments%nfrag, rams%z_iso, rams%e_field(1)%alpha_diff_xyz, rams%e_field(2)%alpha_diff_xyz, rams%e_field(3)%alpha_diff_xyz, sys)
+            ELSE
+                CALL cvv_iso(sys%mol_num, rams%z_iso, rams%e_field(1)%alpha_diff_xyz, rams%e_field(2)%alpha_diff_xyz, rams%e_field(3)%alpha_diff_xyz, sys)
+            END IF
+
+            CALL dfftw_plan_dft_r2c_1d(plan, 2*t_cor, rams%z_iso, zhat_iso, FFTW_ESTIMATE)
+            CALL dfftw_execute_dft_r2c(plan, rams%z_iso, zhat_iso)
+
+            IF (sys%system=='1' .OR. (sys%system=='2' .AND. gs%spectral_type%type_dipole=='1')) THEN
+                CALL cvv_aniso(sys%fragments%nfrag, rams%z_aniso, rams%e_field(1)%alpha_diff_xyz, rams%e_field(2)%alpha_diff_xyz, rams%e_field(3)%alpha_diff_xyz, sys)
+            ELSE
+                CALL cvv_aniso(sys%mol_num, rams%z_aniso, rams%e_field(1)%alpha_diff_xyz, rams%e_field(2)%alpha_diff_xyz, rams%e_field(3)%alpha_diff_xyz, sys)
+            END IF
+
+            CALL dfftw_plan_dft_r2c_1d(plan, 2*t_cor, rams%z_aniso, zhat_aniso, FFTW_ESTIMATE)
+            CALL dfftw_execute_dft_r2c(plan, rams%z_aniso, zhat_aniso)
+
+!!!ORTHOGONAL!!!
+            OPEN (UNIT=63, FILE='result_fft_water_lib_ortho.txt', STATUS='unknown', IOSTAT=stat)
+            zhat_aniso = REAL(zhat_aniso, kind=dp)
+            freq_range = REAL(md%dom/(2.0_dp*t_cor), kind=dp)
+            f = freq_range*md%dt*frq_factor
+
+            DO i = 0, 2*t_cor - 2
+                zhat_aniso(i + 1) = REAL(zhat_aniso(i + 1), kind=dp)*(f*(i + 1)/SIN(f*(i + 1)))**2._dp
+                zhat_aniso(i) = zhat_aniso(i)*((const_planck)/(8.0_dp*const_boltz*const_permit*const_permit)*int_rman_factor*md%dt &
+                                               *(((gs%laser_in - ((i)*freq_range))**4)/((i)*freq_range)) &
+                                               *(1.0_dp/(1.0_dp - EXP((r_factor*((i)*freq_range)) &
+                                                                      /temp))))*2.0_dp*2.0_dp*pi!*((r_factor*i*freq_range)/temp)*(1.0_dp/(1.0_dp-EXP((r_factor*&
+                !((i)*freq_range))/temp)))
+
+                zhat_aniso(0) = 0.0_dp
+                IF ((i*freq_range).GE.5000.0_dp) CYCLE
+                WRITE (63, *) i*freq_range, ((REAL(zhat_aniso(i), kind=dp))/15.0_dp)
+            END DO
+            CLOSE (63)
+
+!!!PARALLEL!!!
+            OPEN (UNIT=64, FILE='result_fft_water_lib_para.txt', STATUS='unknown', IOSTAT=stat)
+            zhat_iso = REAL(zhat_iso, kind=dp)
+            zhat_para_all = REAL(zhat_para_all, kind=dp)
+            freq_range = REAL(md%dom/(2.0_dp*t_cor), kind=dp)
+            f = freq_range*md%dt*frq_factor
+
+            DO i = 0, 2*t_cor - 2
+
+                zhat_iso(i + 1) = REAL(zhat_iso(i + 1), kind=dp)*(f*(i + 1)/SIN(f*(i + 1)))**2._dp
+                zhat_iso(i) = zhat_iso(i)*((const_planck)/(8.0_dp*const_boltz*const_permit*const_permit)*int_rman_factor*md%dt &
+                                           *(((gs%laser_in - ((i)*freq_range))**4)/((i)*freq_range)) &
+                                           *(1.0_dp/(1.0_dp - EXP((r_factor*((i)*freq_range))/temp))))*2.0_dp*2.0_dp*pi
+
+                zhat_para_all(i) = zhat_iso(i) + (zhat_aniso(i)*4.0_dp/45.0_dp)
+                IF ((i*freq_range).GE.5000.0_dp) CYCLE
+                WRITE (64, *) i*freq_range, REAL(zhat_para_all(i), kind=dp)
+            END DO
+            CLOSE (64)
+
+!!!UNPOL!!!
+            OPEN (UNIT=65, FILE='result_fft_water_lib_unpol.txt', STATUS='unknown', IOSTAT=stat)
+            zhat_unpol = REAL(zhat_unpol, kind=dp)
+            freq_range = REAL(md%dom/(2.0_dp*t_cor), kind=dp)
+
+            DO i = 0, 2*t_cor - 2
+                zhat_unpol(i) = zhat_iso(i) + (zhat_aniso(i)*7.0_dp/45.0_dp)
+                zhat_unpol(0) = 0.00_dp
+                IF ((i*freq_range).GE.5000.0_dp) CYCLE
+                WRITE (65, *) i*freq_range, REAL(zhat_unpol(i), kind=dp)
+            END DO
+            CLOSE (65)
+
+!!!DEPOL RATIO!!!
+            OPEN (UNIT=66, FILE='result_fft_water_lib_depol.txt', STATUS='unknown', IOSTAT=stat)
+            zhat_depol = REAL(zhat_depol, kind=dp)
+            freq_range = REAL(md%dom/(2.0_dp*t_cor), kind=dp)
+
+            DO i = 0, 2*t_cor - 2
+                zhat_depol(i) = (REAL(zhat_aniso(i), kind=dp)/15.0_dp)/REAL(zhat_para_all(i), kind=dp)
+                IF ((i*freq_range).GE.5000.0_dp) CYCLE
+                WRITE (66, *) i*freq_range, REAL(zhat_depol(i), kind=dp)
+            END DO
+
+            CLOSE (66)
+            DEALLOCATE (rams%z_iso, rams%z_aniso)
+            DEALLOCATE (zhat_depol, zhat_para_all, zhat_unpol)
+
+        ELSEIF (rams%averaging=='2') THEN
+
+            IF (gs%spectral_type%type_dipole=='1') THEN
+                CALL read_coord_frame(sys%natom, rams%wannier_free, md%coord_v, sys)
+                !sys%filename = rams%wannier_free
+                !CALL read_coord_frame(sys, md)
+                CALL wannier(sys%filename, dip_free, sys, md)
+            ELSEIF (gs%spectral_type%type_dipole=='2') THEN
+
+                CALL read_coord_frame(sys%natom, rams%wannier_free, dip_free, sys)
+            END IF
+
+        !!!!ELECTRIC FIELD!!!
+            DO xyz = 1, 3 !X-FIELD Y-FIELD Z-FIELD
+                IF (rams%direction==CHAR(48 + xyz)) THEN !<-- maybe change direction to INTEGER input
+                    CALL read_coord_frame(sys%natom, rams%e_field(xyz)%wannier_xyz, md%coord_v, sys)
+                    IF (gs%spectral_type%type_dipole=='1') THEN
+                        CALL wannier(rams%e_field(xyz)%wannier_xyz, rams%e_field(xyz)%dip_xyz, sys, md)
+                        CALL forward_diff(sys%mol_num, rams%e_field(xyz)%alpha_xyz, dip_free, rams%e_field(xyz)%dip_xyz, gs, sys)
+                    ELSEIF (gs%spectral_type%type_dipole=='2') THEN
+                        CALL forward_diff(sys%mol_num, rams%e_field(xyz)%alpha_xyz, dip_free, md%coord_v, gs, sys)
+                    END IF
+                    CALL central_diff(sys%natom, rams%e_field(xyz)%alpha_xyz, rams%e_field(xyz)%alpha_diff_xyz, sys, md)
+                END IF
+            END DO
+
+            ALLOCATE (zhat_para(0:t_cor*2), zhat_unpol_x(0:t_cor*2), zhat_ortho(0:t_cor*2), zhat_depol_x(0:t_cor*2))
+
+            zhat_para = COMPLEX(0._dp, 0.0_dp)
+            zhat_ortho = COMPLEX(0._dp, 0.0_dp)
+            zhat_unpol_x = COMPLEX(0._dp, 0.0_dp)
+            zhat_depol_x = COMPLEX(0._dp, 0.0_dp)
 
 !!IF ONLY ISOTROPIC AVERAGING IS CONSIDERED!!
-        CALL cvv_only_x(sys%mol_num, sys%framecount, rams%z_para, rams%z_ortho,rams%e_field(1)%alpha_diff_xyz, &
-                       rams%e_field(2)%alpha_diff_xyz,rams%e_field(3)%alpha_diff_xyz, rams%direction)
+            CALL cvv_only_x(sys%mol_num, sys%framecount, rams%z_para, rams%z_ortho, rams%e_field(1)%alpha_diff_xyz, &
+                            rams%e_field(2)%alpha_diff_xyz, rams%e_field(3)%alpha_diff_xyz, rams%direction)
 
-        CALL dfftw_plan_dft_r2c_1d(plan, 2*t_cor, rams%z_para, zhat_para, FFTW_ESTIMATE)
-        CALL dfftw_execute_dft_r2c(plan, rams%z_para, zhat_para)
+            CALL dfftw_plan_dft_r2c_1d(plan, 2*t_cor, rams%z_para, zhat_para, FFTW_ESTIMATE)
+            CALL dfftw_execute_dft_r2c(plan, rams%z_para, zhat_para)
 
-        CALL dfftw_plan_dft_r2c_1d(plan, 2*t_cor, rams%z_ortho, zhat_ortho, FFTW_ESTIMATE)
-        CALL dfftw_execute_dft_r2c(plan, rams%z_ortho, zhat_ortho)
+            CALL dfftw_plan_dft_r2c_1d(plan, 2*t_cor, rams%z_ortho, zhat_ortho, FFTW_ESTIMATE)
+            CALL dfftw_execute_dft_r2c(plan, rams%z_ortho, zhat_ortho)
 
 !!ORTHOGONAL!!
-        OPEN (UNIT=68, FILE='result_fft_water_lib_ortho_iso.txt', STATUS='unknown', IOSTAT=stat)
-        zhat_ortho = REAL(zhat_ortho, kind=dp)
-        freq_range = REAL(md%dom/t_cor, kind=dp)
-        f = freq_range*md%dt*1.883652d-4
+            OPEN (UNIT=68, FILE='result_fft_water_lib_ortho_iso.txt', STATUS='unknown', IOSTAT=stat)
+            zhat_ortho = REAL(zhat_ortho, kind=dp)
+            freq_range = REAL(md%dom/t_cor, kind=dp)
+            f = freq_range*md%dt*frq_factor
 
-        DO i = 0, 2*t_cor - 2
-            zhat_ortho(i + 1) = REAL(zhat_ortho(i + 1), kind=dp)*(f*(i + 1)/SIN(f*(i + 1)))**2._dp
+            DO i = 0, 2*t_cor - 2
+                zhat_ortho(i + 1) = REAL(zhat_ortho(i + 1), kind=dp)*(f*(i + 1)/SIN(f*(i + 1)))**2._dp
 
-            zhat_ortho(i) = REAL(zhat_ortho(i), kind=dp)*((const_planck)/(8.0_dp*const_boltz*const_permit*const_permit) &
-                                                          *1d-29*0.421_dp*md%dt &
-                                                          *(((gs%laser_in - ((i)*freq_range))**4)/((i)*freq_range)) &
-                                                          *(1.0_dp/(1.0_dp - EXP((-1.438777_dp*((i)*freq_range)) &
-                                                                                 /temp))))*2.0_dp*pi*2.0_dp
+                zhat_ortho(i) = REAL(zhat_ortho(i), kind=dp)*((const_planck)/(8.0_dp*const_boltz*const_permit*const_permit) &
+                                                              *int_rman_factor*md%dt &
+                                                              *(((gs%laser_in - ((i)*freq_range))**4)/((i)*freq_range)) &
+                                                              *(1.0_dp/(1.0_dp - EXP((r_factor*((i)*freq_range)) &
+                                                                                     /temp))))*2.0_dp*pi*2.0_dp
 
-            zhat_ortho(0) = 0.0_dp
-            IF ((i*freq_range).GE.5000_dp) CYCLE
-            WRITE (68, *) i*freq_range, (REAL(zhat_ortho(i), kind=dp))
-        END DO
-        CLOSE (68)
+                zhat_ortho(0) = 0.0_dp
+                IF ((i*freq_range).GE.5000_dp) CYCLE
+                WRITE (68, *) i*freq_range, (REAL(zhat_ortho(i), kind=dp))
+            END DO
+            CLOSE (68)
 
 !!PARALLEL!!
-        OPEN (UNIT=67, FILE='result_fft_water_lib_para_iso.txt', STATUS='unknown', IOSTAT=stat)
-        zhat_para = REAL(zhat_para, kind=dp)
-        freq_range = REAL(md%dom/t_cor, kind=dp)
-        f = freq_range*md%dt*1.883652d-4
+            OPEN (UNIT=67, FILE='result_fft_water_lib_para_iso.txt', STATUS='unknown', IOSTAT=stat)
+            zhat_para = REAL(zhat_para, kind=dp)
+            freq_range = REAL(md%dom/t_cor, kind=dp)
+            f = freq_range*md%dt*frq_factor
 
-        DO i = 0, 2*t_cor - 2
-            zhat_para(i + 1) = REAL(zhat_para(i + 1), kind=dp)*(f*(i + 1)/SIN(f*(i + 1)))**2._dp
+            DO i = 0, 2*t_cor - 2
+                zhat_para(i + 1) = REAL(zhat_para(i + 1), kind=dp)*(f*(i + 1)/SIN(f*(i + 1)))**2._dp
 
-            zhat_para(i) = REAL(zhat_para(i), kind=dp)*((const_planck)/(8.0_dp*const_boltz*const_permit*const_permit) &
-                                                        *1d-29*0.421_dp*md%dt &
-                                                        *(((gs%laser_in - ((i)*freq_range))**4)/((i)*freq_range)) &
-                                                        *(1.0_dp/(1.0_dp - EXP((-1.438777_dp*((i)*freq_range)) &
-                                                                               /temp))))*2.0_dp*pi*2.0_dp
-            zhat_para(0) = 0.0_dp
-            IF ((i*freq_range).GE.5000_dp) CYCLE
-            WRITE (67, *) (i)*freq_range, (REAL(zhat_para(i), kind=dp))!,REAL(integral(i),kind=dp)
-        END DO
-        CLOSE (67)
+                zhat_para(i) = REAL(zhat_para(i), kind=dp)*((const_planck)/(8.0_dp*const_boltz*const_permit*const_permit) &
+                                                            *int_rman_factor*md%dt &
+                                                            *(((gs%laser_in - ((i)*freq_range))**4)/((i)*freq_range)) &
+                                                            *(1.0_dp/(1.0_dp - EXP((r_factor*((i)*freq_range)) &
+                                                                                   /temp))))*2.0_dp*pi*2.0_dp
+                zhat_para(0) = 0.0_dp
+                IF ((i*freq_range).GE.5000_dp) CYCLE
+                WRITE (67, *) (i)*freq_range, (REAL(zhat_para(i), kind=dp))!,REAL(integral(i),kind=dp)
+            END DO
+            CLOSE (67)
 
 !!UNPOL!!
-        OPEN (UNIT=69, FILE='result_fft_water_lib_unpol_iso.txt', STATUS='unknown', IOSTAT=stat)
-        freq_range = REAL(md%dom/t_cor, kind=dp)
+            OPEN (UNIT=69, FILE='result_fft_water_lib_unpol_iso.txt', STATUS='unknown', IOSTAT=stat)
+            freq_range = REAL(md%dom/t_cor, kind=dp)
 
-        DO i = 0, 2*t_cor - 2
-            zhat_unpol_x(i) = zhat_para(i) + zhat_ortho(i)
-            IF ((i*freq_range).GE.5000_dp) CYCLE
-            WRITE (69, *) i*freq_range, REAL(zhat_unpol_x(i), kind=dp)
-        END DO
-        CLOSE (69)
+            DO i = 0, 2*t_cor - 2
+                zhat_unpol_x(i) = zhat_para(i) + zhat_ortho(i)
+                IF ((i*freq_range).GE.5000_dp) CYCLE
+                WRITE (69, *) i*freq_range, REAL(zhat_unpol_x(i), kind=dp)
+            END DO
+            CLOSE (69)
 
 !!DEPOL RATIO!!
-        OPEN (UNIT=70, FILE='result_fft_water_lib_depol_iso.txt', STATUS='unknown', IOSTAT=stat)
+            OPEN (UNIT=70, FILE='result_fft_water_lib_depol_iso.txt', STATUS='unknown', IOSTAT=stat)
 
-        DO i = 0, 2*t_cor - 2
-            zhat_depol_x(i) = REAL(zhat_ortho(i), kind=dp)/REAL(zhat_para(i), kind=dp)
-            IF ((i*freq_range).GE.5000_dp) CYCLE
-            WRITE (70, *) i*freq_range, REAL(zhat_depol_x(i), kind=dp)!REAL(zhat_ortho(i),kind=dp)/REAL(zhat_para(i),kind=dp)
-        END DO
-        CLOSE (70)
-
-        DEALLOCATE (rams%z_para, rams%z_ortho, zhat_unpol_x, zhat_depol_x, zhat_para, zhat_ortho)
-    END IF
-
-    CALL dfftw_destroy_plan(plan)
-
-    !DEALLOCATE(dip_free,dip_xyz(1),dip_xyz(2),dip_xyz(3))
-    IF (sys%system=='1') THEN
-        DEALLOCATE ( fragment_free)
-        !  DEALLOCATE(natom_frag_x,natom_frag_y,natom_frag_z,natom_frag_free)
-    END IF
-
-    !DEALLOCATE (alpha_xyz)
-    !DEALLOCATE (alpha_diff_xyz)
-
-END SUBROUTINE spec_raman
-
-
-!!....................................................................................................................!
-!....................................................................................................................!
-SUBROUTINE normal_mode_analysis(sys, stats)
-    TYPE(systems), INTENT(INOUT)        :: sys
-    TYPE(static), INTENT(INOUT)        :: stats
-    
-    INTEGER                                                     :: stat, i, j, m, n, p, k, info, lwork, lwmax, lda
-    REAL(kind=dp)                                                :: factor
-    REAL(kind=dp), DIMENSION(:), ALLOCATABLE                       :: w, work, w_new
-    REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE                     :: hessian, atomic_displacements
-
-    LOGICAL, DIMENSION(9)                                        :: mk = .TRUE.
-    lwmax = 1000
-    lda = sys%natom*3
-    stats%nmodes = 3*sys%natom - 6 !only for non-linear atoms
-
-    ALLOCATE (work(lwmax), w(sys%natom*3), w_new(sys%natom*3))
-
-    factor = REAL(1.0_dp/(2.0_dp*stats%dx), kind=dp)
-
-    ALLOCATE (hessian(0:sys%natom*3 - 1, 0:sys%natom*3 - 1))
-
-    p = 0
-    DO i = 0, sys%natom - 1
-        DO m = 0, 2
-            k = 0
-            DO j = 0, sys%natom - 1
-                DO n = 0, 2
-                    hessian(i + m + p, j + n + k) = sys%mass_mat(i + 1, j + 1)*hartreebohr2evang*factor*hessian_factor* &
-                    (stats%force(j+1,n+1)%atom(i+1)%displacement(2)%XYZ(m+1) - stats%force(j+1,n+1)%atom(i+1)%displacement(1)%XYZ(m+1))
-                END DO
-                k = k + 2
+            DO i = 0, 2*t_cor - 2
+                zhat_depol_x(i) = REAL(zhat_ortho(i), kind=dp)/REAL(zhat_para(i), kind=dp)
+                IF ((i*freq_range).GE.5000_dp) CYCLE
+                WRITE (70, *) i*freq_range, REAL(zhat_depol_x(i), kind=dp)!REAL(zhat_ortho(i),kind=dp)/REAL(zhat_para(i),kind=dp)
             END DO
+            CLOSE (70)
+
+            DEALLOCATE (rams%z_para, rams%z_ortho, zhat_unpol_x, zhat_depol_x, zhat_para, zhat_ortho)
+        END IF
+
+        CALL dfftw_destroy_plan(plan)
+
+        !DEALLOCATE(dip_free,dip_xyz(1),dip_xyz(2),dip_xyz(3))
+        IF (sys%system=='1') THEN
+            DEALLOCATE (fragment_free)
+            !  DEALLOCATE(natom_frag_x,natom_frag_y,natom_frag_z,natom_frag_free)
+        END IF
+
+        !DEALLOCATE (alpha_xyz)
+        !DEALLOCATE (alpha_diff_xyz)
+
+    END SUBROUTINE spec_raman
+
+!....................................................................................................................!
+
+!....................................................................................................................!
+    SUBROUTINE normal_mode_analysis(sys, stats)
+        TYPE(systems), INTENT(INOUT)        :: sys
+        TYPE(static), INTENT(INOUT)        :: stats
+
+        INTEGER                                                     :: stat, i, j, m, n, p, k, info, lwork, lwmax, lda
+        REAL(kind=dp)                                                :: factor
+        REAL(kind=dp), DIMENSION(:), ALLOCATABLE                       :: w, work, w_new
+        REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE                     :: hessian, atomic_displacements
+
+        LOGICAL, DIMENSION(9)                                        :: mk = .TRUE.
+        lwmax = 1000
+        lda = sys%natom*3
+        stats%nmodes = 3*sys%natom - 6 !only for non-linear atoms
+
+        ALLOCATE (work(lwmax), w(sys%natom*3), w_new(sys%natom*3))
+
+        factor = REAL(1.0_dp/(2.0_dp*stats%dx), kind=dp)
+
+        ALLOCATE (hessian(0:sys%natom*3 - 1, 0:sys%natom*3 - 1))
+
+        p = 0
+        DO i = 0, sys%natom - 1
+            DO m = 0, 2
+                k = 0
+                DO j = 0, sys%natom - 1
+                    DO n = 0, 2
+                        hessian(i + m + p, j + n + k) = sys%mass_mat(i + 1, j + 1)*hartreebohr2evang*factor*hessian_factor* &
+                                                        (stats%force(j + 1, n + 1)%atom(i + 1)%displacement(2)%XYZ(m + 1)%frame(1) - stats%force(j + 1, n + 1)%atom(i + 1)%displacement(1)%XYZ(m + 1)%frame(1))
+                    END DO
+                    k = k + 2
+                END DO
+            END DO
+            p = p + 2
         END DO
-        p = p + 2
-    END DO
 
-    hessian(:, :) = REAL((hessian(:, :) + TRANSPOSE(hessian(:, :)))/2.0_dp, kind=dp)
-    n = SIZE(hessian, 1)
+        hessian(:, :) = REAL((hessian(:, :) + TRANSPOSE(hessian(:, :)))/2.0_dp, kind=dp)
+        n = SIZE(hessian, 1)
 
-    PRINT *, hessian(1, 1), "hess"
+        PRINT *, hessian(1, 1), "hess"
 
 ! work size query
-    lwork = -1
-    CALL DSYEV('V', 'U', n, hessian, lda, w, work, lwork, info)
-    lwork = MIN(lwmax, INT(work(1)))
-    PRINT *, "ekin"
+        lwork = -1
+        CALL DSYEV('V', 'U', n, hessian, lda, w, work, lwork, info)
+        lwork = MIN(lwmax, INT(work(1)))
+        PRINT *, "ekin"
 
 ! get eigenvalues and eigenvectors
-    CALL dsyev('V', 'U', n, hessian, lda, w, work, lwork, info)
+        CALL dsyev('V', 'U', n, hessian, lda, w, work, lwork, info)
 
-    hessian = TRANSPOSE(hessian)
+        hessian = TRANSPOSE(hessian)
 
-    w = REAL(w*SQRT(ABS(w))/ABS(w), kind=dp)
-    w = REAL(w/(2.0_dp*pi*speed_light), kind=dp)
+        w = REAL(w*SQRT(ABS(w))/ABS(w), kind=dp)
+        w = REAL(w/(2.0_dp*pi*speed_light), kind=dp)
 
-    ALLOCATE (stats%freq(stats%nmodes), atomic_displacements(stats%nmodes, sys%natom*3), stats%disp(stats%nmodes, sys%natom, 3))
+        ALLOCATE (stats%freq(stats%nmodes), atomic_displacements(stats%nmodes, sys%natom*3), stats%disp(stats%nmodes, sys%natom, 3))
 
-    DO i = 7, sys%natom*3
-        stats%freq(i - 6) = w(i)
-    END DO
-
-    atomic_displacements(1:stats%nmodes, 1:sys%natom*3) = hessian(6:3*sys%natom - 1, :)
-
-    m = 0
-    DO j = 0, sys%natom - 1 !sys%natom
-        DO k = 0, 2 !dims
-            stats%disp(1:stats%nmodes, j + 1, k + 1) = atomic_displacements(1:stats%nmodes, j + k + 1 + m)
+        DO i = 7, sys%natom*3
+            stats%freq(i - 6) = w(i)
         END DO
-        m = m + 2
-    END DO
 
-    PRINT *, stats%freq(1:3)
+        atomic_displacements(1:stats%nmodes, 1:sys%natom*3) = hessian(6:3*sys%natom - 1, :)
 
-    OPEN (UNIT=13, FILE='normal_mode_freq.txt', STATUS='unknown', IOSTAT=stat)
-    DO i = 1, stats%nmodes !!atom_num: 1st atom
-        WRITE (13, *) stats%freq(i)
-    END DO
-
-    OPEN (UNIT=14, FILE='normal_mode_displ.txt', STATUS='unknown', IOSTAT=stat)
-    DO i = 1, stats%nmodes !!atom_num: 1st atom
-        DO j = 1, sys%natom !!dims: x dimension
-            WRITE (14, *) stats%disp(i, j, 1:3)
+        m = 0
+        DO j = 0, sys%natom - 1 !sys%natom
+            DO k = 0, 2 !dims
+                stats%disp(1:stats%nmodes, j + 1, k + 1) = atomic_displacements(1:stats%nmodes, j + k + 1 + m)
+            END DO
+            m = m + 2
         END DO
-    END DO
 
-END SUBROUTINE normal_mode_analysis
+        PRINT *, stats%freq(1:3)
+
+        OPEN (UNIT=13, FILE='normal_mode_freq.txt', STATUS='unknown', IOSTAT=stat)
+        DO i = 1, stats%nmodes !!atom_num: 1st atom
+            WRITE (13, *) stats%freq(i)
+        END DO
+
+        OPEN (UNIT=14, FILE='normal_mode_displ.txt', STATUS='unknown', IOSTAT=stat)
+        DO i = 1, stats%nmodes !!atom_num: 1st atom
+            DO j = 1, sys%natom !!dims: x dimension
+                WRITE (14, *) stats%disp(i, j, 1:3)
+            END DO
+        END DO
+
+    END SUBROUTINE normal_mode_analysis
 
 !....................................................................................................................!
 
@@ -525,32 +524,30 @@ END SUBROUTINE normal_mode_analysis
         TYPE(systems), INTENT(INOUT)        :: sys
         TYPE(static), INTENT(INOUT)        :: stats
         TYPE(dipoles), INTENT(INOUT)        :: dips
-    
+
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE        :: ir_int
         INTEGER                                                  :: stat, i, k, x, freq_range
         INTEGER                                                  :: start_freq, end_freq
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE                    :: gamma_sq, data2!,broad
-        REAL(kind=dp)                                             :: omega, broad, ir_factor
-    
+        REAL(kind=dp)                                             :: omega, broad
+
         ALLOCATE (gamma_sq(stats%nmodes), ir_int(stats%nmodes))
-    
+
         start_freq = 1
         end_freq = INT(MAXVAL(stats%freq) + 1000.0_dp)
         freq_range = INT(end_freq - start_freq)
         omega = 5.0_dp
-    
+
         ALLOCATE (data2(freq_range + 1))
         data2 = 0.0_dp
-    
+
         DO k = 1, stats%nmodes
             gamma_sq(k) = SQRT(DOT_PRODUCT(dips%dip_dq(k, :), dips%dip_dq(k, :)))
         END DO
-    
-        ir_factor = 42.256_dp
-    
+
     !!! To convert debye²angstrom⁻²amu⁻¹ to km/mol (cp2k IR unit)
         ir_int(:) = (gamma_sq(:)**2.0_dp)*ir_factor
-    
+
     !!!Broadening the spectrum!!
         DO i = start_freq, end_freq
             broad = 0.0_dp
@@ -559,55 +556,55 @@ END SUBROUTINE normal_mode_analysis
             END DO
             data2(i) = data2(i) + broad
         END DO
-    
+
         OPEN (UNIT=98, FILE='result_static_ir.txt', STATUS='unknown', IOSTAT=stat)
         DO i = start_freq, end_freq
             WRITE (98, *) i, data2(i)
         END DO
         CLOSE (98)
-    
+
         DEALLOCATE (gamma_sq, data2, ir_int, dips%dip_dq, stats%freq, stats%disp)
-    
+
     END SUBROUTINE spec_static_ir
 !....................................................................................................................!
 
 !....................................................................................................................!
-    SUBROUTINE spec_static_raman(gs, sys, stats, dips, rams) 
+    SUBROUTINE spec_static_raman(gs, sys, stats, dips, rams)
 
         TYPE(global_settings), INTENT(INOUT)        :: gs
         TYPE(systems), INTENT(INOUT)        :: sys
         TYPE(static), INTENT(INOUT)        :: stats
         TYPE(dipoles), INTENT(INOUT)        :: dips
         TYPE(raman), INTENT(INOUT)        :: rams
-    
+
         INTEGER                                                  :: stat, i, j, x, freq_range
         INTEGER                                                  :: start_freq, end_freq
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE                    :: iso_sq, aniso_sq, data2!,broad
         REAL(kind=dp)                                             :: omega, broad
-    
+
         ALLOCATE (iso_sq(stats%nmodes), aniso_sq(stats%nmodes))
         ALLOCATE (rams%raman_int(stats%nmodes))
-    
+
         start_freq = 1
         end_freq = INT(MAXVAL(stats%freq) + 1000.0_dp)
         freq_range = INT(end_freq - start_freq)
         omega = 5.0_dp
         ALLOCATE (data2(freq_range + 1))
         data2 = 0.0_dp
-    
+
     !!!Isotropic and anisotropic contributions!!
         iso_sq(:) = REAL((rams%pol_dq(:, 1, 1) + rams%pol_dq(:, 2, 2) + rams%pol_dq(:, 3, 3))/3.0_dp, kind=dp)**2.0_dp
-    
+
         aniso_sq(:) = (0.50_dp*(((rams%pol_dq(:, 1, 1) - rams%pol_dq(:, 2, 2))**2.0_dp) + ((rams%pol_dq(:, 2, 2) - rams%pol_dq(:, 3, 3))**2.0_dp) &
                                 + ((rams%pol_dq(:, 3, 3) - rams%pol_dq(:, 1, 1))**2.0_dp))) &
                       + (3.0_dp*((rams%pol_dq(:, 1, 2)**2.0_dp) + (rams%pol_dq(:, 2, 3)**2.0_dp) &
                                  + (rams%pol_dq(:, 3, 1)**2.0_dp)))
-    
+
     !!!Calculation of the intensities!!
         rams%raman_int(:) = REAL(((7.0_dp*aniso_sq(:)) + (45.0_dp*iso_sq(:)))/45.0_dp, kind=dp) &
                             *REAL(((gs%laser_in - stats%freq(:))**4.0_dp)/stats%freq(:), kind=dp) &
-                            *REAL(1.0_dp/(1.0_dp - EXP(-1.438777_dp*stats%freq(:)/temp)), kind=dp)
-    
+                            *REAL(1.0_dp/(1.0_dp - EXP(r_factor*stats%freq(:)/temp)), kind=dp)
+
     !!!Broadening the spectrum!!
         DO i = start_freq, end_freq
             broad = 0.0_dp
@@ -616,13 +613,13 @@ END SUBROUTINE normal_mode_analysis
             END DO
             data2(i) = data2(i) + broad
         END DO
-    
+
         OPEN (UNIT=98, FILE='result_static_raman.txt', STATUS='unknown', IOSTAT=stat)
         DO i = start_freq, end_freq
             WRITE (98, *) i, data2(i)
         END DO
         CLOSE (98)
-    
+
     !!Write Molden output
         rams%raman_int = REAL(rams%raman_int/MINVAL(rams%raman_int), kind=dp)
         OPEN (UNIT=15, FILE='raman.mol', STATUS='unknown', IOSTAT=stat)
@@ -655,24 +652,25 @@ END SUBROUTINE normal_mode_analysis
             END DO
         END DO
         CLOSE (15)
-    
+
         DEALLOCATE (iso_sq, aniso_sq, data2, rams%raman_int)
-    
+
     END SUBROUTINE spec_static_raman
 !....................................................................................................................!
+
 !....................................................................................................................!
 
     SUBROUTINE spec_abs(gs, sys, rams)
         TYPE(global_settings), INTENT(INOUT)        :: gs
         TYPE(systems), INTENT(INOUT)        :: sys
         TYPE(raman), INTENT(INOUT)        :: rams
-       
-        INTEGER                                                       :: stat, i, j, k, m, x, o, dims, dir
+
+        INTEGER                                                       :: stat, i, j, k, m, x, o, t, dims, dir
         INTEGER(kind=dp)                                               :: plan
         REAL(kind=dp)                                                  :: rtp_freq_range
         REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE                   :: trace, abs_intens
         COMPLEX(kind=dp), DIMENSION(:, :, :, :, :, :), ALLOCATABLE            :: y_out
-    
+
         IF (gs%spectral_type%read_function=='RR') THEN
             dims = 3
             dir = 2
@@ -681,20 +679,22 @@ END SUBROUTINE normal_mode_analysis
             dir = 1
             sys%natom = 1
         END IF
-    
+
         ALLOCATE (rams%RR%zhat_pol_rtp(sys%natom, dims, dir, 3, 3, rams%RR%framecount_rtp))
-    
+
         rams%RR%zhat_pol_rtp = COMPLEX(0._dp, 0.0_dp)
-    
         !!!FFT of the RTP polarizabilities
+    
         DO j = 1, sys%natom
             DO i = 1, dims
                 DO k = 1, dir
                     DO m = 1, 3
                         DO o = 1, 3
-                            CALL dfftw_plan_dft_r2c_1d(plan, rams%RR%framecount_rtp, rams%RR%pol_rtp(j, i, k, m, o, 1:rams%RR%framecount_rtp), &
+                            CALL dfftw_plan_dft_r2c_1d(plan, rams%RR%framecount_rtp, &
+                                                       rams%RR%pol_rtp(m, o)%atom(j)%displacement(k)%XYZ(i)%frame(1:rams%RR%framecount_rtp), &
                                                        rams%RR%zhat_pol_rtp(j, i, k, m, o, 1:rams%RR%framecount_rtp), FFTW_ESTIMATE)
-                            CALL dfftw_execute_dft_r2c(plan, rams%RR%pol_rtp(j, i, k, m, o, 1:rams%RR%framecount_rtp), &
+                            CALL dfftw_execute_dft_r2c(plan, &
+                                                       rams%RR%pol_rtp(m, o)%atom(j)%displacement(k)%XYZ(i)%frame(1:rams%RR%framecount_rtp), &
                                                        rams%RR%zhat_pol_rtp(j, i, k, m, o, 1:rams%RR%framecount_rtp))
                             CALL dfftw_destroy_plan(plan)
                         END DO
@@ -703,8 +703,8 @@ END SUBROUTINE normal_mode_analysis
             END DO
         END DO
     
+
         IF (rams%RR%check_pade=='y') THEN
-    
             ALLOCATE (y_out(sys%natom, dims, dir, 3, 3, rams%RR%framecount_rtp_pade))
         !!Call Pade
             !$OMP PARALLEL DO COLLAPSE(5)
@@ -721,27 +721,27 @@ END SUBROUTINE normal_mode_analysis
                 END DO
             END DO
             !$OMP END PARALLEL DO
+
             rams%RR%framecount_rtp = rams%RR%framecount_rtp_pade
             rams%RR%zhat_pol_rtp = y_out
             DEALLOCATE (y_out)
         END IF
 
-
 !!!Dividing by electric field
-        rams%RR%zhat_pol_rtp=rams%RR%zhat_pol_rtp/0.001_dp !!later make this an input variable
 
+        !rams%RR%zhat_pol_rtp=rams%RR%zhat_pol_rtp/0.001_dp !!later make this an input variable
 !!!Finding frequency range
         rtp_freq_range = REAL(rams%RR%dom_rtp/rams%RR%framecount_rtp, kind=dp)
 
 !!!Calculate absorption spectra
         ALLOCATE (trace(sys%natom, dims, dir, rams%RR%framecount_rtp))
         ALLOCATE (abs_intens(sys%natom, dims, dir, rams%RR%framecount_rtp))
-  
+
         trace = 0.0_dp
         trace(:, :, :, :) = DIMAG(rams%RR%zhat_pol_rtp(:, :, :, 1, 1, :)) + DIMAG(rams%RR%zhat_pol_rtp(:, :, :, 2, 2, :)) &
                             + DIMAG(rams%RR%zhat_pol_rtp(:, :, :, 3, 3, :))
         abs_intens(:, :, :, :) = (4.0_dp*pi*trace(:, :, :, :))/(3.0_dp*speed_light)
-    
+
         OPEN (UNIT=13, FILE='absorption_spectrum.txt', STATUS='unknown', IOSTAT=stat)
         DO j = 1, 1 !!atom_num: 1st atom
             DO i = 1, 1 !!dims: x dimension
@@ -753,10 +753,11 @@ END SUBROUTINE normal_mode_analysis
             END DO
         END DO
         CLOSE (13)
-        DEALLOCATE (rams%RR%pol_rtp, trace, abs_intens)
-    
+        DEALLOCATE (trace, abs_intens)
+
     END SUBROUTINE spec_abs
 !....................................................................................................................!
+
 !....................................................................................................................!
     SUBROUTINE spec_static_resraman(gs, sys, stats, rams)
 
@@ -798,14 +799,16 @@ END SUBROUTINE normal_mode_analysis
         PRINT *, gs%laser_in, "gs%laser_in", rtp_freq_range, "rtp_freq_range", &
             rams%RR%dom_rtp, "rams%RR%dom_rtp", rtp_point, 'rtp_point', rams%RR%framecount_rtp
 
-!!!Finite differences
+        PRINT *, '0 rams%RR%zhat_pol_rtp: ', rams%RR%zhat_pol_rtp(1, 1, 2, 1, 1, 1)
+!!!!Finite differences
+        PRINT *, '1 rams%RR%zhat_pol_rtp: ', REAL(rams%RR%zhat_pol_rtp(1, 1, 2, 1, 1, 1) - rams%RR%zhat_pol_rtp(1, 1, 1, 1, 1, 1), kind=dp)
         zhat_pol_dxyz_rtp(:, :, :, :, :) = REAL((REAL(rams%RR%zhat_pol_rtp(:, :, 2, :, :, :), kind=dp) &
                                                  - REAL(rams%RR%zhat_pol_rtp(:, :, 1, :, :, :), kind=dp))*factor, kind=dp)
-
+        PRINT *, '2 zhat_pol_dxyz_rtp: ', zhat_pol_dxyz_rtp(1, 1, 1, 1, 1)
 !!!Derivatives w.r.t. mass weighted normal coordinates
         DO i = 1, stats%nmodes
-            DO j = 1, sys%natom
-                DO o = 1, rams%RR%framecount_rtp
+            DO o = 1, rams%RR%framecount_rtp
+                DO j = 1, sys%natom
                     zhat_pol_dq_rtp(i, :, :, o) = zhat_pol_dq_rtp(i, :, :, o) &
                                                   + (zhat_pol_dxyz_rtp(j, 1, :, :, o)*stats%disp(i, j, 1)*sys%atom_mass_inv_sqrt(j)) &
                                                   + (zhat_pol_dxyz_rtp(j, 2, :, :, o)*stats%disp(i, j, 2)*sys%atom_mass_inv_sqrt(j)) &
@@ -813,7 +816,7 @@ END SUBROUTINE normal_mode_analysis
                 END DO
             END DO
         END DO
-
+        PRINT *, '0 zhat_pol_dq_rtp: ', zhat_pol_dq_rtp(1, 1, 1, 1)
 !!!Isotropic and anisotropic contributions!!
         iso_sq(:, :) = REAL((zhat_pol_dq_rtp(:, 1, 1, :) + zhat_pol_dq_rtp(:, 2, 2, :) &
                              + zhat_pol_dq_rtp(:, 3, 3, :))/3.0_dp, kind=dp)**2.0_dp
@@ -828,9 +831,14 @@ END SUBROUTINE normal_mode_analysis
 !!!Calculation of the intensities!!
         raman_int(:, rtp_point) = REAL(((7.0_dp*aniso_sq(:, rtp_point)) + (45.0_dp*iso_sq(:, rtp_point)))/45.0_dp, kind=dp)* &
                                   REAL(((gs%laser_in - stats%freq(:))**4.0_dp)/stats%freq(:), kind=dp) &
-                                  *REAL(1.0_dp/(1.0_dp - EXP(-1.438777_dp*stats%freq(:)/temp)), kind=dp)
-
+                                  *REAL(1.0_dp/(1.0_dp - EXP(r_factor*stats%freq(:)/temp)), kind=dp)
+        PRINT *, '1 raman_int: ', raman_int(1, 1)
+        PRINT *, '1 iso_sq: ', iso_sq(1, 1)
+        PRINT *, '1 freq: ', stats%freq(1)
+        PRINT *, '1 aniso_sq: ', aniso_sq(1, 1)
+        PRINT *, '1 raman_int: ', raman_int(1, 1)
 !!!Broadening the spectrum!!
+        PRINT *, '1 DATA2: ', data2(1)
         DO x = start_freq, end_freq
             broad = 0.0_dp
             DO i = 1, stats%nmodes
@@ -839,7 +847,7 @@ END SUBROUTINE normal_mode_analysis
             END DO
             data2(x) = data2(x) + broad
         END DO
-
+        PRINT *, '2 DATA2: ', data2(1)
         OPEN (UNIT=98, FILE='result_static_resraman.txt', STATUS='unknown', IOSTAT=stat)
         DO i = start_freq, end_freq
             WRITE (98, *) i, data2(i)
@@ -852,6 +860,7 @@ END SUBROUTINE normal_mode_analysis
     END SUBROUTINE spec_static_resraman
 
 !!....................................................................................................................!
+
 !!....................................................................................................................!
 !
     SUBROUTINE spec_resraman(natom, framecount, element, rtp_dipole_x, rtp_dipole_y, rtp_dipole_z, type_input, mol_num, system, &
@@ -1036,7 +1045,7 @@ END SUBROUTINE normal_mode_analysis
 
         OPEN (UNIT=41, FILE='absorption_spectra.txt', STATUS='unknown', IOSTAT=stat)
         DO i = 1, natom
-            WRITE (41, *) i*rtp_freq_range*1.23984198e-4, abs_intens(i)*i*rtp_freq_range
+            WRITE (41, *) i*rtp_freq_range*rtp_factor, abs_intens(i)*i*rtp_freq_range
         END DO
         CLOSE (41)
 
@@ -1049,7 +1058,7 @@ END SUBROUTINE normal_mode_analysis
 
         OPEN (UNIT=42, FILE='absorption_spectra_pade.txt', STATUS='unknown', IOSTAT=stat)
         DO i = 1, 10000
-            WRITE (42, *) i*pade_freq_range*1.23984198e-4, abs_intens_pade(i)*i*pade_freq_range
+            WRITE (42, *) i*pade_freq_range*rtp_factor, abs_intens_pade(i)*i*pade_freq_range
         END DO
         CLOSE (42)
 
@@ -1091,7 +1100,7 @@ END SUBROUTINE normal_mode_analysis
 !ENDDO
 !CLOSE(30)
 
-        f = freq_range*dt*1.883652d-4
+        f = freq_range*dt*frq_factor
         OPEN (UNIT=73, FILE='o-NP_resraman.txt', STATUS='unknown', IOSTAT=stat)
         DO i = 0, 2*t_cor - 2
             ! j=22
@@ -1101,8 +1110,8 @@ END SUBROUTINE normal_mode_analysis
 
             zhat_unpol_resraman(i, j) = (zhat_iso_resraman(i, j)) + (zhat_aniso_resraman(i, j)*7.0_dp/45.0_dp)* &
                                         ((const_planck)/(8.0_dp*const_boltz*const_permit*const_permit) &
-                                         *1d-29*0.421_dp*dt*((((laser_in*j) - ((i)*freq_range))**4)/((i)*freq_range)) &
-                                         *(1.0_dp/(1.0_dp - EXP((-1.438777_dp*((i)*freq_range))/temp))))*2.0_dp*2.0_dp*pi
+                                         *int_rman_factor*dt*((((laser_in*j) - ((i)*freq_range))**4)/((i)*freq_range)) &
+                                         *(1.0_dp/(1.0_dp - EXP((r_factor*((i)*freq_range))/temp))))*2.0_dp*2.0_dp*pi
             zhat_unpol_resraman(0, j) = 0.0_dp
             IF ((i*freq_range).GE.5000.0_dp) CYCLE
             !WRITE(73,*) i*freq_range,REAL(zhat_unpol_resraman(i,j),kind=dp),j
