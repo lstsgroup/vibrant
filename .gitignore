@@ -1,1 +1,4 @@
-build/
+build*
+.vscode
+**.i90
+**.mod
