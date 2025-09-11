@@ -19,6 +19,18 @@ The regression tests can be run by running the following in the build directory 
 ctest 
 ```
 
+## code style
+
+fprettify config:
+```
+indent = 4
+strict-indent = True
+case = [2, 2, 2, 2]
+whitespace = 2
+whitespace-relational = False
+line-length = 300
+```
+
 ## Website
 
 #### install sphinx 

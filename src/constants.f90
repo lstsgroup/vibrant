@@ -118,4 +118,26 @@ MODULE constants
    ! [eV/(a.m.u*Ang^2)] -> [J/(kg*m^2)]
    REAL(kind=dp), PARAMETER                            :: hessian_factor = REAL(const_charge/(am_u*ang*ang), kind=dp)
 
+    !! MAGIC NUMBERS
+    ! spec_ir
+    REAL(kind=dp), PARAMETER                            :: ir_factor = 42.256_dp
+
+    ! raman
+    REAL(kind=dp), PARAMETER                            :: r_factor = -1.438777_dp
+
+    ! refquencey
+    REAL(kind=dp), PARAMETER                            :: frq_factor = 1.883652d-4
+
+    ! refquencey
+    REAL(kind=dp), PARAMETER                            :: power_factor = 7.211349d-9
+
+    ! refquencey
+    REAL(kind=dp), PARAMETER                            :: rtp_factor = 1.23984198e-4
+
+    ! refquencey
+    REAL(kind=dp), PARAMETER                            :: int_rman_factor = 1d-29*0.421_dp
+
+    ! refquencey
+    REAL(kind=dp), PARAMETER                            :: int_ir_factor = 3047.2310_dp
+
 END MODULE constants
