@@ -29,6 +29,7 @@ set(CMAKE_Fortran_FLAGS "-Og -g -fopenmp -ffree-line-length-none -fcheck=bounds,
 # Source files
 set(SOURCES
     src/kinds.f90
+    src/timing.f90
     src/constants.f90
     src/read_input.f90
     src/config_info.f90

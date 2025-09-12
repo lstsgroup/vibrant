@@ -16,6 +16,7 @@ PROGRAM vib2d
    USE calc_spectra, ONLY: spec_power, normal_mode_analysis, spec_static_ir, spec_static_raman, &
                            spec_ir, spec_raman, spec_abs, spec_static_resraman!, spec_resraman
    USE omp_lib, ONLY: omp_get_num_threads
+   USE timing, ONLY: timings
    USE config_info, ONLY: output_config_info
 
    IMPLICIT NONE
@@ -80,12 +81,14 @@ PROGRAM vib2d
    TYPE(raman)            :: rams
    CHARACTER(LEN=str_len)          :: input_file_name
 
+
+   ! start timer for init
+   CALL timings%register("initializing")
+   
 !$omp parallel
    num_threads = omp_get_num_threads()
 !$omp end parallel
 
-   CALL SYSTEM_CLOCK(count_0, count_rate, count_max) !Starting time
-   time_init = count_0*1.0_dp/count_rate
 
    CALL init_global_settings(gs)
    CALL init_systems(sys)
@@ -176,12 +179,16 @@ PROGRAM vib2d
 !!
 !!    !***************************************************************************
    IF (gs%spectral_type%read_function == 'P') THEN
+      CALL timings%register("reading coordinates")
       CALL read_coord(sys%filename, gs, sys)
+      CALL timings%register("calculating charges")
       CALL masses_charges(gs, sys)
+      CALL timings%register("calculating power spectrum")
       CALL spec_power(gs, sys, md)
 !        !***************************************************************************
 !        !***************************************************************************
    ELSEIF (gs%spectral_type%read_function == 'MD-IR') THEN
+      CALL timings%register("reading coordinates")
       CALL read_coord(dips%dip_file, gs, sys, dips)
       !  IF (sys%system=='1' .OR. sys%system=='2' .AND. dips%type_dipole=='wannier') THEN !!fragment approach or whole supercell
       !      IF (sys%cell%cell_type=='1' .OR. sys%cell%cell_type=='2') THEN !!KP or SC
@@ -189,6 +196,7 @@ PROGRAM vib2d
       !      END IF
       !  END IF
 
+      CALL timings%register("calculating IR spectrum")
       CALL spec_ir(gs, sys, md, dips)
 !        !***************************************************************************
 !
@@ -196,42 +204,61 @@ PROGRAM vib2d
    ELSEIF (gs%spectral_type%read_function == 'MD-R') THEN
       !   sys%filename = wannier_free! <----  MUST BE ADJUSTED
       IF (dips%type_dipole=='berry') THEN
+          CALL timings%register("reading coordinates")
           CALL read_coord(dips%dip_file, gs, sys, dips)
       ELSEIF (dips%type_dipole=='dfpt') THEN
+          CALL timings%register("reading coordinates")
           CALL read_coord(dips%dip_x_file, gs, sys, dips)
       ENDIF
+      CALL timings%register("calculating charges")
       CALL masses_charges(gs, sys)
 
+      CALL timings%register("calculating raman spectrum")
       CALL spec_raman(gs, sys, md, dips, rams)
       !***************************************************************************
 
       !***************************************************************************
    ELSEIF (gs%spectral_type%read_function == 'NMA') THEN
+      CALL timings%register("reading coordinates")
       CALL read_coord(sys%filename, gs, sys, dips)
+      CALL timings%register("calculating charges")
       CALL masses_charges(gs, sys)
+      CALL timings%register("reading normal modes")
       CALL read_normal_modes(gs, sys, stats)
+      CALL timings%register("normal mode analysis")
       CALL normal_mode_analysis(sys, stats)
 !        !***************************************************************************
 !
 !        !***************************************************************************
    ELSEIF (gs%spectral_type%read_function == 'IR') THEN
+      CALL timings%register("reading coordinates")
       CALL read_coord(sys%filename, gs, sys, dips)
+      CALL timings%register("calculating charges")
       CALL masses_charges(gs, sys)
+      CALL timings%register("reading normal modes")
       CALL read_normal_modes(gs, sys, stats)
+      CALL timings%register("reading static dipoles")
       CALL read_static(gs, sys, dips, rams)
       IF (stats%diag_hessian == 'y') THEN
+         CALL timings%register("normal mode analysis")
          CALL normal_mode_analysis(sys, stats)
       END IF
+      CALL timings%register("finite differences")
       CALL finite_diff_static(gs, sys, stats, dips, rams)
 
+      CALL timings%register("calculating IR spectrum")
       CALL spec_static_ir(gs, sys, stats, dips)
 !        !***************************************************************************
 !
 !        !***************************************************************************
    ELSEIF (gs%spectral_type%read_function == 'R') THEN
+      CALL timings%register("reading coordinates")
       CALL read_coord(sys%filename, gs, sys, dips)
+      CALL timings%register("calculating charges")
       CALL masses_charges(gs, sys)
+      CALL timings%register("reading normal modes")
       CALL read_normal_modes(gs, sys, stats)
+      CALL timings%register("reading static dipoles")
       CALL read_static(gs, sys, dips, rams)
       !  IF (type_dipole=='2') THEN
       !     CALL read_static(static_dip_x_file, static_dip_x, gs, sys, rams)
@@ -239,40 +266,55 @@ PROGRAM vib2d
       !   CALL read_static(static_dip_z_file, static_dip_z, gs, sys, rams)
       ! END IF
       IF (stats%diag_hessian == 'y') THEN
+         CALL timings%register("normal mode analysis")
          CALL normal_mode_analysis(sys, stats)
       END IF
+      CALL timings%register("finite differences")
       CALL finite_diff_static(gs, sys, stats, dips, rams)
 
+      CALL timings%register("calculate Raman spectrum")
       CALL spec_static_raman(gs, sys, stats, dips, rams)
 !        !***************************************************************************
 !
 !        !***************************************************************************
    ELSEIF (gs%spectral_type%read_function == 'ABS') THEN
+      CALL timings%register("reading coordinates")
       CALL read_coord(sys%filename, gs, sys, dips)
+      CALL timings%register("reading dipoles")
       CALL read_static_resraman(dips%dip_x_file, rams%RR%static_dip_x_rtp, sys, rams)
       CALL read_static_resraman(dips%dip_y_file, rams%RR%static_dip_y_rtp, sys, rams)
       CALL read_static_resraman(dips%dip_z_file, rams%RR%static_dip_z_rtp, sys, rams)
+      CALL timings%register("finite differences")
       CALL finite_diff_static_resraman(sys, rams) !<-- CHANGE ?
 
+      CALL timings%register("calculate absorption spectrum")
       CALL spec_abs(gs, sys, dips, rams)
       !***************************************************************************
 
       !***************************************************************************
    ELSEIF (gs%spectral_type%read_function == 'RR') THEN
+      CALL timings%register("reading coordinates")
       CALL read_coord(sys%filename, gs, sys, dips)
+      CALL timings%register("calculating charges")
       CALL masses_charges(gs, sys)
+      CALL timings%register("reading normal modes")
       CALL read_normal_modes(gs, sys, stats)
+      CALL timings%register("reading dipoles")
       CALL read_static_resraman(dips%dip_x_file, rams%RR%static_dip_x_rtp, sys, rams)
       CALL read_static_resraman(dips%dip_y_file, rams%RR%static_dip_y_rtp, sys, rams)
       CALL read_static_resraman(dips%dip_z_file, rams%RR%static_dip_z_rtp, sys, rams)
 
       IF (stats%diag_hessian == 'y') THEN
+         CALL timings%register("normal mode analysis")
          CALL normal_mode_analysis(sys, stats)
       END IF
 
+      CALL timings%register("finite differences")
       CALL finite_diff_static_resraman(sys, rams)
+      CALL timings%register("calculate absorption spectrum")
       CALL spec_abs(gs, sys, dips, rams)
 
+      CALL timings%register("calculate resonance Raman spectrum")
       CALL spec_static_resraman(gs, sys, stats, rams)
       !***************************************************************************
       !***************************************************************************
@@ -285,14 +327,10 @@ PROGRAM vib2d
 !        !CALL spec_resraman(natom,framecount,element,rtp_dipole_x,rtp_dipole_y,rtp_dipole_z,type_input,mol_num,system,&
 !        !     read_function,dt,z_iso_resraman,z_aniso_resraman,freq_range,freq_range_rtp,laser_in_resraman,y_out)
    END IF
-!
+
+
+   CALL timings%report_all()
+
    CALL deallocate_types(gs, sys, md, stats, rams, dips)
-
-   CALL SYSTEM_CLOCK(count_1, count_rate, count_max) !Ending time
-   time_final = count_1*1.0_dp/count_rate
-   elapsed_time = time_final - time_init !Elapsed time
-
-   WRITE (*, 1003) INT(elapsed_time), elapsed_time - INT(elapsed_time) !Write elapsed time
-1003 FORMAT('  Wall Clock = ', i0, F0.9)
 
 END PROGRAM vib2d
