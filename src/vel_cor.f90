@@ -1,6 +1,5 @@
 MODULE vel_cor
 
-   USE dipole_calc, ONLY: center_mass
    USE kinds, ONLY: dp
    USE constants, ONLY: pi, ang, fs2s, at_u, bohr2ang
    USE vib_types, ONLY: global_settings, systems, molecular_dynamics, static, dipoles, raman

@@ -21,7 +21,8 @@ MODULE vib_types
       INTEGER, DIMENSION(:, :, :), ALLOCATABLE            :: fragment
       REAL(kind=dp)                                       :: mass_tot_cell
       REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE         :: mass_tot_frag
-      REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE      :: refpoint
+      REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE      :: refpoint1
+      REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE      :: refpoint2
    END TYPE fragments
 
    !***************************************************************************
@@ -289,7 +290,8 @@ CONTAINS
       IF (ALLOCATED(sys%fragments%fragment)) DEALLOCATE (sys%fragments%fragment)
       !IF (ALLOCATED(sys%fragments%mass_tot_cell)) DEALLOCATE(sys%fragments%mass_tot_cell)
       IF (ALLOCATED(sys%fragments%mass_tot_frag)) DEALLOCATE (sys%fragments%mass_tot_frag)
-      IF (ALLOCATED(sys%fragments%refpoint)) DEALLOCATE (sys%fragments%refpoint)
+      IF (ALLOCATED(sys%fragments%refpoint1)) DEALLOCATE (sys%fragments%refpoint1)
+      IF (ALLOCATED(sys%fragments%refpoint2)) DEALLOCATE (sys%fragments%refpoint2)
 
    END SUBROUTINE deallocate_system
 

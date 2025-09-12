@@ -4,82 +4,14 @@ MODULE dipole_calc
    USE constants, ONLY: debye
    USE vib_types, ONLY: global_settings, systems, molecular_dynamics, static, dipoles
    USE setup, ONLY: build_hexagonal_hmat, pbc_orthorombic, pbc_hexagonal, pbc_hexagonal, pbc_orthorombic_old, invert3x3, &
-                      build_oblique_hmat
+                      build_oblique_hmat, build_triclinic_hmat, determinant3x3
 
    IMPLICIT NONE
 
-   PUBLIC :: wannier, center_mass, wannier_frag!, solv_frag_index ! wannier_frag_old,center_mass_old
+   PUBLIC :: wannier, wannier_frag!, solv_frag_index ! wannier_frag_old,center_mass_old
    PRIVATE
 
 CONTAINS
-
-SUBROUTINE center_mass(filename, fragment, gs, sys, md, dips)
-
-   USE kinds, ONLY : dp
-   IMPLICIT NONE
-
-   TYPE(global_settings),    INTENT(INOUT) :: gs
-   TYPE(systems),            INTENT(INOUT) :: sys
-   TYPE(molecular_dynamics), INTENT(INOUT) :: md
-   TYPE(dipoles),            INTENT(INOUT) :: dips
-
-   CHARACTER(LEN=*), INTENT(INOUT) :: filename
-   INTEGER, DIMENSION(:,:,:), ALLOCATABLE, INTENT(OUT) :: fragment
-
-   ! locals
-   INTEGER :: m, j, stat
-   REAL(dp) :: mass_tot
-   REAL(dp) :: COM_cart(3)
-REAL(dp) :: COC_frac(3), COC_cart(3), xfrac(3)
-REAL(dp) :: charge_tot
-   REAL(dp) :: hmat(3,3), h_inv(3,3)
-
-   !-----------------------------------------------------------
-   ! Allocate arrays
-   !-----------------------------------------------------------
-   ALLOCATE (sys%fragments%mass_tot_frag(sys%framecount, sys%mol_num))
-   ALLOCATE (sys%fragments%refpoint(sys%framecount, 3))
-   ALLOCATE (fragment(sys%framecount, sys%mol_num, 32))
-   ALLOCATE (sys%fragments%natom_frag(sys%mol_num))
-
-   sys%fragments%refpoint      = 0.0_dp
-   sys%fragments%mass_tot_frag = 0.0_dp
-   fragment                    = 0
-   sys%fragments%natom_frag    = 0
-
-   !-----------------------------------------------------------
-!    Compute COM for each frame (simple Cartesian average)
-   !-----------------------------------------------------------
-   DO m = 1, sys%framecount
-      COM_cart = 0.0_dp
-      mass_tot = 0.0_dp
-
-      DO j = 1, sys%natom
-         COM_cart = COM_cart + md%coord_v(m,j,:) * sys%mass_atom(j)
-         mass_tot = mass_tot + sys%mass_atom(j)
-      END DO
-
-      sys%fragments%refpoint(m,:) = COM_cart / mass_tot
-   END DO
-
-   !-----------------------------------------------------------
-   ! Write COM for visualization
-   !-----------------------------------------------------------
-   OPEN (UNIT=12, FILE=TRIM(filename)//'-COM.xyz', STATUS='unknown', IOSTAT=stat)
-   IF (stat /= 0) STOP "Error opening COM output file"
-
-   DO m = 1, sys%framecount
-      WRITE (12,*) sys%natom+1
-      WRITE (12,*)
-      DO j = 1, sys%natom
-         WRITE (12,*) sys%element(j), md%coord_v(m,j,:)
-      END DO
-      WRITE (12,*) 'N', sys%fragments%refpoint(m,:)   ! COM marker
-   END DO
-
-   CLOSE (12)
-
-END SUBROUTINE center_mass
 
 !!***************************************************************************************************
 SUBROUTINE wannier_frag(natom_frag, filename, dipole, fragment, gs, sys, md, dips)
@@ -92,287 +24,133 @@ SUBROUTINE wannier_frag(natom_frag, filename, dipole, fragment, gs, sys, md, dip
    TYPE(molecular_dynamics), INTENT(INOUT) :: md
    TYPE(dipoles),            INTENT(INOUT) :: dips
 
-   CHARACTER(LEN=*), INTENT(IN) :: filename
+   CHARACTER(LEN=40), INTENT(IN) :: filename
    INTEGER, DIMENSION(:),      ALLOCATABLE, INTENT(INOUT) :: natom_frag
    INTEGER, DIMENSION(:,:,:),  ALLOCATABLE, INTENT(INOUT) :: fragment
    REAL(dp), DIMENSION(:,:,:), ALLOCATABLE, INTENT(OUT)   :: dipole
 
    ! locals
-   REAL(dp) :: hmat(3,3), h_inv(3,3)
+   REAL(dp) :: hmat(3,3), h_inv(3,3), V
    REAL(dp) :: COM_frac(3), COM_cart(3), xfrac(3)
-REAL(dp) :: COC_frac(3), COC_cart(3)
+   REAL(dp) :: COC_frac(3), COC_cart(3)
    REAL(dp) :: mass_tot, charge_tot
-   REAL(dp) :: r_atom(3), r_wc(3)
    REAL(dp) :: dr(3), dr_wc(3), dr_atom(3), dist, dmin, dist_prev, dist_nearest
-   INTEGER  :: m, i, iwc, parent, stat, prev_parent, nearest
-   REAL(dp), PARAMETER :: HYST = 0.20_dp   ! Å, hysteresis threshold
-    REAL(kind=dp)                                                :: pox_x, pox_y, pox_z, pox_all
-   INTEGER,  ALLOCATABLE :: wc_parent(:,:)   ! [frame, iWC]
-   INTEGER,  ALLOCATABLE :: n_wc_per_atom(:),counter(:)   ! [frame, iWC]
-INTEGER :: nat_tot
-CHARACTER(LEN=20) :: frame_label
+   INTEGER  :: m, i, iwc, j, parent, stat, prev_parent, nearest
+   INTEGER :: nshift, n_wc
+   REAL(dp), DIMENSION(:,:,:), ALLOCATABLE    :: dipole1, dipole2
+   REAL(dp) :: pol_quantum(3), delta
 
-nat_tot = sys%natom   ! includes both atoms and Wannier centers
    !-----------------------------------------------------------
    ! Allocate outputs
    !-----------------------------------------------------------
-   ALLOCATE(dipole(sys%framecount, sys%mol_num, 3))
+   ALLOCATE(dipole(sys%framecount, 1, 3))
+   ALLOCATE(dipole1(sys%framecount, 1, 3))
+   ALLOCATE(dipole2(sys%framecount, 1, 3))
+   ALLOCATE (sys%fragments%refpoint1(sys%framecount, 3), sys%fragments%refpoint2(sys%framecount, 3))
+
    dipole = 0.0_dp
-   !-----------------------------------------------------------
-   ! Reassign Wannier center indices (per frame)
-   !-----------------------------------------------------------
-  
-  ! DO m = 1, 1
-     ! DO i = 1, sys%natom
-      !counter = 0
-        ! IF (TRIM(sys%element(i)) == 'X') CYCLE
-        ! IF (TRIM(sys%element(i)) == 'H') CYCLE
-          !  DO iwc = 1, sys%natom
-          !   IF (TRIM(sys%element(iwc)) .NE. 'X') CYCLE
-          !   CALL pbc_hexagonal(md%coord_v(m,i,:), md%coord_v(m,iwc,:), sys, dr)
-           !       dist = SQRT(SUM(dr**2))
-          !        IF (dist < 1.00) THEN
-         !         counter = counter + 1
-                !  IF (counter >= sys%wc_number(i)) CYCLE
-        !             IF (ANY(iwc == fragment(m, :, :))) CYCLE
-       !              fragment(m, i, n) = k
-                   
-                  
-!-----------------------------------------------------------
-! Allocate outputs
-!-----------------------------------------------------------
 
-! lattice matrices
-CALL build_hexagonal_hmat(sys, hmat)
-CALL invert3x3(hmat, h_inv)
-
-!-----------------------------------------------------------
-! Assign parent atom for each Wannier center (per frame)
-!-----------------------------------------------------------
-ALLOCATE(wc_parent(sys%framecount, sys%natom),counter(sys%natom))
-wc_parent = -1
-
-! fixed quota per element
-ALLOCATE(n_wc_per_atom(sys%natom))
-n_wc_per_atom = 0
-DO i = 1, sys%natom
-   SELECT CASE (TRIM(sys%element(i)))
-   CASE ("H")
-      n_wc_per_atom(i) = 0
-   CASE ("B")
-      n_wc_per_atom(i) = 1
-   CASE ("C")
-      n_wc_per_atom(i) = 2
-   CASE ("N")
-      n_wc_per_atom(i) = 3
-   CASE ("O")
-      n_wc_per_atom(i) = 4
-   CASE DEFAULT
-      n_wc_per_atom(i) = 0   ! safe fallback
-   END SELECT
-END DO
-
-! loop over frames
-DO m = 1, sys%framecount
-   counter = 0   ! reset WC count per atom for this frame
-
-   DO iwc = 1, sys%natom
-      IF (TRIM(sys%element(iwc)) == 'X') THEN
-         dmin   = HUGE(1.0_dp)
-         parent = -1
-         DO i = 1, sys%natom
-            IF (TRIM(sys%element(i)) /= 'X') THEN
-               ! skip if this parent already got its quota
-               IF (counter(i) >= n_wc_per_atom(i)) CYCLE
-               CALL pbc_hexagonal(md%coord_v(m,iwc,:), md%coord_v(m,i,:), sys, dr)
-               dist = SQRT(SUM(dr**2))
-               IF (dist < dmin) THEN
-                  dmin   = dist
-                  parent = i
-               END IF
-            END IF
-         END DO
-         wc_parent(m, iwc) = parent
-         IF (parent > 0) counter(parent) = counter(parent) + 1
-      END IF
-   END DO
-!WRITE(*,*) "Frame ", m, " WC assignment summary:"
-!DO i = 1, sys%natom
- !  IF (n_wc_per_atom(i) > 0) THEN
- !     WRITE(*,'(A3,I6,2I6)') TRIM(sys%element(i)), i, counter(i), n_wc_per_atom(i)
- !  END IF
-!END DO
-END DO
-
-! Print how many WCs were assigned in the first frame
-!DO i = 1, sys%natom
-  ! IF (n_wc_per_atom(i) > 0) THEN
-  !    WRITE(*,'(A3,I6,2I6)') TRIM(sys%element(i)), i, wc_parent(1, i), wc_parent(5000,i), counter(i), "warning"
-      !WRITE(*,'(A3,I6,2I6)') TRIM(sys%element(i)), i, n_wc_per_atom(i), counter(i), "warning"
- !  END IF
-!END DO
-
-   !-----------------------------------------------------------
-   ! Assign parent atom for each Wannier center (per frame)
-   !-----------------------------------------------------------
-  ! wc_parent = -1
-
-   !DO m = 1, sys%framecount
-    !  DO iwc = 1, sys%natom
-     !    IF (TRIM(sys%element(iwc)) == 'X') THEN
-
-            ! ---- find nearest atom (this frame) ----
-      !      nearest      = -1
-      !      dist_nearest = HUGE(1.0_dp)
-       !     DO i = 1, sys%natom
-        !       IF (TRIM(sys%element(i)) /= 'X') THEN
-         !         CALL pbc_hexagonal(md%coord_v(m,iwc,:), md%coord_v(m,i,:), sys, dr)
-          !        dist = SQRT(SUM(dr**2))
-           !       IF (dist < dist_nearest) THEN
-            !         dist_nearest = dist
-             !        nearest      = i
-             !     END IF
-             !  END IF
-           ! END DO
-
-            ! ---- apply hysteresis vs previous parent ----
-           ! IF (m > 1) THEN
-              ! prev_parent = wc_parent(m-1, iwc)
-              ! IF (prev_parent > 0) THEN
-                !  CALL pbc_hexagonal(md%coord_v(m,iwc,:), md%coord_v(m,prev_parent,:), sys, dr)
-                !  dist_prev = SQRT(SUM(dr**2))
-
-               !   IF (dist_nearest < dist_prev - HYST) THEN
-               !      parent = nearest
-              !    ELSE
-             !        parent = prev_parent
-            !      END IF
-           !    ELSE
-          !        parent = nearest
-         !      END IF
-        !    ELSE
-       !        parent = nearest
-       !     END IF
-
-    !        wc_parent(m, iwc) = parent
-   !      END IF
-  !    END DO
- !  END DO
-
-
-!-----------------------------------------------------------
-! Physically shift Wannier centers next to their parent atoms
-!-----------------------------------------------------------
-DO m = 1, sys%framecount
-   DO iwc = 1, sys%natom
-      IF (TRIM(sys%element(iwc)) == 'X') THEN
-         parent = wc_parent(m, iwc)
-         IF (parent > 0) THEN
-            ! get PBC minimum-image vector WC−parent
-            CALL pbc_hexagonal(md%coord_v(m,iwc,:), md%coord_v(m,parent,:), sys, dr)
-           ! print*, SQRT(SUM(sys%cell%vec(:)**2)), SQRT(SUM(dr**2)), md%coord_v(m,parent,:), md%coord_v(m,iwc,:)
-            ! overwrite WC coordinate: parent position + minimum-image vector
-           !  dr(3) = md%coord_v(m,iwc,3) - md%coord_v(m,parent,3)
-            print*, md%coord_v(m,parent,:), dr, md%coord_v(m,iwc,:)
-             md%coord_v(m,iwc,:) = md%coord_v(m,parent,:) + dr
-           ! CALL pbc_hexagonal(md%coord_v(m,iwc,:), md%coord_v(m,parent,:), sys, dr)
-            print*, md%coord_v(m,iwc,:)
-         END IF
-      END IF
-   END DO
-END DO
-
-   OPEN(UNIT=69, FILE='vmd_dipole.xyz', STATUS='unknown', IOSTAT=stat)
-   IF (stat /= 0) STOP "Error opening dipole output file"
-   DO m = 1, sys%framecount
-      WRITE(69,*) sys%natom
-      WRITE(69,*) 
-   DO i = 1, sys%natom
-      WRITE(69,*) TRIM(sys%element(i)), md%coord_v(m,i,1:3)
-   END DO
-   END DO
-   CLOSE(69)
-
-   !-----------------------------------------------------------
-   ! Loop over frames: COM and dipole
-   !-----------------------------------------------------------
-
-      pox_x = 40.0_dp
-      pox_y = 40.0_dp
-      pox_z = 40.0_dp
-      pox_all = 40.0_dp
+ !  CALL build_oblique_hmat(sys, hmat)   ! or build_hexagonal_hmat
+ !  CALL build_hexagonal_hmat(sys, hmat)   ! or build_hexagonal_hmat
+   CALL build_triclinic_hmat (sys, hmat)
+   CALL invert3x3(hmat, h_inv)
 
    DO m = 1, sys%framecount
 
       ! --- mass-weighted COM under PBC (fractional) ---
       COM_frac = 0.0_dp; mass_tot = 0.0_dp
+      COC_frac = 0.0_dp; charge_tot = 0.0_dp
       DO i = 1, sys%natom
          xfrac = MATMUL(h_inv, md%coord_v(m,i,:))
          xfrac = xfrac - FLOOR(xfrac)
-         COM_frac = COM_frac + xfrac * REAL(sys%mass_atom(i), dp)
-         mass_tot = mass_tot + REAL(sys%mass_atom(i), dp)
+         IF (TRIM(sys%element(i)) /= 'X') THEN
+             COM_frac = COM_frac + xfrac * REAL(sys%mass_atom(i), dp)
+             mass_tot = mass_tot + REAL(sys%mass_atom(i), dp)
+         ELSEIF (TRIM(sys%element(i)) == 'X') THEN
+             COC_frac = COC_frac + xfrac * REAL(sys%charge(i), dp)
+             charge_tot = charge_tot + REAL(sys%charge(i), dp)
+         ENDIF
       END DO
       COM_frac = COM_frac / MAX(mass_tot, 1.0_dp)
+      COC_frac = COC_frac / MAX(charge_tot, 1.0_dp)
       COM_frac = COM_frac - FLOOR(COM_frac)
+      COC_frac = COC_frac - FLOOR(COC_frac)
       COM_cart = MATMUL(hmat, COM_frac)
-      sys%fragments%refpoint(m,:) = COM_cart
-      sys%fragments%refpoint(m,:) = 0
+      COC_cart = MATMUL(hmat, COC_frac)
+      sys%fragments%refpoint1(m,:) = COM_cart
+      sys%fragments%refpoint2(m,:) = COC_cart
 
       ! --- dipole for this frame ---
-      dipole(m,1,:) = 0.0_dp
+      dipole1(m,1,:) = 0.0_dp
+      dipole2(m,1,:) = 0.0_dp
 
-      ! (1) atoms: q_i * (r_i - COM)
       DO i = 1, sys%natom
          IF (TRIM(sys%element(i)) /= 'X') THEN
-    CALL pbc_orthorombic_old(md%coord_v(m,i,:), sys%fragments%refpoint(m, :), sys%cell%vec, sys%cell%vec_pbc, &
-                                           pox_all, pox_x, pox_y, pox_z) !! IF COM is for whole supercel!!!
-   !         CALL pbc_hexagonal(md%coord_v(m,i,:), sys%fragments%refpoint(m,:), sys, dr)
-   !         dipole(m,1,:) = dipole(m,1,:) + sys%charge(i) * dr
-             dipole(m, 1, :) = dipole(m, 1, :) + sys%cell%vec_pbc*1.889725989_dp*sys%charge(i)
+            CALL pbc_hexagonal(md%coord_v(m,i,:), sys%fragments%refpoint1(m,:), sys, dr)
+            dipole1(m,1,:) = dipole1(m,1,:) + sys%charge(i) * dr * 1.889725989_dp 
+
+         ELSEIF (TRIM(sys%element(i)) == 'X') THEN
+            CALL pbc_hexagonal(md%coord_v(m,i,:), sys%fragments%refpoint2(m,:), sys, dr)
+            dipole2(m,1,:) = dipole2(m,1,:) + sys%charge(i) * dr * 1.889725989_dp
          END IF
       END DO
 
-      ! (2) Wannier centers: q_wc * [(WC - parent) + (parent - COM)]
-      DO iwc = 1, sys%natom
-         IF (TRIM(sys%element(iwc)) == 'X') THEN
-            parent = wc_parent(m, iwc)
-            IF (parent > 0) THEN
-               r_atom = md%coord_v(m,parent,:)
-               r_wc   = md%coord_v(m,iwc,:)
-    CALL pbc_orthorombic_old(r_wc, r_atom, sys%cell%vec, dr_wc, &
-                                           pox_all, pox_x, pox_y, pox_z) !! IF COM is for whole supercel!!!
-    !           CALL pbc_hexagonal(r_wc,   r_atom,   sys, dr_wc)   ! WC−parent
-    CALL pbc_orthorombic_old(r_atom, sys%fragments%refpoint(m, :), sys%cell%vec, dr_atom, &
-                                           pox_all, pox_x, pox_y, pox_z) !! IF COM is for whole supercel!!!
-     !          CALL pbc_hexagonal(r_atom, sys%fragments%refpoint(m,:), sys, dr_atom) ! parent−COM
-               dipole(m,1,:) = dipole(m,1,:) + sys%charge(iwc) * (dr_wc + dr_atom)*1.889725989_dp
-            END IF
-         END IF
-      END DO
-
+  !    dipole(m,1,:) = dipole1(m,1,:) + dipole2(m,1,:)
       ! Debye
-      dipole(m,1,:) = dipole(m,1,:) * 4.80320427_dp
+  !    dipole(m,1,:) = dipole(m,1,:) * 2.54174622741_dp/mass_tot
 
+   END DO
+   !-----------------------------------------------------------
+   ! Polarization quantum (scalar per axis)
+   !-----------------------------------------------------------
+   V = ABS(determinant3x3(hmat)) * (1.889725989_dp**3)    ! Å³ → Bohr³
+   DO i = 1, 3
+     pol_quantum(i) = (-2.0_dp / V) * (NORM2(hmat(:,i)) * 1.889725989_dp) !* 2.54174622741_dp
+   END DO
+
+   !-----------------------------------------------------------
+   ! Apply continuity correction only to WCs
+   !-----------------------------------------------------------
+   DO m = 2, sys%framecount
+      DO i = 1, 3
+         delta = dipole1(m,1,i) - dipole1(m-1,1,i)
+         nshift = ANINT(delta / pol_quantum(i))
+         IF (nshift /= 0) THEN
+            dipole1(m,1,i) = dipole1(m,1,i) + nshift * pol_quantum(i)
+         END IF
+      END DO
+   END DO
+
+   DO m = 2, sys%framecount
+      DO i = 1, 3
+         delta = dipole2(m,1,i) - dipole2(m-1,1,i)
+         nshift = ANINT(delta / pol_quantum(i))
+         IF (nshift /= 0) THEN
+            dipole2(m,1,i) = dipole2(m,1,i) + nshift * pol_quantum(i)
+         END IF
+      END DO
+   END DO
+
+   !-----------------------------------------------------------
+   !-----------------------------------------------------------
+   ! Combine and convert to Debye
+   !-----------------------------------------------------------
+   DO m = 1, sys%framecount
+   !   dipole(m,1,:) = (dipole1(m,1,:)) * 2.54174622741_dp
+      dipole(m,1,:) = ((dipole1(m,1,:)/mass_tot) + (dipole2(m,1,:)/mass_tot)) * 2.54174622741_dp
    END DO
 
    !-----------------------------------------------------------
    ! Write result
    !-----------------------------------------------------------
-   OPEN(UNIT=68, FILE=TRIM(filename)//'_dipole.xyz', STATUS='unknown', IOSTAT=stat)
+   OPEN(UNIT=68, FILE=TRIM(filename)//'_dipole2.xyz', STATUS='unknown', IOSTAT=stat)
    IF (stat /= 0) STOP "Error opening dipole output file"
    DO m = 1, sys%framecount
       WRITE(68,'(I8,3F20.10)') m, dipole(m,1,:)
    END DO
    CLOSE(68)
 
-   !-----------------------------------------------------------
-   ! Clean up
-   !-----------------------------------------------------------
-   DEALLOCATE(wc_parent)
-
 END SUBROUTINE wannier_frag
-
-
 
 !!***************************************************************************************************
    SUBROUTINE wannier_frag2(natom_frag, filename, dipole, fragment, gs, sys, md, dips)
@@ -507,8 +285,8 @@ CLOSE(68)
 ! ENDDO
 !ENDDO
 !CLOSE(51)
-      DEALLOCATE (sys%fragments%mass_tot_frag)
-      DEALLOCATE (sys%fragments%refpoint)
+     ! DEALLOCATE (sys%fragments%mass_tot_frag)
+     ! DEALLOCATE (sys%fragments%refpoint)
    END SUBROUTINE wannier_frag2
 !
 !!***************************************************************************************************

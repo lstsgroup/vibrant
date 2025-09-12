@@ -1,7 +1,7 @@
 MODULE setup
 
    USE kinds, ONLY: dp
-   USE constants, ONLY: speed_light
+   USE constants, ONLY: pi, speed_light
    USE vib_types, ONLY: global_settings, systems
 
    IMPLICIT NONE
@@ -9,7 +9,7 @@ MODULE setup
    PRIVATE
 
    PUBLIC :: read_input, masses_charges, conversion, pbc_orthorombic, pbc_hexagonal, pbc_hexagonal_old, pbc_orthorombic_old, invert3x3, &
-             build_hexagonal_hmat, build_oblique_hmat !constants,
+             build_hexagonal_hmat, build_oblique_hmat, build_triclinic_hmat, determinant3x3 !constants,
 
 CONTAINS
 
@@ -528,7 +528,9 @@ SUBROUTINE pbc_hexagonal(coord2, coord1, sys, dr)
    REAL(dp) :: hmat(3,3), h_inv(3,3)
    REAL(dp) :: s(3), vec(3)
 
-   CALL build_hexagonal_hmat(sys, hmat)
+!   CALL build_hexagonal_hmat(sys, hmat)
+ !  CALL build_oblique_hmat(sys, hmat)
+   CALL build_triclinic_hmat(sys, hmat)
    CALL invert3x3(hmat, h_inv)
 
    sys%cell%vec = coord2 - coord1
@@ -640,14 +642,21 @@ SUBROUTINE build_hexagonal_hmat(sys, hmat)
    sqrt3 = 1.73205080756887729353_dp
 
    ! Use the same averaged a that worked for you (important!)
-   a     = sys%cell%box_x 
-   !a     = 0.5_dp*(sys%cell%box_x + sys%cell%box_y)
+   !a     = sys%cell%box_x 
+   a     = 0.5_dp*(sys%cell%box_x + sys%cell%box_y)
    acosa = 0.5_dp*a
    asina = sqrt3*acosa
 
    hmat(1,1) = a;      hmat(1,2) = acosa;  hmat(1,3) = 0.0_dp
    hmat(2,1) = 0.0_dp; hmat(2,2) = asina;  hmat(2,3) = 0.0_dp
    hmat(3,1) = 0.0_dp; hmat(3,2) = 0.0_dp; hmat(3,3) = sys%cell%box_z
+
+
+
+!WRITE(*,*) "a = ", SQRT(SUM(hmat(:,1)**2)), "hexagonal"
+!WRITE(*,*) "b = ", SQRT(SUM(hmat(:,2)**2))
+!WRITE(*,*) "gamma = ", ACOS(DOT_PRODUCT(hmat(:,1),hmat(:,2)) / (NORM2(hmat(:,1))*NORM2(hmat(:,2)))) * 180/PI
+
 
 !hmat(1,1) = a
 !hmat(1,2) = 0.0_dp
@@ -681,7 +690,51 @@ SUBROUTINE build_oblique_hmat(sys, hmat)
    hmat(1,:) = (/ ax,     0.0_dp, 0.0_dp /)           ! a1
    hmat(2,:) = (/ by*cg,  by*sg,  0.0_dp /)           ! a2
    hmat(3,:) = (/ 0.0_dp, 0.0_dp, cz     /)           ! a3
+
+
 END SUBROUTINE
+SUBROUTINE build_triclinic_hmat(sys, hmat)
+   USE kinds, ONLY: dp
+   TYPE(systems), INTENT(IN) :: sys
+   REAL(dp), INTENT(OUT) :: hmat(3,3)
+   REAL(dp) :: a, b, c, alpha, beta, gamma
+   REAL(dp) :: pi, ca, cb, cg, sa, sb, sg
 
-END MODULE setup
+   pi = acos(-1.0_dp)
 
+   a = sys%cell%box_x
+   b = sys%cell%box_y
+   c = sys%cell%box_z
+
+   alpha = 90.0_dp * pi/180.0_dp
+   beta  = 90.0_dp  * pi/180.0_dp
+   gamma = 60.0_dp * pi/180.0_dp
+
+   ca = cos(alpha); cb = cos(beta); cg = cos(gamma)
+   sa = sin(alpha); sb = sin(beta); sg = sin(gamma)
+
+   ! hmat stores lattice vectors as columns
+   hmat = 0.0_dp
+   hmat(:,1) = (/ a, 0.0_dp, 0.0_dp /)
+   hmat(:,2) = (/ b*cg, b*sg, 0.0_dp /)
+   hmat(:,3) = (/ c*cb, c*(ca - cb*cg)/sg, &
+                  c*sqrt(1.0_dp + 2.0_dp*ca*cb*cg - ca**2 - cb**2 - cg**2)/sg /)
+ !  WRITE(*,'(A,F12.6)') "a = ", SQRT(SUM(hmat(:,1)**2))
+ !  WRITE(*,'(A,F12.6)') "b = ", SQRT(SUM(hmat(:,2)**2))
+!   WRITE(*,'(A,F12.6)') "gamma = ", ACOS(DOT_PRODUCT(hmat(:,1),hmat(:,2)) / &
+ !                                (NORM2(hmat(:,1))*NORM2(hmat(:,2)))) * 180.0_dp/pi
+!WRITE(*,'(A,F12.6)') "gamma_reconstructed = ", &
+ !  ACOS(DOT_PRODUCT(hmat(:,1),hmat(:,2)) / (NORM2(hmat(:,1))*NORM2(hmat(:,2)))) * 180.0_dp/pi
+
+END SUBROUTINE build_triclinic_hmat
+
+FUNCTION determinant3x3(a) RESULT(det)
+   USE kinds, ONLY: dp
+   REAL(dp), INTENT(IN) :: a(3,3)
+   REAL(dp) :: det
+   det = a(1,1)*(a(2,2)*a(3,3) - a(2,3)*a(3,2)) - &
+         a(1,2)*(a(2,1)*a(3,3) - a(2,3)*a(3,1)) + &
+         a(1,3)*(a(2,1)*a(3,2) - a(2,2)*a(3,1))
+END FUNCTION determinant3x3
+
+END MODULE
