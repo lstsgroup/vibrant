@@ -36,6 +36,7 @@ affiliations:
     ror: 042aqky30
   - index: 2
     name: Julius-Maximilians-Universität Würzburg, Germany
+    ror: 00fbnyb24
   - index: 3
     name: Helmholtz-Zentrum Dresden-Rossendorf, Centrum for Advanced Systems Understanding, CASUS, Germany
   - index: 4
