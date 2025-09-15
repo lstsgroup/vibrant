@@ -24,19 +24,21 @@ authors:
   - name: 
       given-names: Thomas
       surname: Heine
-    affiliation: '1, 2'
+    affiliation: '1, 3, 4'
 
   - name: 
       given-names: Dorothea
       surname: Golze
-    affiliation: '1'
+    affiliation: '1, 2'
 affiliations:
   - index: 1
     name: Technische Universität Dresden, Germany
     ror: 042aqky30
   - index: 2
-    name: Helmholtz-Zentrum Dresden-Rossendorf, Centrum for Advanced Systems Understanding, CASUS, Germany
+    name: Julius-Maximilians-Universität Würzburg, Germany
   - index: 3
+    name: Helmholtz-Zentrum Dresden-Rossendorf, Centrum for Advanced Systems Understanding, CASUS, Germany
+  - index: 4
     name: Yonsei University and IBS center for nanomedicine, Republic of Korea
 date: 15 September 2025
 bibliography: paper.bib
@@ -51,7 +53,7 @@ abstract
 
 why do we need vibrant
 
-citing ekins paper here `[@ekin2024]`
+citing ekins paper here [@ekin2024]
 
 # State of the field
 what other similar codes exists, what makes vibrant different 
