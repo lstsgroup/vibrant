@@ -19,12 +19,16 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 include(ExternalProject)
 include(cmake/fftw_dependency.cmake)
 include(cmake/greenx_dependency.cmake)
-find_package(BLAS REQUIRED)
-find_package(LAPACK REQUIRED)
+include(cmake/lapack_dependency.cmake)
 set(LIBS fftw3 gx_ac ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES})
 
-# Compiler flags
-set(CMAKE_Fortran_FLAGS "-Og -g -fopenmp -ffree-line-length-none -fcheck=bounds,do,recursion,pointer -cpp -I${CMAKE_BINARY_DIR}")
+## Compiler flags
+if(NOT CMAKE_Fortran_FLAGS)
+    set(CMAKE_Fortran_FLAGS "-O -g -fopenmp -ffree-line-length-none -fcheck=bounds,do,recursion,pointer -cpp -I${CMAKE_BINARY_DIR}")
+    message(STATUS "CMAKE_Fortran_FLAGS not defined. Using default: ${CMAKE_Fortran_FLAGS}")
+else()
+    message(STATUS "CMAKE_Fortran_FLAGS: ${CMAKE_Fortran_FLAGS}")
+endif()
 
 # Source files
 set(SOURCES
