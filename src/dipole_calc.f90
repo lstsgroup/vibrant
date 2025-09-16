@@ -88,10 +88,11 @@ SUBROUTINE wannier_frag(natom_frag, filename, dipole, fragment, gs, sys, md, dip
          IF (TRIM(sys%element(i)) /= 'X') THEN
             CALL pbc_hexagonal(md%coord_v(m,i,:), sys%fragments%refpoint1(m,:), sys, dr)
             dipole1(m,1,:) = dipole1(m,1,:) + sys%charge(i) * dr * 1.889725989_dp 
-
+           ! print*, sys%element(i), sys%cell%vec, dr
          ELSEIF (TRIM(sys%element(i)) == 'X') THEN
-            CALL pbc_hexagonal(md%coord_v(m,i,:), sys%fragments%refpoint2(m,:), sys, dr)
+            CALL pbc_hexagonal(md%coord_v(m,i,:), sys%fragments%refpoint1(m,:), sys, dr)
             dipole2(m,1,:) = dipole2(m,1,:) + sys%charge(i) * dr * 1.889725989_dp
+           ! print*, sys%element(i),sys%cell%vec, dr
          END IF
       END DO
 
@@ -116,7 +117,7 @@ SUBROUTINE wannier_frag(natom_frag, filename, dipole, fragment, gs, sys, md, dip
          delta = dipole1(m,1,i) - dipole1(m-1,1,i)
          nshift = ANINT(delta / pol_quantum(i))
          IF (nshift /= 0) THEN
-            dipole1(m,1,i) = dipole1(m,1,i) + nshift * pol_quantum(i)
+        !    dipole1(m:,1,i) = dipole1(m:,1,i) - nshift * pol_quantum(i)
          END IF
       END DO
    END DO
@@ -126,7 +127,7 @@ SUBROUTINE wannier_frag(natom_frag, filename, dipole, fragment, gs, sys, md, dip
          delta = dipole2(m,1,i) - dipole2(m-1,1,i)
          nshift = ANINT(delta / pol_quantum(i))
          IF (nshift /= 0) THEN
-            dipole2(m,1,i) = dipole2(m,1,i) + nshift * pol_quantum(i)
+       !     dipole2(m,1,i) = dipole2(m,1,i) - nshift * pol_quantum(i)
          END IF
       END DO
    END DO
