@@ -715,6 +715,8 @@ SUBROUTINE build_triclinic_hmat(sys, hmat)
 
    ! hmat stores lattice vectors as columns
    hmat = 0.0_dp
+  ! hmat(:,1) = (/ a, b*cg, 0.0_dp /)
+  ! hmat(:,2) = (/ 0.0_dp, b*sg, 0.0_dp /)
    hmat(:,1) = (/ a, 0.0_dp, 0.0_dp /)
    hmat(:,2) = (/ b*cg, b*sg, 0.0_dp /)
    hmat(:,3) = (/ c*cb, c*(ca - cb*cg)/sg, &

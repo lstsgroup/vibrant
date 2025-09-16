@@ -10,7 +10,7 @@ MODULE calc_spectra
    USE read_traj, ONLY: read_coord_frame
    USE fin_diff, ONLY: central_diff, forward_diff
    USE vel_cor, ONLY: cvv, cvv_iso, cvv_aniso, cvv_only_x, cvv_resraman
-   USE dipole_calc, ONLY:  wannier_frag, wannier
+   USE dipole_calc, ONLY:compute_dipole_unwrapped,  wannier_frag
    USE pade, ONLY: interpolate
 
    USE, INTRINSIC                              :: ISO_C_BINDING
@@ -92,7 +92,8 @@ CONTAINS
                 CALL read_coord_frame(sys%natom, dips%dip_file, md%coord_v, sys)
                 print*, sys%cell%box_x, dips%dip_file
       !          CALL center_mass(dips%dip_file, sys%fragments%fragment, gs, sys, md, dips)
-                CALL wannier_frag(sys%fragments%natom_frag, sys%filename, dips%dipole, sys%fragments%fragment, gs, sys, md, dips)
+       !         CALL wannier_frag(sys%fragments%natom_frag, sys%filename, dips%dipole, sys%fragments%fragment, gs, sys, md, dips)
+                CALL compute_dipole_unwrapped(dips%dipole, sys, md)
       !      ELSEIF (sys%cell%cell_type=='3') THEN !!SC with solvent
       !          CALL read_coord_frame(sys%natom, sys%filename, md%coord_v, sys)
       !          CALL solv_frag_index(sys%filename, sys%fragments%natom_frag, sys%fragments%fragment, sys, md, dips)

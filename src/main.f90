@@ -10,7 +10,7 @@ PROGRAM vib2d
                         raman, init_global_settings, init_systems, init_molecular_dynamics, init_static, deallocate_types
    USE setup, ONLY: read_input, masses_charges, conversion, pbc_orthorombic, pbc_hexagonal, build_triclinic_hmat
    USE read_traj, ONLY: read_coord, read_coord_frame, read_normal_modes, read_static, read_static_resraman
-   USE dipole_calc, ONLY: wannier, wannier_frag
+   USE dipole_calc, ONLY:  wannier_frag
    USE vel_cor, ONLY: cvv, cvv_iso, cvv_aniso, cvv_only_x, cvv_resraman
    USE fin_diff, ONLY: central_diff, forward_diff, finite_diff_static, finite_diff_static_resraman
    USE calc_spectra, ONLY: spec_power, normal_mode_analysis, spec_static_ir, spec_static_raman, &
@@ -48,7 +48,7 @@ PROGRAM vib2d
    REAL(kind=dp)                                    ::  sinc_const, mass_tot_cell, e_field, cm2m
    REAL(kind=dp), DIMENSION(3)                       :: vec, vec_pbc, coord2, coord1
    REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE       :: refpoint, refpoint_free, refpoint_x, refpoint_y, refpoint_z
-   REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE       :: alpha_resraman_x, alpha_resraman_y, alpha_resraman_z
+   REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE       :: alpha_resraman_x, alpha_resraman_y, alpha_resraman_z, wc_frac
    REAL(kind=dp), DIMENSION(:), ALLOCATABLE           :: kissfft, z, norm, mass_atom, z_aniso, z_iso, z_ortho, z_para, zhat_depol
    REAL(kind=dp), DIMENSION(:), ALLOCATABLE           :: atom_mass_inv_sqrt, charge
    REAL(kind=dp), DIMENSION(:), ALLOCATABLE           :: zhat_para_all, zhat_depol_x, zhat_unpol_x, freq, raman_int, test_x
