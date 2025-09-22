@@ -886,8 +886,8 @@ SUBROUTINE spec_raman(gs, sys, md, dips, rams)
       REAL(kind=dp)                                                  :: rtp_freq_res, pade_freq_res
       REAL(kind=dp), DIMENSION(:), ALLOCATABLE                         :: data2, ram_const
       REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE                       :: iso_sq, aniso_sq, raman_int
-      REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE                   :: zhat_pol_dq_rtp
-      REAL(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE                 :: zhat_pol_dxyz_rtp
+      COMPLEX(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE                   :: zhat_pol_dq_rtp
+      COMPLEX(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE                 :: zhat_pol_dxyz_rtp
 
       broad = 0.0_dp
       factor = 1._dp/(2.0_dp*stats%dx)
@@ -901,7 +901,7 @@ SUBROUTINE spec_raman(gs, sys, md, dips, rams)
       ALLOCATE (iso_sq(stats%nmodes, rams%RR%framecount_rtp), aniso_sq(stats%nmodes, rams%RR%framecount_rtp))
       ALLOCATE (raman_int(stats%nmodes, rams%RR%framecount_rtp), ram_const(stats%nmodes))
 
-      zhat_pol_dq_rtp = 0.0_dp
+      zhat_pol_dq_rtp = (0.0_dp, 0.0_dp)
       data2 = 0.0_dp
 
 !!!Finding laser frequency
@@ -912,8 +912,8 @@ SUBROUTINE spec_raman(gs, sys, md, dips, rams)
          rams%RR%freq_range_rtp, "rams%RR%freq_range_rtp", rtp_point, 'rtp_point', rams%RR%framecount_rtp
 
 !!!Finite differences
-      zhat_pol_dxyz_rtp(:, :, :, :, :) = REAL((REAL(rams%RR%zhat_pol_rtp(:, :, 2, :, :, :), kind=dp) &
-                                               - REAL(rams%RR%zhat_pol_rtp(:, :, 1, :, :, :), kind=dp))*factor, kind=dp)
+      zhat_pol_dxyz_rtp(:, :, :, :, :) = (rams%RR%zhat_pol_rtp(:, :, 2, :, :, :) &
+                                               - rams%RR%zhat_pol_rtp(:, :, 1, :, :, :))*factor
 
 !!!Derivatives w.r.t. mass weighted normal coordinates
       DO i = 1, stats%nmodes
@@ -928,15 +928,12 @@ SUBROUTINE spec_raman(gs, sys, md, dips, rams)
       END DO
 
 !!!Isotropic and anisotropic contributions!!
-      iso_sq(:, :) = REAL((zhat_pol_dq_rtp(:, 1, 1, :) + zhat_pol_dq_rtp(:, 2, 2, :) &
-                           + zhat_pol_dq_rtp(:, 3, 3, :))/3.0_dp, kind=dp)**2.0_dp
+      iso_sq(:, :) = ABS((zhat_pol_dq_rtp(:,1,1,:) + zhat_pol_dq_rtp(:,2,2,:) + zhat_pol_dq_rtp(:,3,3,:))/3.0_dp)**2
 
-      aniso_sq(:, :) = (0.50_dp*(((zhat_pol_dq_rtp(:, 1, 1, :) - zhat_pol_dq_rtp(:, 2, 2, :))**2.0_dp) + &
-                                 ((zhat_pol_dq_rtp(:, 2, 2, :) - zhat_pol_dq_rtp(:, 3, 3, :))**2.0_dp) &
-                                 + ((zhat_pol_dq_rtp(:, 3, 3, :) - zhat_pol_dq_rtp(:, 1, 1, :))**2.0_dp))) &
-                       + (3.0_dp*((zhat_pol_dq_rtp(:, 1, 2, :)**2.0_dp) &
-                                  + (zhat_pol_dq_rtp(:, 2, 3, :)**2.0_dp) &
-                                  + (zhat_pol_dq_rtp(:, 3, 1, :)**2.0_dp)))
+      aniso_sq(:, :) = 0.5_dp * (ABS(zhat_pol_dq_rtp(:,1,1,:) - zhat_pol_dq_rtp(:,2,2,:))**2 + &
+                           ABS(zhat_pol_dq_rtp(:,2,2,:) - zhat_pol_dq_rtp(:,3,3,:))**2 + &
+                           ABS(zhat_pol_dq_rtp(:,3,3,:) - zhat_pol_dq_rtp(:,1,1,:))**2)  &
+                 + 3.0_dp * (ABS(zhat_pol_dq_rtp(:,1,2,:))**2 + ABS(zhat_pol_dq_rtp(:,2,3,:))**2 + ABS(zhat_pol_dq_rtp(:,3,1,:))**2)
 
 !!!Conversion from (debye/E)^2 angstrom^-2 amu⁻¹ to angstrom^6 angstrom^-2 amu⁻¹
       iso_sq = iso_sq/(a3_to_debye_per_e*a3_to_debye_per_e)
