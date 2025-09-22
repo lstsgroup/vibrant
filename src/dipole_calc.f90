@@ -33,12 +33,14 @@ SUBROUTINE compute_dipole_unwrapped(dipole, sys, md)
    natoms  = sys%natom
    nwc     = COUNT(sys%element(:) == 'X')
    coord3 = 0.0
+   
    ! --- allocate arrays
    ALLOCATE(dipole(nframes,1,3))
    ALLOCATE(wc_frac(nframes,natoms,3))
    ALLOCATE(wc_unwrapped(nframes,natoms,3))
    ALLOCATE(wc_cart(nframes,natoms,3))
    ALLOCATE (sys%fragments%refpoint1(sys%framecount, 3))
+ 
    dipole = 0.0_dp
 
    ! --- lattice
@@ -46,41 +48,19 @@ SUBROUTINE compute_dipole_unwrapped(dipole, sys, md)
    CALL invert3x3(hmat, h_inv)
 
    ! --- extract WCs in fractional coords
-!   iwc = 0
-   DO i = 1, natoms
-   !   IF (TRIM(sys%element(i)) == 'X') THEN
-  !       iwc = iwc + 1
-         DO m = 1, nframes
-            wc_frac(m,i,:) = MATMUL(h_inv, md%coord_v(m,i,:))
-            wc_frac(m,i,:) = wc_frac(m,i,:) - FLOOR(wc_frac(m,i,:)) ! wrap into [0,1)
-         END DO
-    !  END IF
-   END DO
+  ! DO i = 1, natoms
+   !      DO m = 1, nframes
+   !         wc_frac(m,i,:) = MATMUL(h_inv, md%coord_v(m,i,:))
+  !          wc_frac(m,i,:) = wc_frac(m,i,:) - FLOOR(wc_frac(m,i,:)) ! wrap into [0,1)
+ !        END DO
+!   END DO
 
-   ! --- unwrap WCs across frames
-  ! wc_unwrapped(1,:,:) = wc_frac(1,:,:)
-   !DO m = 2, nframes
-     ! DO iwc = 1, nwc
-       !  DO k = 1, 3
-       !     delta = wc_frac(m,iwc,k) - wc_frac(m-1,iwc,k)
-       !     IF (delta >  0.5_dp) THEN
-       !        wc_unwrapped(m,iwc,k) = wc_unwrapped(m-1,iwc,k) + (delta - 1.0_dp)
-       !     ELSEIF (delta < -0.5_dp) THEN
-       !        wc_unwrapped(m,iwc,k) = wc_unwrapped(m-1,iwc,k) + (delta + 1.0_dp)
-      !      ELSE
-     !          wc_unwrapped(m,iwc,k) = wc_unwrapped(m-1,iwc,k) + delta
-    !        END IF
-   !      END DO
-  !    END DO
- !  END DO
-
-!   wc_unwrapped(:,:,:) = wc_frac(:,:,:)
    ! --- convert WCs to Cartesian
-   DO m = 1, nframes
-      DO iwc = 1, natoms
-         wc_cart(m,iwc,:) = MATMUL(hmat, wc_frac(m,iwc,:))
-      END DO
-   END DO
+ !  DO m = 1, nframes
+  !    DO iwc = 1, natoms
+   !      wc_cart(m,iwc,:) = MATMUL(hmat, wc_frac(m,iwc,:))
+   !   END DO
+  ! END DO
 
    ! --- compute dipole
    DO m = 1, nframes
@@ -88,8 +68,8 @@ SUBROUTINE compute_dipole_unwrapped(dipole, sys, md)
       COM_frac = 0.0_dp; mass_tot = 0.0_dp
       DO i = 1, sys%natom
          IF (TRIM(sys%element(i)) /= 'X') THEN
-          !  CALL pbc_hexagonal(wc_cart(m,i,:), coord3(:), sys, dr)
-             COM_frac = COM_frac + wc_cart(m,i,:)*REAL(sys%mass_atom(i), dp)
+             COM_frac = COM_frac + md%coord_v(m,i,:)*REAL(sys%mass_atom(i), dp)
+             !COM_frac = COM_frac + wc_cart(m,i,:)*REAL(sys%mass_atom(i), dp)
              mass_tot = mass_tot + REAL(sys%mass_atom(i), dp)
          ENDIF
       END DO
@@ -98,69 +78,47 @@ SUBROUTINE compute_dipole_unwrapped(dipole, sys, md)
 
       ! nuclei
       DO i = 1, natoms
-   !      IF (TRIM(sys%element(i)) /= 'X') THEN
-            CALL pbc_hexagonal( wc_cart(m,i,:), sys%fragments%refpoint1(m,:), sys, dr)
-           ! dipole(m,1,:) = dipole(m,1,:) + sys%charge(i) * sys%cell%vec(:) / bohr2ang
+            CALL pbc_hexagonal(md%coord_v(m,i,:), sys%fragments%refpoint1(m,:), sys, dr)
+            !CALL pbc_hexagonal(wc_cart(m,i,:), sys%fragments%refpoint1(m,:), sys, dr)
             dipole(m,1,:) = dipole(m,1,:) + sys%charge(i) * dr / bohr2ang
-    !     END IF
+            !dipole(m,1,:) = dipole(m,1,:) + sys%charge(i) * sys%cell%vec(:) / bohr2ang
       END DO
-
-      ! Wannier centers (–2 e each)
-  !    DO iwc = 1, nwc
-  !       CALL pbc_hexagonal(wc_cart(m,iwc,:), sys%fragments%refpoint1(m,:), sys, dr)
- !        dipole(m,1,:) = dipole(m,1,:) - 2.0_dp * dr / bohr2ang
-!      END DO
-
       ! convert to Debye
       dipole(m,1,:) = dipole(m,1,:) / debye
    END DO
- DO i = 1, 3
-   ! pol_quantum(i) = SUM(hmat(i,:)) * 1.889725989_dp / debye  ! e·Bohr
-    pol_quantum(i) = SUM(hmat(:,i)) * 1.889725989_dp / debye  ! e·Bohr
- END DO
-print*, pol_quantum(:), NORM2(hmat(:,1)), NORM2(hmat(:,2)), NORM2(hmat(:,3)), NORM2(hmat(:,1))*1.889725989_dp/debye
-print*, 1.889725989_dp/debye
+   DO i = 1, 3
+       pol_quantum(i) = SUM(hmat(i,:)) / (bohr2ang * debye)  ! e·Bohr
+   END DO
 
    DO m = 1, sys%framecount
       DO i = 1, 3
-     !    print*, ANINT(dipole(m,1,i)/pol_quantum(i))
-     !    nshift = ANINT(delta / pol_quantum(i))
-     !    IF (nshift /= 0) THEN
-          !  dipole(m,1,3) = dipole(m,1,3) - ANINT(dipole(m,1,3)/hmat(3,3))*hmat(3,3)
-          !  dipole(m,1,1) = dipole(m,1,1) - ANINT(dipole(m,1,1)/(hmat(1,1)+)*hmat(1,1)
-          !  dipole(m,1,2) = dipole(m,1,2) - ANINT(dipole(m,1,2)/hmat(2,2))*hmat(2,2)
             dipole(m,1,i) = dipole(m,1,i) - ANINT(dipole(m,1,i)/pol_quantum(i))*pol_quantum(i)
-    !     END IF
       END DO
    END DO
-   
+
    ! --- write to file
    OPEN(UNIT=69, FILE='COF-1_refpoint.xyz', STATUS='unknown', IOSTAT=stat)
    DO m = 1, nframes
       WRITE(69,*) sys%natom+1
       WRITE(69,*)
       DO i = 1, sys%natom
-      !    IF (sys%element(i) .NE. 'X') THEN
-          WRITE(69,*) sys%element(i),  wc_cart(m,i,:)
-     !  !   ENDIF
+          WRITE(69,*) sys%element(i), md%coord_v(m,i,:)
+          !WRITE(69,*) sys%element(i),  wc_cart(m,i,:)
       ENDDO
-     ! DO iwc = 1, nwc
-      !    WRITE(69,*) 'X', wc_cart(m,iwc,:)
-    !  ENDDO
           WRITE(69,*) "N", sys%fragments%refpoint1(m,:)
    END DO
+
    ! --- write to file
    OPEN(UNIT=68, FILE='dipole.xyz', STATUS='unknown', IOSTAT=stat)
    IF (stat /= 0) STOP "Error opening dipole output file"
    DO m = 1, nframes
-      WRITE(68,'(I8,3F20.10)') m, dipole(m,1,:)
+       WRITE(68,'(I8,3F20.10)') m, dipole(m,1,:)
    END DO
    CLOSE(68)
 
    DEALLOCATE(wc_frac, wc_unwrapped, wc_cart)
+
 END SUBROUTINE compute_dipole_unwrapped
-
-
 
 !!***************************************************************************************************
 SUBROUTINE wannier_frag(natom_frag, filename, dipole, fragment, gs, sys, md, dips)

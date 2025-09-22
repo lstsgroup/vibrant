@@ -15,6 +15,7 @@ CONTAINS
         !! @parameter[in]  y_ref       -- tabulated y values of a complex function
         !! @parameter[in]  n_points    -- number of interpolated points
         !! @parameter[out] y_out       -- tabulated interpolated values using pade
+
    SUBROUTINE interpolate(n_parameter, y_ref, n_points, y_out)
       INTEGER, INTENT(in)  :: n_parameter
       COMPLEX(kind=dp), DIMENSION(:), INTENT(in)  :: y_ref
@@ -28,6 +29,7 @@ CONTAINS
       REAL(kind=dp) :: first, last, step, x_last_important
       COMPLEX(kind=dp), DIMENSION(:), ALLOCATABLE :: x_ref_complx, x_ref_complx_tmp, y_ref_tmp
       COMPLEX(kind=dp), DIMENSION(:), ALLOCATABLE :: x_out_complx
+
       ! convert x to complex type
       ! use only half of the array (other half filled with zeros)
       num_ref_points = SIZE(y_ref)
@@ -36,18 +38,20 @@ CONTAINS
       last = 2.0_dp
       step = (last - first)/(num_ref_points - 1)
       DO i = 1, num_ref_points
-         x_ref_complx(i) = COMPLEX(first + (i - 1.0_dp)*step, 0.0_dp)
+          x_ref_complx(i) = COMPLEX(first + (i - 1.0_dp)*step, 0.0_dp)
       END DO
       last_important = num_ref_points
       DO i = num_ref_points, 1, -1
-         IF (y_ref(i) .EQ. COMPLEX(0.0_dp, 0.0_dp) .AND. i > INT(num_ref_points/2)) THEN
-            !if (y_ref(i) .eq. complex(0.0_dp, 0.0_dp)) then
-            last_important = i - 1
-            x_last_important = REAL(x_ref_complx(i - 1), kind=dp)
-         END IF
+          IF (y_ref(i) .EQ. COMPLEX(0.0_dp, 0.0_dp) .AND. i > INT(num_ref_points/2)) THEN
+             !if (y_ref(i) .eq. complex(0.0_dp, 0.0_dp)) then
+             last_important = i - 1
+             x_last_important = REAL(x_ref_complx(i - 1), kind=dp)
+          END IF
       END DO
-      call select_points_evenly(x_ref_complx(1:last_important), last_important, 100d0, x_ref_complx_tmp, n_par)
-      call select_points_evenly(y_ref(1:last_important), last_important, 100d0, y_ref_tmp, n_par)
+
+      CALL select_points_evenly(x_ref_complx(1:last_important), last_important, 100d0, x_ref_complx_tmp, n_par)
+      CALL select_points_evenly(y_ref(1:last_important), last_important, 100d0, y_ref_tmp, n_par)
+
       ! create model
       pade_params = create_thiele_pade(n_par, x_ref_complx_tmp, &
                                        y_ref_tmp, &
@@ -72,14 +76,17 @@ CONTAINS
       CALL free_params(pade_params)
       DEALLOCATE (x_ref_complx)
       DEALLOCATE (x_out_complx)
+
    END SUBROUTINE interpolate
+
 !> @brief Selects evenly spaced points from `points` according to percentage p
 !> @param[in] points Input array of points (real numbers)
 !> @param[in] N Total number of points in the input array
 !> @param[in] p Percentage of points to select (0 < p <= 100)
 !> @param[out] selected Output array of selected points (must be allocated outside)
 !> @param[out] M Number of selected points (output)
-   subroutine select_points_evenly(points, N, p, selected, M)
+
+   SUBROUTINE select_points_evenly(points, N, p, selected, M)
       integer, intent(in) :: N
       complex(kind=8), dimension(N), intent(in) :: points
       real(kind=8), intent(in) :: p
@@ -102,5 +109,7 @@ CONTAINS
          step = int(dble(i - 1)*dble(N - 1)/dble(M - 1) + 0.5d0) + 1
          selected(i) = points(step)
       end do
-   end subroutine select_points_evenly
+
+   END SUBROUTINE select_points_evenly
+
 END MODULE pade

@@ -616,9 +616,13 @@ SUBROUTINE invert3x3(a, ainv)
          a(1,2)*(a(2,1)*a(3,3) - a(2,3)*a(3,1)) + &
          a(1,3)*(a(2,1)*a(3,2) - a(2,2)*a(3,1))
 
+!   det = a(1,1)*(a(2,2)*a(3,3) - a(2,3)*a(3,2)) - &
+ !        a(1,2)*(a(2,3)*a(3,1) - a(2,1)*a(3,3)) + &
+  !       a(1,3)*(a(2,1)*a(3,2) - a(2,2)*a(3,1))
+   
    IF (ABS(det) < 1e-12_dp) STOP "Singular matrix in invert3x3"
    det = 1.0_dp/det
-
+   
    ainv(1,1) = (a(2,2)*a(3,3) - a(2,3)*a(3,2))*det
    ainv(1,2) = (a(1,3)*a(3,2) - a(1,2)*a(3,3))*det
    ainv(1,3) = (a(1,2)*a(2,3) - a(1,3)*a(2,2))*det
@@ -672,7 +676,8 @@ SUBROUTINE build_hexagonal_hmat(sys, hmat)
 
 
 END SUBROUTINE build_hexagonal_hmat
-
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 SUBROUTINE build_oblique_hmat(sys, hmat)
    USE kinds, ONLY: dp
    TYPE(systems), INTENT(IN) :: sys
@@ -691,32 +696,32 @@ SUBROUTINE build_oblique_hmat(sys, hmat)
    hmat(2,:) = (/ by*cg,  by*sg,  0.0_dp /)           ! a2
    hmat(3,:) = (/ 0.0_dp, 0.0_dp, cz     /)           ! a3
 
-
 END SUBROUTINE
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 SUBROUTINE build_triclinic_hmat(sys, hmat)
    USE kinds, ONLY: dp
    TYPE(systems), INTENT(IN) :: sys
    REAL(dp), INTENT(OUT) :: hmat(3,3)
    REAL(dp) :: a, b, c, alpha, beta, gamma
    REAL(dp) :: pi, ca, cb, cg, sa, sb, sg
-
-   pi = acos(-1.0_dp)
-
+   
+   pi = acos(-1.0)
    a = sys%cell%box_x
    b = sys%cell%box_y
    c = sys%cell%box_z
-
    alpha = 90.0_dp * pi/180.0_dp
    beta  = 90.0_dp  * pi/180.0_dp
-   gamma = 60.0_dp * pi/180.0_dp
+   gamma = 120.0_dp * pi/180.0_dp
 
    ca = cos(alpha); cb = cos(beta); cg = cos(gamma)
    sa = sin(alpha); sb = sin(beta); sg = sin(gamma)
-
+!print*, b*cg, a-b*cg, a+b*cg, cos(120.0_dp), cos(120.0_dp * pi/180.0_dp)  
    ! hmat stores lattice vectors as columns
    hmat = 0.0_dp
-  ! hmat(:,1) = (/ a, b*cg, 0.0_dp /)
-  ! hmat(:,2) = (/ 0.0_dp, b*sg, 0.0_dp /)
+ !  hmat(:,1) = (/ a, b*cg, 0.0_dp /)
+ !  hmat(:,2) = (/ 0.0_dp, b*sg, 0.0_dp /)
    hmat(:,1) = (/ a, 0.0_dp, 0.0_dp /)
    hmat(:,2) = (/ b*cg, b*sg, 0.0_dp /)
    hmat(:,3) = (/ c*cb, c*(ca - cb*cg)/sg, &

@@ -100,8 +100,8 @@ CONTAINS
       !          CALL wannier_frag(sys%fragments%natom_frag, sys%filename, dips%dipole, sys%fragments%fragment, gs, sys, md, dips)
       !       END IF
     END IF
-
-      ALLOCATE (md%zhat(0:2*md%t_cor - 1), ir_int(0:2*md%t_cor - 1), freq(0:2*md%t_cor - 1))
+      
+    ALLOCATE (md%zhat(0:2*md%t_cor - 1), ir_int(0:2*md%t_cor - 1), freq(0:2*md%t_cor - 1))
 
       md%zhat = COMPLEX(0._dp, 0.0_dp)
 
@@ -180,54 +180,27 @@ CONTAINS
 !    IF (rams%averaging=='1') THEN
 
 !!FIELD_FREE!!!
-      !       IF (sys%system=='1' .OR. dips%type_dipole=='wannier') THEN
-      !           IF (sys%cell%cell_type.NE.'3') THEN
-      !               !CALL read_coord_frame(sys, md)
-      !              CALL read_coord_frame(sys%natom, rams%wannier_free, md%coord_v, sys) !<- this needs to be ADJUSTED
-      !              ! filename different and fragment_free different
-      !              CALL center_mass(rams%wannier_free, fragment_free, gs, sys, md, dips)
-      !              CALL wannier_frag(sys%fragments%natom_frag, rams%wannier_free, dip_free, fragment_free, gs, sys, md, dips)
-      !          ELSEIF (sys%cell%cell_type=='3') THEN
-      !              CALL read_coord_frame(sys%natom, rams%wannier_free, md%coord_v, sys)
-      !              CALL solv_frag_index(rams%wannier_free, natom_frag_free, fragment_free, sys, md, dips)
-!
-      !             CALL wannier_frag(natom_frag_free, rams%wannier_free, dip_free, fragment_free, gs, sys, md, dips)
-      !         END IF
-      !     ELSEIF (sys%system=='2') THEN
+      IF (dips%type_dipole == 'wannier') THEN
+         CALL read_coord_frame(sys%natom, dips%dip_file, md%coord_v, sys)
+         CALL compute_dipole_unwrapped(dip_free, sys, md)
       IF (dips%type_dipole == 'berry') THEN
          CALL read_coord_frame(sys%mol_num, dips%dip_file, dip_free, sys)
       END IF
       !     END IF
 
 !!!X-FIELD!!!
-      CALL read_coord_frame(sys%natom, dips%dip_x_file, md%coord_v, sys)
-      !     IF (sys%system=='1' .OR. dips%type_dipole=='wannier') THEN
-      !         IF (sys%cell%cell_type.NE.'3') THEN
-      !             CALL center_mass(rams%wannier_x, fragment_x, gs, sys, md, dips)
-      !             CALL wannier_frag(sys%fragments%natom_frag, rams%wannier_x, dip_x, fragment_x, gs, sys, md, dips)
-
-      !          ELSEIF (sys%cell%cell_type=='3') THEN
-      !              CALL solv_frag_index(rams%wannier_x, natom_frag_x, fragment_x, sys, md, dips)
-      !              CALL wannier_frag(natom_frag_x, rams%wannier_x, dip_x, fragment_x, gs, sys, md, dips)
-      !          END IF
-      !         IF (sys%system=='1') THEN
-      !             CALL forward_diff(sys%mol_num, alpha_x, dip_free, dip_x, gs, sys)
-      !          ELSEIF (sys%system=='2' .AND. dips%type_dipole=='wannier') THEN
-      !              CALL forward_diff(sys%fragments%nfrag, alpha_x, dip_free, dip_x, gs, sys)
-      !          END IF
-      !      ELSEIF (sys%system=='2') THEN
-
+      IF (dips%type_dipole == 'berry' .OR. dips%type_dipole == 'dfpt') THEN      
+          CALL read_coord_frame(sys%natom, dips%dip_x_file, md%coord_v, sys)
+      ELSEIF (dips%type_dipole == 'wannier') THEN      
+          CALL read_coord_frame(sys%natom, dips%dip_x_file, md%coord_v, sys)
+          CALL compute_dipole_unwrapped(dip_x, sys, md)
       IF (dips%type_dipole == 'berry') THEN
-         CALL forward_diff(sys%mol_num, alpha_x, dip_free, md%coord_v, gs, sys, dips)
-
+          CALL forward_diff(sys%mol_num, alpha_x, dip_free, md%coord_v, gs, sys, dips)
       ELSEIF (dips%type_dipole == 'dfpt') THEN
-         !alpha_x = REAL(md%coord_v*((8.988d+15)/(5.142d+11*3.33564d-30)), kind=dp) !conversion to debye/E
-         alpha_x = REAL(md%coord_v*a3_to_debye_per_e, kind=dp) !conversion of A^3 to debye/E
+          alpha_x = REAL(md%coord_v*a3_to_debye_per_e, kind=dp) !conversion of A^3 to debye/E
       END IF
-      ! END IF
 
       ! IF (sys%system=='2' .AND. dips%type_dipole=='wannier') THEN
-      !     CALL central_diff(sys%fragments%nfrag, alpha_x, alpha_diff_x, sys, md)
       ! ELSE
       CALL central_diff(sys%mol_num, alpha_x, alpha_diff_x, sys, md)
       ! END IF
@@ -252,10 +225,10 @@ CONTAINS
       !    END IF
       ! ELSEIF (sys%system=='2') THEN
       IF (dips%type_dipole == 'berry') THEN
-         CALL forward_diff(sys%mol_num, alpha_y, dip_free, md%coord_v, gs, sys, dips)
+          CALL forward_diff(sys%mol_num, alpha_y, dip_free, md%coord_v, gs, sys, dips)
 
       ELSEIF (dips%type_dipole == 'dfpt') THEN
-         alpha_y = REAL(md%coord_v*a3_to_debye_per_e, kind=dp) !conversion of A^3 to debye/E
+          alpha_y = REAL(md%coord_v*a3_to_debye_per_e, kind=dp) !conversion of A^3 to debye/E
          !alpha_y = REAL(md%coord_v*((8.988d+15)/(5.142d+11*3.33564d-30)), kind=dp) !conversion to debye/E
       END IF
       ! END IF
@@ -288,10 +261,10 @@ CONTAINS
       !     ELSEIF (sys%system=='2') THEN
 
       IF (dips%type_dipole == 'berry') THEN
-         CALL forward_diff(sys%mol_num, alpha_z, dip_free, md%coord_v, gs, sys, dips)
+          CALL forward_diff(sys%mol_num, alpha_z, dip_free, md%coord_v, gs, sys, dips)
 
       ELSEIF (dips%type_dipole == 'dfpt') THEN
-         alpha_z = REAL(md%coord_v*a3_to_debye_per_e, kind=dp) !conversion of A^3 to debye/E
+          alpha_z = REAL(md%coord_v*a3_to_debye_per_e, kind=dp) !conversion of A^3 to debye/E
       END IF
       ! END IF
 
@@ -348,9 +321,9 @@ CONTAINS
       zhat_aniso(:) = zhat_aniso(:)*debye2cm*debye2cm/(au2vm*au2vm)
 
       DO i = 0, 2*md%t_cor - 2
-         freq(i) = i*freq_res
-         !!conversion of the Raman intensities into m^2*K*cm*10^-30!!
-         raman_const(i) = const_planck/(8.0_dp*const_boltz*const_permit*const_permit) &
+          freq(i) = i*freq_res
+          !!conversion of the Raman intensities into m^2*K*cm*10^-30!!
+          raman_const(i) = const_planck/(8.0_dp*const_boltz*const_permit*const_permit) &
                           *1.e+30*md%dt*fs2s*((((rams%laser_in/reccm2ev - freq(i))/cm2m)**4)/freq(i))* &
                           (1.0_dp/(1.0_dp - EXP(-1._dp*const_planck*speed_light*cm2m*freq(i)/ &
                                                 (const_boltz*gs%temp))))*2.0_dp
