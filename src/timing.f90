@@ -59,7 +59,7 @@ CONTAINS
         PRINT *, ""
         WRITE (*, '(A)') REPEAT('-', 80)
         PRINT *, "Timing Report:"
-        total_time = 0.0_DP
+        total_time = 0.0_dp
         DO i = 1, this%n_events
             total_time = total_time + this%events(i)%elapsed
             CALL this%events(i)%report_event()
