@@ -645,7 +645,7 @@ CONTAINS
             sys%charge(i)    = -2.0_dp
           ELSE
               ! Unknown symbol: mark and continue
-              WRITE(*,'(A,F10.4)') "WARNING: Unknown element symbol, got ", s
+              PRINT *, "WARNING: Unknown element symbol, got ", s
               sys%mass_atom(i) = -1.0_dp
               sys%charge(i)    = -1.0_dp
          END IF
