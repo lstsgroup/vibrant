@@ -82,3 +82,7 @@ Display the website by opening the file `vibrant/build/html/index.html` in a bro
 ## Contributing
 
 Contributions to vibrant are highly appreciated! If you consider contributing [check out CONTRIBUTING.md]()
+
+## License note
+
+Vibrant is distributed under the Apache 2.0 license. Please note that, while the source code is licensed permissively under Apache 2.0, any compiled binary is subject to the GPL 2.0 license due to its dependency on FFTW.
