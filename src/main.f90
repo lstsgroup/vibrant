@@ -24,7 +24,7 @@ PROGRAM vib2d
     USE read_input, ONLY: parse_command_line, parse_input, check_input
     USE vib_types, ONLY: global_settings, systems, molecular_dynamics, static, dipoles, &
                          raman, init_global_settings, init_systems, init_molecular_dynamics, init_static, deallocate_types
-    USE setup, ONLY: read_input, masses_charges, conversion, pbc_orthorombic, pbc_hexagonal
+    USE setup, ONLY: masses_charges, conversion, pbc_orthorombic, pbc_hexagonal
     USE read_traj, ONLY: read_coord, read_coord_frame, read_normal_modes, read_static, read_static_resraman
     USE dipole_calc, ONLY: center_mass, wannier, wannier_frag, solv_frag_index
     USE vel_cor, ONLY: cvv, cvv_iso, cvv_aniso, cvv_only_x, cvv_resraman
