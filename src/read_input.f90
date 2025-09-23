@@ -79,8 +79,10 @@ CONTAINS
         INTEGER :: ios
         CHARACTER(len=256) :: iomsg
         !** intermal variables
+        INTEGER :: runit
         CHARACTER(LEN=str_len) :: line
         CHARACTER(LEN=str_len) :: dummy
+        CHARACTER(len=str_len) :: dummy, line msg
         LOGICAL :: in_global = .FALSE.
         LOGICAL :: in_system = .FALSE.
         LOGICAL :: in_cell = .FALSE.
@@ -93,10 +95,15 @@ CONTAINS
         LOGICAL :: in_raman = .FALSE.
         LOGICAL :: in_rtp = .FALSE.
 
-        OPEN (unit=999, file=TRIM(input_file_name), status="old")
-
+        OPEN (FILE=TRIM(input_file_name), STATUS='old', ACTION='read',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit)
+        !Check if file exists
+        IF (stat /= 0) THEN
+            WRITE(*,*) 'Error: could not open file "', TRIM(input_file_name), '"'
+            WRITE(*,*) 'I/O error message: ', TRIM(msg)
+            STOP   
+          END IF
         DO
-            READ (999, '(A)', END=100) line
+            READ (runit, '(A)', END=100) line
             line = ADJUSTL(line)
 
             ! Identify section starts
@@ -372,7 +379,7 @@ CONTAINS
             END IF
         END DO
 100     CONTINUE
-        CLOSE (999)
+        CLOSE (runit)
 
     END SUBROUTINE parse_input
 
