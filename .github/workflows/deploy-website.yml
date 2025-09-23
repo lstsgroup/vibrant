@@ -6,8 +6,7 @@ on:
       - website  # or your main branch
 
 permissions:
-  contents: read
-  pages: write
+  contents: write
 
 jobs:
   build-and-deploy:
