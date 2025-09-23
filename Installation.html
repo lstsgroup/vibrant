@@ -116,16 +116,58 @@
                         <main role="main" id="main">
     <section id="installation">
 <h1>Installation<a class="headerlink" href="#installation" title="Link to this heading">¶</a></h1>
-<p>The CMake build framework is used in order to compile the <code class="docutils literal notranslate"><span class="pre">vibrant</span></code> code. Currently it has two dependencies (<code class="docutils literal notranslate"><span class="pre">fftw-3.3.10</span></code>, <code class="docutils literal notranslate"><span class="pre">greenX</span></code>) that are fetched and compiled automatically when the <code class="docutils literal notranslate"><span class="pre">vibrant</span></code> software is installed. To install it type the following in the root directory of the repository:</p>
+<p>The CMake build framework is used in order to compile the <code class="docutils literal notranslate"><span class="pre">vibrant</span></code> code. To install it type the following in the root directory of the repository and make sure that you have a working GNU fortran compiler (e.g. <code class="docutils literal notranslate"><span class="pre">gfortran</span></code>):</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mkdir<span class="w"> </span>build<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>build<span class="w"> </span>
 cmake<span class="w"> </span>..
-make<span class="w"> </span>-j<span class="w"> </span><span class="m">10</span>
+make<span class="w"> </span>-j<span class="w"> </span><span class="m">5</span>
 </pre></div>
 </div>
-<p>The default compiler is <code class="docutils literal notranslate"><span class="pre">gfortran</span></code>. To change to a specific compiler, run the above CMake command like this:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake<span class="w"> </span>-DCMAKE_Fortran_COMPILER<span class="o">=</span>f90<span class="w"> </span>..<span class="w"> </span>
+<p>Optional: Test if the installation is working as expected by typing</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>ctest<span class="w"> </span>
 </pre></div>
 </div>
+<p>in the build directory to run the regression tests.</p>
+<section id="install-options">
+<h2>Install options<a class="headerlink" href="#install-options" title="Link to this heading">¶</a></h2>
+<p>Options can be passed to cmake via an <code class="docutils literal notranslate"><span class="pre">initial_cache.cmake</span></code> file:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake<span class="w"> </span>-C<span class="w"> </span>../initial_cache.cmake<span class="w"> </span>..
+</pre></div>
+</div>
+<p>e.g to specify a dependency path (for more options see <code class="docutils literal notranslate"><span class="pre">initial_cache.example.cmake</span></code>):</p>
+<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nb">set</span><span class="p">(</span><span class="s">BLAS_LIBRARY_DIR</span><span class="w"> </span><span class="s2">&quot;/path/to/BLAS&quot;</span><span class="w"> </span><span class="s">CACHE</span><span class="w"> </span><span class="s">PATH</span><span class="w"> </span><span class="s2">&quot;Path to BLAS library directory&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Within this file the dependency paths, the compiler, the compiler flags etc. can be specified. For more options see <code class="docutils literal notranslate"><span class="pre">initial_cache.example.cmake</span></code>.</p>
+</section>
+<section id="dependencies">
+<h2>Dependencies<a class="headerlink" href="#dependencies" title="Link to this heading">¶</a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Dependency</p></th>
+<th class="head"><p>Version</p></th>
+<th class="head"><p>Comment</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>LAPACK (e.g. OpenBLAS)</p></td>
+<td><p>(&gt;0.3)</p></td>
+<td><p>Required, if no path provided then cmake tries to find the library</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference external" href="https://www.fftw.org/">FFTW</a></p></td>
+<td><p>&gt;3.3</p></td>
+<td><p>Required, if no path provided then installed together with vibrant</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference external" href="https://github.com/nomad-coe/greenX">GreenX</a></p></td>
+<td><p>v2.0</p></td>
+<td><p>Required, if no path provided then installed together with vibrant</p></td>
+</tr>
+<tr class="row-odd"><td><p>Python</p></td>
+<td><p>&gt;3.10</p></td>
+<td><p>Required, only if <code class="docutils literal notranslate"><span class="pre">ENABLE_REGRESSION_TESTS</span></code> is <code class="docutils literal notranslate"><span class="pre">ON</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</section>
 <section id="regression-test">
 <h2>Regression test<a class="headerlink" href="#regression-test" title="Link to this heading">¶</a></h2>
 <p>The regression tests can be run by running the following in the build directory after <code class="docutils literal notranslate"><span class="pre">vibrant</span></code> was build:</p>
@@ -151,6 +193,8 @@ make<span class="w"> </span>-j<span class="w"> </span><span class="m">10</span>
                             <p class="font-weight-bold" id="page-toc-heading">Page contents</p>
                             <ul>
 <li><a class="reference internal" href="#">Installation</a><ul>
+<li><a class="reference internal" href="#install-options">Install options</a></li>
+<li><a class="reference internal" href="#dependencies">Dependencies</a></li>
 <li><a class="reference internal" href="#regression-test">Regression test</a></li>
 </ul>
 </li>
