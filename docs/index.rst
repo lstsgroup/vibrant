@@ -16,6 +16,7 @@ Documentation of Ekin's very cool code.
    Installation
    Usage
    Cite
+   Contribute
 
 
 Quick Start 
