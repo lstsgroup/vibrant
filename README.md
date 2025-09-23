@@ -18,10 +18,13 @@ in the build directory to run the regression tests.
 
 For more a more fine-grained installation please refer to the [documentation of vibrant](https://lstsgroup.github.io/vibrant/Installation.html).
 
+## Dokumentation
+
+For more Information about the vibrant code please consult the extensive [documentation website](https://lstsgroup.github.io/vibrant/).
 
 ## Contributing
 
-Contributions to vibrant are highly appreciated! If you consider contributing [check out CONTRIBUTING.md]()
+Contributions to vibrant are highly appreciated! If you consider contributing [check out CONTRIBUTING.md](https://github.com/lstsgroup/vibrant/blob/main/CONTRIBUTING.md)
 
 ## License note
 
