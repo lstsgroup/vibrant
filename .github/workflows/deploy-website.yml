@@ -1,0 +1,37 @@
+name: Deploy Documentation Website
+
+on:
+  push:
+    branches:
+      - website  # or your main branch
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake make gfortran
+          python -m pip install --upgrade pip
+          pip install sphinx sphinx-wagtail-theme myst-parser
+
+      - name: Build documentation with CMake
+        run: |
+          cmake -DENABLE_DOCS=ON -B build
+          cmake --build build --target docs  # or website, but match README/CMake
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./build/html  # match the actual output directory

@@ -1,4 +1,5 @@
 # vibrant
+[![Regression Tests](https://github.com/lstsgroup/vibrant/actions/workflows/action.yml/badge.svg?branch=main)](https://github.com/lstsgroup/vibrant/actions/workflows/action.yml)
 
 ## Installation 
 
