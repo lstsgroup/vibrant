@@ -16,7 +16,7 @@
 
 MODULE calc_spectra
 
-    USE setup, ONLY: read_input, conversion
+    USE setup, ONLY: conversion
     USE kinds, ONLY: dp
     USE vib_types, ONLY: global_settings, systems, molecular_dynamics, static, dipoles, raman
 

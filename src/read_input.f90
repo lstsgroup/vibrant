@@ -79,10 +79,8 @@ CONTAINS
         INTEGER :: ios
         CHARACTER(len=256) :: iomsg
         !** intermal variables
-        INTEGER :: runit
-        CHARACTER(LEN=str_len) :: line
-        CHARACTER(LEN=str_len) :: dummy
-        CHARACTER(len=str_len) :: dummy, line msg
+        INTEGER :: runit, stat
+        CHARACTER(len=str_len) :: dummy, line, msg
         LOGICAL :: in_global = .FALSE.
         LOGICAL :: in_system = .FALSE.
         LOGICAL :: in_cell = .FALSE.
