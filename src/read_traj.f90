@@ -1,6 +1,6 @@
 MODULE read_traj
 
-    USE kinds, ONLY: dp
+    USE kinds, ONLY: dp, str_len
     USE vib_types, ONLY: global_settings, systems, static, dipoles, raman, molecular_dynamics, static_property
 
     IMPLICIT NONE
@@ -64,21 +64,29 @@ CONTAINS
         INTEGER, INTENT(INOUT)                               :: natom
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(OUT)      :: coord_v
 
-        INTEGER                                                    :: i, j, stat
+        CHARACTER(len=str_len)                                     :: msg  ! store error message
+        INTEGER                                                    :: i, j, stat, runit
 
         ALLOCATE (coord_v(sys%framecount, natom, 3))
-        OPEN (UNIT=52, FILE=filename, STATUS='old', IOSTAT=stat)
+        OPEN (FILE=filename, STATUS='old', ACTION='read',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit)
+        !Check if file exists
+        IF (stat /= 0) THEN
+          WRITE(*,*) 'Error: could not open file "', TRIM(filename), '"'
+          WRITE(*,*) 'I/O error message: ', TRIM(msg)
+          STOP   
+        END IF
+        !Start reading if file found
         DO
             DO j = 1, sys%framecount
-                READ (52, *, END=999)
-                READ (52, *)
+                READ (runit, *, END=999)
+                READ (runit, *)
                 DO i = 1, natom
-                    READ (52, *) sys%element(i), coord_v(j, i, 1), coord_v(j, i, 2), coord_v(j, i, 3)
+                    READ (runit, *) sys%element(i), coord_v(j, i, 1), coord_v(j, i, 2), coord_v(j, i, 3)
                 END DO
             END DO
         END DO
 999     CONTINUE
-        CLOSE (52)
+        CLOSE (runit)
 
     END SUBROUTINE read_coord_frame
 !********************************************************************************************
