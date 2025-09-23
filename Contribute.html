@@ -2,16 +2,19 @@
 <html class="no-js" lang="en" data-content_root="./">
 <head>
     <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
-        <title>Search &mdash; vibrant  documentation</title>
+        <title>Contribute &mdash; vibrant  documentation</title>
     
     <link rel="stylesheet" type="text/css" href="_static/dist/fontawesome.css" />
       <link rel="stylesheet" type="text/css" href="_static/dist/theme.css?v=310cf088" />
       <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
             <link rel="index" title="Index" href="genindex.html" />
-            <link rel="search" title="Search" href="#" />
+            <link rel="search" title="Search" href="search.html" />
             <link rel="top" title="vibrant  documentation" href="#" />
+            <link rel="prev" title="Cite" href="Cite.html" />
     </head>
 <body>
     <script type="text/javascript" src="_static/dist/blocking.js"></script>
@@ -42,7 +45,7 @@
             <aside class="col-12 col-lg-3 sidebar-container">
                 <div id="collapseSidebar" class="collapse sticky-top d-lg-block pt-5 pr-lg-4">
 <div id="searchbox" class="searchbox mb-6 px-1" role="search">
-    <form id="search-form" action="#" autocomplete="off" method="get" role="search">
+    <form id="search-form" action="search.html" autocomplete="off" method="get" role="search">
         <div class="input-group">
             <div class="input-group-prepend">
                 <div class="input-group-text border-right-0 bg-white py-3 pl-3 pr-2"><span class="fas fa-search"></span></div>
@@ -55,11 +58,11 @@
 </div><div class="site-toc">
     <nav class="toc mt-3" aria-label="Main menu">
         <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
-<ul>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="Installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Usage.html">Usage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Cite.html">Cite</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Contribute.html">Contribute</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Contribute</a></li>
 </ul>
 
     </nav>
@@ -80,7 +83,7 @@
                         <nav aria-label="breadcrumb">
     <ol class="breadcrumb m-0 p-0 bg-transparent">
         <li class="breadcrumb-item"><a href="index.html">Docs</a></li>
-        <li class="breadcrumb-item active" aria-current="page">Search</li>
+        <li class="breadcrumb-item active" aria-current="page">Contribute</li>
     </ol>
 </nav>
                     </div>
@@ -92,6 +95,15 @@
                             <span class="dark-only"><i class="fas fa-sun"></i> Light mode</span>
                             <span class="light-only"><i class="fas fa-moon"></i> Dark mode</span>
                         </button>
+    <a class="btn btn-sm btn-light text-decoration-none" href="https://github.com/lstsgroup/vibrant/tree/main/srcContribute.md" rel="nofollow">
+        <span class="btn-icon"><span class="fab fa-github"></span></span>
+        <span class="btn-text">Edit on GitHub</span>
+    </a>
+    <a class="btn btn-sm btn-light text-decoration-none" href="_sources/Contribute.md.txt" rel="nofollow">
+        <span class="btn-icon"><span class="fas fa-code"></span></span>
+        <span class="btn-text">View source</span>
+    </a>
+                        
                     </div>
                 </header>
                 <div class="row" >
@@ -102,23 +114,43 @@
                 <div class="row">
                     <div class="col-12 col-lg-9 order-last order-lg-first rst-content">
                         <main role="main" id="main">
-
-    <noscript>
-        <div id="fallback" class="admonition warning">
-            <p class="last">
-                Please activate JavaScript to enable the search
-                functionality.
-            </p>
-        </div>
-    </noscript>
-    
-    <div id="search-results">
-        
-    </div>
+    <section id="contribute">
+<h1>Contribute<a class="headerlink" href="#contribute" title="Link to this heading">¶</a></h1>
+<p>Contributions to vibrant are highly appreciated! If you consider contributing <a class="reference external" href="https://github.com/lstsgroup/vibrant/blob/main/CONTRIBUTING.md">check out CONTRIBUTING.md</a>.</p>
+<section id="code-style-guideline">
+<h2>Code style guideline<a class="headerlink" href="#code-style-guideline" title="Link to this heading">¶</a></h2>
+<p>Please use <code class="docutils literal notranslate"><span class="pre">fprettify</span></code> with the following configuration if you want to submit code:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">indent</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="n">strict</span><span class="o">-</span><span class="n">indent</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">case</span> <span class="o">=</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+<span class="n">whitespace</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="n">whitespace</span><span class="o">-</span><span class="n">relational</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="n">line</span><span class="o">-</span><span class="n">length</span> <span class="o">=</span> <span class="mi">300</span>
+</pre></div>
+</div>
+</section>
+</section>
 
 </main>
-                        
+                        <nav aria-label="Page navigation" class="py-4 my-5 clearfix font-weight-bold border-top">
+    <a class="float-left" href="Cite.html" title="Previous">
+        <span aria-hidden="true">←&nbsp;</span>Cite
+    </a>
+</nav>
                     </div>
+                    
+                    <nav class="col-12 col-lg-3 pb-4">
+                        <div class="sticky-top toc page-toc" aria-labelledby="page-toc-heading">
+                            <p class="font-weight-bold" id="page-toc-heading">Page contents</p>
+                            <ul>
+<li><a class="reference internal" href="#">Contribute</a><ul>
+<li><a class="reference internal" href="#code-style-guideline">Code style guideline</a></li>
+</ul>
+</li>
+</ul>
+
+                        </div>
+                    </nav>
                     
                 </div>
             </div>
