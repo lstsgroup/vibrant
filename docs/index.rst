@@ -10,7 +10,7 @@ Documentation of Ekin's very cool code.
 
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: Contents:
 
    Installation
