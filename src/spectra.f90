@@ -183,22 +183,22 @@ CONTAINS
       IF (dips%type_dipole == 'wannier') THEN
          CALL read_coord_frame(sys%natom, dips%dip_file, md%coord_v, sys)
          CALL compute_dipole_unwrapped(dip_free, sys, md)
-      IF (dips%type_dipole == 'berry') THEN
+      ELSEIF (dips%type_dipole == 'berry') THEN
          CALL read_coord_frame(sys%mol_num, dips%dip_file, dip_free, sys)
       END IF
       !     END IF
 
 !!!X-FIELD!!!
-      IF (dips%type_dipole == 'berry' .OR. dips%type_dipole == 'dfpt') THEN      
+   !   IF (dips%type_dipole == 'berry' .OR. dips%type_dipole == 'dfpt') THEN      
           CALL read_coord_frame(sys%natom, dips%dip_x_file, md%coord_v, sys)
-      ELSEIF (dips%type_dipole == 'wannier') THEN      
+   !   ELSEIF (dips%type_dipole == 'wannier') THEN      
           CALL read_coord_frame(sys%natom, dips%dip_x_file, md%coord_v, sys)
           CALL compute_dipole_unwrapped(dip_x, sys, md)
-      IF (dips%type_dipole == 'berry') THEN
+  !    IF (dips%type_dipole == 'berry') THEN
           CALL forward_diff(sys%mol_num, alpha_x, dip_free, md%coord_v, gs, sys, dips)
-      ELSEIF (dips%type_dipole == 'dfpt') THEN
+ !     ELSEIF (dips%type_dipole == 'dfpt') THEN
           alpha_x = REAL(md%coord_v*a3_to_debye_per_e, kind=dp) !conversion of A^3 to debye/E
-      END IF
+!      END IF
 
       ! IF (sys%system=='2' .AND. dips%type_dipole=='wannier') THEN
       ! ELSE
