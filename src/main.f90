@@ -23,7 +23,7 @@ PROGRAM vib2d
                          hessian_factor, au2vm
     USE read_input, ONLY: parse_command_line, parse_input, check_input
     USE vib_types, ONLY: global_settings, systems, molecular_dynamics, static, dipoles, &
-                         raman, init_global_settings, init_systems, init_molecular_dynamics, init_static, deallocate_types
+                         raman, init_global_settings, init_systems, init_molecular_dynamics, init_static, init_raman, deallocate_types
     USE setup, ONLY: masses_charges, conversion, pbc_orthorombic, pbc_hexagonal
     USE read_traj, ONLY: read_coord, read_coord_frame, read_normal_modes, read_static, read_static_resraman
     USE dipole_calc, ONLY: center_mass, wannier, wannier_frag, solv_frag_index
@@ -108,6 +108,7 @@ PROGRAM vib2d
     CALL init_systems(sys)
     CALL init_molecular_dynamics(md)
     CALL init_static(stats)
+    CALL init_raman(rams)
 
     CALL output_config_info()
 
