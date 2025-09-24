@@ -3,7 +3,7 @@
 !
 !   Licensed under the Apache License, Version 2.0 (the "License");
 !   you may not use this file except in compliance with the License.
-!   You may obtain A copy of the License at
+!   You may obtain a copy of the License at
 !
 !       http://www.apache.org/licenses/LICENSE-2.0
 !
@@ -18,6 +18,7 @@ MODULE read_input
 
     USE kinds, ONLY: dp, str_len
     USE vib_types, ONLY: global_settings, systems, static, dipoles, raman, molecular_dynamics
+    USE read_traj, ONLY: check_file_open
     USE iso_fortran_env, ONLY: output_unit, error_unit
 
     IMPLICIT NONE
@@ -97,11 +98,7 @@ CONTAINS
         WRITE(*,'(2X, A)') "Input Data:"
         OPEN (FILE=TRIM(input_file_name), STATUS='old', ACTION='read',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit)
         !Check if file exists
-        IF (stat /= 0) THEN
-            WRITE(error_unit,'(4X,"[ERROR] ",A,A)') 'could not open file ', TRIM(input_file_name)
-            WRITE(*,'(4X,"I/O error message: ",A)') TRIM(msg)
-            STOP   
-          END IF
+        CALL check_file_open(stat, msg, TRIM(input_file_name))
         DO
             READ (runit, '(A)', END=100) line
             line = ADJUSTL(line)

@@ -121,7 +121,7 @@ PROGRAM vib2d
     CALL parse_command_line(input_file_name)
 
     CALL parse_input(gs, sys, md, stats, dips, rams, input_file_name)
-    WRITE(*,'(90A)') REPEAT("-",90)
+    WRITE(*,'(90A, /)') REPEAT("-",90)
     CALL check_input(gs, sys, md, stats, dips, rams)
     WRITE(*,'(90A)') REPEAT("-",90)
     !write(*,*) "input_file_name", input_file_name

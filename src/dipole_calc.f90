@@ -21,6 +21,7 @@ MODULE dipole_calc
     USE iso_fortran_env, ONLY: output_unit, error_unit
     USE vib_types, ONLY: global_settings, systems, molecular_dynamics, static, dipoles
     USE setup, ONLY: pbc_orthorombic, pbc_hexagonal, pbc_hexagonal, pbc_orthorombic_old
+    USE read_traj, ONLY: check_file_open
 
     IMPLICIT NONE
 
@@ -504,11 +505,7 @@ CONTAINS
 
         OPEN (FILE=TRIM(filename)//'-dipole_result_wholesystem.xyz', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit)
         !Check if file exists
-        IF (stat /= 0) THEN
-            WRITE(error_unit,'(4X,"[ERROR] ",A,A)') 'could not open file ', TRIM(filename)//'-dipole_result_wholesystem.xyz'
-            WRITE(*,'(4X,"I/O error message: ",A)') TRIM(msg)
-            STOP   
-          END IF
+        CALL check_file_open(stat, msg, TRIM(filename)//'-dipole_result_wholesystem.xyz')
         DO m = 1, sys%framecount
             WRITE (runit, *) sys%natom + 1
             WRITE (runit, *)
@@ -522,14 +519,9 @@ CONTAINS
         END DO
         CLOSE (runit)
 
-        OPEN (UNIT=12, FILE=TRIM(filename)//'-dipole_result_Ph.xyz', STATUS='unknown', IOSTAT=stat)
         OPEN (FILE=TRIM(filename)//'-dipole_result_Ph.xyz', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit)
         !Check if file exists
-        IF (stat /= 0) THEN
-            WRITE(error_unit,'(4X,"[ERROR] ",A,A)') 'could not open file ', TRIM(filename)//'-dipole_result_Ph.xyz'
-            WRITE(*,'(4X,"I/O error message: ",A)') TRIM(msg)
-            STOP   
-          END IF
+        CALL check_file_open(stat, msg, TRIM(filename)//'-dipole_result_Ph.xyz')
         DO m = 1, sys%framecount
             WRITE (runit, *) 288
             WRITE (runit, *)
@@ -972,11 +964,7 @@ CONTAINS
 
         OPEN (FILE=TRIM(filename)//'-dipole_result_7.xyz', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit)
         !Check if file exists
-        IF (stat /= 0) THEN
-            WRITE(error_unit,'(4X,"[ERROR] ",A,A)') 'could not open file ', TRIM(filename)//'-dipole_result_7.xyz'
-            WRITE(*,'(4X,"I/O error message: ",A)') TRIM(msg)
-            STOP   
-          END IF
+        CALL check_file_open(stat, msg, TRIM(filename)//'-dipole_result_7.xyz')
         DO m = 1, sys%framecount
             WRITE (runit, *) sys%natom + 37
             WRITE (runit, *)

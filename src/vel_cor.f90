@@ -21,6 +21,7 @@ MODULE vel_cor
     USE iso_fortran_env, ONLY: output_unit, error_unit
     USE constants, ONLY: pi, ang, fs2s, at_u, bohr2ang
     USE vib_types, ONLY: global_settings, systems, molecular_dynamics, static, dipoles, raman
+    USE read_traj, ONLY: check_file_open
 
     IMPLICIT NONE
     PUBLIC :: cvv, cvv_iso, cvv_aniso, cvv_only_x, cvv_resraman
@@ -98,11 +99,7 @@ CONTAINS
 
         OPEN (FILE='result_cvv.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
         !Check if file exists
-        IF (stat /= 0) THEN
-            WRITE(error_unit,'(4X,"[ERROR] ",A,A)') 'could not open file ', TRIM('result_cvv.txt')
-            WRITE(*,'(4X,"I/O error message: ",A)') TRIM(msg)
-            STOP   
-        END IF
+        CALL check_file_open(stat, msg, 'result_cvv.txt')
         DO i = 0, 2*md%t_cor - 1
             WRITE (runit, *) md%z(i)
         END DO
@@ -167,11 +164,7 @@ CONTAINS
 
         OPEN (FILE='result_cvv_iso.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
         !Check if file exists
-        IF (stat /= 0) THEN
-            WRITE(error_unit,'(4X,"[ERROR] ",A,A)') 'could not open file ', TRIM('result_cvv_iso.txt')
-            WRITE(*,'(4X,"I/O error message: ",A)') TRIM(msg)
-            STOP   
-        END IF
+        CALL check_file_open(stat, msg, 'result_cvv_iso.txt')
         DO i = 0, 2*md%t_cor - 1
             WRITE (runit, *) z_iso(i)
         END DO
@@ -247,11 +240,7 @@ CONTAINS
 
         OPEN (FILE='result_cvv_aniso.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
         !Check if file exists
-        IF (stat /= 0) THEN
-            WRITE(error_unit,'(4X,"[ERROR] ",A,A)') 'could not open file ', TRIM('result_cvv_aniso.txt')
-            WRITE(*,'(4X,"I/O error message: ",A)') TRIM(msg)
-            STOP   
-        END IF
+        CALL check_file_open(stat, msg, 'result_cvv_aniso.txt')
         DO i = 0, 2*md%t_cor - 1
             WRITE (runit, *) z_aniso(i)
         END DO
@@ -349,11 +338,7 @@ CONTAINS
 
         OPEN (FILE='result_cvv_iso_resraman.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
         !Check if file exists
-        IF (stat /= 0) THEN
-            WRITE(error_unit,'(4X,"[ERROR] ",A,A)') 'could not open file ', TRIM('result_cvv_iso_resraman.txt')
-            WRITE(*,'(4X,"I/O error message: ",A)') TRIM(msg)
-            STOP   
-        END IF
+        CALL check_file_open(stat, msg, 'result_cvv_iso_resraman.txt')
         DO i = 0, 2*md%t_cor - 1
             DO j = 1, natom - 1
                 WRITE (runit, *) z_iso_resraman(i, j)
@@ -517,11 +502,7 @@ CONTAINS
 
         OPEN (FILE='result_cvv_aniso_resraman.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
         !Check if file exists
-        IF (stat /= 0) THEN
-            WRITE(error_unit,'(4X,"[ERROR] ",A,A)') 'could not open file ', TRIM('result_cvv_aniso_resraman.txt')
-            WRITE(*,'(4X,"I/O error message: ",A)') TRIM(msg)
-            STOP   
-        END IF
+        CALL check_file_open(stat, msg, 'result_cvv_aniso_resraman.txt')
 
         DO i = 0, 2*md%t_cor - 1
             DO j = 1, natom - 1
@@ -600,11 +581,7 @@ CONTAINS
         !OPEN (UNIT=60, FILE='result_cvv_para.txt', STATUS='unknown', IOSTAT=stat)
         OPEN (FILE='result_cvv_para.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
         !Check if file exists
-        IF (stat /= 0) THEN
-            WRITE(error_unit,'(4X,"[ERROR] ",A,A)') 'could not open file ', TRIM('result_cvv_para.txt')
-            WRITE(*,'(4X,"I/O error message: ",A)') TRIM(msg)
-            STOP   
-        END IF
+        CALL check_file_open(stat, msg, 'result_cvv_para.txt')
         DO i = 0, 2*md%t_cor - 1
             WRITE (runit, *) z_para(i)
         END DO
@@ -613,11 +590,7 @@ CONTAINS
         !OPEN (UNIT=61, FILE='result_cvv_ortho.txt', STATUS='unknown', IOSTAT=stat)
         OPEN (FILE='result_cvv_ortho.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
         !Check if file exists
-        IF (stat /= 0) THEN
-            WRITE(error_unit,'(4X,"[ERROR] ",A,A)') 'could not open file ', TRIM('result_cvv_ortho.txt')
-            WRITE(*,'(4X,"I/O error message: ",A)') TRIM(msg)
-            STOP   
-        END IF
+        CALL check_file_open(stat, msg, 'result_cvv_ortho.txt')
         DO i = 0, 2*md%t_cor - 1
             WRITE (runit, *) z_ortho(i)
         END DO

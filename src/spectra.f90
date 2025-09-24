@@ -24,7 +24,7 @@ MODULE calc_spectra
     USE constants, ONLY: pi, fs2s, debye, speed_light, const_planck, const_boltz, const_permit, cm2m, a3_to_debye_per_e, &
                          hartreebohr2evang, hessian_factor, bohr2ang, reccm2ev, am_u, debye2cm, avo_num, au2vm, ang, at_u, &
                          speed_light_au, debye, reccm2au
-    USE read_traj, ONLY: read_coord_frame
+    USE read_traj, ONLY: read_coord_frame,check_file_open
     USE fin_diff, ONLY: central_diff, forward_diff
     USE vel_cor, ONLY: cvv, cvv_iso, cvv_aniso, cvv_only_x, cvv_resraman
     USE dipole_calc, ONLY: center_mass, solv_frag_index, wannier_frag, wannier
@@ -84,11 +84,7 @@ CONTAINS
 
         OPEN (FILE='power_spec.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit)
         !Check if file exists
-        IF (stat /= 0) THEN
-            WRITE(error_unit,'(4X,"[ERROR] ",A,A)') 'could not open file ', 'power_spec.txt'
-            WRITE(*,'(4X,"I/O error message: ",A)') TRIM(msg)
-            STOP   
-          END IF
+        CALL check_file_open(stat, msg, 'power_spec.txt')
         DO i = 0, 2*md%t_cor - 1
             freq(i) = i*freq_res
             power_int(i) = md%zhat(i)*power_const
@@ -161,11 +157,7 @@ CONTAINS
         
         OPEN (FILE='IR_spectrum.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit)
         !Check if file exists
-        IF (stat /= 0) THEN
-            WRITE(error_unit,'(4X,"[ERROR] ",A,A)') 'could not open file ', 'IR_spectrum.txt'
-            WRITE(*,'(4X,"I/O error message: ",A)') TRIM(msg)
-            STOP   
-          END IF
+        CALL check_file_open(stat, msg, 'IR_spectrum.txt')
         DO i = 0, 2*md%t_cor - 1
             freq(i) = i*freq_res
             ir_int(i) = md%zhat(i)*ir_const*(sinc_const*(i)/SIN(sinc_const*(i)))**2._dp
@@ -368,11 +360,7 @@ CONTAINS
 !!!ORTHOGONAL!!!
         OPEN (FILE='raman_orthogonal.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
         !Check if file exist
-        IF (stat /= 0) THEN
-            WRITE(error_unit,'(4X,"[ERROR] ",A,A)') 'could not open file ', TRIM('raman_orthogonal.txt')
-            WRITE(*,'(4X,"I/O error message: ",A)') TRIM(msg)
-            STOP   
-        END IF
+        CALL check_file_open(stat, msg, 'raman_orthogonal.txt')
         DO i = 0, 2*md%t_cor - 2
             zhat_aniso(i + 1) = REAL(zhat_aniso(i + 1), kind=dp)*(f*(i + 1)/SIN(f*(i + 1)))**2._dp
             raman_ortho(i) = ((REAL(zhat_aniso(i), kind=dp))/15.0_dp)*raman_const(i)
@@ -386,11 +374,7 @@ CONTAINS
        
         OPEN (FILE='raman_parallel.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
         !Check if file exists
-        IF (stat /= 0) THEN
-            WRITE(error_unit,'(4X,"[ERROR] ",A,A)') 'could not open file ', TRIM('raman_parallel.txt')
-            WRITE(*,'(4X,"I/O error message: ",A)') TRIM(msg)
-            STOP   
-        END IF
+        CALL check_file_open(stat, msg, 'raman_parallel.txt')
         DO i = 0, 2*md%t_cor - 2
             zhat_iso(i + 1) = REAL(zhat_iso(i + 1), kind=dp)*(f*(i + 1)/SIN(f*(i + 1)))**2._dp
             raman_para(i) = (zhat_iso(i) + (zhat_aniso(i)*4.0_dp/45.0_dp))*raman_const(i)
@@ -403,11 +387,7 @@ CONTAINS
 !!!UNPOL!!!
         OPEN (FILE='raman_unpolarized.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) !Reading polarizabilties
         !Check if file exists
-        IF (stat /= 0) THEN
-            WRITE(error_unit,'(4X,"[ERROR] ",A,A)') 'could not open file ', TRIM('raman_unpolarized.txt')
-            WRITE(*,'(4X,"I/O error message: ",A)') TRIM(msg)
-            STOP   
-        END IF
+        CALL check_file_open(stat, msg, 'raman_unpolarized.txt')
         DO i = 0, 2*md%t_cor - 2
             raman_unpol(i) = raman_ortho(i) + raman_para(i)
             raman_unpol(0) = 0.00_dp
@@ -419,11 +399,7 @@ CONTAINS
 !!!DEPOL RATIO!!!
         OPEN (FILE='raman_depolarization_ratio.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) !Reading polarizabilties
         !Check if file exists
-        IF (stat /= 0) THEN
-            WRITE(error_unit,'(4X,"[ERROR] ",A,A)') 'could not open file ', TRIM('raman_depolarization_ratio.txt')
-            WRITE(*,'(4X,"I/O error message: ",A)') TRIM(msg)
-            STOP   
-        END IF
+        CALL check_file_open(stat, msg, 'raman_depolarization_ratio.txt')
         DO i = 0, 2*md%t_cor - 2
             raman_depol(i) = REAL(raman_ortho(i), kind=dp)/REAL(raman_para(i), kind=dp)
             IF (freq(i).GE.5000.0_dp) CYCLE
@@ -629,11 +605,7 @@ CONTAINS
 
         OPEN (FILE='normal_mode_freq.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
         !Check if file exists
-        IF (stat /= 0) THEN
-            WRITE(error_unit,'(4X,"[ERROR] ",A,A)') 'could not open file ', TRIM('normal_mode_freq.txt')
-            WRITE(*,'(4X,"I/O error message: ",A)') TRIM(msg)
-            STOP   
-        END IF
+        CALL check_file_open(stat, msg, 'normal_mode_freq.txt')
         DO i = 1, stats%nmodes !!atom_num: 1st atom
             WRITE (runit, *) stats%freq(i)
         END DO
@@ -641,11 +613,7 @@ CONTAINS
 
         OPEN (FILE='normal_mode_displ.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
         !Check if file exists
-        IF (stat /= 0) THEN
-            WRITE(error_unit,'(4X,"[ERROR] ",A,A)') 'could not open file ', TRIM('normal_mode_displ.txt')
-            WRITE(*,'(4X,"I/O error message: ",A)') TRIM(msg)
-            STOP   
-        END IF
+        CALL check_file_open(stat, msg, 'normal_mode_displ.txt')   
         DO i = 1, stats%nmodes !!atom_num: 1st atom
             DO j = 1, sys%natom !!dims: x dimension
                 WRITE (runit, *) stats%disp(i, j, 1:3)
@@ -706,11 +674,7 @@ CONTAINS
 
         OPEN (FILE='result_static_ir.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
         !Check if file exists
-        IF (stat /= 0) THEN
-            WRITE(error_unit,'(4X,"[ERROR] ",A,A)') 'could not open file ', TRIM('result_static_ir.txt')
-            WRITE(*,'(4X,"I/O error message: ",A)') TRIM(msg)
-            STOP   
-        END IF
+        CALL check_file_open(stat, msg, 'result_static_ir.txt')
         DO i = start_freq, end_freq
             WRITE (runit, *) i, data2(i)
         END DO
@@ -787,11 +751,7 @@ CONTAINS
         rams%raman_int = REAL(rams%raman_int/MINVAL(rams%raman_int), kind=dp)
 
         OPEN (FILE='raman.mol', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit)
-        IF (stat /= 0) THEN
-            WRITE(error_unit,'(4X,"[ERROR] ",A,A)') 'could not open file ', TRIM('raman.mol')
-            WRITE(*,'(4X,"I/O error message: ",A)') TRIM(msg)
-            STOP   
-        END IF
+        CALL check_file_open(stat, msg,'raman.mol')
         WRITE (runit, *) "[Molden Format]"
         WRITE (runit, *) "[GEOMETRIES] XYZ"
         WRITE (runit, *) sys%natom
@@ -942,11 +902,7 @@ CONTAINS
 
         OPEN (FILE='absorption_spectrum.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
         !Check if file exists
-        IF (stat /= 0) THEN
-            WRITE(error_unit,'(4X,"[ERROR] ",A,A)') 'could not open file ', TRIM('absorption_spectrum.txt')
-            WRITE(*,'(4X,"I/O error message: ",A)') TRIM(msg)
-            STOP   
-        END IF
+        CALL check_file_open(stat, msg, 'absorption_spectrum.txt')
         DO j = 1, 1 !!atom_num: 1st atom
             DO i = 1, 1 !!dims: x dimension
                 DO k = 1, 1 !! + direction
@@ -1064,11 +1020,7 @@ CONTAINS
 
         OPEN (FILE='result_static_resraman.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
         !Check if file exists
-        IF (stat /= 0) THEN
-            WRITE(error_unit,'(4X,"[ERROR] ",A,A)') 'could not open file ', TRIM('result_static_resraman.txt')
-            WRITE(*,'(4X,"I/O error message: ",A)') TRIM(msg)
-            STOP   
-        END IF
+        CALL check_file_open(stat, msg, 'result_static_resraman.txt')
         DO i = start_freq, end_freq
             WRITE (runit, *) i, data2(i)
         END DO
