@@ -752,10 +752,6 @@ CONTAINS
                 PRINT *, 'Error: Z-field dipole file name not defined in the input'
                 STOP
             END IF
-            IF (rams%RR%dt_rtp<0) THEN
-                PRINT *, 'Error: RTP time step not defined!'
-                STOP
-            END IF
             !check time step
             IF (md%dt<0) THEN
                 PRINT *, 'Error: time_step not defined in the input'

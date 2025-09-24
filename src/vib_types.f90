@@ -85,6 +85,7 @@ MODULE vib_types
         !CHARACTER(LEN=40)                                   :: rtp_dipole_x, rtp_dipole_y, rtp_dipole_z
         !COMPLEX(kind=dp), DIMENSION(:, :), ALLOCATABLE      :: z_iso_resraman, z_aniso_resraman
     CONTAINS
+        PROCEDURE :: init_rr
         PROCEDURE :: init_rr_static_dip   ! initializes static_dip*_rtp
         PROCEDURE :: init_rr_pol          ! initializes pol_rtp (3x3)
         PROCEDURE :: dealloc_rr_all
@@ -301,6 +302,18 @@ CONTAINS
             END DO
         END DO
     END SUBROUTINE
+
+    SUBROUTINE init_rr(this)
+        CLASS(resonant_raman), INTENT(INOUT) :: this
+        
+        this%check_pade = ''
+        this%framecount_rtp = -1
+        this%framecount_rtp_pade = -1
+        this%dt_rtp = -1.0_dp
+        this%freq_range_rtp = -1.0_dp
+        this%damping_constant = -1.0_dp
+    END SUBROUTINE
+
     SUBROUTINE dealloc_pol(this)
         CLASS(raman), INTENT(INOUT) :: this
         INTEGER :: i, j
@@ -401,8 +414,19 @@ CONTAINS
 
     SUBROUTINE init_raman(ram)
         TYPE(raman), INTENT(out) :: ram
-        ram%static_pol_file = ''
         ram%laser_in = -1.0_dp
+        !numeric
+        ram%static_dip_free_file = ''
+        ram%static_pol_file = ''
+        !analytic
+        ram%wannier_free = ''
+        ram%wannier_x = '' 
+        ram%wannier_y = '' 
+        ram%wannier_z = ''
+        ram%averaging = ''
+        ram%direction = ''
+        
+        CALL ram%RR%init_rr()
     END SUBROUTINE init_raman
 
     SUBROUTINE deallocate_types(gs, sys, md, stats, ram, dip)
