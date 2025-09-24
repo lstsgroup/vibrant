@@ -1,4 +1,7 @@
-# vibrant
+<img src="docs/_static/all_img/logo_vibrant.svg" height="120">
+
+---
+
 [![Regression Tests](https://github.com/lstsgroup/vibrant/actions/workflows/action.yml/badge.svg?branch=main)](https://github.com/lstsgroup/vibrant/actions/workflows/action.yml)
 
 
@@ -18,7 +21,7 @@ in the build directory to run the regression tests.
 
 For more a more fine-grained installation please refer to the [documentation of vibrant](https://lstsgroup.github.io/vibrant/Installation.html).
 
-## Dokumentation
+## Documentation
 
 For more Information about the vibrant code please consult the extensive [documentation website](https://lstsgroup.github.io/vibrant/).
 
