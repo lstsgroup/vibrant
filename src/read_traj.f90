@@ -24,9 +24,22 @@ MODULE read_traj
 
     PRIVATE
 
-    PUBLIC :: read_coord, read_coord_frame, read_normal_modes, read_static, read_static_resraman
+    PUBLIC :: read_coord, read_coord_frame, read_normal_modes, read_static, read_static_resraman, check_file_open
 
 CONTAINS
+
+    SUBROUTINE check_file_open(stat, msg, filename)
+        INTEGER,      INTENT(IN) :: stat
+        CHARACTER(*), INTENT(IN) :: msg
+        CHARACTER(*), INTENT(IN) :: filename
+
+        IF (stat /= 0) THEN
+            WRITE(error_unit,'(4X,"[ERROR] could not open file ",A)') TRIM(filename)
+            WRITE(error_unit,'(4X,"I/O error message: ",A)')         TRIM(msg)
+        STOP 
+        END IF
+    END SUBROUTINE check_file_open
+
     SUBROUTINE read_coord(filename, gs, sys, dips, rams)
 
         TYPE(global_settings), INTENT(INOUT)   :: gs
@@ -52,11 +65,7 @@ CONTAINS
 
         OPEN (FILE=filename, STATUS='old', ACTION='read',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit)
         !Check if file exists
-        IF (stat /= 0) THEN
-            WRITE(*,*) 'Error: could not open file "', TRIM(filename), '"'
-            WRITE(*,*) 'I/O error message: ', TRIM(msg)
-            STOP   
-        END IF
+        CALL check_file_open(stat, msg, filename)
         DO
             READ (runit, *, END=998)
             READ (runit, *)
@@ -96,11 +105,7 @@ CONTAINS
         ALLOCATE (coord_v(sys%framecount, natom, 3))
         OPEN (FILE=filename, STATUS='old', ACTION='read',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit)
         !Check if file exists
-        IF (stat /= 0) THEN
-          WRITE(error_unit,'(4X,"[ERROR] ",A,A)') 'could not open file ', TRIM(filename)
-          WRITE(*,'(4X,"I/O error message: ",A)') TRIM(msg)
-          STOP   
-        END IF
+        CALL check_file_open(stat, msg, filename)
         !Start reading if file found
         DO
             DO j = 1, sys%framecount
@@ -135,11 +140,7 @@ CONTAINS
 
             OPEN (FILE=stats%force_file, STATUS='old', ACTION='read',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit)
             !Check if file exists
-            IF (stat /= 0) THEN
-                WRITE(error_unit,'(4X,"[ERROR] ",A,A)') 'could not open file ', TRIM(stats%force_file)
-                WRITE(*,'(4X,"I/O error message: ",A)') TRIM(msg)
-                STOP   
-            END IF
+            CALL check_file_open(stat, msg, stats%force_file)
             DO i = 1, 2
                 DO j = 1, sys%natom
                     DO m = 1, 3
@@ -157,11 +158,7 @@ CONTAINS
             stats%nmodes = 0
             OPEN (FILE=stats%normal_freq_file, STATUS='old', ACTION='read',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) !Reading normal freqs/coords
             !Check if file exists
-            IF (stat /= 0) THEN
-                WRITE(error_unit,'(4X,"[ERROR] ",A,A)') 'could not open file ', TRIM(stats%normal_freq_file)
-                WRITE(*,'(4X,"I/O error message: ",A)') TRIM(msg)
-                STOP   
-            END IF
+            CALL check_file_open(stat, msg, stats%normal_freq_file)
             DO
                 READ (runit, *, END=998) chara
                 stats%nmodes = stats%nmodes + 1
@@ -173,11 +170,7 @@ CONTAINS
 
             OPEN (FILE=stats%normal_freq_file, STATUS='old', ACTION='read',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) !Reading normal freqs/coords
             !Check if file exists
-            IF (stat /= 0) THEN
-                WRITE(error_unit,'(4X,"[ERROR] ",A,A)') 'could not open file ', TRIM(stats%normal_freq_file)
-                WRITE(*,'(4X,"I/O error message: ",A)') TRIM(msg)
-                STOP   
-            END IF
+            CALL check_file_open(stat, msg, stats%normal_freq_file)
             DO i = 1, stats%nmodes
                 READ (runit, *, END=997) stats%freq(i)
             END DO
@@ -187,11 +180,7 @@ CONTAINS
   
             OPEN (FILE=stats%normal_displ_file, STATUS='old', ACTION='read',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) !Reading normal freqs/coords
             !Check if file exists
-            IF (stat /= 0) THEN
-                WRITE(error_unit,'(4X,"[ERROR] ",A,A)') 'could not open file ', TRIM(stats%normal_displ_file)
-                WRITE(*,'(4X,"I/O error message: ",A)') TRIM(msg)
-                STOP   
-            END IF
+            CALL check_file_open(stat, msg, stats%normal_displ_file)
             DO i = 1, stats%nmodes
                 DO j = 1, sys%natom
                     READ (runit, *, END=996) stats%disp(i, j, 1), stats%disp(i, j, 2), stats%disp(i, j, 3)
@@ -225,11 +214,7 @@ CONTAINS
         IF (dips%type_dipole=='dfpt') THEN
             OPEN (FILE=rams%static_pol_file, STATUS='old', ACTION='read',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) !Reading polarizabilties
             !Check if file exists
-            IF (stat /= 0) THEN
-                WRITE(error_unit,'(4X,"[ERROR] ",A,A)') 'could not open file ', TRIM(rams%static_pol_file)
-                WRITE(*,'(4X,"I/O error message: ",A)') TRIM(msg)
-                STOP   
-            END IF
+            CALL check_file_open(stat, msg, rams%static_pol_file)
             DO
                 DO k = 1, 2
                     DO i = 1, sys%natom
@@ -256,11 +241,7 @@ CONTAINS
         ELSEIF (dips%type_dipole=='berry') THEN
             OPEN (FILE=dips%dip_file, STATUS='old', ACTION='read',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit)!Reading dipoles
             !Check if file exists
-            IF (stat /= 0) THEN
-                WRITE(error_unit,'(4X,"[ERROR] ",A,A)') 'could not open file ', TRIM(dips%dip_file)
-                WRITE(*,'(4X,"I/O error message: ",A)') TRIM(msg)
-                STOP   
-            END IF
+            CALL check_file_open(stat, msg, dips%dip_file)
             DO
                 DO k = 1, 2
                     DO i = 1, sys%natom
@@ -299,11 +280,7 @@ CONTAINS
 
         OPEN (FILE=static_dip_file, STATUS='old', ACTION='read',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) !Reading polarizabilties
         !Check if file exists
-        IF (stat /= 0) THEN
-            WRITE(error_unit,'(4X,"[ERROR] ",A,A)') 'could not open file ', TRIM(static_dip_file)
-            WRITE(*,'(4X,"I/O error message: ",A)') TRIM(msg)
-            STOP   
-        END IF
+        CALL check_file_open(stat, msg, static_dip_file)
         DO
             DO k = 1, 2
                 DO i = 1, sys%natom

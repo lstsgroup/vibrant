@@ -50,24 +50,24 @@ CONTAINS
     SUBROUTINE output_used_threads()
         INTEGER :: num_threads
         num_threads = omp_get_max_threads()
-        WRITE(*,'(T3,A,A)') "Number of OMP threads used: ", num_threads
+        WRITE(*,'(2X,A,A)') "Number of OMP threads used: ", num_threads
     END SUBROUTINE output_used_threads
 
     !> @brief report current date and time
     SUBROUTINE output_datetime()
         INTEGER, DIMENSION(8) :: values
         CALL DATE_AND_TIME(values=values)
-        WRITE(*,'(T3,A,I2.2,A,I2.2,A,I4.4,A,I2.2,A,I2.2,A,I2.2)') &
+        WRITE(*,'(2X,A,I2.2,A,I2.2,A,I4.4,A,I2.2,A,I2.2,A,I2.2)') &
             'Date: ', values(3), '.', values(2), '.', values(1), &
             ', Time: ', values(5), ':', values(6), ':', values(7)
     END SUBROUTINE output_datetime
 
     !> @brief report compilation info
     SUBROUTINE output_compiler_settings()
-        WRITE(*,'(T3,A,A)') "Fortran compiler: ", compiler
-        WRITE(*,'(T3,A,A)') "Compiler flags: ", compiler_flags
-        WRITE(*,'(T3,A,A)') "FFTW library path: ", fft_lib_dir
-        WRITE(*,'(T3,A,A)') "GreenX library path: ", greenx_lib_dir
+        WRITE(*,'(2X,A,A)') "Fortran compiler: ", compiler
+        WRITE(*,'(2X,A,A)') "Compiler flags: ", compiler_flags
+        WRITE(*,'(2X,A,A)') "FFTW library path: ", fft_lib_dir
+        WRITE(*,'(2X,A,A)') "GreenX library path: ", greenx_lib_dir
     END SUBROUTINE output_compiler_settings
 
 END MODULE config_info
