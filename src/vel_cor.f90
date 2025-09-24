@@ -17,7 +17,8 @@
 MODULE vel_cor
 
     USE dipole_calc, ONLY: center_mass
-    USE kinds, ONLY: dp
+    USE kinds, ONLY: dp, str_len
+    USE iso_fortran_env, ONLY: output_unit, error_unit
     USE constants, ONLY: pi, ang, fs2s, at_u, bohr2ang
     USE vib_types, ONLY: global_settings, systems, molecular_dynamics, static, dipoles, raman
 
@@ -33,8 +34,8 @@ CONTAINS
         INTEGER, INTENT(INOUT)                                    :: natom
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(INOUT)  :: coord_v
 
-        CHARACTER(LEN=40)                                        :: chara
-        INTEGER                                                  :: stat, i, j, k, m, t0, t1, l
+        CHARACTER(LEN=40)                                        :: chara, msg
+        INTEGER                                                  :: stat, i, j, k, m, t0, t1, l, runit
         INTEGER, DIMENSION(:), ALLOCATABLE                         :: norm
         REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE                  :: coord
 
@@ -94,11 +95,18 @@ CONTAINS
             md%z(i) = md%z(i)*((COS(i/(md%t_cor - 1.0_dp)/2.0_dp*pi))**2) !!Hann Window function
         END DO
 
-        OPEN (UNIT=61, FILE='result_cvv.txt', STATUS='unknown', IOSTAT=stat) !!Write output
+
+        OPEN (FILE='result_cvv.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
+        !Check if file exists
+        IF (stat /= 0) THEN
+            WRITE(error_unit,'(4X,"[ERROR] ",A,A)') 'could not open file ', TRIM('result_cvv.txt')
+            WRITE(*,'(4X,"I/O error message: ",A)') TRIM(msg)
+            STOP   
+        END IF
         DO i = 0, 2*md%t_cor - 1
-            WRITE (61, *) md%z(i)
+            WRITE (runit, *) md%z(i)
         END DO
-        CLOSE (61)
+        CLOSE (runit)
 
         DEALLOCATE (norm)
 
@@ -116,7 +124,8 @@ CONTAINS
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE, INTENT(OUT)        :: z_iso
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(INOUT)  :: alpha_diff_x, alpha_diff_y, alpha_diff_z
 
-        INTEGER                                                  :: stat, i, j, k, t0, t1
+        INTEGER                                                  :: stat, i, j, k, t0, t1, runit
+        CHARACTER(len=str_len)                                  :: msg
         INTEGER, DIMENSION(:), ALLOCATABLE                         :: norm
 
         ALLOCATE (z_iso(0:2*md%t_cor - 1), norm(0:2*md%t_cor - 1))
@@ -138,8 +147,8 @@ CONTAINS
             norm(0:t1 - t0) = norm(0:t1 - t0) + 1
         END DO
 
-        PRINT *, norm(0:3), 'iso norm'
-        PRINT *, z_iso(0:3), 'iso z'
+        !PRINT *, norm(0:3), 'iso norm'
+        !PRINT *, z_iso(0:3), 'iso z'
         z_iso(:) = z_iso(:)/(norm(:)*9._dp)  !!Normalization
         !   z_iso(:) = z_iso(:)/(2.0_dp*pi)
         !z_iso(:)=z_iso(:)/mol_num
@@ -156,12 +165,17 @@ CONTAINS
             z_iso(md%t_cor + i) = z_iso(md%t_cor - i) !!Data mirroring
         END DO
 
-        OPEN (UNIT=61, FILE='result_cvv_iso.txt', STATUS='unknown', IOSTAT=stat)
-
+        OPEN (FILE='result_cvv_iso.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
+        !Check if file exists
+        IF (stat /= 0) THEN
+            WRITE(error_unit,'(4X,"[ERROR] ",A,A)') 'could not open file ', TRIM('result_cvv_iso.txt')
+            WRITE(*,'(4X,"I/O error message: ",A)') TRIM(msg)
+            STOP   
+        END IF
         DO i = 0, 2*md%t_cor - 1
-            WRITE (61, *) z_iso(i)
+            WRITE (runit, *) z_iso(i)
         END DO
-        CLOSE (61)
+        CLOSE (runit)
         DEALLOCATE (norm)
 
     END SUBROUTINE cvv_iso
@@ -177,7 +191,8 @@ CONTAINS
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE, INTENT(OUT)        :: z_aniso
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(INOUT)  :: alpha_diff_x, alpha_diff_y, alpha_diff_z
 
-        INTEGER                                                  :: stat, i, j, k, t0, t1
+        INTEGER                                                  :: stat, i, j, k, t0, t1, runit
+        CHARACTER(len=str_len)                                  :: msg
         INTEGER, DIMENSION(:), ALLOCATABLE                         :: norm
 
         ALLOCATE (z_aniso(0:2*md%t_cor - 1), norm(0:2*md%t_cor - 1))
@@ -211,8 +226,8 @@ CONTAINS
             norm(0:t1 - t0) = norm(0:t1 - t0) + 1
         END DO
 
-        PRINT *, norm(0:3), 'aniso norm'
-        PRINT *, z_aniso(0:3), 'aniso z'
+        !PRINT *, norm(0:3), 'aniso norm'
+        !PRINT *, z_aniso(0:3), 'aniso z'
         z_aniso(:) = z_aniso(:)/norm(:)
         !  z_aniso(:) = z_aniso(:)/(2.0_dp*pi)
         !z_aniso(:)=REAL(z_aniso(:)/mol_num,kind=dp)
@@ -229,12 +244,18 @@ CONTAINS
             z_aniso(md%t_cor + i) = z_aniso(md%t_cor - i) !!Data mirroring
         END DO
 
-        OPEN (UNIT=61, FILE='result_cvv_aniso.txt', STATUS='unknown', IOSTAT=stat)
 
+        OPEN (FILE='result_cvv_aniso.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
+        !Check if file exists
+        IF (stat /= 0) THEN
+            WRITE(error_unit,'(4X,"[ERROR] ",A,A)') 'could not open file ', TRIM('result_cvv_aniso.txt')
+            WRITE(*,'(4X,"I/O error message: ",A)') TRIM(msg)
+            STOP   
+        END IF
         DO i = 0, 2*md%t_cor - 1
-            WRITE (61, *) z_aniso(i)
+            WRITE (runit, *) z_aniso(i)
         END DO
-        CLOSE (61)
+        CLOSE (runit)
 
         DEALLOCATE (norm)
 
@@ -256,7 +277,8 @@ CONTAINS
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(INOUT)  :: alpha_resraman_z_diff_im
         COMPLEX(kind=dp), DIMENSION(:, :), ALLOCATABLE, INTENT(OUT)   :: z_iso_resraman, z_aniso_resraman
 
-        INTEGER                                                  :: stat, i, j, k, m, t0, t1
+        INTEGER                                                  :: stat, i, j, k, m, t0, t1, runit
+        CHARACTER(len=str_len)                                  :: msg
         INTEGER, DIMENSION(:, :), ALLOCATABLE                       :: norm_iso, norm_aniso
         COMPLEX(kind=dp)                                          :: im_unit
 
@@ -325,14 +347,19 @@ CONTAINS
             END DO
         END DO
 
-        OPEN (UNIT=61, FILE='result_cvv_iso_resraman.txt', STATUS='unknown', IOSTAT=stat)
-
+        OPEN (FILE='result_cvv_iso_resraman.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
+        !Check if file exists
+        IF (stat /= 0) THEN
+            WRITE(error_unit,'(4X,"[ERROR] ",A,A)') 'could not open file ', TRIM('result_cvv_iso_resraman.txt')
+            WRITE(*,'(4X,"I/O error message: ",A)') TRIM(msg)
+            STOP   
+        END IF
         DO i = 0, 2*md%t_cor - 1
             DO j = 1, natom - 1
-                WRITE (61, *) z_iso_resraman(i, j)
+                WRITE (runit, *) z_iso_resraman(i, j)
             END DO
         END DO
-        CLOSE (61)
+        CLOSE (runit)
         DEALLOCATE (norm_iso)
 
 !!!ANISOTROPIC!!!
@@ -487,14 +514,21 @@ CONTAINS
             END DO
         END DO
 
-        OPEN (UNIT=62, FILE='result_cvv_aniso_resraman.txt', STATUS='unknown', IOSTAT=stat)
+
+        OPEN (FILE='result_cvv_aniso_resraman.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
+        !Check if file exists
+        IF (stat /= 0) THEN
+            WRITE(error_unit,'(4X,"[ERROR] ",A,A)') 'could not open file ', TRIM('result_cvv_aniso_resraman.txt')
+            WRITE(*,'(4X,"I/O error message: ",A)') TRIM(msg)
+            STOP   
+        END IF
 
         DO i = 0, 2*md%t_cor - 1
             DO j = 1, natom - 1
-                WRITE (62, *) z_aniso_resraman(i, j)
+                WRITE (runit, *) z_aniso_resraman(i, j)
             END DO
         END DO
-        CLOSE (62)
+        CLOSE (runit)
         DEALLOCATE (norm_aniso)
 
     END SUBROUTINE cvv_resraman
@@ -511,10 +545,10 @@ CONTAINS
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE, INTENT(OUT)        :: z_para, z_ortho
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(INOUT)  :: alpha_diff_x, alpha_diff_y, alpha_diff_z
 
-        CHARACTER(LEN=40)                                        :: chara
+        CHARACTER(LEN=40)                                        :: chara, msg
         CHARACTER(LEN=2), DIMENSION(:), ALLOCATABLE                :: element
         INTEGER, DIMENSION(:), ALLOCATABLE                         :: norm
-        INTEGER                                                  :: stat, i, j, k, m, t0, t1
+        INTEGER                                                  :: stat, i, j, k, m, t0, t1, runit
 
         ALLOCATE (z_para(0:md%t_cor*2), norm(0:md%t_cor*2))
         ALLOCATE (z_ortho(0:md%t_cor*2))
@@ -563,19 +597,31 @@ CONTAINS
             z_ortho(md%t_cor + i) = z_ortho(md%t_cor - i)
         END DO
 
-        OPEN (UNIT=60, FILE='result_cvv_para.txt', STATUS='unknown', IOSTAT=stat)
-
+        !OPEN (UNIT=60, FILE='result_cvv_para.txt', STATUS='unknown', IOSTAT=stat)
+        OPEN (FILE='result_cvv_para.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
+        !Check if file exists
+        IF (stat /= 0) THEN
+            WRITE(error_unit,'(4X,"[ERROR] ",A,A)') 'could not open file ', TRIM('result_cvv_para.txt')
+            WRITE(*,'(4X,"I/O error message: ",A)') TRIM(msg)
+            STOP   
+        END IF
         DO i = 0, 2*md%t_cor - 1
-            WRITE (60, *) z_para(i)
+            WRITE (runit, *) z_para(i)
         END DO
-        CLOSE (60)
+        CLOSE (runit)
 
-        OPEN (UNIT=61, FILE='result_cvv_ortho.txt', STATUS='unknown', IOSTAT=stat)
-
+        !OPEN (UNIT=61, FILE='result_cvv_ortho.txt', STATUS='unknown', IOSTAT=stat)
+        OPEN (FILE='result_cvv_ortho.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
+        !Check if file exists
+        IF (stat /= 0) THEN
+            WRITE(error_unit,'(4X,"[ERROR] ",A,A)') 'could not open file ', TRIM('result_cvv_ortho.txt')
+            WRITE(*,'(4X,"I/O error message: ",A)') TRIM(msg)
+            STOP   
+        END IF
         DO i = 0, 2*md%t_cor - 1
-            WRITE (61, *) z_ortho(i)
+            WRITE (runit, *) z_ortho(i)
         END DO
-        CLOSE (61)
+        CLOSE (runit)
         DEALLOCATE (norm)
     END SUBROUTINE cvv_only_x
 

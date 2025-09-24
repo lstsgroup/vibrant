@@ -17,6 +17,7 @@
 MODULE read_traj
 
     USE kinds, ONLY: dp, str_len
+    USE iso_fortran_env, ONLY: output_unit, error_unit
     USE vib_types, ONLY: global_settings, systems, static, dipoles, raman, molecular_dynamics, static_property
 
     IMPLICIT NONE
@@ -74,7 +75,9 @@ CONTAINS
                 !     sys%mol_num = 44 !20 !! fix later to 20
             END IF
         END IF
-        PRINT *, sys%mol_num, 'mol num', sys%framecount
+       
+        WRITE (*, '(4X,"Number of mols", T60, I0)') sys%mol_num
+        WRITE (*, '(4X,"Number of frames", T60, I0)')   sys%framecount
 
     END SUBROUTINE read_coord
 
@@ -94,8 +97,8 @@ CONTAINS
         OPEN (FILE=filename, STATUS='old', ACTION='read',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit)
         !Check if file exists
         IF (stat /= 0) THEN
-          WRITE(*,*) 'Error: could not open file "', TRIM(filename), '"'
-          WRITE(*,*) 'I/O error message: ', TRIM(msg)
+          WRITE(error_unit,'(4X,"[ERROR] ",A,A)') 'could not open file ', TRIM(filename)
+          WRITE(*,'(4X,"I/O error message: ",A)') TRIM(msg)
           STOP   
         END IF
         !Start reading if file found
@@ -133,8 +136,8 @@ CONTAINS
             OPEN (FILE=stats%force_file, STATUS='old', ACTION='read',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit)
             !Check if file exists
             IF (stat /= 0) THEN
-                WRITE(*,*) 'Error: could not open file "', TRIM(stats%force_file), '"'
-                WRITE(*,*) 'I/O error message: ', TRIM(msg)
+                WRITE(error_unit,'(4X,"[ERROR] ",A,A)') 'could not open file ', TRIM(stats%force_file)
+                WRITE(*,'(4X,"I/O error message: ",A)') TRIM(msg)
                 STOP   
             END IF
             DO i = 1, 2
@@ -155,8 +158,8 @@ CONTAINS
             OPEN (FILE=stats%normal_freq_file, STATUS='old', ACTION='read',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) !Reading normal freqs/coords
             !Check if file exists
             IF (stat /= 0) THEN
-                WRITE(*,*) 'Error: could not open file "', TRIM(stats%normal_freq_file), '"'
-                WRITE(*,*) 'I/O error message: ', TRIM(msg)
+                WRITE(error_unit,'(4X,"[ERROR] ",A,A)') 'could not open file ', TRIM(stats%normal_freq_file)
+                WRITE(*,'(4X,"I/O error message: ",A)') TRIM(msg)
                 STOP   
             END IF
             DO
@@ -171,8 +174,8 @@ CONTAINS
             OPEN (FILE=stats%normal_freq_file, STATUS='old', ACTION='read',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) !Reading normal freqs/coords
             !Check if file exists
             IF (stat /= 0) THEN
-                WRITE(*,*) 'Error: could not open file "', TRIM(stats%normal_freq_file), '"'
-                WRITE(*,*) 'I/O error message: ', TRIM(msg)
+                WRITE(error_unit,'(4X,"[ERROR] ",A,A)') 'could not open file ', TRIM(stats%normal_freq_file)
+                WRITE(*,'(4X,"I/O error message: ",A)') TRIM(msg)
                 STOP   
             END IF
             DO i = 1, stats%nmodes
@@ -185,8 +188,8 @@ CONTAINS
             OPEN (FILE=stats%normal_displ_file, STATUS='old', ACTION='read',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) !Reading normal freqs/coords
             !Check if file exists
             IF (stat /= 0) THEN
-                WRITE(*,*) 'Error: could not open file "', TRIM(stats%normal_displ_file), '"'
-                WRITE(*,*) 'I/O error message: ', TRIM(msg)
+                WRITE(error_unit,'(4X,"[ERROR] ",A,A)') 'could not open file ', TRIM(stats%normal_displ_file)
+                WRITE(*,'(4X,"I/O error message: ",A)') TRIM(msg)
                 STOP   
             END IF
             DO i = 1, stats%nmodes
@@ -223,8 +226,8 @@ CONTAINS
             OPEN (FILE=rams%static_pol_file, STATUS='old', ACTION='read',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) !Reading polarizabilties
             !Check if file exists
             IF (stat /= 0) THEN
-                WRITE(*,*) 'Error: could not open file "', TRIM(rams%static_pol_file), '"'
-                WRITE(*,*) 'I/O error message: ', TRIM(msg)
+                WRITE(error_unit,'(4X,"[ERROR] ",A,A)') 'could not open file ', TRIM(rams%static_pol_file)
+                WRITE(*,'(4X,"I/O error message: ",A)') TRIM(msg)
                 STOP   
             END IF
             DO
@@ -254,8 +257,8 @@ CONTAINS
             OPEN (FILE=dips%dip_file, STATUS='old', ACTION='read',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit)!Reading dipoles
             !Check if file exists
             IF (stat /= 0) THEN
-                WRITE(*,*) 'Error: could not open file "', TRIM(dips%dip_file), '"'
-                WRITE(*,*) 'I/O error message: ', TRIM(msg)
+                WRITE(error_unit,'(4X,"[ERROR] ",A,A)') 'could not open file ', TRIM(dips%dip_file)
+                WRITE(*,'(4X,"I/O error message: ",A)') TRIM(msg)
                 STOP   
             END IF
             DO
@@ -297,10 +300,10 @@ CONTAINS
         OPEN (FILE=static_dip_file, STATUS='old', ACTION='read',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) !Reading polarizabilties
         !Check if file exists
         IF (stat /= 0) THEN
-            WRITE(*,*) 'Error: could not open file "', TRIM(static_dip_file), '"'
-            WRITE(*,*) 'I/O error message: ', TRIM(msg)
+            WRITE(error_unit,'(4X,"[ERROR] ",A,A)') 'could not open file ', TRIM(static_dip_file)
+            WRITE(*,'(4X,"I/O error message: ",A)') TRIM(msg)
             STOP   
-          END IF
+        END IF
         DO
             DO k = 1, 2
                 DO i = 1, sys%natom

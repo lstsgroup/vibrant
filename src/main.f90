@@ -17,6 +17,7 @@
 PROGRAM vib2d
 
     USE, INTRINSIC           :: ISO_C_BINDING
+    USE iso_fortran_env, ONLY: output_unit, error_unit
     USE kinds, ONLY: dp, str_len
     USE constants, ONLY: speed_light, const_planck, const_permit, pi, const_charge, const_boltz, joule_unit, &
                          debye, ev_unit, action_unit, bohr2ang, hartreebohr2evang, am_u, at_u, ang, fs2s, reccm2ev, &
@@ -120,9 +121,9 @@ PROGRAM vib2d
     CALL parse_command_line(input_file_name)
 
     CALL parse_input(gs, sys, md, stats, dips, rams, input_file_name)
-    PRINT *, REPEAT('-', 30)
+    WRITE(*,'(90A)') REPEAT("-",90)
     CALL check_input(gs, sys, md, stats, dips, rams)
-    PRINT *, REPEAT('-', 30)
+    WRITE(*,'(90A)') REPEAT("-",90)
     !write(*,*) "input_file_name", input_file_name
     !write(*,*) "temperature", gs%temp
     !write(*,*) "laserin", gs%laser_in
@@ -226,7 +227,7 @@ PROGRAM vib2d
             CALL read_coord(dips%dip_x_file, gs, sys, dips)
         END IF
         CALL timings%register("calculating charges")
-        CALL masses_charges(gs, sys)
+        CALL masses_charges(gs, sys) !THIS FUNCTION IS NOT NEEDED HERE ?!
 
         CALL timings%register("calculating raman spectrum")
         CALL spec_raman(gs, sys, md, dips, rams)
