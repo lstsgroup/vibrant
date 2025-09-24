@@ -17,7 +17,8 @@
 MODULE calc_spectra
 
     USE setup, ONLY: conversion
-    USE kinds, ONLY: dp
+    USE kinds, ONLY: dp, str_len
+    USE iso_fortran_env, ONLY: output_unit, error_unit
     USE vib_types, ONLY: global_settings, systems, molecular_dynamics, static, dipoles, raman
 
     USE constants, ONLY: pi, fs2s, debye, speed_light, const_planck, const_boltz, const_permit, cm2m, a3_to_debye_per_e, &
@@ -45,8 +46,10 @@ CONTAINS
         TYPE(systems), INTENT(INOUT)                :: sys
         TYPE(molecular_dynamics), INTENT(INOUT)     :: md
 
-        INTEGER                                                  :: stat, i
+
+        INTEGER                                                  :: stat, i, runit
         INTEGER(kind=dp)                                          :: plan
+        CHARACTER(LEN=str_len)                                          :: msg
         REAL(kind=dp)                               :: freq_range, freq_res, power_const
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE      :: power_int, freq
 
@@ -78,15 +81,22 @@ CONTAINS
       !!Unit conversion to K.cm
         power_const = (md%dt*fs2s*am_u*speed_light/const_boltz)*2.0_dp/(sys%natom*3.0_dp)
 
-        OPEN (UNIT=63, FILE='power_spec.txt', STATUS='unknown', IOSTAT=stat) !!write the output
+
+        OPEN (FILE='power_spec.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit)
+        !Check if file exists
+        IF (stat /= 0) THEN
+            WRITE(error_unit,'(4X,"[ERROR] ",A,A)') 'could not open file ', 'power_spec.txt'
+            WRITE(*,'(4X,"I/O error message: ",A)') TRIM(msg)
+            STOP   
+          END IF
         DO i = 0, 2*md%t_cor - 1
             freq(i) = i*freq_res
             power_int(i) = md%zhat(i)*power_const
             IF (freq(i).GE.5000_dp) CYCLE
-            WRITE (63, *) freq(i), power_int(i)
+            WRITE (runit, *) freq(i), power_int(i)
         END DO
 
-        CLOSE (63)
+        CLOSE (runit)
         DEALLOCATE (power_int, freq)
 
     END SUBROUTINE spec_power
@@ -99,8 +109,9 @@ CONTAINS
         TYPE(molecular_dynamics), INTENT(INOUT)     :: md
         TYPE(dipoles), INTENT(INOUT)     :: dips
 
-        INTEGER                                                  :: stat, i
+        INTEGER                                                  :: stat, i, runit
         INTEGER(kind=dp)                                          :: plan
+        CHARACTER(LEN=str_len)                                          :: msg
         REAL(kind=dp)                                          :: freq_range, freq_res, sinc_const, ir_const
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE               :: ir_int, freq
 
@@ -147,15 +158,22 @@ CONTAINS
       !!conversion of IR units to K*cm*km*mol^-1
         ir_const = avo_num*md%dt*fs2s*2.0_dp*10.0d0/(12.0_dp*const_permit*speed_light*const_boltz)
 
-        OPEN (UNIT=61, FILE='IR_spectrum.txt', STATUS='unknown', IOSTAT=stat) !!write output
+        
+        OPEN (FILE='IR_spectrum.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit)
+        !Check if file exists
+        IF (stat /= 0) THEN
+            WRITE(error_unit,'(4X,"[ERROR] ",A,A)') 'could not open file ', 'IR_spectrum.txt'
+            WRITE(*,'(4X,"I/O error message: ",A)') TRIM(msg)
+            STOP   
+          END IF
         DO i = 0, 2*md%t_cor - 1
             freq(i) = i*freq_res
             ir_int(i) = md%zhat(i)*ir_const*(sinc_const*(i)/SIN(sinc_const*(i)))**2._dp
             IF (freq(i).GE.5000_dp) CYCLE
             ir_int(0) = 0.00_dp
-            WRITE (61, *) freq(i), -1.0_dp*REAL(ir_int(i), kind=dp)
+            WRITE (runit, *) freq(i), -1.0_dp*REAL(ir_int(i), kind=dp)
         END DO
-        CLOSE (61)
+        CLOSE (runit)
 
         DEALLOCATE (ir_int, freq)
 
@@ -171,7 +189,8 @@ CONTAINS
         TYPE(dipoles), INTENT(INOUT)        :: dips
         TYPE(raman), INTENT(INOUT)        :: rams
 
-        INTEGER                                                  :: stat, i, j, xyz
+        CHARACTER(LEN=str_len)                                          :: msg
+        INTEGER                                                  :: stat, i, j, xyz, runit
         INTEGER(kind=dp)                                          :: plan
         INTEGER, DIMENSION(:), ALLOCATABLE                         :: natom_frag_free
         !INTEGER, DIMENSION(:), ALLOCATABLE                         :: natom_frag_y, natom_frag_z
@@ -347,48 +366,71 @@ CONTAINS
         END DO
 
 !!!ORTHOGONAL!!!
-        OPEN (UNIT=63, FILE='raman_orthogonal.txt', STATUS='unknown', IOSTAT=stat)
+        OPEN (FILE='raman_orthogonal.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
+        !Check if file exist
+        IF (stat /= 0) THEN
+            WRITE(error_unit,'(4X,"[ERROR] ",A,A)') 'could not open file ', TRIM('raman_orthogonal.txt')
+            WRITE(*,'(4X,"I/O error message: ",A)') TRIM(msg)
+            STOP   
+        END IF
         DO i = 0, 2*md%t_cor - 2
             zhat_aniso(i + 1) = REAL(zhat_aniso(i + 1), kind=dp)*(f*(i + 1)/SIN(f*(i + 1)))**2._dp
             raman_ortho(i) = ((REAL(zhat_aniso(i), kind=dp))/15.0_dp)*raman_const(i)
             raman_ortho(0) = 0.0_dp
             IF (freq(i).GE.5000.0_dp) CYCLE
-            WRITE (63, *) freq(i), raman_ortho(i)
+            WRITE (runit, *) freq(i), raman_ortho(i)
         END DO
-        CLOSE (63)
+        CLOSE (runit)
 
 !!!PARALLEL!!!
-        OPEN (UNIT=64, FILE='raman_parallel.txt', STATUS='unknown', IOSTAT=stat)
+       
+        OPEN (FILE='raman_parallel.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
+        !Check if file exists
+        IF (stat /= 0) THEN
+            WRITE(error_unit,'(4X,"[ERROR] ",A,A)') 'could not open file ', TRIM('raman_parallel.txt')
+            WRITE(*,'(4X,"I/O error message: ",A)') TRIM(msg)
+            STOP   
+        END IF
         DO i = 0, 2*md%t_cor - 2
             zhat_iso(i + 1) = REAL(zhat_iso(i + 1), kind=dp)*(f*(i + 1)/SIN(f*(i + 1)))**2._dp
             raman_para(i) = (zhat_iso(i) + (zhat_aniso(i)*4.0_dp/45.0_dp))*raman_const(i)
             raman_para(0) = 0.0_dp
             IF (freq(i).GE.5000.0_dp) CYCLE
-            WRITE (64, *) freq(i), raman_para(i)
+            WRITE (runit, *) freq(i), raman_para(i)
         END DO
-        CLOSE (64)
+        CLOSE (runit)
 
 !!!UNPOL!!!
-        OPEN (UNIT=65, FILE='raman_unpolarized.txt', STATUS='unknown', IOSTAT=stat)
-
+        OPEN (FILE='raman_unpolarized.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) !Reading polarizabilties
+        !Check if file exists
+        IF (stat /= 0) THEN
+            WRITE(error_unit,'(4X,"[ERROR] ",A,A)') 'could not open file ', TRIM('raman_unpolarized.txt')
+            WRITE(*,'(4X,"I/O error message: ",A)') TRIM(msg)
+            STOP   
+        END IF
         DO i = 0, 2*md%t_cor - 2
             raman_unpol(i) = raman_ortho(i) + raman_para(i)
             raman_unpol(0) = 0.00_dp
             IF (freq(i).GE.5000.0_dp) CYCLE
-            WRITE (65, *) freq(i), raman_unpol(i)
+            WRITE (runit, *) freq(i), raman_unpol(i)
         END DO
-        CLOSE (65)
+        CLOSE (runit)
 
 !!!DEPOL RATIO!!!
-        OPEN (UNIT=66, FILE='raman_depolarization_ratio.txt', STATUS='unknown', IOSTAT=stat)
-
+        OPEN (FILE='raman_depolarization_ratio.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) !Reading polarizabilties
+        !Check if file exists
+        IF (stat /= 0) THEN
+            WRITE(error_unit,'(4X,"[ERROR] ",A,A)') 'could not open file ', TRIM('raman_depolarization_ratio.txt')
+            WRITE(*,'(4X,"I/O error message: ",A)') TRIM(msg)
+            STOP   
+        END IF
         DO i = 0, 2*md%t_cor - 2
             raman_depol(i) = REAL(raman_ortho(i), kind=dp)/REAL(raman_para(i), kind=dp)
             IF (freq(i).GE.5000.0_dp) CYCLE
-            WRITE (66, *) freq(i), raman_depol(i)
+            WRITE (runit, *) freq(i), raman_depol(i)
         END DO
+        CLOSE (runit)
 
-        CLOSE (66)
         DEALLOCATE (rams%z_iso, rams%z_aniso)
         DEALLOCATE (raman_depol, raman_para, raman_unpol, raman_ortho, zhat_aniso, zhat_iso)
 
@@ -518,7 +560,8 @@ CONTAINS
         TYPE(systems), INTENT(INOUT)        :: sys
         TYPE(static), INTENT(INOUT)        :: stats
 
-        INTEGER                                                     :: stat, i, j, m, n, p, k, info, lwork, lwmax, lda
+        INTEGER                                                     :: stat, i, j, m, n, p, k, info, lwork, lwmax, lda, runit
+        CHARACTER(len=str_len)                                         :: msg
         REAL(kind=dp)                                                :: factor
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE                       :: w, work, w_new
         REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE                     :: hessian, atomic_displacements
@@ -551,8 +594,8 @@ CONTAINS
         hessian(:, :) = REAL((hessian(:, :) + TRANSPOSE(hessian(:, :)))/2.0_dp, kind=dp)
         n = SIZE(hessian, 1)
 
-        PRINT *, hessian(1, 1), "hess"
-
+        !PRINT *, hessian(1, 1), "hess"
+        WRITE (*, '(4X, "hess", T60, G0)')  hessian(1, 1)
 ! work size query
         lwork = -1
         CALL DSYEV('V', 'U', n, hessian, lda, w, work, lwork, info)
@@ -582,19 +625,33 @@ CONTAINS
             m = m + 2
         END DO
 
-        PRINT *, stats%freq(1:3)
+        WRITE (*, '(4X, "stats%freq(1:3)", T60, G0)')  stats%freq(1:3)
 
-        OPEN (UNIT=13, FILE='normal_mode_freq.txt', STATUS='unknown', IOSTAT=stat)
+        OPEN (FILE='normal_mode_freq.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
+        !Check if file exists
+        IF (stat /= 0) THEN
+            WRITE(error_unit,'(4X,"[ERROR] ",A,A)') 'could not open file ', TRIM('normal_mode_freq.txt')
+            WRITE(*,'(4X,"I/O error message: ",A)') TRIM(msg)
+            STOP   
+        END IF
         DO i = 1, stats%nmodes !!atom_num: 1st atom
-            WRITE (13, *) stats%freq(i)
+            WRITE (runit, *) stats%freq(i)
         END DO
+        CLOSE(runit)
 
-        OPEN (UNIT=14, FILE='normal_mode_displ.txt', STATUS='unknown', IOSTAT=stat)
+        OPEN (FILE='normal_mode_displ.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
+        !Check if file exists
+        IF (stat /= 0) THEN
+            WRITE(error_unit,'(4X,"[ERROR] ",A,A)') 'could not open file ', TRIM('normal_mode_displ.txt')
+            WRITE(*,'(4X,"I/O error message: ",A)') TRIM(msg)
+            STOP   
+        END IF
         DO i = 1, stats%nmodes !!atom_num: 1st atom
             DO j = 1, sys%natom !!dims: x dimension
-                WRITE (14, *) stats%disp(i, j, 1:3)
+                WRITE (runit, *) stats%disp(i, j, 1:3)
             END DO
         END DO
+        CLOSE(runit)
 
     END SUBROUTINE normal_mode_analysis
 
@@ -610,7 +667,8 @@ CONTAINS
         TYPE(dipoles), INTENT(INOUT)        :: dips
 
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE        :: ir_int
-        INTEGER                                                  :: stat, i, k, x, freq_res
+        CHARACTER(len=str_len)                                         :: msg
+        INTEGER                                                  :: stat, i, k, x, freq_res, runit
         INTEGER                                                  :: start_freq, end_freq
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE                    :: gamma_sq, data2!,broad
         REAL(kind=dp)                                             :: broad, ir_factor
@@ -621,9 +679,9 @@ CONTAINS
         end_freq = INT(MAXVAL(stats%freq) + 1000.0_dp)
         freq_res = INT(end_freq - start_freq)
 
-        PRINT *, "Max freq: ", MAXVAL(stats%freq)
-        PRINT *, "end_freq: ", end_freq
-        PRINT *, "freq_res: ", freq_res
+        WRITE (*, '(4X, "Max freq: ", T60, G0)')  MAXVAL(stats%freq)
+        WRITE (*, '(4X, "end_freq: ", T60, I0)')   end_freq
+        WRITE (*, '(4X, "freq_res: ", T60, I0)')   freq_res
 
         ALLOCATE (data2(freq_res + 1))
         data2 = 0.0_dp
@@ -646,11 +704,17 @@ CONTAINS
             data2(i) = data2(i) + broad
         END DO
 
-        OPEN (UNIT=98, FILE='result_static_ir.txt', STATUS='unknown', IOSTAT=stat)
+        OPEN (FILE='result_static_ir.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
+        !Check if file exists
+        IF (stat /= 0) THEN
+            WRITE(error_unit,'(4X,"[ERROR] ",A,A)') 'could not open file ', TRIM('result_static_ir.txt')
+            WRITE(*,'(4X,"I/O error message: ",A)') TRIM(msg)
+            STOP   
+        END IF
         DO i = start_freq, end_freq
-            WRITE (98, *) i, data2(i)
+            WRITE (runit, *) i, data2(i)
         END DO
-        CLOSE (98)
+        CLOSE (runit)
 
         DEALLOCATE (gamma_sq, data2, ir_int, dips%dip_dq, stats%freq, stats%disp)
 
@@ -666,8 +730,9 @@ CONTAINS
         TYPE(dipoles), INTENT(INOUT)        :: dips
         TYPE(raman), INTENT(INOUT)        :: rams
 
-        INTEGER                                                  :: stat, i, j, x, freq_res
+        INTEGER                                                  :: stat, i, j, x, freq_res,runit
         INTEGER                                                  :: start_freq, end_freq
+        CHARACTER(len=str_len)                                      :: msg
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE                    :: iso_sq, aniso_sq, ram_const, data2!,broad
         REAL(kind=dp)                                             :: broad
 
@@ -720,36 +785,42 @@ CONTAINS
 
     !!Write Molden output
         rams%raman_int = REAL(rams%raman_int/MINVAL(rams%raman_int), kind=dp)
-        OPEN (UNIT=15, FILE='raman.mol', STATUS='unknown', IOSTAT=stat)
-        WRITE (15, *) "[Molden Format]"
-        WRITE (15, *) "[GEOMETRIES] XYZ"
-        WRITE (15, *) sys%natom
-        WRITE (15, *)
+
+        OPEN (FILE='raman.mol', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit)
+        IF (stat /= 0) THEN
+            WRITE(error_unit,'(4X,"[ERROR] ",A,A)') 'could not open file ', TRIM('raman.mol')
+            WRITE(*,'(4X,"I/O error message: ",A)') TRIM(msg)
+            STOP   
+        END IF
+        WRITE (runit, *) "[Molden Format]"
+        WRITE (runit, *) "[GEOMETRIES] XYZ"
+        WRITE (runit, *) sys%natom
+        WRITE (runit, *)
         DO i = 1, sys%natom
-            WRITE (15, *) sys%element(i), sys%coord(i, 1), sys%coord(i, 2), sys%coord(i, 3)
+            WRITE (runit, *) sys%element(i), sys%coord(i, 1), sys%coord(i, 2), sys%coord(i, 3)
         END DO
-        WRITE (15, *) "[stats%freq]"
+        WRITE (runit, *) "[stats%freq]"
         DO i = 1, stats%nmodes
-            WRITE (15, *) stats%freq(i)
+            WRITE (runit, *) stats%freq(i)
         END DO
-        WRITE (15, *) "[INT]"
+        WRITE (runit, *) "[INT]"
         DO i = 1, stats%nmodes
-            WRITE (15, *) rams%raman_int(i)
+            WRITE (runit, *) rams%raman_int(i)
         END DO
-        WRITE (15, *) "[FR-sys%coord]"
-        WRITE (15, *) sys%natom
-        WRITE (15, *)
+        WRITE (runit, *) "[FR-sys%coord]"
+        WRITE (runit, *) sys%natom
+        WRITE (runit, *)
         DO i = 1, sys%natom
-            WRITE (15, *) sys%element(i), sys%coord(i, 1)/bohr2ang, sys%coord(i, 2)/bohr2ang, sys%coord(i, 3)/bohr2ang
+            WRITE (runit, *) sys%element(i), sys%coord(i, 1)/bohr2ang, sys%coord(i, 2)/bohr2ang, sys%coord(i, 3)/bohr2ang
         END DO
-        WRITE (15, *) "[FR-NORM-sys%coord]"
+        WRITE (runit, *) "[FR-NORM-sys%coord]"
         DO i = 1, stats%nmodes
-            WRITE (15, *) "vibration", i
+            WRITE (runit, *) "vibration", i
             DO j = 1, sys%natom
-                WRITE (15, *) stats%disp(i, j, 1)/bohr2ang, stats%disp(i, j, 2)/bohr2ang, stats%disp(i, j, 3)/bohr2ang
+                WRITE (runit, *) stats%disp(i, j, 1)/bohr2ang, stats%disp(i, j, 2)/bohr2ang, stats%disp(i, j, 3)/bohr2ang
             END DO
         END DO
-        CLOSE (15)
+        CLOSE (runit)
 
         DEALLOCATE (iso_sq, aniso_sq, data2, ram_const)
 
@@ -763,8 +834,8 @@ CONTAINS
         TYPE(systems), INTENT(INOUT)        :: sys
         TYPE(dipoles), INTENT(INOUT)        :: dips
         TYPE(raman), INTENT(INOUT)        :: rams
-        CHARACTER(len=256) :: filename
-        INTEGER                                                       :: stat, i, j, k, m, x, o, dims, dir
+        CHARACTER(len=256) :: filename,  msg
+        INTEGER                                                       :: stat, i, j, k, m, x, o, dims, dir, runit
         INTEGER(kind=dp)                                               :: plan
         REAL(kind=dp)                                                  :: rtp_freq_res, freq_au
         REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE                   :: trace, abs_intens
@@ -869,17 +940,23 @@ CONTAINS
       !! Conversion from cm-1 to a.u.
         freq_au = rtp_freq_res*(-1.0_dp)*reccm2au
 
+        OPEN (FILE='absorption_spectrum.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
+        !Check if file exists
+        IF (stat /= 0) THEN
+            WRITE(error_unit,'(4X,"[ERROR] ",A,A)') 'could not open file ', TRIM('absorption_spectrum.txt')
+            WRITE(*,'(4X,"I/O error message: ",A)') TRIM(msg)
+            STOP   
+        END IF
         DO j = 1, 1 !!atom_num: 1st atom
             DO i = 1, 1 !!dims: x dimension
                 DO k = 1, 1 !! + direction
-                    OPEN (UNIT=13, FILE='absorption_spectrum.txt', STATUS='unknown', IOSTAT=stat)
                     DO o = 1, rams%RR%framecount_rtp
-                        WRITE (13, *) o*rtp_freq_res*reccm2ev, abs_intens(j, i, k, o)*o*freq_au
+                        WRITE (runit, *) o*rtp_freq_res*reccm2ev, abs_intens(j, i, k, o)*o*freq_au
                     END DO
                 END DO
             END DO
         END DO
-        CLOSE (13)
+        CLOSE (runit)
         DEALLOCATE (trace, abs_intens)
 
     END SUBROUTINE spec_abs
@@ -893,9 +970,10 @@ CONTAINS
         TYPE(static), INTENT(INOUT)        :: stats
         TYPE(raman), INTENT(INOUT)        :: rams
 
-        INTEGER                                                       :: stat, i, j, k, m, x, freq_res, l, o, n, r
+        INTEGER                                                       :: stat, i, j, k, m, x, freq_res, l, o, n, r, runit
         INTEGER                                                       :: start_freq, end_freq, rtp_point
         INTEGER(kind=dp)                                               :: plan
+        CHARACTER(len=str_len)                                         :: msg
         REAL(kind=dp)                                                  :: broad, factor
         REAL(kind=dp)                                                  :: rtp_freq_res, pade_freq_res
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE                         :: data2, ram_const
@@ -922,9 +1000,12 @@ CONTAINS
         rtp_freq_res = REAL(rams%RR%freq_range_rtp/rams%RR%framecount_rtp, kind=dp)
         rtp_point = ANINT(rams%laser_in/(rtp_freq_res*reccm2ev), kind=dp)
 
-        PRINT *, rams%laser_in, "rams%laser_in", rtp_freq_res, "rtp_freq_res", &
-            rams%RR%freq_range_rtp, "rams%RR%freq_range_rtp", rtp_point, 'rtp_point', rams%RR%framecount_rtp
 
+        WRITE (*, '(4X,"rams%laser_in", T60, G0)') rams%laser_in
+        WRITE (*, '(4X,"rtp_freq_res", T60, G0)') rtp_freq_res
+        WRITE (*, '(4X,"rams%RR%freq_range_rtp", T60, G0)') rams%RR%freq_range_rtp
+        WRITE (*, '(4X,"rtp_point", T60, I0)') rtp_point
+        WRITE (*, '(4X,"rams%RR%framecount_rtp", T60, I0)') rams%RR%framecount_rtp
 !!!Finite differences
         zhat_pol_dxyz_rtp(:, :, :, :, :) = REAL((REAL(rams%RR%zhat_pol_rtp(:, :, 2, :, :, :), kind=dp) &
                                                  - REAL(rams%RR%zhat_pol_rtp(:, :, 1, :, :, :), kind=dp))*factor, kind=dp)
@@ -980,11 +1061,18 @@ CONTAINS
             data2(x) = data2(x) + broad
         END DO
 
-        OPEN (UNIT=98, FILE='result_static_resraman.txt', STATUS='unknown', IOSTAT=stat)
+
+        OPEN (FILE='result_static_resraman.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
+        !Check if file exists
+        IF (stat /= 0) THEN
+            WRITE(error_unit,'(4X,"[ERROR] ",A,A)') 'could not open file ', TRIM('result_static_resraman.txt')
+            WRITE(*,'(4X,"I/O error message: ",A)') TRIM(msg)
+            STOP   
+        END IF
         DO i = start_freq, end_freq
-            WRITE (98, *) i, data2(i)
+            WRITE (runit, *) i, data2(i)
         END DO
-        CLOSE (98)
+        CLOSE (runit)
 
         DEALLOCATE (iso_sq, aniso_sq, data2, ram_const, raman_int, stats%disp, stats%freq)
         DEALLOCATE (rams%RR%zhat_pol_rtp, zhat_pol_dxyz_rtp, zhat_pol_dq_rtp)

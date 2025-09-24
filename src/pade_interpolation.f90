@@ -18,6 +18,7 @@ MODULE pade
 
     USE gx_ac, ONLY: create_thiele_pade, evaluate_thiele_pade_at, params, free_params
     USE kinds, ONLY: dp
+    USE iso_fortran_env, ONLY: output_unit, error_unit
     IMPLICIT NONE
 
 CONTAINS
@@ -104,7 +105,7 @@ CONTAINS
         ! internal variables
         INTEGER :: i, step
         IF (p<=0.0d0 .OR. p>100.0d0) THEN
-            PRINT *, "Error: percentage must be between 0 and 100."
+            WRITE(error_unit,'(4X,"[ERROR] ",A)') 'percentage must be between 0 and 100.'
             M = 0
             RETURN
         END IF

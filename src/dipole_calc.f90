@@ -18,6 +18,7 @@ MODULE dipole_calc
 
     USE kinds, ONLY: dp
     USE constants, ONLY: debye
+    USE iso_fortran_env, ONLY: output_unit, error_unit
     USE vib_types, ONLY: global_settings, systems, molecular_dynamics, static, dipoles
     USE setup, ONLY: pbc_orthorombic, pbc_hexagonal, pbc_hexagonal, pbc_orthorombic_old
 
@@ -37,10 +38,10 @@ CONTAINS
         CHARACTER(LEN=40), INTENT(INOUT)                             :: filename
         INTEGER, DIMENSION(:, :, :), ALLOCATABLE, INTENT(OUT)            :: fragment
 
-        CHARACTER(LEN=40)                                           :: length
+        CHARACTER(LEN=40)                                           :: length, msg 
         CHARACTER(LEN=2), DIMENSION(:, :), ALLOCATABLE                 :: element_shifted
         INTEGER                                                     :: stat   ! error status of OPEN statements
-        INTEGER                                                     :: r, m, p, q, i, j, k, n, l, o, s, t
+        INTEGER                                                     :: r, m, p, q, i, j, k, n, l, o, s, t, runit
         REAL(kind=dp)                                                :: bec(5000, 3), bec_pbc(5000, 3)
         REAL(kind=dp)                                                :: hmat(3, 3), sqrt3, acosa, asina, a
         REAL(kind=dp)                                                :: pox_x, pox_y, pox_z, mass_tot
@@ -500,37 +501,51 @@ CONTAINS
             END IF
         END DO
 
-        OPEN (UNIT=60, FILE=TRIM(filename)//'-dipole_result_wholesystem.xyz', STATUS='unknown', IOSTAT=stat)
+
+        OPEN (FILE=TRIM(filename)//'-dipole_result_wholesystem.xyz', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit)
+        !Check if file exists
+        IF (stat /= 0) THEN
+            WRITE(error_unit,'(4X,"[ERROR] ",A,A)') 'could not open file ', TRIM(filename)//'-dipole_result_wholesystem.xyz'
+            WRITE(*,'(4X,"I/O error message: ",A)') TRIM(msg)
+            STOP   
+          END IF
         DO m = 1, sys%framecount
-            WRITE (60, *) sys%natom + 1
-            WRITE (60, *)
+            WRITE (runit, *) sys%natom + 1
+            WRITE (runit, *)
             DO i = 1, 20
                 DO j = 1, sys%fragments%natom_frag(i)
-                    WRITE (60, *) sys%element(fragment(m, i, j)), md%coord_v(m, fragment(m, i, j), :)
+                    WRITE (runit, *) sys%element(fragment(m, i, j)), md%coord_v(m, fragment(m, i, j), :)
                 END DO
                 !WRITE(60,*) 'N', sys%fragments%refpoint(m,i,:)
             END DO
-            WRITE (60, *) 'N', sys%fragments%refpoint(m, 1, :)
+            WRITE (runit, *) 'N', sys%fragments%refpoint(m, 1, :)
         END DO
-        CLOSE (60)
+        CLOSE (runit)
 
         OPEN (UNIT=12, FILE=TRIM(filename)//'-dipole_result_Ph.xyz', STATUS='unknown', IOSTAT=stat)
+        OPEN (FILE=TRIM(filename)//'-dipole_result_Ph.xyz', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit)
+        !Check if file exists
+        IF (stat /= 0) THEN
+            WRITE(error_unit,'(4X,"[ERROR] ",A,A)') 'could not open file ', TRIM(filename)//'-dipole_result_Ph.xyz'
+            WRITE(*,'(4X,"I/O error message: ",A)') TRIM(msg)
+            STOP   
+          END IF
         DO m = 1, sys%framecount
-            WRITE (12, *) 288
-            WRITE (12, *)
+            WRITE (runit, *) 288
+            WRITE (runit, *)
             DO i = 9, 20
                 DO j = 1, sys%fragments%natom_frag(i)
-                    WRITE (12, *) sys%element(fragment(m, i, j)), md%coord_v(m, fragment(m, i, j), :)
+                    WRITE (runit, *) sys%element(fragment(m, i, j)), md%coord_v(m, fragment(m, i, j), :)
                 END DO
-                WRITE (12, *) 'N', sys%fragments%refpoint(m, i, :)
+                WRITE (runit, *) 'N', sys%fragments%refpoint(m, i, :)
             END DO
         END DO
-        CLOSE (12)
+        CLOSE (runit)
 
         DEALLOCATE (com)
-        PRINT *, sys%mass_atom(fragment(1, 9, 1)), sys%mass_atom(fragment(1, 20, 2)), sys%element(fragment(1, 9, 1)), &
-            sys%element(fragment(1, 20, 2))
-        PRINT *, sys%mass_atom(10), sys%element(10), 'mass atoms'
+        !sys%mass_atom(fragment(1, 9, 1)), sys%mass_atom(fragment(1, 20, 2)), sys%element(fragment(1, 9, 1)), &
+        !    sys%element(fragment(1, 20, 2))
+        WRITE (*, '(4X,A, T60, A2,G0)') 'Mass atoms ', sys%element(10),  sys%mass_atom(10)
     END SUBROUTINE center_mass
 
 !***************************************************************************************************
@@ -545,9 +560,9 @@ CONTAINS
         INTEGER, DIMENSION(:), ALLOCATABLE, INTENT(INOUT)              :: natom_frag
         INTEGER, DIMENSION(:, :, :), ALLOCATABLE, INTENT(INOUT)          :: fragment
 
-        CHARACTER(LEN=40)                                           :: length
+        CHARACTER(LEN=40)                                           :: length, msg
         INTEGER                                                     :: stat   ! error status of OPEN statements
-        INTEGER                                                     :: r, m, p, q, i, j, k, n, l, o, s, t
+        INTEGER                                                     :: r, m, p, q, i, j, k, n, l, o, s, t, runit
         REAL(kind=dp)                                                :: bec(5000, 3), bec_pbc(5000, 3)
         REAL(kind=dp)                                                :: hmat(3, 3), sqrt3, acosa, asina, a
         REAL(kind=dp)                                                :: pox_x, pox_y, pox_z
@@ -579,7 +594,9 @@ CONTAINS
         hmat(2, 1) = 0.0_dp; hmat(2, 2) = asina; hmat(2, 3) = 0.0_dp
         hmat(3, 1) = 0.0_dp; hmat(3, 2) = 0.0_dp; hmat(3, 3) = sys%cell%box_z
 
-        PRINT *, sys%natom, sys%framecount
+        WRITE (*, '(4X,"Number of atoms", T60, I0)')   sys%natom
+        WRITE (*, '(4X,"Number of frames", T60, I0)')   sys%framecount
+        
 
         !Assign fragments for solvent molecules!
         DO m = 1, sys%framecount
@@ -739,7 +756,7 @@ CONTAINS
             END DO
         END DO
 
-        PRINT *, fragment(5000, 19, :)
+        !PRINT *, fragment(5000, 19, :)
 
         !Assign fragments for the phenyl rings!
         n = 0
@@ -749,7 +766,7 @@ CONTAINS
                 IF (sys%element(i).NE.'H') CYCLE
                 IF (ANY(i==fragment(m, :, :))) CYCLE
                 j = j + 1
-                !        print*,j,'j',sys%element(i),i
+                ! print*,j,'j',sys%element(i),i
                 n = 0
                 fragment(m, j, 1) = i
                 DO k = 99, sys%natom
@@ -761,7 +778,7 @@ CONTAINS
                         IF (ANY(k==fragment(m, :, :))) CYCLE
                         n = n + 1
                         fragment(m, j, n + 1) = k
-                        !        print*,k,sys%element(k),i,sys%element(i), 'k ve i'
+                        ! print*,k,sys%element(k),i,sys%element(i), 'k ve i'
                         DO l = 99, sys%natom
                             !IF (ANY(l==fragment(m,:,:))) CYCLE
                             IF (sys%element(l).NE.'C') CYCLE
@@ -770,7 +787,7 @@ CONTAINS
                                 IF (ANY(l==fragment(m, :, :))) CYCLE
                                 n = n + 1
                                 fragment(m, j, n + 1) = l
-                                !        print*,l,sys%element(l),k,sys%element(k),'l ve k'
+                                ! print*,l,sys%element(l),k,sys%element(k),'l ve k'
                                 DO o = 99, sys%natom
                                     ! IF (ANY(o==fragment(m,:,:))) CYCLE
                                     IF (sys%element(o)=='X') CYCLE
@@ -788,7 +805,7 @@ CONTAINS
                                                 IF (ANY(p==fragment(m, :, :))) CYCLE
                                                 n = n + 1
                                                 fragment(m, j, n + 1) = p
-                                                !        print*,p,sys%element(p),o,sys%element(o),'p ve o'
+                                                ! print*,p,sys%element(p),o,sys%element(o),'p ve o'
                                                 DO r = 99, sys%natom
                                                     !IF (ANY(r==fragment(m,:,:))) CYCLE
                                                     IF (sys%element(r)=='X') CYCLE
@@ -797,7 +814,7 @@ CONTAINS
                                                         IF (ANY(r==fragment(m, :, :))) CYCLE
                                                         n = n + 1
                                                         fragment(m, j, n + 1) = r
-                                                        !        print*,r,sys%element(r),p,sys%element(p),'r ve p'
+                                                        ! print*,r,sys%element(r),p,sys%element(p),'r ve p'
                                                         DO s = 99, sys%natom
                                                             !IF (ANY(s==fragment(m,:,:))) CYCLE
                                                             IF (sys%element(s)=='X') CYCLE
@@ -806,7 +823,7 @@ CONTAINS
                                                                 IF (ANY(s==fragment(m, :, :))) CYCLE
                                                                 n = n + 1
                                                                 fragment(m, j, n + 1) = s
-                                                                !        print*,s,sys%element(s),r,sys%element(r),'s ve r'
+                                                                ! print*,s,sys%element(s),r,sys%element(r),'s ve r'
                                                                 DO t = 99, sys%natom
                                                                     !IF (ANY(s==fragment(m,:,:))) CYCLE
                                                                     IF (sys%element(t)=='X') CYCLE
@@ -833,7 +850,7 @@ CONTAINS
             END DO
         END DO
 
-        PRINT *, fragment(1, 20, :)
+        !PRINT *, fragment(1, 20, :)
 
         !Assign Wannier centers to the phenyl rings!
 
@@ -879,50 +896,50 @@ CONTAINS
             DO i = 1, 37
                 DO j = 2, natom_frag(i)
                     CALL pbc_hexagonal(md%coord_v(m, fragment(m, i, j), :), md%coord_v(m, fragment(m, i, 1), :), sys)
-                    ! PRINT*,SQRT(DOT_PRODUCT(vec,vec)),SQRT(DOT_PRODUCT(sys%cell%vec_pbc,sys%cell%vec_pbc)),i,j,'0'
+                    !PRINT*,SQRT(DOT_PRODUCT(vec,vec)),SQRT(DOT_PRODUCT(sys%cell%vec_pbc,sys%cell%vec_pbc)),i,j,'0'
                     IF (sys%cell%vec(1)>3.0_dp .AND. sys%cell%vec(2)>5.2_dp) THEN
                         md%coord_v(m, fragment(m, i, j), 1) = md%coord_v(m, fragment(m, i, j), 1) - hmat(1, 2)
                         md%coord_v(m, fragment(m, i, j), 2) = md%coord_v(m, fragment(m, i, j), 2) - hmat(2, 2)
                         CALL pbc_hexagonal(md%coord_v(m, fragment(m, i, j), :), md%coord_v(m, fragment(m, i, 1), :), sys)
-                        ! PRINT*,SQRT(DOT_PRODUCT(vec,vec)),SQRT(DOT_PRODUCT(sys%cell%vec_pbc,sys%cell%vec_pbc)),i,j,'3'
+                        !PRINT*,SQRT(DOT_PRODUCT(vec,vec)),SQRT(DOT_PRODUCT(sys%cell%vec_pbc,sys%cell%vec_pbc)),i,j,'3'
                     END IF
                     IF (sys%cell%vec(1)<-3.0_dp .AND. sys%cell%vec(2)>5.2_dp) THEN
                         md%coord_v(m, fragment(m, i, j), 1) = md%coord_v(m, fragment(m, i, j), 1) + hmat(1, 2)
                         md%coord_v(m, fragment(m, i, j), 2) = md%coord_v(m, fragment(m, i, j), 2) - hmat(2, 2)
                         CALL pbc_hexagonal(md%coord_v(m, fragment(m, i, j), :), md%coord_v(m, fragment(m, i, 1), :), sys)
-                        ! PRINT*,SQRT(DOT_PRODUCT(vec,vec)),SQRT(DOT_PRODUCT(sys%cell%vec_pbc,sys%cell%vec_pbc)),i,j,'4'
+                        !PRINT*,SQRT(DOT_PRODUCT(vec,vec)),SQRT(DOT_PRODUCT(sys%cell%vec_pbc,sys%cell%vec_pbc)),i,j,'4'
                     END IF
                     IF (sys%cell%vec(1)>3.0_dp .AND. sys%cell%vec(2)<-5.2_dp) THEN
                         md%coord_v(m, fragment(m, i, j), 1) = md%coord_v(m, fragment(m, i, j), 1) - hmat(1, 2)
                         md%coord_v(m, fragment(m, i, j), 2) = md%coord_v(m, fragment(m, i, j), 2) + hmat(2, 2)
                         CALL pbc_hexagonal(md%coord_v(m, fragment(m, i, j), :), md%coord_v(m, fragment(m, i, 1), :), sys)
-                        ! PRINT*,SQRT(DOT_PRODUCT(vec,vec)),SQRT(DOT_PRODUCT(sys%cell%vec_pbc,sys%cell%vec_pbc)),i,j,'5'
+                        !PRINT*,SQRT(DOT_PRODUCT(vec,vec)),SQRT(DOT_PRODUCT(sys%cell%vec_pbc,sys%cell%vec_pbc)),i,j,'5'
                     END IF
                     IF (sys%cell%vec(1)<-3.0_dp .AND. sys%cell%vec(2)<-5.2_dp) THEN
                         md%coord_v(m, fragment(m, i, j), 1) = md%coord_v(m, fragment(m, i, j), 1) + hmat(1, 2)
                         md%coord_v(m, fragment(m, i, j), 2) = md%coord_v(m, fragment(m, i, j), 2) + hmat(2, 2)
                         CALL pbc_hexagonal(md%coord_v(m, fragment(m, i, j), :), md%coord_v(m, fragment(m, i, 1), :), sys)
-                        ! PRINT*,SQRT(DOT_PRODUCT(vec,vec)),SQRT(DOT_PRODUCT(sys%cell%vec_pbc,sys%cell%vec_pbc)),i,j,'6'
+                        !PRINT*,SQRT(DOT_PRODUCT(vec,vec)),SQRT(DOT_PRODUCT(sys%cell%vec_pbc,sys%cell%vec_pbc)),i,j,'6'
                     END IF
                     IF (sys%cell%vec(1)>4.9_dp .AND. sys%cell%vec(2)<5.2_dp .AND. sys%cell%vec(2)>-5.2_dp) THEN
                         md%coord_v(m, fragment(m, i, j), 1) = md%coord_v(m, fragment(m, i, j), 1) - hmat(1, 1)
                         CALL pbc_hexagonal(md%coord_v(m, fragment(m, i, j), :), md%coord_v(m, fragment(m, i, 1), :), sys)
-                        ! PRINT*,SQRT(DOT_PRODUCT(vec,vec)),SQRT(DOT_PRODUCT(sys%cell%vec_pbc,sys%cell%vec_pbc)),i,j,'1'
+                        !PRINT*,SQRT(DOT_PRODUCT(vec,vec)),SQRT(DOT_PRODUCT(sys%cell%vec_pbc,sys%cell%vec_pbc)),i,j,'1'
                     END IF
                     IF (sys%cell%vec(1)<-4.9_dp .AND. sys%cell%vec(2)<5.2_dp .AND. sys%cell%vec(2)>-5.2_dp) THEN
                         md%coord_v(m, fragment(m, i, j), 1) = md%coord_v(m, fragment(m, i, j), 1) + hmat(1, 1)
                         CALL pbc_hexagonal(md%coord_v(m, fragment(m, i, j), :), md%coord_v(m, fragment(m, i, 1), :), sys)
-                        ! PRINT*,SQRT(DOT_PRODUCT(vec,vec)),SQRT(DOT_PRODUCT(sys%cell%vec_pbc,sys%cell%vec_pbc)),i,j,'2'
+                        !PRINT*,SQRT(DOT_PRODUCT(vec,vec)),SQRT(DOT_PRODUCT(sys%cell%vec_pbc,sys%cell%vec_pbc)),i,j,'2'
                     END IF
                     IF (sys%cell%vec(3)<-4.9_dp) THEN
                         md%coord_v(m, fragment(m, i, j), 3) = md%coord_v(m, fragment(m, i, j), 3) + hmat(3, 3)
                         CALL pbc_hexagonal(md%coord_v(m, fragment(m, i, j), :), md%coord_v(m, fragment(m, i, 1), :), sys)
-                        ! PRINT*,SQRT(DOT_PRODUCT(vec,vec)),SQRT(DOT_PRODUCT(sys%cell%vec_pbc,sys%cell%vec_pbc)),i,j,'7'
+                        !PRINT*,SQRT(DOT_PRODUCT(vec,vec)),SQRT(DOT_PRODUCT(sys%cell%vec_pbc,sys%cell%vec_pbc)),i,j,'7'
                     END IF
                     IF (sys%cell%vec(3)>5.0_dp) THEN
                         md%coord_v(m, fragment(m, i, j), 3) = md%coord_v(m, fragment(m, i, j), 3) - hmat(3, 3)
                         CALL pbc_hexagonal(md%coord_v(m, fragment(m, i, j), :), md%coord_v(m, fragment(m, i, 1), :), sys)
-                        ! PRINT*,SQRT(DOT_PRODUCT(vec,vec)),SQRT(DOT_PRODUCT(sys%cell%vec_pbc,sys%cell%vec_pbc)),i,j,'8'
+                        !PRINT*,SQRT(DOT_PRODUCT(vec,vec)),SQRT(DOT_PRODUCT(sys%cell%vec_pbc,sys%cell%vec_pbc)),i,j,'8'
                     END IF
                 END DO
             END DO
@@ -952,18 +969,25 @@ CONTAINS
             END DO
         END DO
 
-        OPEN (UNIT=60, FILE=TRIM(filename)//'-dipole_result_7.xyz', STATUS='unknown', IOSTAT=stat)
+
+        OPEN (FILE=TRIM(filename)//'-dipole_result_7.xyz', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit)
+        !Check if file exists
+        IF (stat /= 0) THEN
+            WRITE(error_unit,'(4X,"[ERROR] ",A,A)') 'could not open file ', TRIM(filename)//'-dipole_result_7.xyz'
+            WRITE(*,'(4X,"I/O error message: ",A)') TRIM(msg)
+            STOP   
+          END IF
         DO m = 1, sys%framecount
-            WRITE (60, *) sys%natom + 37
-            WRITE (60, *)
+            WRITE (runit, *) sys%natom + 37
+            WRITE (runit, *)
             DO i = 1, 37
                 DO j = 1, natom_frag(i)
-                    WRITE (60, *) sys%element(fragment(m, i, j)), md%coord_v(m, fragment(m, i, j), :)
+                    WRITE (runit, *) sys%element(fragment(m, i, j)), md%coord_v(m, fragment(m, i, j), :)
                 END DO
-                WRITE (60, *) 'N', sys%fragments%refpoint(m, i, :)
+                WRITE (runit, *) 'N', sys%fragments%refpoint(m, i, :)
             END DO
         END DO
-        CLOSE (60)
+        CLOSE (runit)
 
         DEALLOCATE (com)
 
@@ -1010,7 +1034,7 @@ CONTAINS
         hmat(1, 1) = a; hmat(1, 2) = acosa; hmat(1, 3) = 0.0_dp
         hmat(2, 1) = 0.0_dp; hmat(2, 2) = asina; hmat(2, 3) = 0.0_dp
         hmat(3, 1) = 0.0_dp; hmat(3, 2) = 0.0_dp; hmat(3, 3) = sys%cell%box_z
-        PRINT *, sys%mol_num, 'check mol num'
+        WRITE (*, '(4X,A, T60, I0)') 'Number of mol',  sys%mol_num
         DO m = 1, sys%framecount
             DO i = 1, sys%mol_num
                 DO j = 1, natom_frag(i)
@@ -1026,7 +1050,7 @@ CONTAINS
             END DO
         END DO
 
-        PRINT *, sys%fragments%mass_tot_cell, 'mass tot cell'
+        WRITE (*, '(4X,A, T60, G0)') 'Mass tot cell' , sys%fragments%mass_tot_cell
 
         DO m = 1, sys%framecount
             IF (sys%system=='2' .AND. dips%type_dipole=='1') THEN

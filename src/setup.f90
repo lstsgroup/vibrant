@@ -19,6 +19,7 @@ MODULE setup
     USE kinds, ONLY: dp
     USE constants, ONLY: speed_light
     USE vib_types, ONLY: global_settings, systems
+    USE iso_fortran_env, ONLY: output_unit, error_unit
 
     IMPLICIT NONE
 
@@ -252,7 +253,8 @@ CONTAINS
                 sys%charge(i) = -2.0_dp
             ELSE
                 ! Unknown symbol: mark and continue
-                PRINT *, "WARNING: Unknown element symbol, got ", s
+                WRITE(error_unit,'(4X,"[WARN]  ",A,A)') 'Unknown element symbol, got ', s
+                WRITE(error_unit,'(4X,"[WARN]  ",A,A)') 'Setting atomc mass and charge do -1.0'
                 sys%mass_atom(i) = -1.0_dp
                 sys%charge(i) = -1.0_dp
             END IF

@@ -16,7 +16,8 @@
 
 MODULE timing
 
-    USE kinds, ONLY: dp
+    USE kinds, ONLY: dp, str_len
+    USE iso_fortran_env, ONLY: output_unit, error_unit
 
     IMPLICIT NONE
     PRIVATE
@@ -54,7 +55,7 @@ CONTAINS
         CLASS(time_table), INTENT(inout) :: this
         CHARACTER(len=*), INTENT(in) :: name
         IF (this%n_events>=SIZE(this%events)) THEN
-            PRINT *, "Error: Maximum number of events reached."
+            WRITE(error_unit,'(4X,"[ERROR] ",A)') 'Maximum number of events reached.'
             RETURN
         END IF
         IF (this%n_events>0) THEN
@@ -68,22 +69,22 @@ CONTAINS
     SUBROUTINE report_all(this)
         CLASS(time_table), INTENT(inout) :: this
         INTEGER :: i
+        CHARACTER(len=str_len) :: time
         REAL(kind=8) :: total_time
         IF (this%n_events>0) THEN
             CALL this%events(this%n_events)%stop_event()
         END IF
-        PRINT *, ""
-        WRITE (*, '(A)') REPEAT('-', 80)
-        PRINT *, "Timing Report:"
+        WRITE(*,'(/,90A)') REPEAT("-",90)
+        WRITE(*,'(2X, A)') "Timing Report:"
         total_time = 0.0_dp
         DO i = 1, this%n_events
             total_time = total_time + this%events(i)%elapsed
             CALL this%events(i)%report_event()
         END DO
-        PRINT *, ""
-        PRINT '(A50, A, F12.4, A)', "TOTAL", ": ", total_time, " s"
-        WRITE (*, '(A)') REPEAT('-', 80)
-        PRINT *, ""
+        !WRITE(*,'(/,T17,A52, A, T60,F12.4, A)') "TOTAL", ": ", total_time, " s"
+        WRITE(time,'(F12.4, " s")') total_time  
+        WRITE(*,'(/,T17,A,":",T60,A)') "TOTAL", TRIM(ADJUSTL(time))
+        WRITE(*,'(90A,/)') REPEAT("-",90)
     END SUBROUTINE report_all
 
     !> @brief start timing an event
@@ -94,7 +95,7 @@ CONTAINS
         INTEGER :: count, rate
 
         IF (this%running .OR. this%is_over) THEN
-            PRINT *, "Warning: Event is already running or over."
+            WRITE(error_unit,'(4X,"[WARN]  ",A)') 'Event is already running or over.'
             RETURN
         END IF
 
@@ -110,7 +111,7 @@ CONTAINS
         INTEGER :: count, rate
 
         IF (.NOT. this%running .OR. this%is_over) THEN
-            PRINT *, "Warning: Event is not running or over."
+            WRITE(error_unit,'(4X,"[WARN]  ",A)') 'Event is already running or over.'
             RETURN
         END IF
 
@@ -124,10 +125,14 @@ CONTAINS
     !> @brief report the timing of this event
     SUBROUTINE report_event(this)
         CLASS(event), INTENT(in) :: this
+        CHARACTER(len=str_len) :: time
+
         IF (this%running .OR. .NOT. this%is_over) THEN
-            PRINT *, "Event '", TRIM(this%name), "' is still running or didn't start."
+            WRITE(error_unit,'(4X,"[INFO]  ",A,A)') TRIM(this%name), "' is still running or didn't start."
         ELSE
-            PRINT '(A50, A, F12.4, A)', TRIM(this%name), ": ", this%elapsed, " s"
+            WRITE(time,'(F12.4, " s")') this%elapsed    
+            WRITE(*,'(T17,A,":",T60,A)') TRIM(this%name), TRIM(ADJUSTL(time))
+
         END IF
     END SUBROUTINE report_event
 
