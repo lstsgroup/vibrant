@@ -27,7 +27,7 @@ MODULE vib_types
 
     !***************************************************************************
     TYPE spectral_type
-        CHARACTER(LEN=40)                               :: read_function
+        CHARACTER(LEN=40)                               :: read_function ! spectral_type not needed NEEDED ANYMORE ! 
     END TYPE spectral_type
 
     !***************************************************************************

@@ -767,7 +767,59 @@ CONTAINS
                 WRITE(error_unit,'(4X,"[WARN]  ",A)') 'Incident laser frequency not defined, setting it to 1 0.5 cm⁻1'
                 rams%laser_in = 0.5
             END IF
-
+        ELSEIF (gs%spectral_type%read_function=='MD-RR') THEN
+            !check for filename
+            IF (TRIM(sys%filename)=='') THEN
+                WRITE(error_unit,'(4X,"[ERROR] ",A)') 'Filename not defined in the input'
+                STOP
+            END IF
+            !check for type_dipole
+            IF (TRIM(dips%type_dipole)=='') THEN
+                WRITE(error_unit,'(4X,"[WARN]  ",A)') 'type_dipole not defined in the input setting it to berry'
+                dips%type_dipole = 'berry'
+            END IF
+            !check for electric field strength
+            IF (dips%type_dipole.NE.'dfpt' .AND. dips%e_field<0) THEN
+                WRITE(error_unit,'(4X,"[ERROR] ",A)') 'Electric field strength not defined!'
+                STOP
+            END IF
+            !check for dipole file
+            !IF (TRIM(dips%dip_file)=='') THEN
+            !    WRITE(error_unit,'(4X,"[ERROR] ",A)') 'Dipole filename not defined in the input'
+            !    STOP
+            !END IF
+            IF (TRIM(dips%dip_x_file)=='') THEN
+                WRITE(error_unit,'(4X,"[ERROR] ",A)') 'X-field dipole file name not defined in the input'
+                STOP
+            END IF
+            IF (TRIM(dips%dip_y_file)=='') THEN
+                WRITE(error_unit,'(4X,"[ERROR] ",A)') 'Y-field dipole file name not defined in the input'
+                STOP
+            END IF
+            IF (TRIM(dips%dip_z_file)=='') THEN
+                WRITE(error_unit,'(4X,"[ERROR] ",A)') 'Z-field dipole file name not defined in the input'
+                STOP
+            END IF
+            !check time step
+            IF (md%dt<0) THEN
+                WRITE(error_unit,'(4X,"[ERROR] ",A)') 'time_step not defined in the input'
+                STOP
+            END IF
+            !check t_cor
+            IF (md%t_cor<0) THEN
+                WRITE(error_unit,'(4X,"[ERROR] ",A)') 'correlation depth not defined in the input, we will continue with an estimate' !can be worded differently
+                STOP
+            END IF
+            !check for the temperature
+            IF (gs%temp<0) THEN
+                WRITE(error_unit,'(4X,"[WARN]  ",A)') 'Temperature is not defined, setting it to 300 K'
+                gs%temp = 300
+            END IF
+            !check for incident laser wavelength
+            IF (rams%laser_in<0) THEN
+                WRITE(error_unit,'(4X,"[WARN]  ",A)') 'Incident laser frequency not defined, setting it to 1 0.5 cm⁻1'
+                rams%laser_in = 0.5
+            END IF
         END IF
 
     END SUBROUTINE check_input
