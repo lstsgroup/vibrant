@@ -31,7 +31,7 @@ PROGRAM vib2d
     USE vel_cor, ONLY: cvv, cvv_iso, cvv_aniso, cvv_only_x, cvv_resraman
     USE fin_diff, ONLY: central_diff, forward_diff, finite_diff_static, finite_diff_static_resraman
     USE calc_spectra, ONLY: spec_power, normal_mode_analysis, spec_static_ir, spec_static_raman, &
-                            spec_ir, spec_raman, spec_abs, spec_static_resraman!, spec_resraman
+                            spec_ir, spec_raman, spec_abs, spec_static_resraman,  spec_resraman
     USE omp_lib, ONLY: omp_get_num_threads
     USE timing, ONLY: timings
     USE config_info, ONLY: output_config_info
@@ -336,10 +336,10 @@ PROGRAM vib2d
         !***************************************************************************
     ELSEIF (gs%spectral_type%read_function=='MD-RR') THEN
         CALL timings%register("reading coordinates")
-        CALL read_coord(sys%filename, gs, sys, dips)
-        
+        !CALL read_coord(sys%filename, gs, sys, dips)
+
         CALL timings%register("calculate resonance Raman spectrum")
-        CALL spec_resraman(sys, md, rams)
+        !CALL spec_resraman(sys, md, rams)
         !CALL spec_resraman(natom,framecount,element,rtp_dipole_x,rtp_dipole_y,rtp_dipole_z,type_input,mol_num,system,&
         !     read_function,dt,z_iso_resraman,z_aniso_resraman,freq_range,freq_range_rtp,laser_in_resraman,y_out)
     END IF
