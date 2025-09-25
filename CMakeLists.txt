@@ -47,6 +47,7 @@ set(SOURCES
     src/config_info.f90
     src/vib_types.f90
     src/setup.f90
+    src/cells.f90
     src/pade_interpolation.f90
     src/read_traj.f90
     src/dipole_calc.f90

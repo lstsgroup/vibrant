@@ -27,7 +27,7 @@ MODULE calc_spectra
     USE read_traj, ONLY: read_coord_frame,check_file_open
     USE fin_diff, ONLY: central_diff, forward_diff
     USE vel_cor, ONLY: cvv, cvv_iso, cvv_aniso, cvv_only_x, cvv_resraman
-    USE dipole_calc, ONLY: center_mass, solv_frag_index, wannier_frag, wannier
+    USE dipole_calc, ONLY: compute_dipole
     USE pade, ONLY: interpolate
 
     USE, INTRINSIC                              :: ISO_C_BINDING
@@ -111,33 +111,19 @@ CONTAINS
         REAL(kind=dp)                                          :: freq_range, freq_res, sinc_const, ir_const
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE               :: ir_int, freq
 
-        !  IF (dips%type_dipole=='wannier') THEN !!fragment approach or whole supercell
-        !      IF (sys%cell%cell_type=='1' .OR. sys%cell%cell_type=='2') THEN !!KP or SC
-        !          CALL read_coord_frame(sys%natom, sys%filename, md%coord_v, sys)
-        !          CALL center_mass(sys%filename, sys%fragments%fragment, gs, sys, md, dips)
-        !          CALL wannier_frag(sys%fragments%natom_frag, sys%filename, dips%dipole, sys%fragments%fragment, gs, sys, md, dips)
-        !      ELSEIF (sys%cell%cell_type=='3') THEN !!SC with solvent
-        !          CALL read_coord_frame(sys%natom, sys%filename, md%coord_v, sys)
-        !          CALL solv_frag_index(sys%filename, sys%fragments%natom_frag, sys%fragments%fragment, sys, md, dips)
-        !          CALL wannier_frag(sys%fragments%natom_frag, sys%filename, dips%dipole, sys%fragments%fragment, gs, sys, md, dips)
-        !       END IF
-!    END IF
-
         ALLOCATE (md%zhat(0:2*md%t_cor - 1), ir_int(0:2*md%t_cor - 1), freq(0:2*md%t_cor - 1))
-
         md%zhat = COMPLEX(0._dp, 0.0_dp)
 
-        !   IF (sys%system=='2' .AND. dips%type_dipole=='wannier') THEN
-        !       sys%mol_num = 1
-        !   END IF
-!    IF (sys%system=='1' .OR. (sys%system=='2' .AND. dips%type_dipole=='wannier')) THEN  !!fragment approach or the whole cell
-        !       CALL central_diff(sys%mol_num, dips%dipole, md%v, sys, md)
-        !       CALL cvv(sys%fragments%nfrag, md%v, sys, md)
-        IF (dips%type_dipole=='berry') THEN !!Berry phase dipoles
+        IF (dips%type_dipole=='wannier') THEN !!fragment approach or whole supercell
+            CALL read_coord_frame(sys%natom, dips%dip_file, md%coord_v, sys)
+            CALL compute_dipole(dips%dipole, sys, md)
+            CALL central_diff(sys%mol_num, dips%dipole, md%v, sys, md)
+        ELSEIF (dips%type_dipole=='berry') THEN !!Berry phase dipoles
             CALL read_coord_frame(sys%mol_num, dips%dip_file, md%coord_v, sys)
             CALL central_diff(sys%mol_num, md%coord_v, md%v, sys, md)
-            CALL cvv(sys%mol_num, md%v, sys, gs, md)
         END IF
+
+        CALL cvv(sys%mol_num, md%v, sys, gs, md)
 
         CALL dfftw_plan_dft_r2c_1d(plan, 2*md%t_cor, md%z(0:2*md%t_cor - 1), md%zhat(0:2*md%t_cor - 1), FFTW_ESTIMATE) !!FFT!!
         CALL dfftw_execute_dft_r2c(plan, md%z, md%zhat)
@@ -145,13 +131,14 @@ CONTAINS
 
         freq_range = REAL((1.0_dp/(md%dt*fs2s))/speed_light, kind=dp)
         freq_res = REAL(freq_range/(2.0_dp*md%t_cor), kind=dp)
-      !!sinc function
+
+        !!sinc function
         sinc_const = freq_res*md%dt*fs2s*2.0_dp*pi*speed_light
 
         md%zhat = REAL(md%zhat, kind=dp)
-      !!conversion of debye^2 to (C*m)^2
+        !!conversion of debye^2 to (C*m)^2
         md%zhat(:) = md%zhat(:)*debye2cm*debye2cm !!conversion of debye^2 to (C*m)^2
-      !!conversion of IR units to K*cm*km*mol^-1
+        !!conversion of IR units to K*cm*km*mol^-1
         ir_const = avo_num*md%dt*fs2s*2.0_dp*10.0d0/(12.0_dp*const_permit*speed_light*const_boltz)
 
         
@@ -194,7 +181,7 @@ CONTAINS
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE                    :: raman_const, sinc_func, freq
         REAL(kind=dp)                                             :: f, freq_res
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                :: dip_free!,rams%e_field(1)%dip_xyz,rams%e_field(2)%dip_xyz,rams%e_field(3)%dip_xyz
-        CHARACTER(len=40)                                         :: f_name
+        CHARACTER(len=40)                                         :: fname, f_name, idx
         !REAL(kind=dp), DIMENSION(:,:, :, :), ALLOCATABLE                :: alpha_xyz, dip_xyz, alpha_diff_xyz
         !REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                ::rams%e_field(1)%alpha_diff_xyz,rams%e_field(2)%alpha_diff_xyz,rams%e_field(3)%alpha_diff_xyz
 
@@ -206,24 +193,12 @@ CONTAINS
 !    IF (rams%averaging=='1') THEN
 
 !!FIELD_FREE!!!
-        !       IF (sys%system=='1' .OR. dips%type_dipole=='wannier') THEN
-        !           IF (sys%cell%cell_type.NE.'3') THEN
-        !               !CALL read_coord_frame(sys, md)
-        !              CALL read_coord_frame(sys%natom, rams%wannier_free, md%coord_v, sys) !<- this needs to be ADJUSTED
-        !              ! filename different and fragment_free different
-        !              CALL center_mass(rams%wannier_free, fragment_free, gs, sys, md, dips)
-        !              CALL wannier_frag(sys%fragments%natom_frag, rams%wannier_free, dip_free, fragment_free, gs, sys, md, dips)
-        !          ELSEIF (sys%cell%cell_type=='3') THEN
-        !              CALL read_coord_frame(sys%natom, rams%wannier_free, md%coord_v, sys)
-        !              CALL solv_frag_index(rams%wannier_free, natom_frag_free, fragment_free, sys, md, dips)
-!
-        !             CALL wannier_frag(natom_frag_free, rams%wannier_free, dip_free, fragment_free, gs, sys, md, dips)
-        !         END IF
-        !     ELSEIF (sys%system=='2') THEN
-        IF (dips%type_dipole=='berry') THEN
-            CALL read_coord_frame(sys%mol_num, dips%dip_file, dip_free, sys)
+        IF (dips%type_dipole=='wannier') THEN
+            CALL read_coord_frame(sys%natom, dips%dip_file, md%coord_v, sys)
+            CALL compute_dipole(dip_free, sys, md)
+        ELSEIF (dips%type_dipole=='berry') THEN
+            CALL read_coord_frame(sys%natom, dips%dip_file, dip_free, sys)
         END IF
-        !     END IF
 
     !!!!ELECTRIC FIELD!!!
         DO xyz = 1, 3 !X-FIELD Y-FIELD Z-FIELD
@@ -235,97 +210,32 @@ CONTAINS
                 f_name = dips%dip_z_file
             END IF
             CALL read_coord_frame(sys%natom, f_name, md%coord_v, sys)
-!        IF (sys%system=='1' .OR. dips%type_dipole=='1') THEN
-!            IF (sys%cell%cell_type.NE.'3') THEN
-!                CALL center_mass(rams%e_field(xyz)%wannier_xyz, rams%e_field(xyz)%fragment_xyz, gs, sys, md, dips)
-!                CALL wannier_frag(sys%fragments%natom_frag, rams%e_field(xyz)%wannier_xyz,rams%e_field(xyz)%dip_xyz, rams%e_field(xyz)%fragment_xyz, gs, sys, md, dips)
-!
-!            ELSEIF (sys%cell%cell_type=='3') THEN
-!                CALL solv_frag_index(rams%e_field(xyz)%wannier_xyz, rams%e_field(xyz)%natom_frag_xyz, rams%e_field(xyz)%fragment_xyz, sys, md, dips)
-!                CALL wannier_frag(rams%e_field(xyz)%natom_frag_xyz, rams%e_field(xyz)%wannier_xyz,rams%e_field(xyz)%dip_xyz, rams%e_field(xyz)%fragment_xyz, gs, sys, md, dips)
-!            END IF
-!            IF (sys%system=='1') THEN
-!                CALL forward_diff(sys%mol_num, rams%e_field(xyz)%alpha_xyz, dip_free,rams%e_field(xyz)%dip_xyz, gs, sys)
-!            ELSEIF (sys%system=='2' .AND. dips%type_dipole=='1') THEN
-!                CALL forward_diff(sys%fragments%nfrag, rams%e_field(xyz)%alpha_xyz, dip_free,rams%e_field(xyz)%dip_xyz, gs, sys)
-!            END IF
-!        ELSEIF (sys%system=='2') THEN
-!
-            IF (dips%type_dipole=='berry') THEN
+            IF (dips%type_dipole=='wannier') THEN
+                CALL compute_dipole(dips%dipole, sys, md)
+                CALL forward_diff(sys%mol_num, rams%e_field(xyz)%alpha_xyz, dip_free, dips%dipole, gs, sys, dips)
+                DEALLOCATE (dips%dipole)
+            ELSEIF (dips%type_dipole=='berry') THEN
                 CALL forward_diff(sys%mol_num, rams%e_field(xyz)%alpha_xyz, dip_free, md%coord_v, gs, sys, dips)
-
             ELSEIF (dips%type_dipole=='dfpt') THEN
                 rams%e_field(xyz)%alpha_xyz = REAL(md%coord_v*a3_to_debye_per_e, kind=dp)
-                !rams%e_field(xyz)%alpha_xyz = REAL(rams%e_field(xyz)%alpha_xyz*((8.988d+15)/(5.142d+11*3.33564d-30)), kind=dp) !conversion to debye/E
             END IF
-!        END IF
-
-            !IF (sys%system=='2' .AND. dips%type_dipole=='1') THEN
-            !    CALL central_diff(sys%fragments%nfrag, rams%e_field(xyz)%alpha_xyz,rams%e_field(xyz)%alpha_diff_xyz, sys, md)
-            !ELSE
             CALL central_diff(sys%mol_num, rams%e_field(xyz)%alpha_xyz, rams%e_field(xyz)%alpha_diff_xyz, sys, md)
-            !END IF
-!        CALL read_coord_frame(sys%natom, rams%e_field(xyz)%wannier_xyz, md%coord_v, sys)
-!        IF (sys%system=='1' .OR. dips%type_dipole=='1') THEN
-!            IF (sys%cell%cell_type.NE.'3') THEN
-!                CALL center_mass(rams%e_field(xyz)%wannier_xyz, rams%e_field(xyz)%fragment_xyz, gs, sys, md, dips)
-!                CALL wannier_frag(sys%fragments%natom_frag, rams%e_field(xyz)%wannier_xyz,rams%e_field(xyz)%dip_xyz, rams%e_field(xyz)%fragment_xyz, gs, sys, md, dips)
-!
-!            ELSEIF (sys%cell%cell_type=='3') THEN
-!                CALL solv_frag_index(rams%e_field(xyz)%wannier_xyz, rams%e_field(xyz)%natom_frag_xyz, rams%e_field(xyz)%fragment_xyz, sys, md, dips)
-!                CALL wannier_frag(rams%e_field(xyz)%natom_frag_xyz, rams%e_field(xyz)%wannier_xyz,rams%e_field(xyz)%dip_xyz, rams%e_field(xyz)%fragment_xyz, gs, sys, md, dips)
-!            END IF
-!            IF (sys%system=='1') THEN
-!                CALL forward_diff(sys%mol_num, rams%e_field(xyz)%alpha_xyz, dip_free,rams%e_field(xyz)%dip_xyz, gs, sys)
-!            ELSEIF (sys%system=='2' .AND. dips%type_dipole=='1') THEN
-!                CALL forward_diff(sys%fragments%nfrag, rams%e_field(xyz)%alpha_xyz, dip_free,rams%e_field(xyz)%dip_xyz, gs, sys)
-!            END IF
-!        ELSEIF (sys%system=='2') THEN
-!
-!            IF (dips%type_dipole=='2') THEN
-!                CALL forward_diff(sys%mol_num, rams%e_field(xyz)%alpha_xyz, dip_free, md%coord_v, gs, sys)
-!
-!            ELSEIF (dips%type_dipole=='3') THEN
-!                DO i = 1, sys%framecount
-!                    DO j = 1, 1
-!                        rams%e_field(xyz)%alpha_xyz(i, j, :) = md%coord_v(i, j, :)
-!                    END DO
-!                END DO
-!                rams%e_field(xyz)%alpha_xyz = REAL(rams%e_field(xyz)%alpha_xyz*((8.988d+15)/(5.142d+11*3.33564d-30)), kind=dp) !conversion to debye/E
-!            END IF
-!        END IF
-!
-!        IF (sys%system=='2' .AND. dips%type_dipole=='1') THEN
-!            CALL central_diff(sys%fragments%nfrag, rams%e_field(xyz)%alpha_xyz,rams%e_field(xyz)%alpha_diff_xyz, sys, md)
-!        ELSE
-!            CALL central_diff(sys%mol_num, rams%e_field(xyz)%alpha_xyz,rams%e_field(xyz)%alpha_diff_xyz, sys, md)
-!        END IF
         END DO
 
 !!!ACF AND FFT CALC!!!
-        !   PRINT *, sys%fragments%nfrag, 'sys%fragments%nfrag check'
         ALLOCATE (zhat_iso(0:md%t_cor*2), zhat_aniso(0:md%t_cor*2))
         ALLOCATE (raman_ortho(0:md%t_cor*2), raman_para(0:md%t_cor*2), raman_depol(0:md%t_cor*2), raman_unpol(0:md%t_cor*2))
         ALLOCATE (freq(0:md%t_cor*2), raman_const(0:md%t_cor*2))
 
         zhat_iso = COMPLEX(0._dp, 0.0_dp)
         zhat_aniso = COMPLEX(0._dp, 0.0_dp)
-        ! raman_unpol = COMPLEX(0._dp, 0.0_dp)
-        ! raman_depol = COMPLEX(0._dp, 0.0_dp)
 
-        !IF (sys%system=='1' .OR. (sys%system=='2' .AND. dips%type_dipole=='wannier')) THEN
-        !    CALL cvv_iso(sys%fragments%nfrag, rams%z_iso,rams%e_field(1)%alpha_diff_xyz,rams%e_field(2)%alpha_diff_xyz,rams%e_field(3)%alpha_diff_xyz, sys, md)
-        !  ELSE
         CALL cvv_iso(sys%mol_num, rams%z_iso, rams%e_field(1)%alpha_diff_xyz, rams%e_field(2)%alpha_diff_xyz, rams%e_field(3)%alpha_diff_xyz, sys, md)
-        ! END IF
 
         CALL dfftw_plan_dft_r2c_1d(plan, 2*md%t_cor, rams%z_iso, zhat_iso, FFTW_ESTIMATE)
         CALL dfftw_execute_dft_r2c(plan, rams%z_iso, zhat_iso)
         CALL dfftw_destroy_plan(plan)
 
-        !   IF (sys%system=='1' .OR. (sys%system=='2' .AND. dips%type_dipole=='wannier')) THEN
-        !       CALL cvv_aniso(sys%fragments%nfrag, rams%z_aniso,rams%e_field(1)%alpha_diff_xyz,rams%e_field(2)%alpha_diff_xyz,rams%e_field(3)%alpha_diff_xyz, sys, md)
-        !  ELSE
         CALL cvv_aniso(sys%mol_num, rams%z_aniso, rams%e_field(1)%alpha_diff_xyz, rams%e_field(2)%alpha_diff_xyz, rams%e_field(3)%alpha_diff_xyz, sys, md)
         !  END IF
 

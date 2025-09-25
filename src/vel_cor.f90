@@ -54,13 +54,7 @@ CONTAINS
         DO t0 = 1, sys%framecount - 2
             t1 = MIN(sys%framecount - 2, t0 + md%t_cor)
             DO j = 1, natom
-                IF (sys%frag_type=='2') THEN
-                    k = j + 8
-                ELSEIF (sys%frag_type=='3') THEN
-                    k = j + 20
-                ELSE
-                    k = j
-                END IF
+                k = j
                 IF (sys%input_mass=='y') THEN
                     md%z(0:t1 - t0) = md%z(0:t1 - t0) + (coord_v(t0, k, 1)*coord_v(t0:t1, j, 1) + coord_v(t0, j, 2)* &
                                                          coord_v(t0:t1, j, 2) + coord_v(t0, j, 3)*coord_v(t0:t1, j, 3))*sys%mass_atom(j)
@@ -131,24 +125,14 @@ CONTAINS
         DO t0 = 1, sys%framecount - 2
             t1 = MIN(sys%framecount - 2, t0 + md%t_cor)
             DO j = 1, mol_num
-                IF (sys%frag_type=='2') THEN
-                    k = j + 8
-                ELSEIF (sys%frag_type=='3') THEN
-                    k = j + 20
-                ELSE
-                    k = j
-                END IF
+                k = j
                 z_iso(0:t1 - t0) = z_iso(0:t1 - t0) + (alpha_diff_x(t0, k, 1) + alpha_diff_y(t0, k, 2) + alpha_diff_z(t0, k, 3))* &
                                    (alpha_diff_x(t0:t1, k, 1) + alpha_diff_y(t0:t1, k, 2) + alpha_diff_z(t0:t1, k, 3))
             END DO
             norm(0:t1 - t0) = norm(0:t1 - t0) + 1
         END DO
 
-        !PRINT *, norm(0:3), 'iso norm'
-        !PRINT *, z_iso(0:3), 'iso z'
         z_iso(:) = z_iso(:)/(norm(:)*9._dp)  !!Normalization
-        !   z_iso(:) = z_iso(:)/(2.0_dp*pi)
-        !z_iso(:)=z_iso(:)/mol_num
 
       !!Unit conversion of Debye^2/(E^2*fs^2) into Debye^2/(E^2*s^2)
         z_iso(:) = z_iso(:)/(fs2s*fs2s)
@@ -196,13 +180,7 @@ CONTAINS
         DO t0 = 1, sys%framecount - 2
             t1 = MIN(sys%framecount - 2, t0 + md%t_cor)
             DO j = 1, mol_num
-                IF (sys%frag_type=='2') THEN
-                    k = j + 8
-                ELSEIF (sys%frag_type=='3') THEN
-                    k = j + 20
-                ELSE
-                    k = j
-                END IF
+                k = j
                 z_aniso(0:t1 - t0) = z_aniso(0:t1 - t0) + (alpha_diff_x(t0, k, 1) - alpha_diff_y(t0, k, 2)) &
                                      *(alpha_diff_x(t0:t1, k, 1) - alpha_diff_y(t0:t1, k, 2))/2.0_dp
                 z_aniso(0:t1 - t0) = z_aniso(0:t1 - t0) + (alpha_diff_y(t0, k, 2) - alpha_diff_z(t0, k, 3)) &
@@ -219,11 +197,7 @@ CONTAINS
             norm(0:t1 - t0) = norm(0:t1 - t0) + 1
         END DO
 
-        !PRINT *, norm(0:3), 'aniso norm'
-        !PRINT *, z_aniso(0:3), 'aniso z'
         z_aniso(:) = z_aniso(:)/norm(:)
-        !  z_aniso(:) = z_aniso(:)/(2.0_dp*pi)
-        !z_aniso(:)=REAL(z_aniso(:)/mol_num,kind=dp)
 
       !!Unit conversion of Debye^2/(E^2*fs^2) into C^4*s^2/kg^2
         z_aniso(:) = z_aniso(:)/(fs2s*fs2s)

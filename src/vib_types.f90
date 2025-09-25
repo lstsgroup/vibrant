@@ -44,6 +44,7 @@ MODULE vib_types
     TYPE cell
         CHARACTER(LEN=40)                              :: cell_type
         REAL(kind=dp)                                  :: box_all, box_x, box_y, box_z, vec(3), vec_pbc(3)
+        REAL(kind=dp)                                  :: angle_alpha, angle_beta, angle_gamma
     END TYPE cell
     !***************************************************************************
     TYPE frame_type
@@ -305,7 +306,7 @@ CONTAINS
 
     SUBROUTINE init_rr(this)
         CLASS(resonant_raman), INTENT(INOUT) :: this
-        
+
         this%check_pade = ''
         this%framecount_rtp = -1
         this%framecount_rtp_pade = -1
@@ -420,12 +421,12 @@ CONTAINS
         ram%static_pol_file = ''
         !analytic
         ram%wannier_free = ''
-        ram%wannier_x = '' 
-        ram%wannier_y = '' 
+        ram%wannier_x = ''
+        ram%wannier_y = ''
         ram%wannier_z = ''
         ram%averaging = ''
         ram%direction = ''
-        
+
         CALL ram%RR%init_rr()
     END SUBROUTINE init_raman
 
