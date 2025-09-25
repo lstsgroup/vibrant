@@ -15,8 +15,8 @@
        .vibrant-logo-light { display: inline !important; }
      }
    </style>
-   <img src="_static/all_img/logo_vibrant.svg" alt="Vibrant Logo" class="vibrant-logo-light" style="height:140px; float:left;">
-   <img src="_static/all_img/logo_vibrant_dark.svg" alt="Vibrant Logo (Dark)" class="vibrant-logo-dark" style="height:140px; float:left;">
+   <img src="all_img/logo_vibrant.svg" alt="Vibrant Logo" class="vibrant-logo-light" style="height:140px; float:left;">
+   <img src="all_img/logo_vibrant_dark.svg" alt="Vibrant Logo (Dark)" class="vibrant-logo-dark" style="height:140px; float:left;">
 
 Documentation of Ekin's very cool code.
 

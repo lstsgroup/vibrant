@@ -36,10 +36,10 @@ html_theme_options = dict(
         "Golze Group|https://golzegroup.org/",
         "Contact|https://golzegroup.org/contact/",
     ]),
-    logo = "all_img/placeholder.png",
+    logo = "all_img/logo_vibrant.svg",
     logo_alt = "vibrant",
     logo_height = 59,
     logo_url = "/",
-    logo_width = 45,
+    #logo_width = 45,
 )
 html_static_path = ['_static']
