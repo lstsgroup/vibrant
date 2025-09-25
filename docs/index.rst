@@ -8,8 +8,6 @@
    <div style="text-align: left; margin-bottom: 1em;">
 
      <picture>
-       <source media="(prefers-color-scheme: dark)" srcset="_static/all_img/logo_vibrant_dark.svg">
-       <source media="(prefers-color-scheme: light)" srcset="_static/all_img/logo_vibrant.svg">
        <img alt="Vibrant logo" src="_static/all_img/logo_vibrant.svg" style="height:140px; display: block;">
      </picture>
 
@@ -19,7 +17,7 @@ Documentation of Ekin's very cool code.
 
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Contents:
 
    Installation
@@ -47,4 +45,4 @@ Optional: Test if the installation is working as expected by typing
 
 in the build directory to run the regression tests.
 
-For more a more fine-grained installation please refer to the `documentation of vibrant <https://lstsgroup.github.io/vibrant/Installation.html>`.
+For more a more fine-grained installation please refer to the `documentation of vibrant <https://lstsgroup.github.io/vibrant/Installation.html>`_.

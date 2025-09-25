@@ -41,5 +41,7 @@ html_theme_options = dict(
     logo_height = 100,
     logo_url = "/",
     #logo_width = 45,
+    dark_mode_switch = False,
+    dark_mode = False,
 )
 html_static_path = ['_static']
