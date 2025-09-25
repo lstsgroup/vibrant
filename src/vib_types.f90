@@ -82,6 +82,11 @@ MODULE vib_types
         TYPE(static_property), DIMENSION(3)  ::  static_dip_z_rtp
         TYPE(static_property), DIMENSION(3, 3)  ::  pol_rtp
         COMPLEX(kind=dp), DIMENSION(:, :, :, :, :, :), ALLOCATABLE :: zhat_pol_rtp
+
+        !MD RR
+        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE      :: dip_x_rtp
+        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE      :: dip_y_rtp
+        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE      :: dip_z_rtp
         !CHARACTER(LEN=40)                                   :: rtp_dipole_x, rtp_dipole_y, rtp_dipole_z
         !COMPLEX(kind=dp), DIMENSION(:, :), ALLOCATABLE      :: z_iso_resraman, z_aniso_resraman
     CONTAINS

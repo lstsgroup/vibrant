@@ -53,8 +53,10 @@ CONTAINS
 
         sys%framecount = 0
 
-        IF (gs%spectral_type%read_function/='MD-RR') THEN
+        IF (gs%spectral_type%read_function/='MD-RR') THEN 
             OPEN (FILE=filename, STATUS='old', ACTION='read',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit)
+            !Check if file exists
+            CALL check_file_open(stat, msg, filename)
             READ (runit, *) sys%natom
             CLOSE (runit)
         ELSEIF (gs%spectral_type%read_function=='MD-RR') THEN
@@ -100,7 +102,7 @@ CONTAINS
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(OUT)      :: coord_v
 
         CHARACTER(len=str_len)                                     :: msg  ! store error message
-        INTEGER                                                    :: i, j, stat, runit
+        INTEGER                                                    :: i, j, stat, runit, buff
 
         ALLOCATE (coord_v(sys%framecount, natom, 3))
         OPEN (FILE=filename, STATUS='old', ACTION='read',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit)
@@ -109,11 +111,16 @@ CONTAINS
         !Start reading if file found
         DO
             DO j = 1, sys%framecount
-                READ (runit, *, END=999)
+                READ (runit, *, END=999) 
                 READ (runit, *)
                 DO i = 1, natom
-                    READ (runit, *) sys%element(i), coord_v(j, i, 1), coord_v(j, i, 2), coord_v(j, i, 3)
+                    IF (ALLOCATED(sys%element)) THEN
+                        READ (runit, *) sys%element(i) , coord_v(j, i, 1), coord_v(j, i, 2), coord_v(j, i, 3)
+                    ELSE 
+                        READ (runit, *) buff , coord_v(j, i, 1), coord_v(j, i, 2), coord_v(j, i, 3)
+                    END IF
                 END DO
+                
             END DO
         END DO
 999     CONTINUE

@@ -1036,20 +1036,19 @@ CONTAINS
 !!....................................................................................................................!
 !
     
-SUBROUTINE spec_resraman(sys, md, rams)
-
-
-
-    TYPE(systems)         :: sys
-    TYPE(molecular_dynamics)   :: md
-    TYPE(raman)   :: rams
+!SUBROUTINE spec_resraman(gs, sys, md, rams)
+!
+!
+!    TYPE(global_settings) :: gs
+!    TYPE(systems)         :: sys
+!    TYPE(molecular_dynamics)   :: md
+!    TYPE(raman)   :: rams
 !    
-!    
-!    CHARACTER(LEN=40), INTENT(INOUT)                          :: rtp_dipole_x, rtp_dipole_y, rtp_dipole_z
-!COMPLEX(kind=dp), DIMENSION(:), ALLOCATABLE, INTENT(INOUT)   :: y_out
-!COMPLEX(kind=dp), DIMENSION(:, :), ALLOCATABLE, INTENT(INOUT) :: z_iso_resraman, z_aniso_resraman
-!CHARACTER(LEN=40)                                        :: chara
-!INTEGER                                                  :: stat, i, j, k, m, t0, t1
+!
+!COMPLEX(kind=dp), DIMENSION(:), ALLOCATABLE:: y_out
+!COMPLEX(kind=dp), DIMENSION(:, :), ALLOCATABLE:: z_iso_resraman, z_aniso_resraman
+!CHARACTER(LEN=str_len)                                        :: chara, msg
+!INTEGER                                                  :: stat, i, j, k, m, t0, t1, runit
 !INTEGER(kind=dp)                                          :: plan
 !COMPLEX(kind=dp), DIMENSION(:, :, :), ALLOCATABLE             :: yx_out, yy_out, yz_out
 !COMPLEX(kind=dp), DIMENSION(:, :), ALLOCATABLE               :: zhat_iso_resraman, zhat_aniso_resraman
@@ -1069,20 +1068,21 @@ SUBROUTINE spec_resraman(sys, md, rams)
 !REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                :: alpha_x, alpha_y, alpha_z
 !REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                :: dip_x, dip_y, dip_z
 !
-!ALLOCATE (zhat_resraman_x( sys%framecount, natom, 3), zhat_resraman_y( sys%framecount, natom, 3), &
-!zhat_resraman_z( sys%framecount, natom, 3))
-!ALLOCATE (alpha_resraman_x( sys%framecount, natom, 3), alpha_resraman_y( sys%framecount, natom, 3), &
-!alpha_resraman_z( sys%framecount, natom, 3))
-!ALLOCATE (alpha_resraman_x_diff_re( sys%framecount - 2, natom, 3), alpha_resraman_y_diff_re( sys%framecount - 2, natom, 3), &
-!alpha_resraman_z_diff_re( sys%framecount - 2, natom, 3))
-!ALLOCATE (alpha_resraman_x_diff_im( sys%framecount - 2, natom, 3), alpha_resraman_y_diff_im( sys%framecount - 2, natom, 3), &
-!alpha_resraman_z_diff_im( sys%framecount - 2, natom, 3))
-!ALLOCATE (alpha_x( sys%framecount, natom, 3), alpha_y( sys%framecount, natom, 3), alpha_z( sys%framecount, natom, 3))
-!ALLOCATE (yx_out( sys%framecount, 10000, 3), yy_out( sys%framecount, 10000, 3), yz_out( sys%framecount, 10000, 3))
+!INTEGER :: Nrt, Nw, Nmd
+!Nrt = rams%RR%framecount_rtp
+!Nw  = Nrt/2 + 1
+!Nmd = sys%framecount
+!
+!ALLOCATE (zhat_resraman_x( sys%framecount,Nw , 3), zhat_resraman_y( sys%framecount, Nw, 3), zhat_resraman_z( sys%framecount,Nw, 3))
+!ALLOCATE (alpha_resraman_x( sys%framecount, rams%RR%framecount_rtp, 3), alpha_resraman_y( sys%framecount, rams%RR%framecount_rtp, 3), alpha_resraman_z( sys%framecount, rams%RR%framecount_rtp, 3))
+!ALLOCATE (alpha_resraman_x_diff_re( sys%framecount - 2, rams%RR%framecount_rtp, 3), alpha_resraman_y_diff_re( sys%framecount - 2, rams%RR%framecount_rtp, 3), alpha_resraman_z_diff_re( sys%framecount - 2, rams%RR%framecount_rtp, 3))
+!ALLOCATE (alpha_resraman_x_diff_im( sys%framecount - 2, rams%RR%framecount_rtp, 3), alpha_resraman_y_diff_im( sys%framecount - 2, rams%RR%framecount_rtp, 3), alpha_resraman_z_diff_im( sys%framecount - 2, rams%RR%framecount_rtp, 3))
+!!ALLOCATE (alpha_x( sys%framecount, natom, 3), alpha_y( sys%framecount, natom, 3), alpha_z( sys%framecount, natom, 3))
+!!ALLOCATE (yx_out( sys%framecount, 10000, 3), yy_out( sys%framecount, 10000, 3), yz_out( sys%framecount, 10000, 3))
 !
 !!!X-Field!!
-!CALL read_coord_frame(sys%mol_num, rtp_dipole_x, md%dip_x, sys)
-!CALL forward_diff(sys%mol_num, alpha_x, dip_x, dip_x, gs, sys, dips)
+!!CALL read_coord_frame(sys%mol_num, rtp_dipole_x, md%dip_x, sys)
+!!CALL forward_diff(sys%mol_num, alpha_x, dip_x, dip_x, gs, sys, dips)
 !
 !zhat_resraman_x = COMPLEX(0._dp, 0.0_dp)
 !zhat_resraman_y = COMPLEX(0._dp, 0.0_dp)
@@ -1090,163 +1090,179 @@ SUBROUTINE spec_resraman(sys, md, rams)
 !
 !DO i = 1,  sys%framecount
 !    DO j = 1, 3
-!        CALL dfftw_plan_dft_r2c_1d(plan, sys%natom, alpha_x(i, 1:sys%natom, j), zhat_resraman_x(i, 1:sys%natom, j), FFTW_ESTIMATE)
-!        CALL dfftw_execute_dft_r2c(plan, alpha_x(i, 1:sys%natom, j), zhat_resraman_x(i, 1:sys%natom, j)) !!!important to specify arrays!!
+!        CALL dfftw_plan_dft_r2c_1d(plan, rams%RR%framecount_rtp, rams%RR%dip_x_rtp(i, 1:rams%RR%framecount_rtp, j), zhat_resraman_x(i, 1:Nw, j), FFTW_ESTIMATE)
+!        CALL dfftw_execute_dft_r2c(plan, rams%RR%dip_x_rtp(i, 1:rams%RR%framecount_rtp, j), zhat_resraman_x(i, 1:Nw, j)) !!!important to specify arrays!!
 !        CALL dfftw_destroy_plan(plan)
 !    END DO
 !END DO
 !
-!alpha_resraman_x_re = REAL(zhat_resraman_x, kind=dp)
-!alpha_resraman_x_im = AIMAG(zhat_resraman_x)
-!
-!!!Call Pade
-!DO i = 1, 1 !! sys%framecount
-!    DO j = 1, 3
-!        CALL interpolate(zhat_resraman_x(i, 1:natom, j), 10000, yx_out(i, :, j))
-!    END DO
-!END DO
-!
-!!OPEN(UNIT=40,FILE='y_out.txt',STATUS='unknown',IOSTAT=stat)
-!!DO i=1,10000
-!! WRITE(40,*) i/10000._dp,REAL(yx_out(i),kind=dp),AIMAG(yx_out(i))
-!!ENDDO
-!!CLOSE(40)
-!
-!!OPEN(UNIT=40,FILE='zhat_out.txt',STATUS='unknown',IOSTAT=stat)
-!!DO i=1,natom-1
-!! WRITE(40,*) i/(natom-1._dp),REAL(zhat_resraman_x(1,i,1),kind=dp),AIMAG(zhat_resraman_x(1,i,1))
-!!ENDDO
-!!CLOSE(40)
-!
-!CALL central_diff(sys%natom, alpha_resraman_x_re, alpha_resraman_x_diff_re, sys, md)
-!CALL central_diff(sys%natom, alpha_resraman_x_im, alpha_resraman_x_diff_im, sys, md)
+!alpha_resraman_x_re = REAL(zhat_resraman_x/0.001_dp, kind=dp) 
+!alpha_resraman_x_im = AIMAG(zhat_resraman_x)/0.001_dp
 !
 !
-!!!Y-Field!!
 !
-!CALL read_coord_frame(sys%mol_num, rtp_dipole_y, dip_y, sys)
-!CALL forward_diff(sys%mol_num, alpha_y, dip_y, dip_y, gs, sys, dips)
+!!!!Call Pade
+!!DO i = 1, 1 !! sys%framecount
+!!    DO j = 1, 3
+!!        CALL interpolate(zhat_resraman_x(i, 1:natom, j), 10000, yx_out(i, :, j))
+!!    END DO
+!!END DO
+!!
+!!!OPEN(UNIT=40,FILE='y_out.txt',STATUS='unknown',IOSTAT=stat)
+!!!DO i=1,10000
+!!! WRITE(40,*) i/10000._dp,REAL(yx_out(i),kind=dp),AIMAG(yx_out(i))
+!!!ENDDO
+!!!CLOSE(40)
+!!
+!!!OPEN(UNIT=40,FILE='zhat_out.txt',STATUS='unknown',IOSTAT=stat)
+!!!DO i=1,natom-1
+!!! WRITE(40,*) i/(natom-1._dp),REAL(zhat_resraman_x(1,i,1),kind=dp),AIMAG(zhat_resraman_x(1,i,1))
+!!!ENDDO
+!!!CLOSE(40)
+!!
+!CALL central_diff(Nw, alpha_resraman_x_re, alpha_resraman_x_diff_re, sys, md)
+!CALL central_diff(Nw, alpha_resraman_x_im, alpha_resraman_x_diff_im, sys, md)
 !
+!!
+!!!!Y-Field!!
+!!
+!!!CALL read_coord_frame(sys%mol_num, rtp_dipole_y, dip_y, sys)
+!!CALL forward_diff(sys%mol_num, alpha_y, dip_y, dip_y, gs, sys, dips)
+!!
 !DO i = 1,  sys%framecount
 !    DO j = 1, 3
-!        CALL dfftw_plan_dft_r2c_1d(plan, sys%natom, alpha_y(i, 1:sys%natom, j), zhat_resraman_y(i, 1:sys%natom, j), FFTW_ESTIMATE)
-!        CALL dfftw_execute_dft_r2c(plan, alpha_y(i, 1:sys%natom, j), zhat_resraman_y(i, 1:sys%natom, j)) !!!important to specify arrays!!
+!        CALL dfftw_plan_dft_r2c_1d(plan, rams%RR%framecount_rtp, rams%RR%dip_y_rtp(i, 1:rams%RR%framecount_rtp, j), zhat_resraman_y(i, 1:Nw, j), FFTW_ESTIMATE)
+!        CALL dfftw_execute_dft_r2c(plan, rams%RR%dip_y_rtp(i, 1:rams%RR%framecount_rtp, j), zhat_resraman_y(i, 1:Nw, j)) !!!important to specify arrays!!
 !        CALL dfftw_destroy_plan(plan)
 !    END DO
 !END DO
 !
-!alpha_resraman_y_re = REAL(zhat_resraman_x, kind=dp)
-!alpha_resraman_y_im = AIMAG(zhat_resraman_x)
-!
-!!!Call Pade
-!DO i = 1, 1 !! sys%framecount
+!alpha_resraman_y_re = REAL(zhat_resraman_y/0.001_dp, kind=dp)
+!alpha_resraman_y_im = AIMAG(zhat_resraman_y/0.001_dp)
+!!
+!!!!Call Pade
+!!DO i = 1, 1 !! sys%framecount
+!!    DO j = 1, 3
+!!        CALL interpolate(zhat_resraman_y(i, 1:natom, j), 10000, yy_out(i, :, j))
+!!    END DO
+!!END DO
+!!
+!!!OPEN(UNIT=40,FILE='yy_out.txt',STATUS='unknown',IOSTAT=stat)
+!!!DO i=1,10000
+!!!  WRITE(40,*) i/10000._dp,REAL(yy_out(i),kind=dp),AIMAG(yy_out(i))
+!!!ENDDO
+!!!CLOSE(40)
+!!
+!!!pade_interpolation.f90OPEN(UNIT=40,FILE='zhaty_out.txt',STATUS='unknown',IOSTAT=stat)
+!!!DO i=1,natom-1
+!!!  WRITE(40,*) i/(natom-1._dp),REAL(zhat_resraman_y(1,i,2),kind=dp),AIMAG(zhat_resraman_y(1,i,2))
+!!!ENDDO
+!!!CLOSE(40)
+!!
+!CALL central_diff(Nw, alpha_resraman_y_re, alpha_resraman_y_diff_re, sys, md)
+!CALL central_diff(Nw, alpha_resraman_y_im, alpha_resraman_y_diff_im, sys, md)
+!!
+!!!!Z-Field!!
+!!
+!!!CALL read_coord_frame(sys%natom, rtp_dipole_z, dip_z, sys)
+!!CALL forward_diff(sys%mol_num, alpha_z, dip_z, dip_z, gs, sys, dips)
+!!
+!DO i = 1,  sys%framecount
 !    DO j = 1, 3
-!        CALL interpolate(zhat_resraman_y(i, 1:natom, j), 10000, yy_out(i, :, j))
-!    END DO
-!END DO
-!
-!!OPEN(UNIT=40,FILE='yy_out.txt',STATUS='unknown',IOSTAT=stat)
-!!DO i=1,10000
-!!  WRITE(40,*) i/10000._dp,REAL(yy_out(i),kind=dp),AIMAG(yy_out(i))
-!!ENDDO
-!!CLOSE(40)
-!
-!!pade_interpolation.f90OPEN(UNIT=40,FILE='zhaty_out.txt',STATUS='unknown',IOSTAT=stat)
-!!DO i=1,natom-1
-!!  WRITE(40,*) i/(natom-1._dp),REAL(zhat_resraman_y(1,i,2),kind=dp),AIMAG(zhat_resraman_y(1,i,2))
-!!ENDDO
-!!CLOSE(40)
-!
-!CALL central_diff(sys%natom, alpha_resraman_y_re, alpha_resraman_y_diff_re, sys, md)
-!CALL central_diff(sys%natom, alpha_resraman_y_im, alpha_resraman_y_diff_im, sys, md)
-!
-!!!Z-Field!!
-!
-!CALL read_coord_frame(sys%natom, rtp_dipole_z, dip_z, sys)
-!CALL forward_diff(sys%mol_num, alpha_z, dip_z, dip_z, gs, sys, dips)
-!
-!DO i = 1, sys% sys%framecount
-!    DO j = 1, 3
-!        CALL dfftw_plan_dft_r2c_1d(plan, natom, alpha_z(i, 1:natom - 1, j), zhat_resraman_z(i, 1:natom, j), FFTW_ESTIMATE)
-!        CALL dfftw_execute_dft_r2c(plan, alpha_z(i, 1:natom, j), zhat_resraman_z(i, 1:natom, j)) !!!important to specify arrays!!
+!        CALL dfftw_plan_dft_r2c_1d(plan, rams%RR%framecount_rtp, rams%RR%dip_z_rtp(i, 1:rams%RR%framecount_rtp, j), zhat_resraman_z(i, 1:Nw, j), FFTW_ESTIMATE)
+!        CALL dfftw_execute_dft_r2c(plan, rams%RR%dip_z_rtp(i, 1:rams%RR%framecount_rtp, j), zhat_resraman_z(i, 1:Nw, j)) !!!important to specify arrays!!
 !        CALL dfftw_destroy_plan(plan)
 !    END DO
 !END DO
 !
-!alpha_resraman_z_re = REAL(zhat_resraman_x, kind=dp)
-!alpha_resraman_z_im = AIMAG(zhat_resraman_x)
+!alpha_resraman_z_re = REAL(zhat_resraman_z/0.001_dp, kind=dp)
+!alpha_resraman_z_im = AIMAG(zhat_resraman_z/0.001_dp)
+!!
+!!!!Call Pade
+!!DO i = 1, 1 !! sys%framecount
+!!    DO j = 1, 3
+!!        CALL interpolate(sys%natom, zhat_resraman_z(i, 1:sys%natom, j), 10000, yz_out(i, :, j))
+!!    END DO
+!!END DO
+!!
+!!!OPEN(UNIT=40,FILE='yz_out.txt',STATUS='unknown',IOSTAT=stat)
+!!!DO i=1,10000
+!!!  WRITE(40,*) i/10000._dp,REAL(yz_out(i),kind=dp),AIMAG(yz_out(i))
+!!!ENDDO
+!!!CLOSE(40)
+!!
+!!!OPEN(UNIT=40,FILE='zhatz_out.txt',STATUS='unknown',IOSTAT=stat)
+!!!DO i=1,natom-1
+!!!  WRITE(40,*) i/(natom-1._dp),REAL(zhat_resraman_z(1,i,3),kind=dp),AIMAG(zhat_resraman_z(1,i,3))
+!!!ENDDO
+!!!CLOSE(40)
+!!
+!CALL central_diff(Nw, alpha_resraman_z_re, alpha_resraman_z_diff_re, sys, md)
+!CALL central_diff(Nw, alpha_resraman_z_im, alpha_resraman_z_diff_im, sys, md)
 !
-!!!Call Pade
-!DO i = 1, 1 !! sys%framecount
-!    DO j = 1, 3
-!        CALL interpolate(sys%natom, zhat_resraman_z(i, 1:sys%natom, j), 10000, yz_out(i, :, j))
-!    END DO
-!END DO
+!WRITE (*, '(4X,A, T60, G0)')'alpha_resraman_z_re',alpha_resraman_z_re(1,1,1)
+!WRITE (*, '(4X,A, T60, G0)')'alpha_resraman_z_diff_re',alpha_resraman_z_diff_re(1,1,1)
 !
-!!OPEN(UNIT=40,FILE='yz_out.txt',STATUS='unknown',IOSTAT=stat)
-!!DO i=1,10000
-!!  WRITE(40,*) i/10000._dp,REAL(yz_out(i),kind=dp),AIMAG(yz_out(i))
-!!ENDDO
-!!CLOSE(40)
+!WRITE (*, '(4X,A, T60, G0)')'alpha_resraman_z_im',alpha_resraman_z_im(1,1,1)
+!WRITE (*, '(4X,A, T60, G0)')'alpha_resraman_z_diff_im',alpha_resraman_z_diff_im(1,1,1)
+!!
+!!!!!Calculate absorption spectra
+!!
+!rtp_freq_res = REAL(rams%RR%freq_range_rtp/(rams%RR%framecount_rtp), kind=dp)
+!!pade_freq_res = REAL(rams%RR%freq_range_rtp/(10000), kind=dp)
+!!
+!!ALLOCATE (abs_intens(sys%natom), trace(sys%sys%natom))
+!!ALLOCATE (abs_intens_pade(10000), trace_pade(10000))
+!!
+!!DO i = 1, 1
+!!    DO j = 1, sys%natom
+!!        trace(j) = DIMAG(zhat_resraman_x(i, j, 1)) + DIMAG(zhat_resraman_y(i, j, 2)) + DIMAG(zhat_resraman_z(i, j, 3))
+!!        abs_intens(j) = (4.0_dp*pi*trace(j))/(3.0_dp*speed_light)
+!!    END DO
+!!END DO
+!!
+!!OPEN (FILE='absorption_spectra.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
+!!CALL check_file_open(stat, msg, 'absorption_spectra.txt')
+!!DO i = 1, natom
+!!    WRITE (runit, *) i*rtp_freq_res*1.23984198e-4, abs_intens(i)*i*rtp_freq_res
+!!END DO
+!!CLOSE (runit)
+!!
+!!DO i = 1, 1
+!!    DO j = 1, 10000
+!!        trace_pade(j) = DIMAG(yx_out(i, j, 1)) + DIMAG(yy_out(i, j, 2)) + DIMAG(yz_out(i, j, 3))
+!!        abs_intens_pade(j) = (4.0_dp*pi*trace_pade(j))/(3.0_dp*speed_light)
+!!    END DO
+!!END DO
+!!
+!!OPEN (FILE='absorption_spectra_pade.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
+!!CALL check_file_open(stat, msg, 'absorption_spectra_pade.txt')
+!!DO i = 1, 10000
+!!WRITE (runit, *) i*pade_freq_res*1.23984198e-4, abs_intens_pade(i)*i*pade_freq_res
+!!END DO
+!!CLOSE (runit)
+!!
+!!!!Generate the spectrum!!
+!!
+!CALL cvv_resraman(alpha_resraman_x_diff_re, alpha_resraman_y_diff_re, &
+!alpha_resraman_z_diff_re, alpha_resraman_x_diff_im, alpha_resraman_y_diff_im, &
+!alpha_resraman_z_diff_im, z_iso_resraman, z_aniso_resraman,sys, md, rams )
 !
-!!OPEN(UNIT=40,FILE='zhatz_out.txt',STATUS='unknown',IOSTAT=stat)
-!!DO i=1,natom-1
-!!  WRITE(40,*) i/(natom-1._dp),REAL(zhat_resraman_z(1,i,3),kind=dp),AIMAG(zhat_resraman_z(1,i,3))
-!!ENDDO
-!!CLOSE(40)
 !
-!CALL central_diff(sys%natom, alpha_resraman_z_re, alpha_resraman_z_diff_re, sys, md)
-!CALL central_diff(sys%natom, alpha_resraman_z_im, alpha_resraman_z_diff_im, sys, md)
+!WRITE (*, '(4X,A, T60, G0)')'z_iso_resraman',z_iso_resraman(1,1)
+!WRITE (*, '(4X,A, T60, G0)')'z_aniso_resraman',z_aniso_resraman(1,1)
 !
-!!!!Calculate absorption spectra
 !
-!rtp_freq_res = REAL(rams%RR%freq_range_rtp/(sys%natom), kind=dp)
-!pade_freq_res = REAL(rams%RR%freq_range_rtp/(10000), kind=dp)
-!
-!ALLOCATE (abs_intens(sys%natom), trace(sys%sys%natom))
-!ALLOCATE (abs_intens_pade(10000), trace_pade(10000))
-!
-!DO i = 1, 1
-!    DO j = 1, sys%natom
-!        trace(j) = DIMAG(zhat_resraman_x(i, j, 1)) + DIMAG(zhat_resraman_y(i, j, 2)) + DIMAG(zhat_resraman_z(i, j, 3))
-!        abs_intens(j) = (4.0_dp*pi*trace(j))/(3.0_dp*speed_light)
-!    END DO
-!END DO
-!
-!OPEN (FILE='absorption_spectra.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
-!CALL check_file_open(stat, msg, 'absorption_spectra.txt')
-!DO i = 1, natom
-!    WRITE (runit, *) i*rtp_freq_res*1.23984198e-4, abs_intens(i)*i*rtp_freq_res
-!END DO
-!CLOSE (runit)
-!
-!DO i = 1, 1
-!    DO j = 1, 10000
-!        trace_pade(j) = DIMAG(yx_out(i, j, 1)) + DIMAG(yy_out(i, j, 2)) + DIMAG(yz_out(i, j, 3))
-!        abs_intens_pade(j) = (4.0_dp*pi*trace_pade(j))/(3.0_dp*speed_light)
-!    END DO
-!END DO
-!
-!OPEN (FILE='absorption_spectra_pade.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
-!CALL check_file_open(stat, msg, 'absorption_spectra_pade.txt')
-!DO i = 1, 10000
-!WRITE (runit, *) i*pade_freq_res*1.23984198e-4, abs_intens_pade(i)*i*pade_freq_res
-!END DO
-!CLOSE (runit)
-!
-!!!Generate the spectrum!!
-!
-!CALL cvv_resraman( sys%framecount, natom, md%dt, alpha_resraman_x_diff_re, alpha_resraman_y_diff_re, &
-! alpha_resraman_z_diff_re, alpha_resraman_x_diff_im, alpha_resraman_y_diff_im, alpha_resraman_z_diff_im, &
-! z_iso_resraman, z_aniso_resraman, md)
-!
-!ALLOCATE (zhat_iso_resraman(0:md%t_cor*2, natom), zhat_aniso_resraman(0:md%t_cor*2, natom))
-!ALLOCATE (zhat_unpol_resraman(0:md%t_cor*2, natom))
-!
+!ALLOCATE (zhat_iso_resraman(0:md%t_cor*2, rams%RR%framecount_rtp), zhat_aniso_resraman(0:md%t_cor*2, rams%RR%framecount_rtp))
+!ALLOCATE (zhat_unpol_resraman(0:md%t_cor*2, rams%RR%framecount_rtp))
+!!
 !zhat_iso_resraman = COMPLEX(0._dp, 0.0_dp)
 !zhat_aniso_resraman = COMPLEX(0._dp, 0.0_dp)
 !
-!DO j = 1, sys%natom
+!WRITE (*, '(4X,A, T60, G0)')'md%t_cor',md%t_cor 
+!
+!
+!DO j = 1, rams%RR%framecount_rtp/2 -1
 !    CALL dfftw_plan_dft_1d(plan, 2*md%t_cor, z_iso_resraman(0:md%t_cor*2, j), zhat_iso_resraman(0:md%t_cor*2, j), &
 !            FFTW_FORWARD, FFTW_ESTIMATE)
 !    CALL dfftw_execute_dft(plan, z_iso_resraman(0:md%t_cor*2, j), zhat_iso_resraman(0:md%t_cor*2, j)) !!!important to specify arrays!!
@@ -1258,40 +1274,234 @@ SUBROUTINE spec_resraman(sys, md, rams)
 !    CALL dfftw_destroy_plan(plan)
 !END DO
 !
+!WRITE (*, '(4X,A, T60, G0)')'zhat_iso_resraman',zhat_iso_resraman(1,1)
+!WRITE (*, '(4X,A, T60, G0)')'zhat_aniso_resraman',zhat_aniso_resraman(1,1)
 !freq_res = REAL(md%freq_range/(2*md%t_cor), kind=dp)
-!j = ANINT(rams%laser_in/rtp_freq_res, kind=dp)
-!
-!!!!!UNPOLARIZED!!!!
-!
+!!j = ANINT(rams%laser_in/rtp_freq_res, kind=dp)
+!j = ANINT(rams%laser_in/(rtp_freq_res*reccm2ev), kind=dp)
+!!
+!!!!!!UNPOLARIZED!!!!
+!!
 !!zhat_iso_resraman=AIMAG(zhat_iso_resraman)
 !!zhat_aniso_resraman=AIMAG(zhat_aniso_resraman)
-!
-!!OPEN(UNIT=30,FILE='zhat_aimag.txt',STATUS='unknown',IOSTAT=stat)
-!!DO i=0,2*md%t_cor-2
-!! WRITE(30,*) REAL(zhat_aniso_resraman(i,j),kind=dp),AIMAG(zhat_aniso_resraman(i,j))
-!!ENDDO
-!!CLOSE(30)
-!
 !f = freq_res*md%dt*1.883652d-4
+!
+!
 !OPEN (FILE='o-NP_resraman.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
 !CALL check_file_open(stat, msg, 'o-NP_resraman.txt')
 !    DO i = 0, 2*md%t_cor - 2
-!        ! j=22
+!        !j=22
 !        !zhat_iso_resraman(i+1,j),AIMAG(zhat_iso_resraman(i+1,j),kind=dp)*(f*(i+1)/SIN(f*(i+1)))**2._dp
 !        zhat_iso_resraman(i + 1, j) = (zhat_iso_resraman(i + 1, j))*(f*(i + 1)/SIN(f*(i + 1)))**2._dp
 !        zhat_aniso_resraman(i + 1, j) = (zhat_aniso_resraman(i + 1, j))*(f*(i + 1)/SIN(f*(i + 1)))**2._dp
 !
 !        zhat_unpol_resraman(i, j) = (zhat_iso_resraman(i, j)) + (zhat_aniso_resraman(i, j)*7.0_dp/45.0_dp)* &
 !                    ((const_planck)/(8.0_dp*const_boltz*const_permit*const_permit) &
-!                        *1d-29*0.421_dp*md%dt*((((laser_in*j) - ((i)*freq_res))**4)/((i)*freq_res)) &
+!                        *1d-29*0.421_dp*md%dt*((((rams%laser_in*j) - ((i)*freq_res))**4)/((i)*freq_res)) &
 !                        *(1.0_dp/(1.0_dp - EXP((-1.438777_dp*((i)*freq_res))/gs%temp))))*2.0_dp*2.0_dp*pi
 !        zhat_unpol_resraman(0, j) = 0.0_dp
 !    IF ((i*freq_res).GE.5000.0_dp) CYCLE
-!    !WRITE(73,*) i*freq_res,REAL(zhat_unpol_resraman(i,j),kind=dp),j
 !        WRITE (runit, *) i*freq_res, zhat_unpol_resraman(i, j), j
-!    ! ENDDO
+!    END DO
+!CLOSE (runit)
+!
+!!!
+!!f = freq_res*md%dt*1.883652d-4
+!!OPEN (FILE='o-NP_resraman.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
+!!CALL check_file_open(stat, msg, 'o-NP_resraman.txt')
+!!    DO i = 0, 2*md%t_cor - 2
+!!        !j=22
+!!        !zhat_iso_resraman(i+1,j),AIMAG(zhat_iso_resraman(i+1,j),kind=dp)*(f*(i+1)/SIN(f*(i+1)))**2._dp
+!!        zhat_iso_resraman(i + 1, j) = (zhat_iso_resraman(i + 1, j))*(f*(i + 1)/SIN(f*(i + 1)))**2._dp
+!!        zhat_aniso_resraman(i + 1, j) = (zhat_aniso_resraman(i + 1, j))*(f*(i + 1)/SIN(f*(i + 1)))**2._dp
+!!
+!!        zhat_unpol_resraman(i, j) = (zhat_iso_resraman(i, j)) + (zhat_aniso_resraman(i, j)*7.0_dp/45.0_dp)* &
+!!                    ((const_planck)/(8.0_dp*const_boltz*const_permit*const_permit) &
+!!                        *1d-29*0.421_dp*md%dt*((((rams%laser_in*j) - ((i)*freq_res))**4)/((i)*freq_res)) &
+!!                        *(1.0_dp/(1.0_dp - EXP((-1.438777_dp*((i)*freq_res))/gs%temp))))*2.0_dp*2.0_dp*pi
+!!        zhat_unpol_resraman(0, j) = 0.0_dp
+!!    IF ((i*freq_res).GE.5000.0_dp) CYCLE
+!        WRITE (runit, *) i*freq_res, zhat_unpol_resraman(i, j), j
 !    END DO
 !CLOSE (runit)
 
+!END SUBROUTINE spec_resraman
+   
+SUBROUTINE spec_resraman(gs, sys, md, rams)
+
+
+    TYPE(global_settings) :: gs
+    TYPE(systems)         :: sys
+    TYPE(molecular_dynamics)   :: md
+    TYPE(raman)   :: rams
+    
+
+COMPLEX(kind=dp), DIMENSION(:), ALLOCATABLE:: y_out
+COMPLEX(kind=dp), DIMENSION(:, :), ALLOCATABLE:: z_iso_resraman, z_aniso_resraman
+CHARACTER(LEN=str_len)                                        :: chara, msg
+INTEGER                                                  :: stat, i, j, k, m, t0, t1, runit
+INTEGER(kind=dp)                                          :: plan
+COMPLEX(kind=dp), DIMENSION(:, :, :), ALLOCATABLE             :: yx_out, yy_out, yz_out
+COMPLEX(kind=dp), DIMENSION(:, :), ALLOCATABLE               :: zhat_iso_resraman, zhat_aniso_resraman
+COMPLEX(kind=dp), DIMENSION(:, :, :), ALLOCATABLE             :: zhat_resraman_x, zhat_resraman_y, zhat_resraman_z
+REAL(kind=dp)                                             :: f, freq_res, rtp_freq_res, pade_freq_res, laser_in
+REAL(kind=dp), DIMENSION(:), ALLOCATABLE                    :: trace, abs_intens, trace_pade, abs_intens_pade
+REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE                  :: zhat_unpol_resraman
+REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                :: alpha_resraman_x, alpha_resraman_y, alpha_resraman_z
+REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                :: alpha_resraman_x_diff_re, alpha_resraman_y_diff_re
+REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                :: alpha_resraman_z_diff_re
+REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                :: alpha_resraman_x_diff_im, alpha_resraman_y_diff_im
+REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                :: alpha_resraman_z_diff_im
+REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                :: alpha_resraman_x_im, alpha_resraman_y_im
+REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                :: alpha_resraman_z_im
+REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                :: alpha_resraman_x_re, alpha_resraman_y_re
+REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                :: alpha_resraman_z_re
+REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                :: alpha_x, alpha_y, alpha_z
+REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                :: dip_x, dip_y, dip_z
+
+INTEGER :: Nrt, Nw, Nmd
+Nrt = rams%RR%framecount_rtp
+Nw  = Nrt
+Nmd = sys%framecount
+
+ALLOCATE (zhat_resraman_x( sys%framecount,Nw , 3), zhat_resraman_y( sys%framecount, Nw, 3), zhat_resraman_z( sys%framecount,Nw, 3))
+ALLOCATE (alpha_resraman_x( sys%framecount, rams%RR%framecount_rtp, 3), alpha_resraman_y( sys%framecount, rams%RR%framecount_rtp, 3), alpha_resraman_z( sys%framecount, rams%RR%framecount_rtp, 3))
+ALLOCATE (alpha_resraman_x_diff_re( sys%framecount - 2, rams%RR%framecount_rtp, 3), alpha_resraman_y_diff_re( sys%framecount - 2, rams%RR%framecount_rtp, 3), alpha_resraman_z_diff_re( sys%framecount - 2, rams%RR%framecount_rtp, 3))
+ALLOCATE (alpha_resraman_x_diff_im( sys%framecount - 2, rams%RR%framecount_rtp, 3), alpha_resraman_y_diff_im( sys%framecount - 2, rams%RR%framecount_rtp, 3), alpha_resraman_z_diff_im( sys%framecount - 2, rams%RR%framecount_rtp, 3))
+
+
+
+zhat_resraman_x = COMPLEX(0._dp, 0.0_dp)
+zhat_resraman_y = COMPLEX(0._dp, 0.0_dp)
+zhat_resraman_z = COMPLEX(0._dp, 0.0_dp)
+
+DO i = 1,  sys%framecount
+    DO j = 1, 3
+        CALL dfftw_plan_dft_r2c_1d(plan, rams%RR%framecount_rtp, rams%RR%dip_x_rtp(i, 1:rams%RR%framecount_rtp, j), zhat_resraman_x(i, 1:Nw, j), FFTW_ESTIMATE)
+        CALL dfftw_execute_dft_r2c(plan, rams%RR%dip_x_rtp(i, 1:rams%RR%framecount_rtp, j), zhat_resraman_x(i, 1:Nw, j)) !!!important to specify arrays!!
+        CALL dfftw_destroy_plan(plan)
+    END DO
+END DO
+
+alpha_resraman_x_re = REAL(zhat_resraman_x/0.001_dp, kind=dp) 
+alpha_resraman_x_im = AIMAG(zhat_resraman_x)/0.001_dp
+!
+CALL central_diff(Nw, alpha_resraman_x_re, alpha_resraman_x_diff_re, sys, md)
+CALL central_diff(Nw, alpha_resraman_x_im, alpha_resraman_x_diff_im, sys, md)
+WRITE (*, '(4X,A, T60, G0)')'alpha_resraman_x_re',alpha_resraman_x_re(1,1,1)
+WRITE (*, '(4X,A, T60, G0)')'alpha_resraman_x_diff_re',alpha_resraman_x_diff_re(1,1,1)
+WRITE (*, '(4X,A, T60, G0)')'alpha_resraman_x_im',alpha_resraman_x_im(1,1,1)
+WRITE (*, '(4X,A, T60, G0)')'alpha_resraman_x_diff_im',alpha_resraman_x_diff_im(1,1,1)
+!
+!!!Y-Field!!
+!
+DO i = 1,  sys%framecount
+    DO j = 1, 3
+        CALL dfftw_plan_dft_r2c_1d(plan, rams%RR%framecount_rtp, rams%RR%dip_y_rtp(i, 1:rams%RR%framecount_rtp, j), zhat_resraman_y(i, 1:Nw, j), FFTW_ESTIMATE)
+        CALL dfftw_execute_dft_r2c(plan, rams%RR%dip_y_rtp(i, 1:rams%RR%framecount_rtp, j), zhat_resraman_y(i, 1:Nw, j)) !!!important to specify arrays!!
+        CALL dfftw_destroy_plan(plan)
+    END DO
+END DO
+
+alpha_resraman_y_re = REAL(zhat_resraman_y/0.001_dp, kind=dp)
+alpha_resraman_y_im = AIMAG(zhat_resraman_y/0.001_dp)
+
+CALL central_diff(Nw, alpha_resraman_y_re, alpha_resraman_y_diff_re, sys, md)
+CALL central_diff(Nw, alpha_resraman_y_im, alpha_resraman_y_diff_im, sys, md)
+WRITE (*, '(4X,A, T60, G0)')'alpha_resraman_y_re',alpha_resraman_y_re(1,1,1)
+WRITE (*, '(4X,A, T60, G0)')'alpha_resraman_y_diff_re',alpha_resraman_y_diff_re(1,1,1)
+
+WRITE (*, '(4X,A, T60, G0)')'alpha_resraman_y_im',alpha_resraman_y_im(1,1,1)
+WRITE (*, '(4X,A, T60, G0)')'alpha_resraman_y_diff_im',alpha_resraman_y_diff_im(1,1,1)
+!
+!!!Z-Field!!
+
+DO i = 1,  sys%framecount
+    DO j = 1, 3
+        CALL dfftw_plan_dft_r2c_1d(plan, rams%RR%framecount_rtp, rams%RR%dip_z_rtp(i, 1:rams%RR%framecount_rtp, j), zhat_resraman_z(i, 1:Nw, j), FFTW_ESTIMATE)
+        CALL dfftw_execute_dft_r2c(plan, rams%RR%dip_z_rtp(i, 1:rams%RR%framecount_rtp, j), zhat_resraman_z(i, 1:Nw, j)) !!!important to specify arrays!!
+        CALL dfftw_destroy_plan(plan)
+    END DO
+END DO
+
+alpha_resraman_z_re = REAL(zhat_resraman_z/0.001_dp, kind=dp)
+alpha_resraman_z_im = AIMAG(zhat_resraman_z/0.001_dp)
+
+CALL central_diff(Nw, alpha_resraman_z_re, alpha_resraman_z_diff_re, sys, md)
+CALL central_diff(Nw, alpha_resraman_z_im, alpha_resraman_z_diff_im, sys, md)
+
+WRITE (*, '(4X,A, T60, G0)')'alpha_resraman_z_re',alpha_resraman_z_re(1,1,1)
+WRITE (*, '(4X,A, T60, G0)')'alpha_resraman_z_diff_re',alpha_resraman_z_diff_re(1,1,1)
+
+WRITE (*, '(4X,A, T60, G0)')'alpha_resraman_z_im',alpha_resraman_z_im(1,1,1)
+WRITE (*, '(4X,A, T60, G0)')'alpha_resraman_z_diff_im',alpha_resraman_z_diff_im(1,1,1)
+!
+!!!!Calculate absorption spectra
+!
+rtp_freq_res = REAL(rams%RR%freq_range_rtp/(rams%RR%framecount_rtp), kind=dp)
+
+!!!Generate the spectrum!!
+!
+CALL cvv_resraman(alpha_resraman_x_diff_re, alpha_resraman_y_diff_re, &
+alpha_resraman_z_diff_re, alpha_resraman_x_diff_im, alpha_resraman_y_diff_im, &
+alpha_resraman_z_diff_im, z_iso_resraman, z_aniso_resraman,sys, md, rams )
+
+
+WRITE (*, '(4X,A, T60, G0)')'z_iso_resraman',z_iso_resraman(1,1)
+WRITE (*, '(4X,A, T60, G0)')'z_aniso_resraman',z_aniso_resraman(1,1)
+
+
+ALLOCATE (zhat_iso_resraman(0:md%t_cor*2, rams%RR%framecount_rtp), zhat_aniso_resraman(0:md%t_cor*2, rams%RR%framecount_rtp))
+ALLOCATE (zhat_unpol_resraman(0:md%t_cor*2, rams%RR%framecount_rtp))
+!
+zhat_iso_resraman = COMPLEX(0._dp, 0.0_dp)
+zhat_aniso_resraman = COMPLEX(0._dp, 0.0_dp)
+
+WRITE (*, '(4X,A, T60, G0)')'md%t_cor',md%t_cor 
+
+
+DO j = 1, rams%RR%framecount_rtp/2 -1
+    CALL dfftw_plan_dft_1d(plan, 2*md%t_cor, z_iso_resraman(0:md%t_cor*2, j), zhat_iso_resraman(0:md%t_cor*2, j), &
+            FFTW_FORWARD, FFTW_ESTIMATE)
+    CALL dfftw_execute_dft(plan, z_iso_resraman(0:md%t_cor*2, j), zhat_iso_resraman(0:md%t_cor*2, j)) !!!important to specify arrays!!
+    CALL dfftw_destroy_plan(plan)
+
+    CALL dfftw_plan_dft_1d(plan, 2*md%t_cor, z_aniso_resraman(0:md%t_cor*2, j), zhat_aniso_resraman(0:md%t_cor*2, j), &
+            FFTW_FORWARD, FFTW_ESTIMATE)
+    CALL dfftw_execute_dft(plan, z_aniso_resraman(0:md%t_cor*2, j), zhat_aniso_resraman(0:md%t_cor*2, j)) !!!important to specify arrays!!
+    CALL dfftw_destroy_plan(plan)
+END DO
+
+WRITE (*, '(4X,A, T60, G0)')'zhat_iso_resraman',zhat_iso_resraman(1,1)
+WRITE (*, '(4X,A, T60, G0)')'zhat_aniso_resraman',zhat_aniso_resraman(1,1)
+freq_res = REAL(md%freq_range/(2*md%t_cor), kind=dp)
+!j = ANINT(rams%laser_in/rtp_freq_res, kind=dp)
+j = ANINT(rams%laser_in/(rtp_freq_res*reccm2ev), kind=dp)
+!
+!!!!!UNPOLARIZED!!!!
+!
+!zhat_iso_resraman=AIMAG(zhat_iso_resraman)
+!zhat_aniso_resraman=AIMAG(zhat_aniso_resraman)
+f = freq_res*md%dt*1.883652d-4
+
+
+OPEN (FILE='o-NP_resraman.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
+CALL check_file_open(stat, msg, 'o-NP_resraman.txt')
+    DO i = 0, 2*md%t_cor - 2
+        !j=22
+        !zhat_iso_resraman(i+1,j),AIMAG(zhat_iso_resraman(i+1,j),kind=dp)*(f*(i+1)/SIN(f*(i+1)))**2._dp
+        zhat_iso_resraman(i + 1, j) = (zhat_iso_resraman(i + 1, j))*(f*(i + 1)/SIN(f*(i + 1)))**2._dp
+        zhat_aniso_resraman(i + 1, j) = (zhat_aniso_resraman(i + 1, j))*(f*(i + 1)/SIN(f*(i + 1)))**2._dp
+
+        zhat_unpol_resraman(i, j) = (zhat_iso_resraman(i, j)) + (zhat_aniso_resraman(i, j)*7.0_dp/45.0_dp)* &
+                    ((const_planck)/(8.0_dp*const_boltz*const_permit*const_permit) &
+                        *1d-29*0.421_dp*md%dt*((((rams%laser_in*j) - ((i)*freq_res))**4)/((i)*freq_res)) &
+                        *(1.0_dp/(1.0_dp - EXP((-1.438777_dp*((i)*freq_res))/gs%temp))))*2.0_dp*2.0_dp*pi
+        zhat_unpol_resraman(0, j) = 0.0_dp
+    IF ((i*freq_res).GE.5000.0_dp) CYCLE
+        WRITE (runit, *) i*freq_res, zhat_unpol_resraman(i, j), j
+    END DO
+CLOSE (runit)
 END SUBROUTINE spec_resraman
+
 END MODULE calc_spectra

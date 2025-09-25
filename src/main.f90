@@ -337,9 +337,21 @@ PROGRAM vib2d
     ELSEIF (gs%spectral_type%read_function=='MD-RR') THEN
         CALL timings%register("reading coordinates")
         !CALL read_coord(sys%filename, gs, sys, dips)
-
+        sys%framecount = 1000_dp
+        sys%mol_num = 1
+        WRITE (*, '(4X,A, T60, G0)')'rams%RR%framecount_rtp',rams%RR%framecount_rtp
+        WRITE (*, '(4X,"rams%RR%freq_range_rtp", T60, G0)') rams%RR%freq_range_rtp
+        WRITE (*, '(4X,A, T60, G0)')'sys%framecount',sys%framecount
+        WRITE (*, '(4X,A, T60, G0)')'dips%dip_x_file',dips%dip_x_file
+        WRITE (*, '(4X,A, T60, G0)')'sys%mol_num',sys%mol_num
+        
+        CALL read_coord_frame(rams%RR%framecount_rtp, dips%dip_x_file, rams%RR%dip_x_rtp, sys)
+        CALL read_coord_frame(rams%RR%framecount_rtp, dips%dip_y_file, rams%RR%dip_y_rtp, sys)
+        CALL read_coord_frame(rams%RR%framecount_rtp, dips%dip_z_file, rams%RR%dip_z_rtp, sys)
+      
+        
         CALL timings%register("calculate resonance Raman spectrum")
-        !CALL spec_resraman(sys, md, rams)
+        CALL spec_resraman(gs, sys, md, rams)
         !CALL spec_resraman(natom,framecount,element,rtp_dipole_x,rtp_dipole_y,rtp_dipole_z,type_input,mol_num,system,&
         !     read_function,dt,z_iso_resraman,z_aniso_resraman,freq_range,freq_range_rtp,laser_in_resraman,y_out)
     END IF

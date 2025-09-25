@@ -18,7 +18,7 @@ MODULE vel_cor
 
     USE dipole_calc, ONLY: center_mass
     USE kinds, ONLY: dp, str_len
-    USE iso_fortran_env, ONLY: output_unit, error_unit
+    USE ISO_FORTRAN_ENV, ONLY: output_unit, error_unit
     USE constants, ONLY: pi, ang, fs2s, at_u, bohr2ang
     USE vib_types, ONLY: global_settings, systems, molecular_dynamics, static, dipoles, raman
     USE read_traj, ONLY: check_file_open
@@ -96,8 +96,7 @@ CONTAINS
             md%z(i) = md%z(i)*((COS(i/(md%t_cor - 1.0_dp)/2.0_dp*pi))**2) !!Hann Window function
         END DO
 
-
-        OPEN (FILE='result_cvv.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
+        OPEN (FILE='result_cvv.txt', STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
         !Check if file exists
         CALL check_file_open(stat, msg, 'result_cvv.txt')
         DO i = 0, 2*md%t_cor - 1
@@ -162,7 +161,7 @@ CONTAINS
             z_iso(md%t_cor + i) = z_iso(md%t_cor - i) !!Data mirroring
         END DO
 
-        OPEN (FILE='result_cvv_iso.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
+        OPEN (FILE='result_cvv_iso.txt', STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
         !Check if file exists
         CALL check_file_open(stat, msg, 'result_cvv_iso.txt')
         DO i = 0, 2*md%t_cor - 1
@@ -237,8 +236,7 @@ CONTAINS
             z_aniso(md%t_cor + i) = z_aniso(md%t_cor - i) !!Data mirroring
         END DO
 
-
-        OPEN (FILE='result_cvv_aniso.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
+        OPEN (FILE='result_cvv_aniso.txt', STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
         !Check if file exists
         CALL check_file_open(stat, msg, 'result_cvv_aniso.txt')
         DO i = 0, 2*md%t_cor - 1
@@ -253,13 +251,14 @@ CONTAINS
 !***********************************************************************************
 !***********************************************************************************
 
-    SUBROUTINE cvv_resraman(framecount, natom, dt, alpha_resraman_x_diff_re, alpha_resraman_y_diff_re, &
+    SUBROUTINE cvv_resraman(alpha_resraman_x_diff_re, alpha_resraman_y_diff_re, &
                             alpha_resraman_z_diff_re, alpha_resraman_x_diff_im, alpha_resraman_y_diff_im, &
-                            alpha_resraman_z_diff_im, z_iso_resraman, z_aniso_resraman, md)
+                            alpha_resraman_z_diff_im, z_iso_resraman, z_aniso_resraman, sys, md, rams)
 
+        TYPE(systems), INTENT(INOUT)     :: sys
         TYPE(molecular_dynamics), INTENT(INOUT)     :: md
-        INTEGER, INTENT(INOUT)                                    :: framecount, natom
-        REAL(kind=dp), INTENT(IN)                                  :: dt
+        TYPE(raman), INTENT(INOUT)     :: rams
+
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(INOUT)  :: alpha_resraman_x_diff_re, alpha_resraman_y_diff_re
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(INOUT)  :: alpha_resraman_z_diff_re
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(INOUT)  :: alpha_resraman_x_diff_im, alpha_resraman_y_diff_im
@@ -271,41 +270,41 @@ CONTAINS
         INTEGER, DIMENSION(:, :), ALLOCATABLE                       :: norm_iso, norm_aniso
         COMPLEX(kind=dp)                                          :: im_unit
 
-!!!ISOTROPIC!!!
+    !!!ISOTROPIC!!!
 
-        ALLOCATE (z_iso_resraman(0:2*md%t_cor, natom - 1), norm_iso(0:2*md%t_cor, natom - 1))
-        ALLOCATE (z_aniso_resraman(0:2*md%t_cor, natom - 1), norm_aniso(0:2*md%t_cor, natom - 1))
+        ALLOCATE (z_iso_resraman(0:2*md%t_cor, rams%RR%framecount_rtp-1), norm_iso(0:2*md%t_cor, rams%RR%framecount_rtp -1))
+        ALLOCATE (z_aniso_resraman(0:2*md%t_cor, rams%RR%framecount_rtp-1), norm_aniso(0:2*md%t_cor, rams%RR%framecount_rtp -1))
 
         im_unit = (0.0_dp, 1.0_dp)
         z_iso_resraman = (0.0_dp, 0.0_dp)
         z_aniso_resraman = (0.0_dp, 0.0_dp)
 
-        framecount = framecount - 2
+        sys%framecount = sys%framecount - 2
 
         norm_iso = 0.0_dp
-        DO t0 = 2, framecount
-            t1 = MIN(framecount, t0 + md%t_cor)
-            DO k = 1, natom - 1
-  !!RE*RE
+        DO t0 = 2, sys%framecount
+            t1 = MIN(sys%framecount, t0 + md%t_cor)
+            DO k = 1, rams%RR%framecount_rtp -1
+            !!RE*RE
                 z_iso_resraman(0:t1 - t0, k) = z_iso_resraman(0:t1 - t0, k) &
                                                + (alpha_resraman_x_diff_re(t0, k, 1) + alpha_resraman_y_diff_re(t0, k, 2) &
                                                   + alpha_resraman_z_diff_re(t0, k, 3)) &
                                                *(alpha_resraman_x_diff_re(t0:t1, k, 1) &
                                                  + alpha_resraman_y_diff_re(t0:t1, k, 2) + alpha_resraman_z_diff_re(t0:t1, k, 3))
-  !!IM*IM
+            !!IM*IM
                 z_iso_resraman(0:t1 - t0, k) = z_iso_resraman(0:t1 - t0, k) &
                                                + (alpha_resraman_x_diff_im(t0, k, 1) + alpha_resraman_y_diff_im(t0, k, 2) + &
                                                   alpha_resraman_z_diff_im(t0, k, 3)) &
                                                *(alpha_resraman_x_diff_im(t0:t1, k, 1) &
                                                  + alpha_resraman_y_diff_im(t0:t1, k, 2) + alpha_resraman_z_diff_im(t0:t1, k, 3))
-  !!RE*IM
+            !!RE*IM
                 z_iso_resraman(0:t1 - t0, k) = z_iso_resraman(0:t1 - t0, k) &
                                                + ((alpha_resraman_x_diff_re(t0, k, 1) + alpha_resraman_y_diff_re(t0, k, 2) &
                                                    + alpha_resraman_z_diff_re(t0, k, 3)) &
                                                   *(alpha_resraman_x_diff_im(t0:t1, k, 1) &
                                                     + alpha_resraman_y_diff_im(t0:t1, k, 2) &
                                                     + alpha_resraman_z_diff_im(t0:t1, k, 3)))*im_unit
-  !!IM*RE (SUBTRACT)
+            !!IM*RE (SUBTRACT)
                 z_iso_resraman(0:t1 - t0, k) = z_iso_resraman(0:t1 - t0, k) &
                                                - ((alpha_resraman_x_diff_im(t0, k, 1) + alpha_resraman_y_diff_im(t0, k, 2) &
                                                    + alpha_resraman_z_diff_im(t0, k, 3)) &
@@ -321,39 +320,39 @@ CONTAINS
         z_iso_resraman(:, :) = z_iso_resraman(:, :)/(2.0_dp*pi)
 
         DO i = 0, md%t_cor - 1
-            DO j = 1, natom - 1
+            DO j = 1, rams%RR%framecount_rtp -1
                 z_iso_resraman(i, j) = z_iso_resraman(i, j)*((COS(i/(md%t_cor - 1.0_dp)/2.0_dp*3.14_dp))**2)
             END DO
         END DO
 
-        DO i = 1, natom - 1
+        DO i = 1, rams%RR%framecount_rtp -1
             z_iso_resraman(md%t_cor, i) = 0.0_dp
         END DO
 
         DO i = 1, md%t_cor - 1
-            DO j = 1, natom - 1
+            DO j = 1, rams%RR%framecount_rtp/-1
                 z_iso_resraman(md%t_cor + i, j) = z_iso_resraman(md%t_cor - i, j)
             END DO
         END DO
 
-        OPEN (FILE='result_cvv_iso_resraman.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
+        OPEN (FILE='result_cvv_iso_resraman.txt', STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
         !Check if file exists
         CALL check_file_open(stat, msg, 'result_cvv_iso_resraman.txt')
         DO i = 0, 2*md%t_cor - 1
-            DO j = 1, natom - 1
+            DO j = 1, rams%RR%framecount_rtp -1
                 WRITE (runit, *) z_iso_resraman(i, j)
             END DO
         END DO
         CLOSE (runit)
         DEALLOCATE (norm_iso)
 
-!!!ANISOTROPIC!!!
+    !!!ANISOTROPIC!!!
 
         norm_aniso = 0.0_dp
-        DO t0 = 2, framecount
-            t1 = MIN(framecount, t0 + md%t_cor)
-            DO k = 1, natom - 1
-  !!RE*RE
+        DO t0 = 2, sys%framecount
+            t1 = MIN(sys%framecount, t0 + md%t_cor)
+            DO k = 1, rams%RR%framecount_rtp -1
+    !!RE*RE
                 z_aniso_resraman(0:t1 - t0, k) = z_aniso_resraman(0:t1 - t0, k) + (alpha_resraman_x_diff_re(t0, k, 1) &
                                                                                    - alpha_resraman_y_diff_re(t0, k, 2)) &
                                                  *(alpha_resraman_x_diff_re(t0:t1, k, 1) &
@@ -385,7 +384,7 @@ CONTAINS
                                                  *(alpha_resraman_z_diff_re(t0:t1, k, 1)*0.50_dp + &
                                                    alpha_resraman_x_diff_re(t0:t1, k, 3)*0.50_dp)*3.0_dp
 
-  !!IM*IM
+    !!IM*IM
                 z_aniso_resraman(0:t1 - t0, k) = z_aniso_resraman(0:t1 - t0, k) &
                                                  + (alpha_resraman_x_diff_im(t0, k, 1) - alpha_resraman_y_diff_im(t0, k, 2)) &
                                                  *(alpha_resraman_x_diff_im(t0:t1, k, 1) &
@@ -417,7 +416,7 @@ CONTAINS
                                                  *(alpha_resraman_z_diff_im(t0:t1, k, 1)*0.50_dp + &
                                                    alpha_resraman_x_diff_im(t0:t1, k, 3)*0.50_dp)*3.0_dp
 
-  !!RE*IM
+    !!RE*IM
                 z_aniso_resraman(0:t1 - t0, k) = z_aniso_resraman(0:t1 - t0, k) &
                                                  + ((alpha_resraman_x_diff_re(t0, k, 1) - alpha_resraman_y_diff_re(t0, k, 2)) &
                                                     *(alpha_resraman_x_diff_im(t0:t1, k, 1) &
@@ -447,7 +446,7 @@ CONTAINS
                                                      *0.50_dp)*(alpha_resraman_z_diff_im(t0:t1, k, 1)*0.50_dp &
                                                                 + alpha_resraman_x_diff_im(t0:t1, k, 3)*0.50_dp))*3.0_dp*im_unit
 
-  !!IM*RE (SUBTRACT)
+    !!IM*RE (SUBTRACT)
                 z_aniso_resraman(0:t1 - t0, k) = z_aniso_resraman(0:t1 - t0, k) &
                                                  - ((alpha_resraman_x_diff_im(t0, k, 1) - alpha_resraman_y_diff_im(t0, k, 2)) &
                                                     *(alpha_resraman_x_diff_re(t0:t1, k, 1) &
@@ -484,28 +483,27 @@ CONTAINS
         z_aniso_resraman(:, :) = REAL(z_aniso_resraman(:, :)/(2.0_dp*pi), kind=dp)
 
         DO i = 0, md%t_cor - 1
-            DO j = 1, natom - 1
+            DO j = 1, rams%RR%framecount_rtp -1
                 z_aniso_resraman(i, j) = z_aniso_resraman(i, j)*0.5_dp*(1 + COS(2.0_dp*3.14_dp*i/(2.0_dp*(md%t_cor - 1))))
             END DO
         END DO
 
-        DO i = 1, natom - 1
+        DO i = 1, rams%RR%framecount_rtp -1
             z_aniso_resraman(md%t_cor, i) = 0.0_dp
         END DO
 
         DO i = 1, md%t_cor - 1
-            DO j = 1, natom - 1
+            DO j = 1, rams%RR%framecount_rtp -1
                 z_aniso_resraman(md%t_cor + i, j) = z_aniso_resraman(md%t_cor - i, j)
             END DO
         END DO
 
-
-        OPEN (FILE='result_cvv_aniso_resraman.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
+        OPEN (FILE='result_cvv_aniso_resraman.txt', STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
         !Check if file exists
         CALL check_file_open(stat, msg, 'result_cvv_aniso_resraman.txt')
 
         DO i = 0, 2*md%t_cor - 1
-            DO j = 1, natom - 1
+            DO j = 1,rams%RR%framecount_rtp -1
                 WRITE (runit, *) z_aniso_resraman(i, j)
             END DO
         END DO
@@ -579,7 +577,7 @@ CONTAINS
         END DO
 
         !OPEN (UNIT=60, FILE='result_cvv_para.txt', STATUS='unknown', IOSTAT=stat)
-        OPEN (FILE='result_cvv_para.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
+        OPEN (FILE='result_cvv_para.txt', STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
         !Check if file exists
         CALL check_file_open(stat, msg, 'result_cvv_para.txt')
         DO i = 0, 2*md%t_cor - 1
@@ -588,7 +586,7 @@ CONTAINS
         CLOSE (runit)
 
         !OPEN (UNIT=61, FILE='result_cvv_ortho.txt', STATUS='unknown', IOSTAT=stat)
-        OPEN (FILE='result_cvv_ortho.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
+        OPEN (FILE='result_cvv_ortho.txt', STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
         !Check if file exists
         CALL check_file_open(stat, msg, 'result_cvv_ortho.txt')
         DO i = 0, 2*md%t_cor - 1
