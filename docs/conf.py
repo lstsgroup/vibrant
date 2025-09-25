@@ -38,7 +38,7 @@ html_theme_options = dict(
     ]),
     logo = "all_img/logo_vibrant_dark.svg",
     logo_alt = "vibrant",
-    logo_height = 59,
+    logo_height = 100,
     logo_url = "/",
     #logo_width = 45,
 )
