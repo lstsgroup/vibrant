@@ -6,7 +6,7 @@
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
-        <title>vibrant documentation &mdash; vibrant  documentation</title>
+        <title>Quick Start &mdash; vibrant  documentation</title>
     
     <link rel="stylesheet" type="text/css" href="_static/dist/fontawesome.css" />
       <link rel="stylesheet" type="text/css" href="_static/dist/theme.css?v=310cf088" />
@@ -26,7 +26,7 @@
                         title="vibrant"
                         class="logo navbar-brand"
                     >
-                        <img src="_static/all_img/placeholder.png" width="45" height="59" alt="vibrant"
+                        <img src="_static/all_img/logo_vibrant_dark.svg" width="45" height="100" alt="vibrant"
                             class="logo-img"
                         />
                         vibrant
@@ -83,7 +83,7 @@
                         <nav aria-label="breadcrumb">
     <ol class="breadcrumb m-0 p-0 bg-transparent">
         <li class="breadcrumb-item"><a href="#">Docs</a></li>
-        <li class="breadcrumb-item active" aria-current="page">vibrant documentation</li>
+        <li class="breadcrumb-item active" aria-current="page">Quick Start</li>
     </ol>
 </nav>
                     </div>
@@ -114,29 +114,36 @@
                 <div class="row">
                     <div class="col-12 col-lg-9 order-last order-lg-first rst-content">
                         <main role="main" id="main">
-    <section id="vibrant-documentation">
-<h1>vibrant documentation<a class="headerlink" href="#vibrant-documentation" title="Link to this heading">¶</a></h1>
-<p>Documentation of Ekin’s very cool code.</p>
+    <div style="text-align: left; margin-bottom: 1em;">
+
+  <picture>
+    <img alt="Vibrant logo" src="_static/all_img/logo_vibrant.svg" style="height:140px; display: block;">
+  </picture>
+
+</div><p>Documentation of Ekin’s very cool code.</p>
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="Installation.html">Installation</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="Installation.html#install-options">Install options</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Installation.html#dependencies">Dependencies</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Installation.html#regression-test">Regression test</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="Installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Usage.html">Usage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Cite.html">Cite</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Contribute.html">Contribute</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="Contribute.html#code-style-guideline">Code style guideline</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="Contribute.html">Contribute</a></li>
 </ul>
 </div>
-</section>
 <section id="quick-start">
 <h1>Quick Start<a class="headerlink" href="#quick-start" title="Link to this heading">¶</a></h1>
+<p>The CMake build framework is used in order to compile the <code class="docutils literal notranslate"><span class="pre">vibrant</span></code> code. To install it type the following in the root directory of the repository and make sure that you have a working GNU Fortran compiler (e.g. <code class="docutils literal notranslate"><span class="pre">gfortran</span></code>):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mkdir<span class="w"> </span>build<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>build
+cmake<span class="w"> </span>..
+make<span class="w"> </span>-j<span class="w"> </span><span class="m">5</span>
+</pre></div>
+</div>
+<p>Optional: Test if the installation is working as expected by typing</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>ctest
+</pre></div>
+</div>
+<p>in the build directory to run the regression tests.</p>
+<p>For more a more fine-grained installation please refer to the <a class="reference external" href="https://lstsgroup.github.io/vibrant/Installation.html">documentation of vibrant</a>.</p>
 </section>
 
 </main>
@@ -146,17 +153,6 @@
     </a>
 </nav>
                     </div>
-                    
-                    <nav class="col-12 col-lg-3 pb-4">
-                        <div class="sticky-top toc page-toc" aria-labelledby="page-toc-heading">
-                            <p class="font-weight-bold" id="page-toc-heading">Page contents</p>
-                            <ul>
-<li><a class="reference internal" href="#">vibrant documentation</a></li>
-<li><a class="reference internal" href="#quick-start">Quick Start</a></li>
-</ul>
-
-                        </div>
-                    </nav>
                     
                 </div>
             </div>
