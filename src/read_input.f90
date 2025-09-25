@@ -94,6 +94,7 @@ CONTAINS
         LOGICAL :: in_dipoles = .FALSE.
         LOGICAL :: in_raman = .FALSE.
         LOGICAL :: in_rtp = .FALSE.
+        LOGICAL :: angles_set = .FALSE.
 
         WRITE(*,'(2X, A)') "Input Data:"
         OPEN (FILE=TRIM(input_file_name), STATUS='old', ACTION='read',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit)
@@ -126,6 +127,7 @@ CONTAINS
 
             IF (INDEX(line, '&cell')>0) THEN
                 in_cell = .TRUE.
+                angles_set = .FALSE.
                 CYCLE
             END IF
 
@@ -240,13 +242,52 @@ CONTAINS
                     READ (line, *) dummy, sys%input_mass
                     WRITE (*, '(4X,A, T60, A)')   'Mass weighting:', TRIM(sys%input_mass)
                 ELSEIF (in_cell) THEN
-                    IF (INDEX(to_lower(line), 'cell_type')>0) THEN !'Is it the k-point trajectory (1), supercell trajectory (2) or solvent trajectory (3)? '
+                    IF (INDEX(to_lower(line), 'cell_type')>0) THEN !! orthorombic, hexagonal or triclinic
                         READ (line, *) dummy, sys%cell%cell_type
-                        !    ELSEIF (INDEX(to_lower(line), 'abc')>0) THEN
-                        !        !READ (line, *) dummy, sys%cell%abc(1:3)
-                        !        !input%system%cell%present = .TRUE.
-                        !    ELSEIF (INDEX(to_lower(line), 'alpha_beta_gamma')>0) THEN
-                        !        !READ (line, *) dummy, input%system%cell%alpha_beta_gamma(1:3)
+                        WRITE (*, *) "cell type: ", sys%cell%cell_type
+                    END IF
+                    IF (INDEX(to_lower(line), 'box_x')>0) THEN
+                        READ (line, *) dummy, sys%cell%box_x
+                        WRITE (*, *) "cell vector x: ", sys%cell%box_x
+                    END IF
+                    IF (INDEX(to_lower(line), 'box_y')>0) THEN
+                        READ (line, *) dummy, sys%cell%box_y
+                        WRITE (*, *) "cell vector y: ", sys%cell%box_y
+                    END IF
+                    IF (INDEX(to_lower(line), 'box_z')>0) THEN
+                        READ (line, *) dummy, sys%cell%box_z
+                        WRITE (*, *) "cell vector z: ", sys%cell%box_z
+                    END IF
+                    IF (sys%cell%cell_type=='triclinic') THEN
+                        IF (INDEX(to_lower(line), 'angle_alpha')>0) THEN
+                            READ (line, *) dummy, sys%cell%angle_alpha
+                            WRITE (*, *) "Angle alpha: ", sys%cell%angle_alpha
+                        END IF
+                        IF (INDEX(to_lower(line), 'angle_beta')>0) THEN
+                            READ (line, *) dummy, sys%cell%angle_beta
+                            WRITE (*, *) "Angle beta: ", sys%cell%angle_beta
+                        END IF
+                        IF (INDEX(to_lower(line), 'angle_gamma')>0) THEN
+                            READ (line, *) dummy, sys%cell%angle_gamma
+                            WRITE (*, *) "Angle gamma: ", sys%cell%angle_gamma
+                        END IF
+                    ELSEIF (sys%cell%cell_type=='hexagonal' .AND. .NOT. angles_set) THEN
+                        sys%cell%angle_alpha = 90
+                        sys%cell%angle_beta = 90
+                        sys%cell%angle_gamma = 120
+                        WRITE (*, *) "Angle alpha: ", sys%cell%angle_alpha
+                        WRITE (*, *) "Angle beta: ", sys%cell%angle_beta
+                        WRITE (*, *) "Angle gamma: ", sys%cell%angle_gamma
+                        angles_set = .TRUE.
+
+                    ELSEIF (sys%cell%cell_type=='orthorombic' .AND. .NOT. angles_set) THEN
+                        sys%cell%angle_alpha = 90
+                        sys%cell%angle_beta = 90
+                        sys%cell%angle_gamma = 90
+                        WRITE (*, *) "Angle alpha: ", sys%cell%angle_alpha
+                        WRITE (*, *) "Angle beta: ", sys%cell%angle_beta
+                        WRITE (*, *) "Angle gamma: ", sys%cell%angle_gamma
+                        angles_set = .TRUE.
                     END IF
                 ELSEIF (INDEX(to_lower(line), 'frag_type ')>0) THEN !'Does the system contain more than one molecule? (y/n)'
                     READ (line, *) dummy, sys%frag_type

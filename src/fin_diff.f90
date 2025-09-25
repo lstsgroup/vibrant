@@ -16,8 +16,9 @@
 
 MODULE fin_diff
     USE kinds, ONLY: dp
-    USE constants, ONLY: bohr2ang, speed_light, fs2s, joule_unit, ev_unit, action_unit
+    USE constants, ONLY: debye, bohr2ang, speed_light, fs2s, joule_unit, ev_unit, action_unit
     USE vib_types, ONLY: global_settings, systems, molecular_dynamics, static, dipoles, raman
+    USE cell_types, ONLY: build_hmat, pbc, invert3x3, determinant3x3
     IMPLICIT NONE
     PUBLIC :: central_diff, forward_diff, finite_diff_static, finite_diff_static_resraman
 
@@ -54,18 +55,17 @@ CONTAINS
         INTEGER, INTENT(INOUT)                                    :: mol_num
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(INOUT)  :: dip_free, dip_x
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(OUT)    :: alpha
+        REAL(kind=dp)  :: pol_quantum(3), diff, hmat(3, 3)
 
         INTEGER                                                  :: stat, i, j, k, m
 
         ALLOCATE (alpha(sys%framecount, mol_num, 3))
-        !ALLOCATE(alpha(sys%framecount,8:37,3))
 
         IF (gs%spectral_type%read_function.NE.'MD-RR') THEN
             DO j = 1, sys%framecount
                 DO i = 1, mol_num  !!! change to mol_num later
                     DO k = 1, 3
                         alpha(j, i, k) = REAL((dip_x(j, i, k) - dip_free(j, i, k))/dips%e_field, kind=dp)
-                        !alpha_x(j,i,k)=(dip_x(j,i,k)-dip_free(j,i,k))
                     END DO
                 END DO
             END DO
