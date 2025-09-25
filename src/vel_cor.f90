@@ -16,7 +16,6 @@
 
 MODULE vel_cor
 
-    USE dipole_calc, ONLY: center_mass
     USE kinds, ONLY: dp, str_len
     USE iso_fortran_env, ONLY: output_unit, error_unit
     USE constants, ONLY: pi, ang, fs2s, at_u, bohr2ang

@@ -36,8 +36,7 @@ CONTAINS
         REAL(dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(OUT) :: dipole  ! (nframes,1,3)
 
         CHARACTER(LEN=str_len)                                          :: msg
-        INTEGER                                                  :: stat, i, runit
-        INTEGER :: m, i, k, stat
+        INTEGER :: m, i, k, stat, runit
         REAL(dp) :: hmat(3, 3), h_inv(3, 3), ratio, n, target_branch
         REAL(dp) :: pol_quantum(3), mass_tot, COM(3), dr(3)
 
