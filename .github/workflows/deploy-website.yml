@@ -3,7 +3,7 @@ name: Deploy Documentation Website
 on:
   push:
     branches:
-      - logo  # or your main branch
+      - main  # or your main branch
   pull_request:
     branches:
       - main
