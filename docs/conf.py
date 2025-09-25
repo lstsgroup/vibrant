@@ -36,7 +36,7 @@ html_theme_options = dict(
         "Golze Group|https://golzegroup.org/",
         "Contact|https://golzegroup.org/contact/",
     ]),
-    logo = "all_img/logo_vibrant.svg",
+    logo = "all_img/logo_vibrant_dark.svg",
     logo_alt = "vibrant",
     logo_height = 59,
     logo_url = "/",
