@@ -1,8 +1,10 @@
+<div align="center">
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/_static/all_img/logo_vibrant_dark.svg">
   <source media="(prefers-color-scheme: light)" srcset="docs/_static/all_img/logo_vibrant.svg">
   <img alt="Vibrant logo" src="docs/_static/all_img/logo_vibrant.svg" height="140">
 </picture>
+</div>
 
 ---
 
@@ -35,4 +37,4 @@ Contributions to vibrant are highly appreciated! If you consider contributing [c
 
 ## License note
 
-Vibrant is distributed under the Apache 2.0 license. Please note that, while the source code is licensed permissively under Apache 2.0, any compiled binary is subject to the GPL 2.0 license due to its dependency on FFTW.
+Vibrant is distributed under the [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0.txt) license. Please note that, while the source code is licensed permissively under Apache 2.0, any compiled binary is subject to the [GPL v2](https://www.gnu.de/documents/gpl-2.0.en.html) license due to its dependency on [FFTW](https://www.fftw.org/).
