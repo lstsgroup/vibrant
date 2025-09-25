@@ -3,21 +3,14 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-.. raw:: html
-
-   <div style="text-align: left; margin-bottom: 1em;">
-
-     <picture>
-       <img alt="Vibrant logo" src="_static/all_img/logo_vibrant.svg" style="height:140px; display: block;">
-     </picture>
-
-   </div>
+vibrant documentation
+=====================
 
 Documentation of Ekin's very cool code.
 
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: Contents:
 
    Installation
@@ -28,21 +21,3 @@ Documentation of Ekin's very cool code.
 
 Quick Start 
 ===========
-
-The CMake build framework is used in order to compile the ``vibrant`` code. To install it type the following in the root directory of the repository and make sure that you have a working GNU Fortran compiler (e.g. ``gfortran``):
-
-.. code-block:: bash
-
-   mkdir build && cd build
-   cmake ..
-   make -j 5
-   
-Optional: Test if the installation is working as expected by typing 
-
-.. code-block:: bash
-   
-   ctest 
-
-in the build directory to run the regression tests.
-
-For more a more fine-grained installation please refer to the `documentation of vibrant <https://lstsgroup.github.io/vibrant/Installation.html>`_.
