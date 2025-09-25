@@ -26,7 +26,7 @@
                         title="vibrant"
                         class="logo navbar-brand"
                     >
-                        <img src="_static/all_img/logo_vibrant_dark.svg" width="45" height="59" alt="vibrant"
+                        <img src="_static/all_img/logo_vibrant_dark.svg" width="45" height="100" alt="vibrant"
                             class="logo-img"
                         />
                         vibrant
@@ -114,18 +114,15 @@
                 <div class="row">
                     <div class="col-12 col-lg-9 order-last order-lg-first rst-content">
                         <main role="main" id="main">
-    <style>
-  @media (prefers-color-scheme: dark) {
-    .vibrant-logo-light { display: none !important; }
-    .vibrant-logo-dark { display: inline !important; }
-  }
-  @media (prefers-color-scheme: light), (prefers-color-scheme: no-preference) {
-    .vibrant-logo-dark { display: none !important; }
-    .vibrant-logo-light { display: inline !important; }
-  }
-</style>
-<img src="_static/all_img/logo_vibrant.svg" alt="Vibrant Logo" class="vibrant-logo-light" style="height:140px; float:left;">
-<img src="_static/all_img/logo_vibrant_dark.svg" alt="Vibrant Logo (Dark)" class="vibrant-logo-dark" style="height:140px; float:left;"><p>Documentation of Ekin’s very cool code.</p>
+    <div style="text-align: left; margin-bottom: 1em;">
+
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="_static/all_img/logo_vibrant_dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset="_static/all_img/logo_vibrant.svg">
+    <img alt="Vibrant logo" src="_static/all_img/logo_vibrant.svg" style="height:140px; display: block;">
+  </picture>
+
+</div><p>Documentation of Ekin’s very cool code.</p>
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
