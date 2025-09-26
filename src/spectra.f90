@@ -168,8 +168,8 @@ CONTAINS
         TYPE(dipoles), INTENT(INOUT)        :: dips
         TYPE(raman), INTENT(INOUT)        :: rams
 
-        CHARACTER(LEN=str_len)                                          :: msg
-        INTEGER                                                  :: stat, i, j, xyz, runit
+        CHARACTER(LEN=str_len)                                          :: msg, fname
+        INTEGER                                                  :: stat, i, j, xyz, runit, i_laser
         INTEGER(kind=dp)                                          :: plan
         INTEGER, DIMENSION(:), ALLOCATABLE                         :: natom_frag_free
         !INTEGER, DIMENSION(:), ALLOCATABLE                         :: natom_frag_y, natom_frag_z
@@ -181,7 +181,7 @@ CONTAINS
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE                    :: raman_const, sinc_func, freq
         REAL(kind=dp)                                             :: f, freq_res
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                :: dip_free!,rams%e_field(1)%dip_xyz,rams%e_field(2)%dip_xyz,rams%e_field(3)%dip_xyz
-        CHARACTER(len=40)                                         :: fname, f_name, idx
+        CHARACTER(len=40)                                         :: output_fname, f_name, idx
         !REAL(kind=dp), DIMENSION(:,:, :, :), ALLOCATABLE                :: alpha_xyz, dip_xyz, alpha_diff_xyz
         !REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                ::rams%e_field(1)%alpha_diff_xyz,rams%e_field(2)%alpha_diff_xyz,rams%e_field(3)%alpha_diff_xyz
 
@@ -257,66 +257,89 @@ CONTAINS
       !!Unit conversion of Debye^2/(E^2*s^2) into C^4*s^2/kg^2
         zhat_iso(:) = zhat_iso(:)*debye2cm*debye2cm/(au2vm*au2vm)
         zhat_aniso(:) = zhat_aniso(:)*debye2cm*debye2cm/(au2vm*au2vm)
+        DO i_laser = 1, size(rams%laser_in)
+            DO i = 0, 2*md%t_cor - 2
+                freq(i) = i*freq_res
+            !!conversion of the Raman intensities into m^2*K*cm*10^-30!!
+                raman_const(i) = const_planck/(8.0_dp*const_boltz*const_permit*const_permit) &
+                                *1.e+30*md%dt*fs2s*((((rams%laser_in(i_laser)/reccm2ev - freq(i))/cm2m)**4)/freq(i))* &
+                                (1.0_dp/(1.0_dp - EXP(-1._dp*const_planck*speed_light*cm2m*freq(i)/ &
+                                                    (const_boltz*gs%temp))))*2.0_dp
+            END DO
 
-        DO i = 0, 2*md%t_cor - 2
-            freq(i) = i*freq_res
-         !!conversion of the Raman intensities into m^2*K*cm*10^-30!!
-            raman_const(i) = const_planck/(8.0_dp*const_boltz*const_permit*const_permit) &
-                             *1.e+30*md%dt*fs2s*((((rams%laser_in/reccm2ev - freq(i))/cm2m)**4)/freq(i))* &
-                             (1.0_dp/(1.0_dp - EXP(-1._dp*const_planck*speed_light*cm2m*freq(i)/ &
-                                                   (const_boltz*gs%temp))))*2.0_dp
+    !!!ORTHOGONAL!!!
+            !WRITE(fname,'("raman_orthogonal_laser_",F0.6,"eV.txt")') rams%laser_in(i_laser)
+            IF (i_laser == 1) THEN
+                output_fname = "raman_orthogonal.txt"
+            ELSE
+                WRITE(output_fname,'("raman_orthogonal_",I0,".txt")') i_laser 
+            END IF
+            OPEN (FILE=output_fname, STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
+            !Check if file exist
+            CALL check_file_open(stat, msg, output_fname)
+            DO i = 0, 2*md%t_cor - 2
+                zhat_aniso(i + 1) = REAL(zhat_aniso(i + 1), kind=dp)*(f*(i + 1)/SIN(f*(i + 1)))**2._dp
+                raman_ortho(i) = ((REAL(zhat_aniso(i), kind=dp))/15.0_dp)*raman_const(i)
+                raman_ortho(0) = 0.0_dp
+                IF (freq(i).GE.5000.0_dp) CYCLE
+                WRITE (runit, *) freq(i), raman_ortho(i)
+            END DO
+            CLOSE (runit)
+
+    !!!PARALLEL!!!
+            !WRITE(fname,'("raman_parallel_laser_",F0.6,"eV.txt")') rams%laser_in(i_laser)
+            IF (i_laser == 1) THEN
+                output_fname = "raman_parallel.txt"
+            ELSE
+                WRITE(output_fname,'("raman_parallel_",I0,".txt")') i_laser 
+            END IF
+            OPEN (FILE=output_fname, STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
+            !Check if file exists
+            CALL check_file_open(stat, msg, output_fname)
+            DO i = 0, 2*md%t_cor - 2
+                zhat_iso(i + 1) = REAL(zhat_iso(i + 1), kind=dp)*(f*(i + 1)/SIN(f*(i + 1)))**2._dp
+                raman_para(i) = (zhat_iso(i) + (zhat_aniso(i)*4.0_dp/45.0_dp))*raman_const(i)
+                raman_para(0) = 0.0_dp
+                IF (freq(i).GE.5000.0_dp) CYCLE
+                WRITE (runit, *) freq(i), raman_para(i)
+            END DO
+            CLOSE (runit)
+
+    !!!UNPOL!!!
+            !WRITE(fname,'("raman_unpolarized_laser_",F0.6,"eV.txt")') rams%laser_in(i_laser)
+            IF (i_laser == 1) THEN
+                output_fname = "raman_unpolarized.txt"
+            ELSE
+                WRITE(output_fname,'("raman_unpolarized_",I0,".txt")') i_laser 
+            END IF
+            OPEN (FILE=output_fname, STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) !Reading polarizabilties
+            !Check if file exists
+            CALL check_file_open(stat, msg, output_fname)
+            DO i = 0, 2*md%t_cor - 2
+                raman_unpol(i) = raman_ortho(i) + raman_para(i)
+                raman_unpol(0) = 0.00_dp
+                IF (freq(i).GE.5000.0_dp) CYCLE
+                WRITE (runit, *) freq(i), raman_unpol(i)
+            END DO
+            CLOSE (runit)
+
+    !!!DEPOL RATIO!!!
+            !WRITE(fname,'("raman_depolarization_ratio_laser_",F0.6,"eV.txt")') rams%laser_in(i_laser)
+            IF (i_laser == 1) THEN
+                output_fname = "raman_depolarization_ratio.txt"
+            ELSE
+                WRITE(output_fname,'("raman_depolarization_ratio_",I0,".txt")') i_laser 
+            END IF
+            OPEN (FILE=output_fname, STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) !Reading polarizabilties
+            !Check if file exists
+            CALL check_file_open(stat, msg, output_fname)
+            DO i = 0, 2*md%t_cor - 2
+                raman_depol(i) = REAL(raman_ortho(i), kind=dp)/REAL(raman_para(i), kind=dp)
+                IF (freq(i).GE.5000.0_dp) CYCLE
+                WRITE (runit, *) freq(i), raman_depol(i)
+            END DO
+            CLOSE (runit)
         END DO
-
-!!!ORTHOGONAL!!!
-        OPEN (FILE='raman_orthogonal.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
-        !Check if file exist
-        CALL check_file_open(stat, msg, 'raman_orthogonal.txt')
-        DO i = 0, 2*md%t_cor - 2
-            zhat_aniso(i + 1) = REAL(zhat_aniso(i + 1), kind=dp)*(f*(i + 1)/SIN(f*(i + 1)))**2._dp
-            raman_ortho(i) = ((REAL(zhat_aniso(i), kind=dp))/15.0_dp)*raman_const(i)
-            raman_ortho(0) = 0.0_dp
-            IF (freq(i).GE.5000.0_dp) CYCLE
-            WRITE (runit, *) freq(i), raman_ortho(i)
-        END DO
-        CLOSE (runit)
-
-!!!PARALLEL!!!
-       
-        OPEN (FILE='raman_parallel.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
-        !Check if file exists
-        CALL check_file_open(stat, msg, 'raman_parallel.txt')
-        DO i = 0, 2*md%t_cor - 2
-            zhat_iso(i + 1) = REAL(zhat_iso(i + 1), kind=dp)*(f*(i + 1)/SIN(f*(i + 1)))**2._dp
-            raman_para(i) = (zhat_iso(i) + (zhat_aniso(i)*4.0_dp/45.0_dp))*raman_const(i)
-            raman_para(0) = 0.0_dp
-            IF (freq(i).GE.5000.0_dp) CYCLE
-            WRITE (runit, *) freq(i), raman_para(i)
-        END DO
-        CLOSE (runit)
-
-!!!UNPOL!!!
-        OPEN (FILE='raman_unpolarized.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) !Reading polarizabilties
-        !Check if file exists
-        CALL check_file_open(stat, msg, 'raman_unpolarized.txt')
-        DO i = 0, 2*md%t_cor - 2
-            raman_unpol(i) = raman_ortho(i) + raman_para(i)
-            raman_unpol(0) = 0.00_dp
-            IF (freq(i).GE.5000.0_dp) CYCLE
-            WRITE (runit, *) freq(i), raman_unpol(i)
-        END DO
-        CLOSE (runit)
-
-!!!DEPOL RATIO!!!
-        OPEN (FILE='raman_depolarization_ratio.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) !Reading polarizabilties
-        !Check if file exists
-        CALL check_file_open(stat, msg, 'raman_depolarization_ratio.txt')
-        DO i = 0, 2*md%t_cor - 2
-            raman_depol(i) = REAL(raman_ortho(i), kind=dp)/REAL(raman_para(i), kind=dp)
-            IF (freq(i).GE.5000.0_dp) CYCLE
-            WRITE (runit, *) freq(i), raman_depol(i)
-        END DO
-        CLOSE (runit)
-
         DEALLOCATE (rams%z_iso, rams%z_aniso)
         DEALLOCATE (raman_depol, raman_para, raman_unpol, raman_ortho, zhat_aniso, zhat_iso)
 
@@ -374,7 +397,7 @@ CONTAINS
 
         !   zhat_ortho(i) = REAL(zhat_ortho(i), kind=dp)*((const_planck)/(8.0_dp*const_boltz*const_permit*const_permit) &
         !                                                 *1d-29*0.421_dp*md%dt &
-        !                                                 *(((rams%laser_in - ((i)*freq_res))**4)/((i)*freq_res)) &
+        !                                                 *(((rams%laser_in(1) - ((i)*freq_res))**4)/((i)*freq_res)) &
         !                                                 *(1.0_dp/(1.0_dp - EXP((-1.438777_dp*((i)*freq_res)) &
         !                                                                         /gs%temp))))*2.0_dp*pi*2.0_dp
 
@@ -395,7 +418,7 @@ CONTAINS
 
         ! zhat_para(i) = REAL(zhat_para(i), kind=dp)*((const_planck)/(8.0_dp*const_boltz*const_permit*const_permit) &
         !                                            *1d-29*0.421_dp*md%dt &
-        !                                            *(((rams%laser_in - ((i)*freq_res))**4)/((i)*freq_res)) &
+        !                                            *(((rams%laser_in(1) - ((i)*freq_res))**4)/((i)*freq_res)) &
         !                                            *(1.0_dp/(1.0_dp - EXP((-1.438777_dp*((i)*freq_res)) &
         !                                                                    /gs%temp))))*2.0_dp*pi*2.0_dp
         !  zhat_para(0) = 0.0_dp
@@ -604,9 +627,9 @@ CONTAINS
         TYPE(dipoles), INTENT(INOUT)        :: dips
         TYPE(raman), INTENT(INOUT)        :: rams
 
-        INTEGER                                                  :: stat, i, j, x, freq_res,runit
+        INTEGER                                                  :: stat, i, j, x, freq_res,runit,i_laser
         INTEGER                                                  :: start_freq, end_freq
-        CHARACTER(len=str_len)                                      :: msg
+        CHARACTER(len=str_len)                                      :: msg, fname
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE                    :: iso_sq, aniso_sq, ram_const, data2!,broad
         REAL(kind=dp)                                             :: broad
 
@@ -631,67 +654,80 @@ CONTAINS
     !!!Conversion from angstrom^4 amu⁻¹ to m^4 kg -1
         iso_sq = iso_sq*(ang**4._dp)/am_u
         aniso_sq = aniso_sq*(ang**4._dp)/am_u
+        
+        DO i_laser = 1, size(rams%laser_in)
+        !!! Conversion of static Raman units into 10^{-30}*cm^2/sr
+            ram_const(:) = (const_planck/(8.0_dp*speed_light*cm2m*const_permit*const_permit)*1.e+30* &
+                            REAL(((rams%laser_in(i_laser)/reccm2ev - stats%freq(:))**4.0_dp)/(stats%freq(:)*cm2m**3.0_dp), kind=dp)* &
+                            (1.0_dp/(1.0_dp - EXP(-1._dp*const_planck*speed_light*cm2m*stats%freq(:)/ &
+                                                (const_boltz*gs%temp)))))/(cm2m**2._dp)
 
-    !!! Conversion of static Raman units into 10^{-30}*cm^2/sr
-        ram_const(:) = (const_planck/(8.0_dp*speed_light*cm2m*const_permit*const_permit)*1.e+30* &
-                        REAL(((rams%laser_in/reccm2ev - stats%freq(:))**4.0_dp)/(stats%freq(:)*cm2m**3.0_dp), kind=dp)* &
-                        (1.0_dp/(1.0_dp - EXP(-1._dp*const_planck*speed_light*cm2m*stats%freq(:)/ &
-                                              (const_boltz*gs%temp)))))/(cm2m**2._dp)
+        !!!Calculation of the unpolarized Raman intensities!!
+            rams%raman_int(:) = REAL(((7.0_dp*aniso_sq(:)) + (45.0_dp*iso_sq(:)))/45.0_dp, kind=dp)*ram_const(:)
 
-    !!!Calculation of the unpolarized Raman intensities!!
-        rams%raman_int(:) = REAL(((7.0_dp*aniso_sq(:)) + (45.0_dp*iso_sq(:)))/45.0_dp, kind=dp)*ram_const(:)
-
-    !!!Broadening the spectrum!!
-        DO i = start_freq, end_freq
-            broad = 0.0_dp
-            DO x = 1, stats%nmodes
-                broad = broad + (rams%raman_int(x)*(1.0_dp/(gs%fwhm*SQRT(2.0_dp*pi)))* &
-                                 EXP(-0.50_dp*((i - stats%freq(x))/gs%fwhm)**2.0_dp))
+        !!!Broadening the spectrum!!
+            DO i = start_freq, end_freq
+                broad = 0.0_dp
+                DO x = 1, stats%nmodes
+                    broad = broad + (rams%raman_int(x)*(1.0_dp/(gs%fwhm*SQRT(2.0_dp*pi)))* &
+                                    EXP(-0.50_dp*((i - stats%freq(x))/gs%fwhm)**2.0_dp))
+                END DO
+                data2(i) = data2(i) + broad
             END DO
-            data2(i) = data2(i) + broad
-        END DO
 
-        OPEN (UNIT=98, FILE='result_static_raman.txt', STATUS='unknown', IOSTAT=stat)
-        DO i = start_freq, end_freq
-            WRITE (98, *) i, data2(i)
-        END DO
-        CLOSE (98)
-
-    !!Write Molden output
-        rams%raman_int = REAL(rams%raman_int/MINVAL(rams%raman_int), kind=dp)
-
-        OPEN (FILE='raman.mol', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit)
-        CALL check_file_open(stat, msg,'raman.mol')
-        WRITE (runit, *) "[Molden Format]"
-        WRITE (runit, *) "[GEOMETRIES] XYZ"
-        WRITE (runit, *) sys%natom
-        WRITE (runit, *)
-        DO i = 1, sys%natom
-            WRITE (runit, *) sys%element(i), sys%coord(i, 1), sys%coord(i, 2), sys%coord(i, 3)
-        END DO
-        WRITE (runit, *) "[stats%freq]"
-        DO i = 1, stats%nmodes
-            WRITE (runit, *) stats%freq(i)
-        END DO
-        WRITE (runit, *) "[INT]"
-        DO i = 1, stats%nmodes
-            WRITE (runit, *) rams%raman_int(i)
-        END DO
-        WRITE (runit, *) "[FR-sys%coord]"
-        WRITE (runit, *) sys%natom
-        WRITE (runit, *)
-        DO i = 1, sys%natom
-            WRITE (runit, *) sys%element(i), sys%coord(i, 1)/bohr2ang, sys%coord(i, 2)/bohr2ang, sys%coord(i, 3)/bohr2ang
-        END DO
-        WRITE (runit, *) "[FR-NORM-sys%coord]"
-        DO i = 1, stats%nmodes
-            WRITE (runit, *) "vibration", i
-            DO j = 1, sys%natom
-                WRITE (runit, *) stats%disp(i, j, 1)/bohr2ang, stats%disp(i, j, 2)/bohr2ang, stats%disp(i, j, 3)/bohr2ang
+            
+            IF (i_laser == 1) THEN
+                fname = "result_static_raman.txt"
+            ELSE
+                WRITE(fname,'("result_static_raman_",I0,".txt")') i_laser 
+            END IF
+            OPEN (FILE=fname, STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit)
+            CALL check_file_open(stat, msg,fname)
+            DO i = start_freq, end_freq
+                WRITE (runit, *) i, data2(i)
             END DO
-        END DO
-        CLOSE (runit)
+            CLOSE (runit)
 
+        !!Write Molden output
+            rams%raman_int = REAL(rams%raman_int/MINVAL(rams%raman_int), kind=dp)
+            !WRITE(fname,'("raman_laser_",F0.6,"eV.mol")') rams%laser_in(i_laser)
+            IF (i_laser == 1) THEN
+                fname = "raman.mol"
+            ELSE
+                WRITE(fname,'("raman_",I0,".mol")') i_laser 
+            END IF
+            OPEN (FILE=fname, STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit)
+            CALL check_file_open(stat, msg,fname)
+            WRITE (runit, *) "[Molden Format]"
+            WRITE (runit, *) "[GEOMETRIES] XYZ"
+            WRITE (runit, *) sys%natom
+            WRITE (runit, *)
+            DO i = 1, sys%natom
+                WRITE (runit, *) sys%element(i), sys%coord(i, 1), sys%coord(i, 2), sys%coord(i, 3)
+            END DO
+            WRITE (runit, *) "[stats%freq]"
+            DO i = 1, stats%nmodes
+                WRITE (runit, *) stats%freq(i)
+            END DO
+            WRITE (runit, *) "[INT]"
+            DO i = 1, stats%nmodes
+                WRITE (runit, *) rams%raman_int(i)
+            END DO
+            WRITE (runit, *) "[FR-sys%coord]"
+            WRITE (runit, *) sys%natom
+            WRITE (runit, *)
+            DO i = 1, sys%natom
+                WRITE (runit, *) sys%element(i), sys%coord(i, 1)/bohr2ang, sys%coord(i, 2)/bohr2ang, sys%coord(i, 3)/bohr2ang
+            END DO
+            WRITE (runit, *) "[FR-NORM-sys%coord]"
+            DO i = 1, stats%nmodes
+                WRITE (runit, *) "vibration", i
+                DO j = 1, sys%natom
+                    WRITE (runit, *) stats%disp(i, j, 1)/bohr2ang, stats%disp(i, j, 2)/bohr2ang, stats%disp(i, j, 3)/bohr2ang
+                END DO
+            END DO
+            CLOSE (runit)
+        END DO
         DEALLOCATE (iso_sq, aniso_sq, data2, ram_const)
 
     END SUBROUTINE spec_static_raman
@@ -836,10 +872,10 @@ CONTAINS
         TYPE(static), INTENT(INOUT)        :: stats
         TYPE(raman), INTENT(INOUT)        :: rams
 
-        INTEGER                                                       :: stat, i, j, k, m, x, freq_res, l, o, n, r, runit
+        INTEGER                                                       :: stat, i, j, k, m, x, freq_res, l, o, n, r, runit, i_laser
         INTEGER                                                       :: start_freq, end_freq, rtp_point
         INTEGER(kind=dp)                                               :: plan
-        CHARACTER(len=str_len)                                         :: msg
+        CHARACTER(len=str_len)                                         :: msg, fname
         REAL(kind=dp)                                                  :: broad, factor
         REAL(kind=dp)                                                  :: rtp_freq_res, pade_freq_res
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE                         :: data2, ram_const
@@ -862,9 +898,10 @@ CONTAINS
         zhat_pol_dq_rtp = (0.0_dp, 0.0_dp)
         data2 = 0.0_dp
 
+
 !!!Finding laser frequency
         rtp_freq_res = REAL(rams%RR%freq_range_rtp/rams%RR%framecount_rtp, kind=dp)
-        rtp_point = ANINT(rams%laser_in/(rtp_freq_res*reccm2ev), kind=dp)
+        !rtp_point = ANINT(rams%laser_in/(rtp_freq_res*reccm2ev), kind=dp)
 
 !!!Finite differences
         zhat_pol_dxyz_rtp(:, :, :, :, :) = (rams%RR%zhat_pol_rtp(:, :, 2, :, :, :) &
@@ -875,13 +912,12 @@ CONTAINS
             DO o = 1, rams%RR%framecount_rtp
                 DO j = 1, sys%natom
                     zhat_pol_dq_rtp(i, :, :, o) = zhat_pol_dq_rtp(i, :, :, o) &
-                                                  + (zhat_pol_dxyz_rtp(j, 1, :, :, o)*stats%disp(i, j, 1)*sys%atom_mass_inv_sqrt(j)) &
-                                                  + (zhat_pol_dxyz_rtp(j, 2, :, :, o)*stats%disp(i, j, 2)*sys%atom_mass_inv_sqrt(j)) &
-                                                  + (zhat_pol_dxyz_rtp(j, 3, :, :, o)*stats%disp(i, j, 3)*sys%atom_mass_inv_sqrt(j))
+                    + (zhat_pol_dxyz_rtp(j, 1, :, :, o)*stats%disp(i, j, 1)*sys%atom_mass_inv_sqrt(j)) &
+                    + (zhat_pol_dxyz_rtp(j, 2, :, :, o)*stats%disp(i, j, 2)*sys%atom_mass_inv_sqrt(j)) &
+                    + (zhat_pol_dxyz_rtp(j, 3, :, :, o)*stats%disp(i, j, 3)*sys%atom_mass_inv_sqrt(j))
                 END DO
             END DO
         END DO
-
 
 !!!Isotropic and anisotropic contributions!!
         iso_sq(:, :) = ABS((zhat_pol_dq_rtp(:,1,1,:) + zhat_pol_dq_rtp(:,2,2,:) + zhat_pol_dq_rtp(:,3,3,:))/3.0_dp)**2
@@ -893,41 +929,61 @@ CONTAINS
 
 
 !!!Conversion from (debye/E)^2 angstrom^-2 amu⁻¹ to angstrom^6 angstrom^-2 amu⁻¹
+
         iso_sq = iso_sq/(a3_to_debye_per_e*a3_to_debye_per_e)
         aniso_sq = aniso_sq/(a3_to_debye_per_e*a3_to_debye_per_e)
-
-!!!Conversion from angstrom^4 amu⁻¹ to m^4 kg^-1
+        
+        !!!Conversion from angstrom^4 amu⁻¹ to m^4 kg^-1
         iso_sq = iso_sq*(ang**4._dp)/am_u
         aniso_sq = aniso_sq*(ang**4._dp)/am_u
+        
+        WRITE (*, '(4X,"rtp_freq_res", T60, G0)') rtp_freq_res
+        WRITE (*, '(4X,"rams%RR%freq_range_rtp", T60, G0)') rams%RR%freq_range_rtp
+        WRITE (*, '(4X,"rtp_point", T60, I0)') rtp_point
+        WRITE (*, '(4X,"rams%RR%framecount_rtp", T60, I0)') rams%RR%framecount_rtp
+        !!!Finding laser frequency
+        rtp_freq_res = REAL(rams%RR%freq_range_rtp/rams%RR%framecount_rtp, kind=dp)
 
-!!! Conversion of static resonance Raman units into 10^{-30}*cm^2/sr
-        ram_const(:) = (const_planck/(8.0_dp*speed_light*cm2m*const_permit*const_permit)*1.e+30* &
-                        REAL(((rams%laser_in/reccm2ev - stats%freq(:))**4.0_dp)/(stats%freq(:)*cm2m**3.0_dp), kind=dp)* &
-                        (1.0_dp/(1.0_dp - EXP(-1._dp*const_planck*speed_light*cm2m*stats%freq(:)/ &
-                                              (const_boltz*gs%temp)))))/(cm2m**2._dp)
 
-!!!Calculation of the unpolarized resonance Raman intensities!!
-        raman_int(:, rtp_point) = REAL(((7.0_dp*aniso_sq(:, rtp_point)) + (45.0_dp*iso_sq(:, rtp_point)))/45.0_dp, kind=dp)* &
-                                  ram_const(:)
 
-!!!Broadening the spectrum!!
-        DO x = start_freq, end_freq
-            broad = 0.0_dp
-            DO i = 1, stats%nmodes
-                broad = broad + (raman_int(i, rtp_point)*(1.0_dp/(gs%fwhm*SQRT(2.0_dp*pi))) &
-                                 *EXP(-0.50_dp*((x - stats%freq(i))/gs%fwhm)**2.0_dp))
+        DO i_laser = 1, size(rams%laser_in)
+                
+            rtp_point = ANINT(rams%laser_in(i_laser)/(rtp_freq_res*reccm2ev), kind=dp)
+
+            WRITE (*, '(4X,"rams%laser_in", T60, G0)') rams%laser_in(i_laser)
+            !!! Conversion of static resonance Raman units into 10^{-30}*cm^2/sr
+            ram_const(:) = (const_planck/(8.0_dp*speed_light*cm2m*const_permit*const_permit)*1.e+30* &
+                            REAL(((rams%laser_in(i_laser)/reccm2ev - stats%freq(:))**4.0_dp)/(stats%freq(:)*cm2m**3.0_dp), kind=dp)* &
+                            (1.0_dp/(1.0_dp - EXP(-1._dp*const_planck*speed_light*cm2m*stats%freq(:)/ &
+                                                (const_boltz*gs%temp)))))/(cm2m**2._dp)
+
+            !!!Calculation of the unpolarized resonance Raman intensities!!
+            raman_int(:, rtp_point) = REAL(((7.0_dp*aniso_sq(:, rtp_point)) + (45.0_dp*iso_sq(:, rtp_point)))/45.0_dp, kind=dp)* &
+                                    ram_const(:)
+
+            !!!Broadening the spectrum!!
+            DO x = start_freq, end_freq
+                broad = 0.0_dp
+                DO i = 1, stats%nmodes
+                    broad = broad + (raman_int(i, rtp_point)*(1.0_dp/(gs%fwhm*SQRT(2.0_dp*pi))) &
+                                    *EXP(-0.50_dp*((x - stats%freq(i))/gs%fwhm)**2.0_dp))
+                END DO
+                data2(x) = data2(x) + broad
             END DO
             data2(x) = data2(x) + broad
+            IF (i_laser == 1) THEN
+                fname = "result_static_resraman.txt"
+            ELSE
+                WRITE(fname,'("result_static_resraman_",I0,".txt")') i_laser
+            END IF
+            OPEN (FILE=fname, STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
+            !Check if file exists
+            CALL check_file_open(stat, msg, fname)
+            DO i = start_freq, end_freq
+                WRITE (runit, *) i, data2(i)
+            END DO
+            CLOSE (runit)
         END DO
-
-        OPEN (FILE='result_static_resraman.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
-        !Check if file exists
-        CALL check_file_open(stat, msg, 'result_static_resraman.txt')
-        DO i = start_freq, end_freq
-            WRITE (runit, *) i, data2(i)
-        END DO
-        CLOSE (runit)
-
         DEALLOCATE (iso_sq, aniso_sq, data2, ram_const, raman_int, stats%disp, stats%freq)
         DEALLOCATE (rams%RR%zhat_pol_rtp, zhat_pol_dxyz_rtp, zhat_pol_dq_rtp)
 
@@ -1161,7 +1217,7 @@ SUBROUTINE spec_resraman(sys, md, rams)
 !END DO
 !
 !freq_res = REAL(md%freq_range/(2*md%t_cor), kind=dp)
-!j = ANINT(rams%laser_in/rtp_freq_res, kind=dp)
+!j = ANINT(rams%laser_in(1)/rtp_freq_res, kind=dp)
 !
 !!!!!UNPOLARIZED!!!!
 !
