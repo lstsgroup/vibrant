@@ -971,15 +971,6 @@ CONTAINS
                 data2(x) = data2(x) + broad
             END DO
             data2(x) = data2(x) + broad
-        END DO
-
-<<<<<<< HEAD
-        OPEN (FILE='result_static_resraman.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
-        !Check if file exists
-        CALL check_file_open(stat, msg, 'result_static_resraman.txt')
-        DO i = start_freq, end_freq
-            WRITE (runit, *) i, data2(i)
-=======
             IF (i_laser == 1) THEN
                 fname = "result_static_resraman.txt"
             ELSE
@@ -992,7 +983,6 @@ CONTAINS
                 WRITE (runit, *) i, data2(i)
             END DO
             CLOSE (runit)
->>>>>>> ceffa0f (added option to give multiple laser wavelenghts)
         END DO
         DEALLOCATE (iso_sq, aniso_sq, data2, ram_const, raman_int, stats%disp, stats%freq)
         DEALLOCATE (rams%RR%zhat_pol_rtp, zhat_pol_dxyz_rtp, zhat_pol_dq_rtp)
