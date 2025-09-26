@@ -181,7 +181,7 @@ CONTAINS
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE                    :: raman_const, sinc_func, freq
         REAL(kind=dp)                                             :: f, freq_res
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                :: dip_free!,rams%e_field(1)%dip_xyz,rams%e_field(2)%dip_xyz,rams%e_field(3)%dip_xyz
-        CHARACTER(len=40)                                         :: fname, f_name, idx
+        CHARACTER(len=40)                                         :: output_fname, f_name, idx
         !REAL(kind=dp), DIMENSION(:,:, :, :), ALLOCATABLE                :: alpha_xyz, dip_xyz, alpha_diff_xyz
         !REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                ::rams%e_field(1)%alpha_diff_xyz,rams%e_field(2)%alpha_diff_xyz,rams%e_field(3)%alpha_diff_xyz
 
@@ -270,13 +270,13 @@ CONTAINS
     !!!ORTHOGONAL!!!
             !WRITE(fname,'("raman_orthogonal_laser_",F0.6,"eV.txt")') rams%laser_in(i_laser)
             IF (i_laser == 1) THEN
-                fname = "raman_orthogonal.txt"
+                output_fname = "raman_orthogonal.txt"
             ELSE
-                WRITE(fname,'("raman_orthogonal_",I0,".txt")') i_laser 
+                WRITE(output_fname,'("raman_orthogonal_",I0,".txt")') i_laser 
             END IF
-            OPEN (FILE=fname, STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
+            OPEN (FILE=output_fname, STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
             !Check if file exist
-            CALL check_file_open(stat, msg, fname)
+            CALL check_file_open(stat, msg, output_fname)
             DO i = 0, 2*md%t_cor - 2
                 zhat_aniso(i + 1) = REAL(zhat_aniso(i + 1), kind=dp)*(f*(i + 1)/SIN(f*(i + 1)))**2._dp
                 raman_ortho(i) = ((REAL(zhat_aniso(i), kind=dp))/15.0_dp)*raman_const(i)
@@ -289,13 +289,13 @@ CONTAINS
     !!!PARALLEL!!!
             !WRITE(fname,'("raman_parallel_laser_",F0.6,"eV.txt")') rams%laser_in(i_laser)
             IF (i_laser == 1) THEN
-                fname = "raman_parallel.txt"
+                output_fname = "raman_parallel.txt"
             ELSE
-                WRITE(fname,'("raman_parallel_",I0,".txt")') i_laser 
+                WRITE(output_fname,'("raman_parallel_",I0,".txt")') i_laser 
             END IF
-            OPEN (FILE=fname, STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
+            OPEN (FILE=output_fname, STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
             !Check if file exists
-            CALL check_file_open(stat, msg, fname)
+            CALL check_file_open(stat, msg, output_fname)
             DO i = 0, 2*md%t_cor - 2
                 zhat_iso(i + 1) = REAL(zhat_iso(i + 1), kind=dp)*(f*(i + 1)/SIN(f*(i + 1)))**2._dp
                 raman_para(i) = (zhat_iso(i) + (zhat_aniso(i)*4.0_dp/45.0_dp))*raman_const(i)
@@ -308,13 +308,13 @@ CONTAINS
     !!!UNPOL!!!
             !WRITE(fname,'("raman_unpolarized_laser_",F0.6,"eV.txt")') rams%laser_in(i_laser)
             IF (i_laser == 1) THEN
-                fname = "raman_unpolarized.txt"
+                output_fname = "raman_unpolarized.txt"
             ELSE
-                WRITE(fname,'("raman_unpolarized_",I0,".txt")') i_laser 
+                WRITE(output_fname,'("raman_unpolarized_",I0,".txt")') i_laser 
             END IF
-            OPEN (FILE=fname, STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) !Reading polarizabilties
+            OPEN (FILE=output_fname, STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) !Reading polarizabilties
             !Check if file exists
-            CALL check_file_open(stat, msg, fname)
+            CALL check_file_open(stat, msg, output_fname)
             DO i = 0, 2*md%t_cor - 2
                 raman_unpol(i) = raman_ortho(i) + raman_para(i)
                 raman_unpol(0) = 0.00_dp
@@ -326,13 +326,13 @@ CONTAINS
     !!!DEPOL RATIO!!!
             !WRITE(fname,'("raman_depolarization_ratio_laser_",F0.6,"eV.txt")') rams%laser_in(i_laser)
             IF (i_laser == 1) THEN
-                fname = "raman_depolarization_ratio.txt"
+                output_fname = "raman_depolarization_ratio.txt"
             ELSE
-                WRITE(fname,'("raman_depolarization_ratio_",I0,".txt")') i_laser 
+                WRITE(output_fname,'("raman_depolarization_ratio_",I0,".txt")') i_laser 
             END IF
-            OPEN (FILE=fname, STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) !Reading polarizabilties
+            OPEN (FILE=output_fname, STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) !Reading polarizabilties
             !Check if file exists
-            CALL check_file_open(stat, msg, fname)
+            CALL check_file_open(stat, msg, output_fname)
             DO i = 0, 2*md%t_cor - 2
                 raman_depol(i) = REAL(raman_ortho(i), kind=dp)/REAL(raman_para(i), kind=dp)
                 IF (freq(i).GE.5000.0_dp) CYCLE
