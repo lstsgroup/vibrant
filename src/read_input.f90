@@ -78,7 +78,7 @@ CONTAINS
         TYPE(dipoles), INTENT(INOUT)            :: dips
         TYPE(raman), INTENT(INOUT)           :: rams
         CHARACTER(LEN=str_len), INTENT(IN) :: input_file_name
-        INTEGER :: ios
+        INTEGER :: ios, i, n
         CHARACTER(len=256) :: iomsg
         !** intermal variables
         INTEGER :: runit, stat
@@ -355,8 +355,18 @@ CONTAINS
 
             IF (in_raman) THEN
                 IF (INDEX(to_lower(line), 'laser_in')>0) THEN !Type of the dipole moment
+                     ! Anzahl Werte grob bestimmen: Kommata zählen + 1  (funktioniert, wenn keine Trailing-Kommas)
+                    n = count([(line(i:i) == ',', i=1,len_trim(line))]) + 1
+                    ALLOCATE(rams%laser_in(min(n,10)))
                     READ (line, *) dummy, rams%laser_in
-                    WRITE (*, '(4X,A, T60, F0.6)')  'Incident laser frequency (eV):', rams%laser_in
+                    IF (size(rams%laser_in) == 1) THEN
+                        WRITE (*, '(4X,A, T60, F0.6)')  'Incident laser frequency (eV):', rams%laser_in !rams%laser_in
+                    ELSE
+                        WRITE (*, '(4X,A)')  'Multiple incidents laser frequencies found:'
+                        DO i=1, size(rams%laser_in)
+                            WRITE (*, '(6X,I0, A, T60, F0.6)')  i, " Incident laser frequency (eV)", rams%laser_in(i)
+                        END DO
+                    END IF
                 END IF
             END IF
 
@@ -574,9 +584,10 @@ CONTAINS
                 WRITE(error_unit,'(4X,"[ERROR] ",A)') 'Electric field strength not defined!'
                 STOP
             END IF
-            IF (rams%laser_in<0) THEN
+            IF (.not. ALLOCATED(rams%laser_in)) THEN
                 WRITE(error_unit,'(4X,"[WARN]  ",A)') 'Incident laser frequency not defined, setting it to 1 0.5 cm⁻1'
-                rams%laser_in = 0.5
+                ALLOCATE(rams%laser_in(1))
+                rams%laser_in(1) = 0.5
             END IF
             !check for the temperature
             IF (gs%temp<0) THEN
@@ -707,9 +718,10 @@ CONTAINS
                 WRITE(error_unit,'(4X,"[WARN]  ",A)') 'Damping constant not defined, setting it to 0.1 eV!'
                 rams%RR%damping_constant = 0.1_dp
             END IF
-            IF (rams%laser_in<0) THEN
+            IF (.not. ALLOCATED(rams%laser_in)) THEN
                 WRITE(error_unit,'(4X,"[WARN]  ",A)') 'Incident laser frequency not defined, setting it to 1 0.5 cm⁻1'
-                rams%laser_in = 0.5
+                ALLOCATE(rams%laser_in(1))
+                rams%laser_in(1) = 0.5
             END IF
             !check for the temperature
             IF (gs%temp<0) THEN
@@ -804,9 +816,10 @@ CONTAINS
                 gs%temp = 300
             END IF
             !check for incident laser wavelength
-            IF (rams%laser_in<0) THEN
+            IF (.not. ALLOCATED(rams%laser_in)) THEN
                 WRITE(error_unit,'(4X,"[WARN]  ",A)') 'Incident laser frequency not defined, setting it to 1 0.5 cm⁻1'
-                rams%laser_in = 0.5
+                ALLOCATE(rams%laser_in(1))
+                rams%laser_in(1) = 0.5
             END IF
         ELSEIF (gs%spectral_type%read_function=='MD-RR') THEN
             !check for filename
@@ -857,9 +870,10 @@ CONTAINS
                 gs%temp = 300
             END IF
             !check for incident laser wavelength
-            IF (rams%laser_in<0) THEN
+            IF (.not. ALLOCATED(rams%laser_in)) THEN
                 WRITE(error_unit,'(4X,"[WARN]  ",A)') 'Incident laser frequency not defined, setting it to 1 0.5 cm⁻1'
-                rams%laser_in = 0.5
+                ALLOCATE(rams%laser_in(1))
+                rams%laser_in(1) = 0.5
             END IF
         END IF
 

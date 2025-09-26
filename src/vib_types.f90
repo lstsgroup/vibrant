@@ -187,7 +187,7 @@ MODULE vib_types
         !numeric
         CHARACTER(LEN=40)                                   :: static_dip_free_file
         REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE   :: static_dip_free          ! Dipolemoments mybe move to dipole class
-        REAL(kind=dp)                                       :: laser_in
+        REAL(kind=dp), DIMENSION(:), ALLOCATABLE   :: laser_in
         REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE   :: static_dip_x             ! Dipolemoments mybe move to dipole class
         REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE   :: static_dip_y             ! Dipolemoments mybe move to dipole class
         REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE   :: static_dip_z             ! Dipolemoments mybe move to dipole class
@@ -415,7 +415,7 @@ CONTAINS
 
     SUBROUTINE init_raman(ram)
         TYPE(raman), INTENT(out) :: ram
-        ram%laser_in = -1.0_dp
+        !ram%laser_in = -1.0_dp
         !numeric
         ram%static_dip_free_file = ''
         ram%static_pol_file = ''
