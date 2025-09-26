@@ -358,6 +358,9 @@ CONTAINS
                      ! Anzahl Werte grob bestimmen: Kommata zählen + 1  (funktioniert, wenn keine Trailing-Kommas)
                     n = count([(line(i:i) == ',', i=1,len_trim(line))]) + 1
                     ALLOCATE(rams%laser_in(min(n,10)))
+                    IF (n > 10) THEN
+                        WRITE(error_unit,'(4X,"[WARN]  ",A)') 'More than 10 laser frequency defined. Only first 10 will be considered'
+                    END IF
                     READ (line, *) dummy, rams%laser_in
                     IF (size(rams%laser_in) == 1) THEN
                         WRITE (*, '(4X,A, T60, F0.6)')  'Incident laser frequency (eV):', rams%laser_in !rams%laser_in
