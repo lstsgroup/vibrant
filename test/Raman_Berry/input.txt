@@ -10,6 +10,16 @@
  dip_y_file berry_dipole_Y_5000_sc.xyz
  dip_z_file berry_dipole_Z_5000_sc.xyz
 &end dipoles
+&system
+ &cell
+  box_x 15.100 
+  box_y 15.101
+  box_z 13.457
+  angle_alpha 90
+  angle_beta 90
+  angle_gamma 120 
+ &end cell
+%end system
 &md
  time_step 2.5
  correlation_depth 1024

@@ -258,7 +258,7 @@ CONTAINS
                         READ (line, *) dummy, sys%cell%box_z
                         WRITE (*, *) "cell vector z: ", sys%cell%box_z
                     END IF
-                    IF (sys%cell%cell_type=='triclinic') THEN
+                  !  IF (sys%cell%cell_type=='triclinic') THEN
                         IF (INDEX(to_lower(line), 'angle_alpha')>0) THEN
                             READ (line, *) dummy, sys%cell%angle_alpha
                             WRITE (*, *) "Angle alpha: ", sys%cell%angle_alpha
@@ -271,24 +271,24 @@ CONTAINS
                             READ (line, *) dummy, sys%cell%angle_gamma
                             WRITE (*, *) "Angle gamma: ", sys%cell%angle_gamma
                         END IF
-                    ELSEIF (sys%cell%cell_type=='hexagonal' .AND. .NOT. angles_set) THEN
-                        sys%cell%angle_alpha = 90
-                        sys%cell%angle_beta = 90
-                        sys%cell%angle_gamma = 120
-                        WRITE (*, *) "Angle alpha: ", sys%cell%angle_alpha
-                        WRITE (*, *) "Angle beta: ", sys%cell%angle_beta
-                        WRITE (*, *) "Angle gamma: ", sys%cell%angle_gamma
-                        angles_set = .TRUE.
+                  !  ELSEIF (sys%cell%cell_type=='hexagonal' .AND. .NOT. angles_set) THEN
+                 !       sys%cell%angle_alpha = 90
+                 !       sys%cell%angle_beta = 90
+                 !       sys%cell%angle_gamma = 120
+                 !       WRITE (*, *) "Angle alpha: ", sys%cell%angle_alpha
+                 !       WRITE (*, *) "Angle beta: ", sys%cell%angle_beta
+                 !       WRITE (*, *) "Angle gamma: ", sys%cell%angle_gamma
+                 !       angles_set = .TRUE.
 
-                    ELSEIF (sys%cell%cell_type=='orthorombic' .AND. .NOT. angles_set) THEN
-                        sys%cell%angle_alpha = 90
-                        sys%cell%angle_beta = 90
-                        sys%cell%angle_gamma = 90
-                        WRITE (*, *) "Angle alpha: ", sys%cell%angle_alpha
-                        WRITE (*, *) "Angle beta: ", sys%cell%angle_beta
-                        WRITE (*, *) "Angle gamma: ", sys%cell%angle_gamma
-                        angles_set = .TRUE.
-                    END IF
+               !     ELSEIF (sys%cell%cell_type=='orthorombic' .AND. .NOT. angles_set) THEN
+                !        sys%cell%angle_alpha = 90
+                 !       sys%cell%angle_beta = 90
+                  !      sys%cell%angle_gamma = 90
+                  !      WRITE (*, *) "Angle alpha: ", sys%cell%angle_alpha
+                  !      WRITE (*, *) "Angle beta: ", sys%cell%angle_beta
+                  !      WRITE (*, *) "Angle gamma: ", sys%cell%angle_gamma
+                  !      angles_set = .TRUE.
+                  !  END IF
                 ELSEIF (INDEX(to_lower(line), 'frag_type ')>0) THEN !'Does the system contain more than one molecule? (y/n)'
                     READ (line, *) dummy, sys%frag_type
                     WRITE (*, '(4X,A, T60, A)') 'frag_type:', TRIM(sys%frag_type)

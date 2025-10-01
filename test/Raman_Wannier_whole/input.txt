@@ -15,7 +15,9 @@
   box_x 15.100 
   box_y 15.101
   box_z 13.457
-  cell_type hexagonal
+  angle_alpha 90
+  angle_beta 90
+  angle_gamma 120 
  &end cell
 %end system
 &md

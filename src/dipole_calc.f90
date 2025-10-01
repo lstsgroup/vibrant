@@ -18,18 +18,48 @@ MODULE dipole_calc
 
     USE kinds, ONLY: dp, str_len
     USE constants, ONLY: debye, bohr2ang
-    USE iso_fortran_env, ONLY: output_unit, error_unit
+    USE ISO_FORTRAN_ENV, ONLY: output_unit, error_unit
     USE vib_types, ONLY: global_settings, systems, molecular_dynamics, static, dipoles
     USE cell_types, ONLY: build_hmat, pbc, invert3x3, determinant3x3
     USE read_traj, ONLY: check_file_open
 
     IMPLICIT NONE
 
-    PUBLIC :: compute_dipole
+    PUBLIC :: compute_dipole, check_jumps
     PRIVATE
 
 CONTAINS
 
+    SUBROUTINE check_jumps(dipole, sys, md)
+        TYPE(systems), INTENT(INOUT) :: sys
+        TYPE(molecular_dynamics), INTENT(IN) :: md
+        REAL(dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(INOUT) :: dipole  ! (nframes,1,3)
+
+        INTEGER :: m, i, stat
+        REAL(dp) :: hmat(3, 3)
+        REAL(dp) :: pol_quantum(3) 
+
+        ! ALLOCATE (dipole(sys%framecount, 1, 3))
+
+        ! --- lattice
+        CALL build_hmat(sys, hmat)
+
+   !!!! Calculate the polarization quantum
+        DO i = 1, 3
+            pol_quantum(i) = SUM(hmat(i, :))/(bohr2ang*debye)  ! e·Bohr
+        END DO
+
+   !!Subtract multiples of polarization quantum
+        DO i = 1, 3
+            DO m = 2, sys%framecount
+                dipole(m, 1, i) = dipole(m, 1, i) - NINT((dipole(m, 1, i) - dipole(m - 1, 1, i))/pol_quantum(i))*pol_quantum(i)
+            END DO
+        END DO
+
+    END SUBROUTINE check_jumps
+
+!******************************************************************************************************************!
+!******************************************************************************************************************!
     SUBROUTINE compute_dipole(dipole, sys, md)
         TYPE(systems), INTENT(INOUT) :: sys
         TYPE(molecular_dynamics), INTENT(IN) :: md
@@ -73,36 +103,38 @@ CONTAINS
             dipole(m, 1, :) = dipole(m, 1, :)/debye
         END DO
 
+        CALL check_jumps(dipole, sys, md)
+
    !!!! Calculate the polarization quantum
-        DO i = 1, 3
-            pol_quantum(i) = SUM(hmat(i, :))/(bohr2ang*debye)  ! e·Bohr
-        END DO
-
-   !!Subtract multiples of polarization quantum
-        DO i = 1, 3
-            DO m = 2, sys%framecount
-                dipole(m, 1, i) = dipole(m, 1, i) - NINT((dipole(m, 1, i) - dipole(m - 1, 1, i))/pol_quantum(i))*pol_quantum(i)
-            END DO
-        END DO
-
-        ! --- write to file
-       ! OPEN (UNIT=69, FILE='COF-1_refpoint.xyz', STATUS='unknown', IOSTAT=stat)
-       ! DO m = 1, sys%framecount
-         !   WRITE (69, *) sys%natom + 1
-         !   WRITE (69, *)
-         !   DO i = 1, sys%natom
-         !       WRITE (69, *) sys%element(i), md%coord_v(m, i, :)
-        !    END DO
-       !     WRITE (69, *) "N", sys%fragments%refpoint(m, 1, :)
+       ! DO i = 1, 3
+       !     pol_quantum(i) = SUM(hmat(i, :))/(bohr2ang*debye)  ! e·Bohr
       !  END DO
 
+   !!Subtract multiples of polarization quantum
+      !  DO i = 1, 3
+      !      DO m = 2, sys%framecount
+     !           dipole(m, 1, i) = dipole(m, 1, i) - NINT((dipole(m, 1, i) - dipole(m - 1, 1, i))/pol_quantum(i))*pol_quantum(i)
+    !        END DO
+   !     END DO
+
         ! --- write to file
-     !   OPEN (UNIT=68, FILE='dipole.xyz', STATUS='unknown', IOSTAT=stat)
-     !   IF (stat/=0) STOP "Error opening dipole output file"
-     !   DO m = 1, sys%framecount
-     !       WRITE (68, '(I8,3F20.10)') m, dipole(m, 1, :)
-    !    END DO
-   !     CLOSE (68)
+        ! OPEN (UNIT=69, FILE='COF-1_refpoint.xyz', STATUS='unknown', IOSTAT=stat)
+        ! DO m = 1, sys%framecount
+        !   WRITE (69, *) sys%natom + 1
+        !   WRITE (69, *)
+        !   DO i = 1, sys%natom
+        !       WRITE (69, *) sys%element(i), md%coord_v(m, i, :)
+        !    END DO
+        !     WRITE (69, *) "N", sys%fragments%refpoint(m, 1, :)
+        !  END DO
+
+        ! --- write to file
+        !   OPEN (UNIT=68, FILE='dipole.xyz', STATUS='unknown', IOSTAT=stat)
+        !   IF (stat/=0) STOP "Error opening dipole output file"
+        !   DO m = 1, sys%framecount
+        !       WRITE (68, '(I8,3F20.10)') m, dipole(m, 1, :)
+        !    END DO
+        !     CLOSE (68)
 
         DEALLOCATE (sys%fragments%refpoint)
     END SUBROUTINE compute_dipole

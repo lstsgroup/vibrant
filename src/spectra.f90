@@ -27,7 +27,7 @@ MODULE calc_spectra
     USE read_traj, ONLY: read_coord_frame, check_file_open
     USE fin_diff, ONLY: central_diff, forward_diff
     USE vel_cor, ONLY: cvv, cvv_iso, cvv_aniso, cvv_only_x, cvv_resraman
-    USE dipole_calc, ONLY: compute_dipole
+    USE dipole_calc, ONLY: compute_dipole, check_jumps
     USE pade, ONLY: interpolate
 
     USE, INTRINSIC                              :: ISO_C_BINDING
@@ -118,6 +118,7 @@ CONTAINS
             CALL central_diff(sys%mol_num, dips%dipole, md%v, sys, md)
         ELSEIF (dips%type_dipole=='berry') THEN !!Berry phase dipoles
             CALL read_coord_frame(sys%mol_num, dips%dip_file, md%coord_v, sys)
+            CALL check_jumps(md%coord_v, sys, md)
             CALL central_diff(sys%mol_num, md%coord_v, md%v, sys, md)
         END IF
 
@@ -194,6 +195,7 @@ CONTAINS
             CALL compute_dipole(dip_free, sys, md)
         ELSEIF (dips%type_dipole=='berry') THEN
             CALL read_coord_frame(sys%natom, dips%dip_file, dip_free, sys)
+            CALL check_jumps(dip_free, sys, md)
         END IF
 
     !!!!ELECTRIC FIELD!!!
@@ -211,6 +213,7 @@ CONTAINS
                 CALL forward_diff(sys%mol_num, rams%e_field(xyz)%alpha_xyz, dip_free, dips%dipole, gs, sys, dips)
                 DEALLOCATE (dips%dipole)
             ELSEIF (dips%type_dipole=='berry') THEN
+                CALL check_jumps(md%coord_v, sys, md)
                 CALL forward_diff(sys%mol_num, rams%e_field(xyz)%alpha_xyz, dip_free, md%coord_v, gs, sys, dips)
             ELSEIF (dips%type_dipole=='dfpt') THEN
                 rams%e_field(xyz)%alpha_xyz = REAL(md%coord_v*a3_to_debye_per_e, kind=dp)
