@@ -31,7 +31,7 @@ PROGRAM vib2d
     USE vel_cor, ONLY: cvv, cvv_iso, cvv_aniso, cvv_only_x, cvv_resraman
     USE fin_diff, ONLY: central_diff, forward_diff, finite_diff_static, finite_diff_static_resraman
     USE calc_spectra, ONLY: spec_power, normal_mode_analysis, spec_static_ir, spec_static_raman, &
-                            spec_ir, spec_raman, spec_abs, spec_static_resraman,  spec_resraman
+                            spec_ir, spec_raman, spec_abs, spec_static_resraman, spec_abs_md, spec_resraman
     USE omp_lib, ONLY: omp_get_num_threads
     USE timing, ONLY: timings
     USE config_info, ONLY: output_config_info
@@ -306,7 +306,6 @@ PROGRAM vib2d
         CALL timings%register("calculate absorption spectrum")
         CALL spec_abs(gs, sys, dips, rams)
         !***************************************************************************
-
         !***************************************************************************
     ELSEIF (gs%spectral_type%read_function=='RR') THEN
         CALL timings%register("reading coordinates")
@@ -334,26 +333,28 @@ PROGRAM vib2d
         CALL spec_static_resraman(gs, sys, stats, rams)
         !***************************************************************************
         !***************************************************************************
-    ELSEIF (gs%spectral_type%read_function=='MD-RR') THEN
-        CALL timings%register("reading coordinates")
-        !CALL read_coord(sys%filename, gs, sys, dips)
-        sys%framecount = 1000_dp
-        sys%mol_num = 1
-        WRITE (*, '(4X,A, T60, G0)')'rams%RR%framecount_rtp',rams%RR%framecount_rtp
-        WRITE (*, '(4X,"rams%RR%freq_range_rtp", T60, G0)') rams%RR%freq_range_rtp
-        WRITE (*, '(4X,A, T60, G0)')'sys%framecount',sys%framecount
-        WRITE (*, '(4X,A, T60, G0)')'dips%dip_x_file',dips%dip_x_file
-        WRITE (*, '(4X,A, T60, G0)')'sys%mol_num',sys%mol_num
-        
+    ELSEIF (gs%spectral_type%read_function=='MD-ABS') THEN
+        CALL timings%register("reading initial coordinates")
+        CALL read_coord(dips%dip_x_file, gs, sys, dips, rams)
+        CALL timings%register("read coordinates for all frames")
         CALL read_coord_frame(rams%RR%framecount_rtp, dips%dip_x_file, rams%RR%dip_x_rtp, sys)
         CALL read_coord_frame(rams%RR%framecount_rtp, dips%dip_y_file, rams%RR%dip_y_rtp, sys)
         CALL read_coord_frame(rams%RR%framecount_rtp, dips%dip_z_file, rams%RR%dip_z_rtp, sys)
-      
-        
+        CALL timings%register("calculate MD-based absorption spectrum")
+        CALL spec_abs_md(gs, sys, md, rams, dips)
+        !***************************************************************************
+        !***************************************************************************
+    ELSEIF (gs%spectral_type%read_function=='MD-RR') THEN
+        CALL timings%register("reading initial coordinates")
+        CALL read_coord(dips%dip_x_file, gs, sys, dips, rams)
+        CALL timings%register("read coordinates for all frames")
+        CALL read_coord_frame(rams%RR%framecount_rtp, dips%dip_x_file, rams%RR%dip_x_rtp, sys)
+        CALL read_coord_frame(rams%RR%framecount_rtp, dips%dip_y_file, rams%RR%dip_y_rtp, sys)
+        CALL read_coord_frame(rams%RR%framecount_rtp, dips%dip_z_file, rams%RR%dip_z_rtp, sys)
+        CALL timings%register("calculate MD-based absorption spectrum")
+        CALL spec_abs_md(gs, sys, md, rams, dips)
         CALL timings%register("calculate resonance Raman spectrum")
-        CALL spec_resraman(gs, sys, md, rams)
-        !CALL spec_resraman(natom,framecount,element,rtp_dipole_x,rtp_dipole_y,rtp_dipole_z,type_input,mol_num,system,&
-        !     read_function,dt,z_iso_resraman,z_aniso_resraman,freq_range,freq_range_rtp,laser_in_resraman,y_out)
+        CALL spec_resraman(gs, sys, md, rams, dips)
     END IF
 
     CALL timings%report_all()

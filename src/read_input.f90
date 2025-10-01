@@ -340,6 +340,11 @@ CONTAINS
                     READ (line, *) dummy, rams%RR%damping_constant
                     WRITE (*, '(4X,A, T60, F0.6)')  'Damping constant (eV):', rams%RR%damping_constant
                 END IF
+           !     IF (INDEX(to_lower(line), 'gaussian_window')>0) THEN !RTP time step
+           !         READ (line, *) dummy, rams%RR%damping_constant
+           !         WRITE (*, '(4X,A, T60, F0.6)')  'Damping constant (eV):', rams%RR%damping_constant
+          !      END IF
+           ! END IF
             END IF
             !IF (in_coordinates) THEN
             !IF (in_coordinates) THEN
@@ -388,6 +393,8 @@ CONTAINS
         IF (TRIM(gs%spectral_type%read_function)=='') THEN
             WRITE(error_unit,'(4X,"[ERROR] ",A)') 'Spectra not defined in the input'
             STOP
+        !****************************************************************************************************!
+        !****************************************************************************************************!
             !check for power spectrum
         ELSEIF (gs%spectral_type%read_function=='P') THEN
             !check for input_type
@@ -421,7 +428,8 @@ CONTAINS
                 WRITE(error_unit,'(4X,"[WARN]  ",A)') 'Temperature is not defined, setting it to 300 K'
                 gs%temp = 300
             END IF
-            !check for incident laser wavelength
+        !****************************************************************************************************!
+        !****************************************************************************************************!
             !check for normal mode analysis
         ELSEIF (gs%spectral_type%read_function=='NMA') THEN
             !check for input_dipole not needed for P but set to A default value
@@ -444,6 +452,8 @@ CONTAINS
                 WRITE(error_unit,'(4X,"[ERROR] ",A)') 'Displacement not defined in the input'
                 STOP
             END IF
+        !****************************************************************************************************!
+        !****************************************************************************************************!
             !check for static IR
         ELSEIF (gs%spectral_type%read_function=='IR') THEN
             !check for filename
@@ -479,7 +489,7 @@ CONTAINS
             END IF
             !check for type_dipole
             IF (TRIM(dips%type_dipole)=='') THEN
-                WRITE(error_unit,'(4X,"[WARN]  ",A)') 'type_dipole not defined in the input setting it to 1'
+                WRITE(error_unit,'(4X,"[WARN]  ",A)') 'type_dipole not defined in the input, setting it to berry'
                 dips%type_dipole = 'berry'
             END IF
             !check for the temperature
@@ -491,6 +501,8 @@ CONTAINS
                 WRITE(error_unit,'(4X,"[WARN]  ",A)') 'Full width at half-maximum is not defined, setting it to 10 cm^{-1}'
                 gs%temp = 10
             END IF
+        !****************************************************************************************************!
+        !****************************************************************************************************!
             !check for static raman
         ELSEIF (gs%spectral_type%read_function=='R') THEN
             !check for filename
@@ -544,9 +556,10 @@ CONTAINS
             END IF
             IF (gs%fwhm<0) THEN
                 WRITE(error_unit,'(4X,"[WARN]  ",A)') 'Full width at half-maximum is not defined, setting it to 10 cm^{-1}'
-                gs%temp = 10
+                gs%fwhm = 10
             END IF
-
+        !****************************************************************************************************!
+        !****************************************************************************************************!
         ELSEIF (gs%spectral_type%read_function=='ABS') THEN
             !check for filename
             IF (TRIM(sys%filename)=='') THEN
@@ -589,13 +602,14 @@ CONTAINS
             END IF
             IF (TRIM(rams%RR%check_pade)=='') THEN
                 WRITE(error_unit,'(4X,"[WARN]  ",A)') 'The calculation will continue without Pade approximants!'
-                rams%RR%check_pade = 'y'
+                rams%RR%check_pade = 'n'
             END IF
             IF (TRIM(rams%RR%check_pade)=='y' .AND. rams%RR%framecount_rtp_pade<0) THEN !this can also be adjusted
                 WRITE(error_unit,'(4X,"[WARN]  ",A)') 'Pade framecount is set to 80000!'
                 rams%RR%framecount_rtp_pade = 80000
             END IF
-
+        !****************************************************************************************************!
+        !****************************************************************************************************!
         !!Check for RR
         ELSEIF (gs%spectral_type%read_function=='RR') THEN
             !check for filename
@@ -656,7 +670,7 @@ CONTAINS
             END IF
             IF (TRIM(rams%RR%check_pade)=='') THEN
                 WRITE(error_unit,'(4X,"[WARN]  ",A)') 'The calculation will continue without Pade approximants!'
-                rams%RR%check_pade = 'y'
+                rams%RR%check_pade = 'n'
             END IF
             IF (TRIM(rams%RR%check_pade)=='y' .AND. rams%RR%framecount_rtp_pade<0) THEN !this can also be adjusted
                 WRITE(error_unit,'(4X,"[WARN]  ",A)') 'Pade framecount is set to 80000!'
@@ -677,9 +691,10 @@ CONTAINS
             END IF
             IF (gs%fwhm<0) THEN
                 WRITE(error_unit,'(4X,"[WARN]  ",A)') 'Full width at half-maximum is not defined, setting it to 10 cm^{-1}'
-                gs%temp = 10
+                gs%fwhm = 10
             END IF
-
+        !****************************************************************************************************!
+        !****************************************************************************************************!
             !check for MD-IR
         ELSEIF (gs%spectral_type%read_function=='MD-IR') THEN
             !check for dipole file
@@ -712,7 +727,8 @@ CONTAINS
                 WRITE(error_unit,'(4X,"[WARN]  ",A)') 'Temperature is not defined, setting it to 300 K'
                 gs%temp = 300
             END IF
-            !check for incident laser wavelength
+        !****************************************************************************************************!
+        !****************************************************************************************************!
             !check for MD-Raman
         ELSEIF (gs%spectral_type%read_function=='MD-R') THEN
             !check for dipole file
@@ -767,12 +783,52 @@ CONTAINS
                 WRITE(error_unit,'(4X,"[WARN]  ",A)') 'Incident laser frequency not defined, setting it to 1 0.5 cm⁻1'
                 rams%laser_in = 0.5
             END IF
-        ELSEIF (gs%spectral_type%read_function=='MD-RR') THEN
-            !check for filename
-            IF (TRIM(sys%filename)=='') THEN
-                WRITE(error_unit,'(4X,"[ERROR] ",A)') 'Filename not defined in the input'
+        !****************************************************************************************************!
+        !****************************************************************************************************!
+            !check for MD-ABS
+        ELSEIF (gs%spectral_type%read_function=='MD-ABS') THEN
+            !check for type_dipole
+            IF (TRIM(dips%type_dipole)=='') THEN
+                WRITE(error_unit,'(4X,"[WARN]  ",A)') 'type_dipole not defined in the input setting it to berry'
+                dips%type_dipole = 'berry'
+            END IF
+            !check for electric field strength
+            IF (dips%type_dipole.NE.'dfpt' .AND. dips%e_field<0) THEN
+                WRITE(error_unit,'(4X,"[ERROR] ",A)') 'Electric field strength not defined!'
                 STOP
             END IF
+            IF (TRIM(dips%dip_x_file)=='') THEN
+                WRITE(error_unit,'(4X,"[ERROR] ",A)') 'X-field dipole file name not defined in the input'
+                STOP
+            END IF
+            IF (TRIM(dips%dip_y_file)=='') THEN
+                WRITE(error_unit,'(4X,"[ERROR] ",A)') 'Y-field dipole file name not defined in the input'
+                STOP
+            END IF
+            IF (TRIM(dips%dip_z_file)=='') THEN
+                WRITE(error_unit,'(4X,"[ERROR] ",A)') 'Z-field dipole file name not defined in the input'
+                STOP
+            END IF
+            IF (rams%RR%framecount_rtp<0) THEN
+                WRITE(error_unit,'(4X,"[ERROR] ",A)') 'RTP framecount not defined!'
+                STOP
+            END IF
+            IF (rams%RR%damping_constant<0) THEN
+                WRITE(error_unit,'(4X,"[WARN]  ",A)') 'Damping constant not defined, setting it to 0.1 eV!'
+                rams%RR%damping_constant = 0.1_dp
+            END IF
+            IF (TRIM(rams%RR%check_pade)=='') THEN
+                WRITE(error_unit,'(4X,"[WARN]  ",A)') 'The calculation will continue without Pade approximants!'
+                rams%RR%check_pade = 'n'
+            END IF
+            IF (TRIM(rams%RR%check_pade)=='y' .AND. rams%RR%framecount_rtp_pade<0) THEN !this can also be adjusted
+                WRITE(error_unit,'(4X,"[WARN]  ",A)') 'Pade framecount is set to 80000!'
+                rams%RR%framecount_rtp_pade = 20000
+            END IF
+        !!Check for MD-RR
+        !****************************************************************************************************!
+        !****************************************************************************************************!
+        ELSEIF (gs%spectral_type%read_function=='MD-RR') THEN
             !check for type_dipole
             IF (TRIM(dips%type_dipole)=='') THEN
                 WRITE(error_unit,'(4X,"[WARN]  ",A)') 'type_dipole not defined in the input setting it to berry'
@@ -784,10 +840,6 @@ CONTAINS
                 STOP
             END IF
             !check for dipole file
-            !IF (TRIM(dips%dip_file)=='') THEN
-            !    WRITE(error_unit,'(4X,"[ERROR] ",A)') 'Dipole filename not defined in the input'
-            !    STOP
-            !END IF
             IF (TRIM(dips%dip_x_file)=='') THEN
                 WRITE(error_unit,'(4X,"[ERROR] ",A)') 'X-field dipole file name not defined in the input'
                 STOP
@@ -819,6 +871,22 @@ CONTAINS
             IF (rams%laser_in<0) THEN
                 WRITE(error_unit,'(4X,"[WARN]  ",A)') 'Incident laser frequency not defined, setting it to 1 0.5 cm⁻1'
                 rams%laser_in = 0.5
+            END IF
+            IF (rams%RR%framecount_rtp<0) THEN
+                WRITE(error_unit,'(4X,"[ERROR] ",A)') 'RTP framecount not defined!'
+                STOP
+            END IF
+            IF (rams%RR%damping_constant<0) THEN
+                WRITE(error_unit,'(4X,"[WARN]  ",A)') 'Damping constant not defined, setting it to 0.1 eV!'
+                rams%RR%damping_constant = 0.1_dp
+            END IF
+            IF (TRIM(rams%RR%check_pade)=='') THEN
+                WRITE(error_unit,'(4X,"[WARN]  ",A)') 'The calculation will continue without Pade approximants!'
+                rams%RR%check_pade = 'n'
+            END IF
+            IF (TRIM(rams%RR%check_pade)=='y' .AND. rams%RR%framecount_rtp_pade<0) THEN !this can also be adjusted
+                WRITE(error_unit,'(4X,"[WARN]  ",A)') 'Pade framecount is set to 80000!'
+                rams%RR%framecount_rtp_pade = 20000
             END IF
         END IF
 

@@ -84,9 +84,23 @@ MODULE vib_types
         COMPLEX(kind=dp), DIMENSION(:, :, :, :, :, :), ALLOCATABLE :: zhat_pol_rtp
 
         !MD RR
+        COMPLEX(kind=dp), DIMENSION(:, :), ALLOCATABLE      :: z_iso_resraman
+        COMPLEX(kind=dp), DIMENSION(:, :), ALLOCATABLE      :: z_aniso_resraman
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE      :: dip_x_rtp
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE      :: dip_y_rtp
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE      :: dip_z_rtp
+        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE      :: alpha_resraman_x_re
+        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE      :: alpha_resraman_x_im
+        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE      :: alpha_resraman_y_re
+        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE      :: alpha_resraman_y_im
+        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE      :: alpha_resraman_z_re
+        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE      :: alpha_resraman_z_im
+        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE      :: alpha_resraman_x_diff_re
+        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE      :: alpha_resraman_x_diff_im
+        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE      :: alpha_resraman_y_diff_re
+        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE      :: alpha_resraman_y_diff_im
+        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE      :: alpha_resraman_z_diff_re
+        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE      :: alpha_resraman_z_diff_im
         !CHARACTER(LEN=40)                                   :: rtp_dipole_x, rtp_dipole_y, rtp_dipole_z
         !COMPLEX(kind=dp), DIMENSION(:, :), ALLOCATABLE      :: z_iso_resraman, z_aniso_resraman
     CONTAINS
@@ -607,6 +621,24 @@ CONTAINS
 
         CALL rams%rr%dealloc_rr_all()
         IF (ALLOCATED(rams%RR%zhat_pol_rtp)) DEALLOCATE (rams%RR%zhat_pol_rtp)
+        IF (ALLOCATED(rams%RR%z_iso_resraman)) DEALLOCATE (rams%RR%z_iso_resraman)
+        IF (ALLOCATED(rams%RR%z_aniso_resraman)) DEALLOCATE (rams%RR%z_aniso_resraman)
+        IF (ALLOCATED(rams%RR%dip_x_rtp)) DEALLOCATE (rams%RR%dip_x_rtp)
+        IF (ALLOCATED(rams%RR%dip_y_rtp)) DEALLOCATE (rams%RR%dip_y_rtp)
+        IF (ALLOCATED(rams%RR%dip_z_rtp)) DEALLOCATE (rams%RR%dip_z_rtp)
+        IF (ALLOCATED(rams%RR%alpha_resraman_x_re)) DEALLOCATE (rams%RR%alpha_resraman_x_re)
+        IF (ALLOCATED(rams%RR%alpha_resraman_x_im)) DEALLOCATE (rams%RR%alpha_resraman_x_im)
+        IF (ALLOCATED(rams%RR%alpha_resraman_y_re)) DEALLOCATE (rams%RR%alpha_resraman_y_re)
+        IF (ALLOCATED(rams%RR%alpha_resraman_y_im)) DEALLOCATE (rams%RR%alpha_resraman_y_im)
+        IF (ALLOCATED(rams%RR%alpha_resraman_z_re)) DEALLOCATE (rams%RR%alpha_resraman_z_re)
+        IF (ALLOCATED(rams%RR%alpha_resraman_z_im)) DEALLOCATE (rams%RR%alpha_resraman_z_im)
+        IF (ALLOCATED(rams%RR%alpha_resraman_x_diff_re)) DEALLOCATE (rams%RR%alpha_resraman_x_diff_re)
+        IF (ALLOCATED(rams%RR%alpha_resraman_x_diff_im)) DEALLOCATE (rams%RR%alpha_resraman_x_diff_im)
+        IF (ALLOCATED(rams%RR%alpha_resraman_y_diff_re)) DEALLOCATE (rams%RR%alpha_resraman_y_diff_re)
+        IF (ALLOCATED(rams%RR%alpha_resraman_y_diff_im)) DEALLOCATE (rams%RR%alpha_resraman_y_diff_im)
+        IF (ALLOCATED(rams%RR%alpha_resraman_z_diff_re)) DEALLOCATE (rams%RR%alpha_resraman_z_diff_re)
+        IF (ALLOCATED(rams%RR%alpha_resraman_z_diff_im)) DEALLOCATE (rams%RR%alpha_resraman_z_diff_im)
+
     END SUBROUTINE deallocate_raman
 
 END MODULE vib_types

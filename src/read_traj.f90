@@ -50,16 +50,17 @@ CONTAINS
 
         CHARACTER(len=str_len)                                     :: msg  ! store error message
         INTEGER                                                   :: i, j, stat, runit
-
+        
         sys%framecount = 0
-
-        IF (gs%spectral_type%read_function/='MD-RR') THEN 
+        
+        IF (gs%spectral_type%read_function/='MD-RR' .AND. gs%spectral_type%read_function/='MD-ABS') THEN 
             OPEN (FILE=filename, STATUS='old', ACTION='read',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit)
             !Check if file exists
             CALL check_file_open(stat, msg, filename)
             READ (runit, *) sys%natom
             CLOSE (runit)
-        ELSEIF (gs%spectral_type%read_function=='MD-RR') THEN
+        ELSEIF (gs%spectral_type%read_function=='MD-RR' .OR. gs%spectral_type%read_function=='MD-ABS') THEN
+            rams%RR%framecount_rtp = rams%RR%framecount_rtp + 1
             sys%natom = rams%RR%framecount_rtp
         END IF
 
@@ -82,8 +83,6 @@ CONTAINS
         IF (gs%spectral_type%read_function/='P') THEN
             IF (dips%type_dipole=='berry' .OR. dips%type_dipole=='dfpt') THEN !!gas phase
                 sys%mol_num = 1
-                ! ELSEIF ((sys%periodic=='n' .AND. sys%system=='1') .OR. dips%type_dipole=='wannier') THEN !!fragment approach
-                !     sys%mol_num = 44 !20 !! fix later to 20
             END IF
         END IF
        
