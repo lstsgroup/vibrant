@@ -17,7 +17,7 @@
 PROGRAM vib2d
 
     USE, INTRINSIC           :: ISO_C_BINDING
-    USE iso_fortran_env, ONLY: output_unit, error_unit
+    USE ISO_FORTRAN_ENV, ONLY: output_unit, error_unit
     USE kinds, ONLY: dp, str_len
     USE constants, ONLY: speed_light, const_planck, const_permit, pi, const_charge, const_boltz, joule_unit, &
                          debye, ev_unit, action_unit, bohr2ang, hartreebohr2evang, am_u, at_u, ang, fs2s, reccm2ev, &
@@ -25,9 +25,10 @@ PROGRAM vib2d
     USE read_input, ONLY: parse_command_line, parse_input, check_input
     USE vib_types, ONLY: global_settings, systems, molecular_dynamics, static, dipoles, &
                          raman, init_global_settings, init_systems, init_molecular_dynamics, init_static, init_raman, deallocate_types
-    USE setup, ONLY: masses_charges, conversion, pbc_orthorombic, pbc_hexagonal
+    USE setup, ONLY: masses_charges, conversion
+    USE cell_types, ONLY: build_hmat, pbc, invert3x3, determinant3x3
     USE read_traj, ONLY: read_coord, read_coord_frame, read_normal_modes, read_static, read_static_resraman
-    USE dipole_calc, ONLY: center_mass, wannier, wannier_frag, solv_frag_index
+    USE dipole_calc, ONLY: compute_dipole
     USE vel_cor, ONLY: cvv, cvv_iso, cvv_aniso, cvv_only_x, cvv_resraman
     USE fin_diff, ONLY: central_diff, forward_diff, finite_diff_static, finite_diff_static_resraman
     USE calc_spectra, ONLY: spec_power, normal_mode_analysis, spec_static_ir, spec_static_raman, &
@@ -121,9 +122,9 @@ PROGRAM vib2d
     CALL parse_command_line(input_file_name)
 
     CALL parse_input(gs, sys, md, stats, dips, rams, input_file_name)
-    WRITE(*,'(90A, /)') REPEAT("-",90)
+    WRITE (*, '(90A, /)') REPEAT("-", 90)
     CALL check_input(gs, sys, md, stats, dips, rams)
-    WRITE(*,'(90A)') REPEAT("-",90)
+    WRITE (*, '(90A)') REPEAT("-", 90)
     !write(*,*) "input_file_name", input_file_name
     !write(*,*) "temperature", gs%temp
     !write(*,*) "laserin", gs%laser_in
@@ -206,11 +207,11 @@ PROGRAM vib2d
     ELSEIF (gs%spectral_type%read_function=='MD-IR') THEN
         CALL timings%register("reading coordinates")
         CALL read_coord(dips%dip_file, gs, sys, dips)
-        !  IF (sys%system=='1' .OR. sys%system=='2' .AND. dips%type_dipole=='wannier') THEN !!fragment approach or whole supercell
-        !      IF (sys%cell%cell_type=='1' .OR. sys%cell%cell_type=='2') THEN !!KP or SC
-        !          CALL masses_charges(gs, sys)
-        !      END IF
-        !  END IF
+        IF (dips%type_dipole=='wannier') THEN !!fragment approach or whole supercell
+            !      IF (sys%cell%cell_type=='1' .OR. sys%cell%cell_type=='2') THEN !!KP or SC
+            CALL masses_charges(gs, sys)
+            !      END IF
+        END IF
 
         CALL timings%register("calculating IR spectrum")
         CALL spec_ir(gs, sys, md, dips)
@@ -219,7 +220,7 @@ PROGRAM vib2d
 !        !***************************************************************************
     ELSEIF (gs%spectral_type%read_function=='MD-R') THEN
         !   sys%filename = wannier_free! <----  MUST BE ADJUSTED
-        IF (dips%type_dipole=='berry') THEN
+        IF (dips%type_dipole=='berry' .OR. dips%type_dipole=='wannier') THEN
             CALL timings%register("reading coordinates")
             CALL read_coord(dips%dip_file, gs, sys, dips)
         ELSEIF (dips%type_dipole=='dfpt') THEN

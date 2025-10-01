@@ -1,0 +1,27 @@
+&global
+ spectra MD-R
+ temperature 300
+&end global
+&dipoles
+ type_dipole wannier
+ field_strength 0.005
+ dip_file wannier_free_COF-1_sc_1250.xyz
+ dip_x_file wannier_X_COF-1_sc_1250.xyz
+ dip_y_file wannier_Y_COF-1_sc_1250.xyz
+ dip_z_file wannier_Z_COF-1_sc_1250.xyz
+&end dipoles
+&system
+ &cell
+  box_x 15.100 
+  box_y 15.101
+  box_z 13.457
+  cell_type hexagonal
+ &end cell
+%end system
+&md
+ time_step 2.5
+ correlation_depth 512
+&end md
+&raman
+ laser_in 1.165256
+&end raman

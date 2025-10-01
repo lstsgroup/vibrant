@@ -16,8 +16,9 @@
 
 MODULE fin_diff
     USE kinds, ONLY: dp
-    USE constants, ONLY: pi, bohr2ang, speed_light, fs2s, joule_unit, ev_unit, action_unit
+    USE constants, ONLY: pi, debye, bohr2ang, speed_light, fs2s, joule_unit, ev_unit, action_unit
     USE vib_types, ONLY: global_settings, systems, molecular_dynamics, static, dipoles, raman
+    USE cell_types, ONLY: build_hmat, pbc, invert3x3, determinant3x3
     IMPLICIT NONE
     PUBLIC :: central_diff, forward_diff, finite_diff_static, finite_diff_static_resraman
 
@@ -55,18 +56,18 @@ CONTAINS
         INTEGER, INTENT(INOUT)                                    :: mol_num
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(INOUT)  :: dip_free, dip_x
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(OUT)    :: alpha
+        REAL(kind=dp)  :: pol_quantum(3), diff, hmat(3, 3)
 
         INTEGER                                                  :: stat, i, j, k, m
         REAL(kind=dp)    :: conv_unit, damping_factor
 
         ALLOCATE (alpha(sys%framecount, mol_num, 3))
-        
-        
+
         IF (gs%spectral_type%read_function.EQ.'MD-RR' .OR. gs%spectral_type%read_function.EQ.'MD-ABS') THEN
             conv_unit = rams%RR%damping_constant*joule_unit/ev_unit !! J
             damping_factor = conv_unit/action_unit*rams%RR%dt_rtp*fs2s !! s-1
-        ENDIF
- 
+        END IF
+
         DO j = 1, sys%framecount
             DO k = 1, 3
                 IF (gs%spectral_type%read_function.NE.'MD-RR' .AND. gs%spectral_type%read_function.NE.'MD-ABS') THEN

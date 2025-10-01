@@ -16,7 +16,6 @@
 
 MODULE vel_cor
 
-    USE dipole_calc, ONLY: center_mass
     USE kinds, ONLY: dp, str_len
     USE ISO_FORTRAN_ENV, ONLY: output_unit, error_unit
     USE constants, ONLY: pi, ang, fs2s, at_u, bohr2ang
@@ -54,13 +53,7 @@ CONTAINS
         DO t0 = 1, sys%framecount - 2
             t1 = MIN(sys%framecount - 2, t0 + md%t_cor)
             DO j = 1, natom
-                IF (sys%frag_type=='2') THEN
-                    k = j + 8
-                ELSEIF (sys%frag_type=='3') THEN
-                    k = j + 20
-                ELSE
-                    k = j
-                END IF
+                k = j
                 IF (sys%input_mass=='y') THEN
                     md%z(0:t1 - t0) = md%z(0:t1 - t0) + (coord_v(t0, k, 1)*coord_v(t0:t1, j, 1) + coord_v(t0, j, 2)* &
                                                          coord_v(t0:t1, j, 2) + coord_v(t0, j, 3)*coord_v(t0:t1, j, 3))*sys%mass_atom(j)
@@ -130,13 +123,7 @@ CONTAINS
         DO t0 = 1, sys%framecount - 2
             t1 = MIN(sys%framecount - 2, t0 + md%t_cor)
             DO j = 1, mol_num
-                IF (sys%frag_type=='2') THEN
-                    k = j + 8
-                ELSEIF (sys%frag_type=='3') THEN
-                    k = j + 20
-                ELSE
-                    k = j
-                END IF
+                k = j
                 z_iso(0:t1 - t0) = z_iso(0:t1 - t0) + (alpha_diff_x(t0, k, 1) + alpha_diff_y(t0, k, 2) + alpha_diff_z(t0, k, 3))* &
                                    (alpha_diff_x(t0:t1, k, 1) + alpha_diff_y(t0:t1, k, 2) + alpha_diff_z(t0:t1, k, 3))
             END DO
@@ -191,13 +178,7 @@ CONTAINS
         DO t0 = 1, sys%framecount - 2
             t1 = MIN(sys%framecount - 2, t0 + md%t_cor)
             DO j = 1, mol_num
-                IF (sys%frag_type=='2') THEN
-                    k = j + 8
-                ELSEIF (sys%frag_type=='3') THEN
-                    k = j + 20
-                ELSE
-                    k = j
-                END IF
+                k = j
                 z_aniso(0:t1 - t0) = z_aniso(0:t1 - t0) + (alpha_diff_x(t0, k, 1) - alpha_diff_y(t0, k, 2)) &
                                      *(alpha_diff_x(t0:t1, k, 1) - alpha_diff_y(t0:t1, k, 2))/2.0_dp
                 z_aniso(0:t1 - t0) = z_aniso(0:t1 - t0) + (alpha_diff_y(t0, k, 2) - alpha_diff_z(t0, k, 3)) &
@@ -214,11 +195,7 @@ CONTAINS
             norm(0:t1 - t0) = norm(0:t1 - t0) + 1
         END DO
 
-        !PRINT *, norm(0:3), 'aniso norm'
-        !PRINT *, z_aniso(0:3), 'aniso z'
         z_aniso(:) = z_aniso(:)/norm(:)
-        !  z_aniso(:) = z_aniso(:)/(2.0_dp*pi)
-        !z_aniso(:)=REAL(z_aniso(:)/mol_num,kind=dp)
 
       !!Unit conversion of Debye^2/(E^2*fs^2) into C^4*s^2/kg^2
         z_aniso(:) = z_aniso(:)/(fs2s*fs2s)
@@ -258,11 +235,11 @@ CONTAINS
         INTEGER, DIMENSION(:, :), ALLOCATABLE                       :: norm_iso, norm_aniso
         COMPLEX(kind=dp)                                          :: im_unit
 
-        IF (rams%RR%check_pade=='n') THEN 
+        IF (rams%RR%check_pade=='n') THEN
             Nw = rams%RR%framecount_rtp - 1
-        ELSEIF (rams%RR%check_pade=='y') THEN 
+        ELSEIF (rams%RR%check_pade=='y') THEN
             Nw = rams%RR%framecount_rtp_pade
-        ENDIF
+        END IF
 
     !!!ISOTROPIC!!!
 
@@ -281,37 +258,37 @@ CONTAINS
             DO k = 1, Nw
             !!RE*RE
                 rams%RR%z_iso_resraman(0:t1 - t0, k) = rams%RR%z_iso_resraman(0:t1 - t0, k) &
-                                               + (rams%RR%alpha_resraman_x_diff_re(t0, k, 1) + rams%RR%alpha_resraman_y_diff_re(t0, k, 2) &
-                                                  + rams%RR%alpha_resraman_z_diff_re(t0, k, 3)) &
-                                               *(rams%RR%alpha_resraman_x_diff_re(t0:t1, k, 1) &
-                                                 + rams%RR%alpha_resraman_y_diff_re(t0:t1, k, 2) + rams%RR%alpha_resraman_z_diff_re(t0:t1, k, 3))
+                                                       + (rams%RR%alpha_resraman_x_diff_re(t0, k, 1) + rams%RR%alpha_resraman_y_diff_re(t0, k, 2) &
+                                                          + rams%RR%alpha_resraman_z_diff_re(t0, k, 3)) &
+                                                       *(rams%RR%alpha_resraman_x_diff_re(t0:t1, k, 1) &
+                                                         + rams%RR%alpha_resraman_y_diff_re(t0:t1, k, 2) + rams%RR%alpha_resraman_z_diff_re(t0:t1, k, 3))
             !!IM*IM
                 rams%RR%z_iso_resraman(0:t1 - t0, k) = rams%RR%z_iso_resraman(0:t1 - t0, k) &
-                                               + (rams%RR%alpha_resraman_x_diff_im(t0, k, 1) + rams%RR%alpha_resraman_y_diff_im(t0, k, 2) + &
-                                                  rams%RR%alpha_resraman_z_diff_im(t0, k, 3)) &
-                                               *(rams%RR%alpha_resraman_x_diff_im(t0:t1, k, 1) &
-                                                 + rams%RR%alpha_resraman_y_diff_im(t0:t1, k, 2) + rams%RR%alpha_resraman_z_diff_im(t0:t1, k, 3))
+                                                       + (rams%RR%alpha_resraman_x_diff_im(t0, k, 1) + rams%RR%alpha_resraman_y_diff_im(t0, k, 2) + &
+                                                          rams%RR%alpha_resraman_z_diff_im(t0, k, 3)) &
+                                                       *(rams%RR%alpha_resraman_x_diff_im(t0:t1, k, 1) &
+                                                         + rams%RR%alpha_resraman_y_diff_im(t0:t1, k, 2) + rams%RR%alpha_resraman_z_diff_im(t0:t1, k, 3))
             !!RE*IM
                 rams%RR%z_iso_resraman(0:t1 - t0, k) = rams%RR%z_iso_resraman(0:t1 - t0, k) &
-                                               + ((rams%RR%alpha_resraman_x_diff_re(t0, k, 1) + rams%RR%alpha_resraman_y_diff_re(t0, k, 2) &
-                                                   + rams%RR%alpha_resraman_z_diff_re(t0, k, 3)) &
-                                                  *(rams%RR%alpha_resraman_x_diff_im(t0:t1, k, 1) &
-                                                    + rams%RR%alpha_resraman_y_diff_im(t0:t1, k, 2) &
-                                                    + rams%RR%alpha_resraman_z_diff_im(t0:t1, k, 3)))*im_unit
+                                                       + ((rams%RR%alpha_resraman_x_diff_re(t0, k, 1) + rams%RR%alpha_resraman_y_diff_re(t0, k, 2) &
+                                                           + rams%RR%alpha_resraman_z_diff_re(t0, k, 3)) &
+                                                          *(rams%RR%alpha_resraman_x_diff_im(t0:t1, k, 1) &
+                                                            + rams%RR%alpha_resraman_y_diff_im(t0:t1, k, 2) &
+                                                            + rams%RR%alpha_resraman_z_diff_im(t0:t1, k, 3)))*im_unit
             !!IM*RE (SUBTRACT)
                 rams%RR%z_iso_resraman(0:t1 - t0, k) = rams%RR%z_iso_resraman(0:t1 - t0, k) &
-                                               - ((rams%RR%alpha_resraman_x_diff_im(t0, k, 1) + rams%RR%alpha_resraman_y_diff_im(t0, k, 2) &
-                                                   + rams%RR%alpha_resraman_z_diff_im(t0, k, 3)) &
-                                                  *(rams%RR%alpha_resraman_x_diff_re(t0:t1, k, 1) + rams%RR%alpha_resraman_y_diff_re(t0:t1, k, 2) &
-                                                    + rams%RR%alpha_resraman_z_diff_re(t0:t1, k, 3)))*im_unit
+                                                       - ((rams%RR%alpha_resraman_x_diff_im(t0, k, 1) + rams%RR%alpha_resraman_y_diff_im(t0, k, 2) &
+                                                           + rams%RR%alpha_resraman_z_diff_im(t0, k, 3)) &
+                                                          *(rams%RR%alpha_resraman_x_diff_re(t0:t1, k, 1) + rams%RR%alpha_resraman_y_diff_re(t0:t1, k, 2) &
+                                                            + rams%RR%alpha_resraman_z_diff_re(t0:t1, k, 3)))*im_unit
 
                 norm_iso(0:t1 - t0, k) = norm_iso(0:t1 - t0, k) + 1.0_dp
             END DO
         END DO
 
-        rams%RR%z_iso_resraman(:, :) = rams%RR%z_iso_resraman(:, :) / REAL(norm_iso(:, :), kind=dp)
+        rams%RR%z_iso_resraman(:, :) = rams%RR%z_iso_resraman(:, :)/REAL(norm_iso(:, :), kind=dp)
         rams%RR%z_iso_resraman(:, :) = rams%RR%z_iso_resraman(:, :)/9._dp
-      
+
         !!Unit conversion of Debye^2/(E^2*fs^2) into Debye^2/(E^2*s^2)
         rams%RR%z_iso_resraman(:, :) = rams%RR%z_iso_resraman(:, :)/(fs2s*fs2s)
         !!!Hann window function
@@ -322,7 +299,7 @@ CONTAINS
         END DO
         !!Data mirroring
         DO i = 1, Nw
-            rams%RR%z_iso_resraman(md%t_cor, i) = 0.0_dp 
+            rams%RR%z_iso_resraman(md%t_cor, i) = 0.0_dp
         END DO
 
         DO i = 1, md%t_cor - 1
@@ -350,132 +327,132 @@ CONTAINS
             DO k = 1, Nw
     !!RE*RE
                 rams%RR%z_aniso_resraman(0:t1 - t0, k) = rams%RR%z_aniso_resraman(0:t1 - t0, k) + (rams%RR%alpha_resraman_x_diff_re(t0, k, 1) &
-                                                                                   - rams%RR%alpha_resraman_y_diff_re(t0, k, 2)) &
-                                                 *(rams%RR%alpha_resraman_x_diff_re(t0:t1, k, 1) &
-                                                   - rams%RR%alpha_resraman_y_diff_re(t0:t1, k, 2))/2.0_dp
+                                                                                                   - rams%RR%alpha_resraman_y_diff_re(t0, k, 2)) &
+                                                         *(rams%RR%alpha_resraman_x_diff_re(t0:t1, k, 1) &
+                                                           - rams%RR%alpha_resraman_y_diff_re(t0:t1, k, 2))/2.0_dp
                 rams%RR%z_aniso_resraman(0:t1 - t0, k) = rams%RR%z_aniso_resraman(0:t1 - t0, k) + (rams%RR%alpha_resraman_y_diff_re(t0, k, 2) &
-                                                                                   - rams%RR%alpha_resraman_z_diff_re(t0, k, 3)) &
-                                                 *(rams%RR%alpha_resraman_y_diff_re(t0:t1, k, 2) &
-                                                   - rams%RR%alpha_resraman_z_diff_re(t0:t1, k, 3))/2.0_dp
+                                                                                                   - rams%RR%alpha_resraman_z_diff_re(t0, k, 3)) &
+                                                         *(rams%RR%alpha_resraman_y_diff_re(t0:t1, k, 2) &
+                                                           - rams%RR%alpha_resraman_z_diff_re(t0:t1, k, 3))/2.0_dp
                 rams%RR%z_aniso_resraman(0:t1 - t0, k) = rams%RR%z_aniso_resraman(0:t1 - t0, k) + (rams%RR%alpha_resraman_z_diff_re(t0, k, 3) &
-                                                                                   - rams%RR%alpha_resraman_x_diff_re(t0, k, 1)) &
-                                                 *(rams%RR%alpha_resraman_z_diff_re(t0:t1, k, 3) &
-                                                   - rams%RR%alpha_resraman_x_diff_re(t0:t1, k, 1))/2.0_dp
+                                                                                                   - rams%RR%alpha_resraman_x_diff_re(t0, k, 1)) &
+                                                         *(rams%RR%alpha_resraman_z_diff_re(t0:t1, k, 3) &
+                                                           - rams%RR%alpha_resraman_x_diff_re(t0:t1, k, 1))/2.0_dp
 
                 rams%RR%z_aniso_resraman(0:t1 - t0, k) = rams%RR%z_aniso_resraman(0:t1 - t0, k) &
-                                                 + (rams%RR%alpha_resraman_x_diff_re(t0, k, 2)*0.50_dp + &
-                                                    rams%RR%alpha_resraman_y_diff_re(t0, k, 1)*0.50_dp) &
-                                                 *(rams%RR%alpha_resraman_x_diff_re(t0:t1, k, 2)*0.50_dp + &
-                                                   rams%RR%alpha_resraman_y_diff_re(t0:t1, k, 1)*0.50_dp)*3.0_dp
+                                                         + (rams%RR%alpha_resraman_x_diff_re(t0, k, 2)*0.50_dp + &
+                                                            rams%RR%alpha_resraman_y_diff_re(t0, k, 1)*0.50_dp) &
+                                                         *(rams%RR%alpha_resraman_x_diff_re(t0:t1, k, 2)*0.50_dp + &
+                                                           rams%RR%alpha_resraman_y_diff_re(t0:t1, k, 1)*0.50_dp)*3.0_dp
 
                 rams%RR%z_aniso_resraman(0:t1 - t0, k) = rams%RR%z_aniso_resraman(0:t1 - t0, k) &
-                                                 + (rams%RR%alpha_resraman_y_diff_re(t0, k, 3)*0.50_dp + &
-                                                    rams%RR%alpha_resraman_z_diff_re(t0, k, 2)*0.50_dp) &
-                                                 *(rams%RR%alpha_resraman_y_diff_re(t0:t1, k, 3)*0.50_dp + &
-                                                   rams%RR%alpha_resraman_z_diff_re(t0:t1, k, 2)*0.50_dp)*3.0_dp
+                                                         + (rams%RR%alpha_resraman_y_diff_re(t0, k, 3)*0.50_dp + &
+                                                            rams%RR%alpha_resraman_z_diff_re(t0, k, 2)*0.50_dp) &
+                                                         *(rams%RR%alpha_resraman_y_diff_re(t0:t1, k, 3)*0.50_dp + &
+                                                           rams%RR%alpha_resraman_z_diff_re(t0:t1, k, 2)*0.50_dp)*3.0_dp
 
                 rams%RR%z_aniso_resraman(0:t1 - t0, k) = rams%RR%z_aniso_resraman(0:t1 - t0, k) &
-                                                 + (rams%RR%alpha_resraman_z_diff_re(t0, k, 1)*0.50_dp + &
-                                                    rams%RR%alpha_resraman_x_diff_re(t0, k, 3)*0.50_dp) &
-                                                 *(rams%RR%alpha_resraman_z_diff_re(t0:t1, k, 1)*0.50_dp + &
-                                                   rams%RR%alpha_resraman_x_diff_re(t0:t1, k, 3)*0.50_dp)*3.0_dp
+                                                         + (rams%RR%alpha_resraman_z_diff_re(t0, k, 1)*0.50_dp + &
+                                                            rams%RR%alpha_resraman_x_diff_re(t0, k, 3)*0.50_dp) &
+                                                         *(rams%RR%alpha_resraman_z_diff_re(t0:t1, k, 1)*0.50_dp + &
+                                                           rams%RR%alpha_resraman_x_diff_re(t0:t1, k, 3)*0.50_dp)*3.0_dp
 
     !!IM*IM
                 rams%RR%z_aniso_resraman(0:t1 - t0, k) = rams%RR%z_aniso_resraman(0:t1 - t0, k) &
-                                                 + (rams%RR%alpha_resraman_x_diff_im(t0, k, 1) - rams%RR%alpha_resraman_y_diff_im(t0, k, 2)) &
-                                                 *(rams%RR%alpha_resraman_x_diff_im(t0:t1, k, 1) &
-                                                   - rams%RR%alpha_resraman_y_diff_im(t0:t1, k, 2))/2.0_dp
+                                                         + (rams%RR%alpha_resraman_x_diff_im(t0, k, 1) - rams%RR%alpha_resraman_y_diff_im(t0, k, 2)) &
+                                                         *(rams%RR%alpha_resraman_x_diff_im(t0:t1, k, 1) &
+                                                           - rams%RR%alpha_resraman_y_diff_im(t0:t1, k, 2))/2.0_dp
                 rams%RR%z_aniso_resraman(0:t1 - t0, k) = rams%RR%z_aniso_resraman(0:t1 - t0, k) &
-                                                 + (rams%RR%alpha_resraman_y_diff_im(t0, k, 2) - rams%RR%alpha_resraman_z_diff_im(t0, k, 3)) &
-                                                 *(rams%RR%alpha_resraman_y_diff_im(t0:t1, k, 2) &
-                                                   - rams%RR%alpha_resraman_z_diff_im(t0:t1, k, 3))/2.0_dp
+                                                         + (rams%RR%alpha_resraman_y_diff_im(t0, k, 2) - rams%RR%alpha_resraman_z_diff_im(t0, k, 3)) &
+                                                         *(rams%RR%alpha_resraman_y_diff_im(t0:t1, k, 2) &
+                                                           - rams%RR%alpha_resraman_z_diff_im(t0:t1, k, 3))/2.0_dp
                 rams%RR%z_aniso_resraman(0:t1 - t0, k) = rams%RR%z_aniso_resraman(0:t1 - t0, k) &
-                                                 + (rams%RR%alpha_resraman_z_diff_im(t0, k, 3) - rams%RR%alpha_resraman_x_diff_im(t0, k, 1)) &
-                                                 *(rams%RR%alpha_resraman_z_diff_im(t0:t1, k, 3) &
-                                                   - rams%RR%alpha_resraman_x_diff_im(t0:t1, k, 1))/2.0_dp
+                                                         + (rams%RR%alpha_resraman_z_diff_im(t0, k, 3) - rams%RR%alpha_resraman_x_diff_im(t0, k, 1)) &
+                                                         *(rams%RR%alpha_resraman_z_diff_im(t0:t1, k, 3) &
+                                                           - rams%RR%alpha_resraman_x_diff_im(t0:t1, k, 1))/2.0_dp
 
                 rams%RR%z_aniso_resraman(0:t1 - t0, k) = rams%RR%z_aniso_resraman(0:t1 - t0, k) &
-                                                 + (rams%RR%alpha_resraman_x_diff_im(t0, k, 2)*0.50_dp + &
-                                                    rams%RR%alpha_resraman_y_diff_im(t0, k, 1)*0.50_dp) &
-                                                 *(rams%RR%alpha_resraman_x_diff_im(t0:t1, k, 2)*0.50_dp + &
-                                                   rams%RR%alpha_resraman_y_diff_im(t0:t1, k, 1)*0.50_dp)*3.0_dp
+                                                         + (rams%RR%alpha_resraman_x_diff_im(t0, k, 2)*0.50_dp + &
+                                                            rams%RR%alpha_resraman_y_diff_im(t0, k, 1)*0.50_dp) &
+                                                         *(rams%RR%alpha_resraman_x_diff_im(t0:t1, k, 2)*0.50_dp + &
+                                                           rams%RR%alpha_resraman_y_diff_im(t0:t1, k, 1)*0.50_dp)*3.0_dp
 
                 rams%RR%z_aniso_resraman(0:t1 - t0, k) = rams%RR%z_aniso_resraman(0:t1 - t0, k) &
-                                                 + (rams%RR%alpha_resraman_y_diff_im(t0, k, 3)*0.50_dp + &
-                                                    rams%RR%alpha_resraman_z_diff_im(t0, k, 2)*0.50_dp) &
-                                                 *(rams%RR%alpha_resraman_y_diff_im(t0:t1, k, 3)*0.50_dp + &
-                                                   rams%RR%alpha_resraman_z_diff_im(t0:t1, k, 2)*0.50_dp)*3.0_dp
+                                                         + (rams%RR%alpha_resraman_y_diff_im(t0, k, 3)*0.50_dp + &
+                                                            rams%RR%alpha_resraman_z_diff_im(t0, k, 2)*0.50_dp) &
+                                                         *(rams%RR%alpha_resraman_y_diff_im(t0:t1, k, 3)*0.50_dp + &
+                                                           rams%RR%alpha_resraman_z_diff_im(t0:t1, k, 2)*0.50_dp)*3.0_dp
 
                 rams%RR%z_aniso_resraman(0:t1 - t0, k) = rams%RR%z_aniso_resraman(0:t1 - t0, k) &
-                                                 + (rams%RR%alpha_resraman_z_diff_im(t0, k, 1)*0.50_dp + &
-                                                    rams%RR%alpha_resraman_x_diff_im(t0, k, 3)*0.50_dp) &
-                                                 *(rams%RR%alpha_resraman_z_diff_im(t0:t1, k, 1)*0.50_dp + &
-                                                   rams%RR%alpha_resraman_x_diff_im(t0:t1, k, 3)*0.50_dp)*3.0_dp
+                                                         + (rams%RR%alpha_resraman_z_diff_im(t0, k, 1)*0.50_dp + &
+                                                            rams%RR%alpha_resraman_x_diff_im(t0, k, 3)*0.50_dp) &
+                                                         *(rams%RR%alpha_resraman_z_diff_im(t0:t1, k, 1)*0.50_dp + &
+                                                           rams%RR%alpha_resraman_x_diff_im(t0:t1, k, 3)*0.50_dp)*3.0_dp
 
     !!RE*IM
                 rams%RR%z_aniso_resraman(0:t1 - t0, k) = rams%RR%z_aniso_resraman(0:t1 - t0, k) &
-                                                 + ((rams%RR%alpha_resraman_x_diff_re(t0, k, 1) - rams%RR%alpha_resraman_y_diff_re(t0, k, 2)) &
-                                                    *(rams%RR%alpha_resraman_x_diff_im(t0:t1, k, 1) &
-                                                      - rams%RR%alpha_resraman_y_diff_im(t0:t1, k, 2)))/2.0_dp*im_unit
+                                                         + ((rams%RR%alpha_resraman_x_diff_re(t0, k, 1) - rams%RR%alpha_resraman_y_diff_re(t0, k, 2)) &
+                                                            *(rams%RR%alpha_resraman_x_diff_im(t0:t1, k, 1) &
+                                                              - rams%RR%alpha_resraman_y_diff_im(t0:t1, k, 2)))/2.0_dp*im_unit
                 rams%RR%z_aniso_resraman(0:t1 - t0, k) = rams%RR%z_aniso_resraman(0:t1 - t0, k) &
-                                                 + ((rams%RR%alpha_resraman_y_diff_re(t0, k, 2) - rams%RR%alpha_resraman_z_diff_re(t0, k, 3)) &
-                                                    *(rams%RR%alpha_resraman_y_diff_im(t0:t1, k, 2) &
-                                                      - rams%RR%alpha_resraman_z_diff_im(t0:t1, k, 3)))/2.0_dp*im_unit
+                                                         + ((rams%RR%alpha_resraman_y_diff_re(t0, k, 2) - rams%RR%alpha_resraman_z_diff_re(t0, k, 3)) &
+                                                            *(rams%RR%alpha_resraman_y_diff_im(t0:t1, k, 2) &
+                                                              - rams%RR%alpha_resraman_z_diff_im(t0:t1, k, 3)))/2.0_dp*im_unit
                 rams%RR%z_aniso_resraman(0:t1 - t0, k) = rams%RR%z_aniso_resraman(0:t1 - t0, k) &
-                                                 + ((rams%RR%alpha_resraman_z_diff_re(t0, k, 3) - rams%RR%alpha_resraman_x_diff_re(t0, k, 1)) &
-                                                    *(rams%RR%alpha_resraman_z_diff_im(t0:t1, k, 3) &
-                                                      - rams%RR%alpha_resraman_x_diff_im(t0:t1, k, 1)))/2.0_dp*im_unit
+                                                         + ((rams%RR%alpha_resraman_z_diff_re(t0, k, 3) - rams%RR%alpha_resraman_x_diff_re(t0, k, 1)) &
+                                                            *(rams%RR%alpha_resraman_z_diff_im(t0:t1, k, 3) &
+                                                              - rams%RR%alpha_resraman_x_diff_im(t0:t1, k, 1)))/2.0_dp*im_unit
 
                 rams%RR%z_aniso_resraman(0:t1 - t0, k) = rams%RR%z_aniso_resraman(0:t1 - t0, k) &
-                                                 + ((rams%RR%alpha_resraman_x_diff_re(t0, k, 2)* &
-                                                     0.50_dp + rams%RR%alpha_resraman_y_diff_re(t0, k, 1) &
-                                                     *0.50_dp)*(rams%RR%alpha_resraman_x_diff_im(t0:t1, k, 2)*0.50_dp &
-                                                                + rams%RR%alpha_resraman_y_diff_im(t0:t1, k, 1)*0.50_dp))*3.0_dp*im_unit
+                                                         + ((rams%RR%alpha_resraman_x_diff_re(t0, k, 2)* &
+                                                             0.50_dp + rams%RR%alpha_resraman_y_diff_re(t0, k, 1) &
+                                                             *0.50_dp)*(rams%RR%alpha_resraman_x_diff_im(t0:t1, k, 2)*0.50_dp &
+                                                                        + rams%RR%alpha_resraman_y_diff_im(t0:t1, k, 1)*0.50_dp))*3.0_dp*im_unit
                 rams%RR%z_aniso_resraman(0:t1 - t0, k) = rams%RR%z_aniso_resraman(0:t1 - t0, k) &
-                                                 + ((rams%RR%alpha_resraman_y_diff_re(t0, k, 3)* &
-                                                     0.50_dp + rams%RR%alpha_resraman_z_diff_re(t0, k, 2) &
-                                                     *0.50_dp)*(rams%RR%alpha_resraman_y_diff_im(t0:t1, k, 3)*0.50_dp &
-                                                                + rams%RR%alpha_resraman_z_diff_im(t0:t1, k, 2)*0.50_dp))*3.0_dp*im_unit
+                                                         + ((rams%RR%alpha_resraman_y_diff_re(t0, k, 3)* &
+                                                             0.50_dp + rams%RR%alpha_resraman_z_diff_re(t0, k, 2) &
+                                                             *0.50_dp)*(rams%RR%alpha_resraman_y_diff_im(t0:t1, k, 3)*0.50_dp &
+                                                                        + rams%RR%alpha_resraman_z_diff_im(t0:t1, k, 2)*0.50_dp))*3.0_dp*im_unit
                 rams%RR%z_aniso_resraman(0:t1 - t0, k) = rams%RR%z_aniso_resraman(0:t1 - t0, k) &
-                                                 + ((rams%RR%alpha_resraman_z_diff_re(t0, k, 1)* &
-                                                     0.50_dp + rams%RR%alpha_resraman_x_diff_re(t0, k, 3) &
-                                                     *0.50_dp)*(rams%RR%alpha_resraman_z_diff_im(t0:t1, k, 1)*0.50_dp &
-                                                                + rams%RR%alpha_resraman_x_diff_im(t0:t1, k, 3)*0.50_dp))*3.0_dp*im_unit
+                                                         + ((rams%RR%alpha_resraman_z_diff_re(t0, k, 1)* &
+                                                             0.50_dp + rams%RR%alpha_resraman_x_diff_re(t0, k, 3) &
+                                                             *0.50_dp)*(rams%RR%alpha_resraman_z_diff_im(t0:t1, k, 1)*0.50_dp &
+                                                                        + rams%RR%alpha_resraman_x_diff_im(t0:t1, k, 3)*0.50_dp))*3.0_dp*im_unit
 
     !!IM*RE (SUBTRACT)
                 rams%RR%z_aniso_resraman(0:t1 - t0, k) = rams%RR%z_aniso_resraman(0:t1 - t0, k) &
-                                                 - ((rams%RR%alpha_resraman_x_diff_im(t0, k, 1) - rams%RR%alpha_resraman_y_diff_im(t0, k, 2)) &
-                                                    *(rams%RR%alpha_resraman_x_diff_re(t0:t1, k, 1) &
-                                                      - rams%RR%alpha_resraman_y_diff_re(t0:t1, k, 2)))/2.0_dp*im_unit
+                                                         - ((rams%RR%alpha_resraman_x_diff_im(t0, k, 1) - rams%RR%alpha_resraman_y_diff_im(t0, k, 2)) &
+                                                            *(rams%RR%alpha_resraman_x_diff_re(t0:t1, k, 1) &
+                                                              - rams%RR%alpha_resraman_y_diff_re(t0:t1, k, 2)))/2.0_dp*im_unit
                 rams%RR%z_aniso_resraman(0:t1 - t0, k) = rams%RR%z_aniso_resraman(0:t1 - t0, k) &
-                                                 - ((rams%RR%alpha_resraman_y_diff_im(t0, k, 2) - rams%RR%alpha_resraman_z_diff_im(t0, k, 3)) &
-                                                    *(rams%RR%alpha_resraman_y_diff_re(t0:t1, k, 2) &
-                                                      - rams%RR%alpha_resraman_z_diff_re(t0:t1, k, 3)))/2.0_dp*im_unit
+                                                         - ((rams%RR%alpha_resraman_y_diff_im(t0, k, 2) - rams%RR%alpha_resraman_z_diff_im(t0, k, 3)) &
+                                                            *(rams%RR%alpha_resraman_y_diff_re(t0:t1, k, 2) &
+                                                              - rams%RR%alpha_resraman_z_diff_re(t0:t1, k, 3)))/2.0_dp*im_unit
                 rams%RR%z_aniso_resraman(0:t1 - t0, k) = rams%RR%z_aniso_resraman(0:t1 - t0, k) &
-                                                 - ((rams%RR%alpha_resraman_z_diff_im(t0, k, 3) - rams%RR%alpha_resraman_x_diff_im(t0, k, 1)) &
-                                                    *(rams%RR%alpha_resraman_z_diff_re(t0:t1, k, 3) &
-                                                      - rams%RR%alpha_resraman_x_diff_re(t0:t1, k, 1)))/2.0_dp*im_unit
+                                                         - ((rams%RR%alpha_resraman_z_diff_im(t0, k, 3) - rams%RR%alpha_resraman_x_diff_im(t0, k, 1)) &
+                                                            *(rams%RR%alpha_resraman_z_diff_re(t0:t1, k, 3) &
+                                                              - rams%RR%alpha_resraman_x_diff_re(t0:t1, k, 1)))/2.0_dp*im_unit
                 rams%RR%z_aniso_resraman(0:t1 - t0, k) = rams%RR%z_aniso_resraman(0:t1 - t0, k) &
-                                                 - ((rams%RR%alpha_resraman_x_diff_im(t0, k, 2)*0.50_dp &
-                                                     + rams%RR%alpha_resraman_y_diff_im(t0, k, 1) &
-                                                     *0.50_dp)*(rams%RR%alpha_resraman_x_diff_re(t0:t1, k, 2)*0.50_dp &
-                                                                + rams%RR%alpha_resraman_y_diff_re(t0:t1, k, 1)*0.50_dp))*3.0_dp*im_unit
+                                                         - ((rams%RR%alpha_resraman_x_diff_im(t0, k, 2)*0.50_dp &
+                                                             + rams%RR%alpha_resraman_y_diff_im(t0, k, 1) &
+                                                             *0.50_dp)*(rams%RR%alpha_resraman_x_diff_re(t0:t1, k, 2)*0.50_dp &
+                                                                        + rams%RR%alpha_resraman_y_diff_re(t0:t1, k, 1)*0.50_dp))*3.0_dp*im_unit
                 rams%RR%z_aniso_resraman(0:t1 - t0, k) = rams%RR%z_aniso_resraman(0:t1 - t0, k) &
-                                                 - ((rams%RR%alpha_resraman_y_diff_im(t0, k, 3)*0.50_dp &
-                                                     + rams%RR%alpha_resraman_z_diff_im(t0, k, 2) &
-                                                     *0.50_dp)*(rams%RR%alpha_resraman_y_diff_re(t0:t1, k, 3)*0.50_dp &
-                                                                + rams%RR%alpha_resraman_z_diff_re(t0:t1, k, 2)*0.50_dp))*3.0_dp*im_unit
+                                                         - ((rams%RR%alpha_resraman_y_diff_im(t0, k, 3)*0.50_dp &
+                                                             + rams%RR%alpha_resraman_z_diff_im(t0, k, 2) &
+                                                             *0.50_dp)*(rams%RR%alpha_resraman_y_diff_re(t0:t1, k, 3)*0.50_dp &
+                                                                        + rams%RR%alpha_resraman_z_diff_re(t0:t1, k, 2)*0.50_dp))*3.0_dp*im_unit
                 rams%RR%z_aniso_resraman(0:t1 - t0, k) = rams%RR%z_aniso_resraman(0:t1 - t0, k) &
-                                                 - ((rams%RR%alpha_resraman_z_diff_im(t0, k, 1)*0.50_dp &
-                                                     + rams%RR%alpha_resraman_x_diff_im(t0, k, 3)*0.50_dp) &
-                                                    *(rams%RR%alpha_resraman_z_diff_re(t0:t1, k, 1)*0.50_dp &
-                                                      + rams%RR%alpha_resraman_x_diff_re(t0:t1, k, 3)*0.50_dp))*3.0_dp*im_unit
+                                                         - ((rams%RR%alpha_resraman_z_diff_im(t0, k, 1)*0.50_dp &
+                                                             + rams%RR%alpha_resraman_x_diff_im(t0, k, 3)*0.50_dp) &
+                                                            *(rams%RR%alpha_resraman_z_diff_re(t0:t1, k, 1)*0.50_dp &
+                                                              + rams%RR%alpha_resraman_x_diff_re(t0:t1, k, 3)*0.50_dp))*3.0_dp*im_unit
 
                 norm_aniso(0:t1 - t0, k) = norm_aniso(0:t1 - t0, k) + 1.0_dp
             END DO
         END DO
-        
-        rams%RR%z_aniso_resraman(:, :) = rams%RR%z_aniso_resraman(:, :) / REAL(norm_aniso(:, :), kind=dp)
+
+        rams%RR%z_aniso_resraman(:, :) = rams%RR%z_aniso_resraman(:, :)/REAL(norm_aniso(:, :), kind=dp)
         !!Unit conversion of Debye^2/(E^2*fs^2) into Debye^2/(E^2*s^2)
         rams%RR%z_aniso_resraman(:, :) = rams%RR%z_aniso_resraman(:, :)/(fs2s*fs2s)
         !!!Hann window function
@@ -492,7 +469,7 @@ CONTAINS
         DO i = 1, md%t_cor - 1
             DO j = 1, Nw
                 rams%RR%z_aniso_resraman(md%t_cor + i, j) = CONJG(rams%RR%z_aniso_resraman(md%t_cor - i, j))
-           END DO
+            END DO
         END DO
 
         OPEN (FILE='result_cvv_aniso_resraman.txt', STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)

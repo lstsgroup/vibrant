@@ -17,7 +17,7 @@
 MODULE read_traj
 
     USE kinds, ONLY: dp, str_len
-    USE iso_fortran_env, ONLY: output_unit, error_unit
+    USE ISO_FORTRAN_ENV, ONLY: output_unit, error_unit
     USE vib_types, ONLY: global_settings, systems, static, dipoles, raman, molecular_dynamics, static_property
 
     IMPLICIT NONE
@@ -29,14 +29,14 @@ MODULE read_traj
 CONTAINS
 
     SUBROUTINE check_file_open(stat, msg, filename)
-        INTEGER,      INTENT(IN) :: stat
+        INTEGER, INTENT(IN) :: stat
         CHARACTER(*), INTENT(IN) :: msg
         CHARACTER(*), INTENT(IN) :: filename
 
-        IF (stat /= 0) THEN
-            WRITE(error_unit,'(4X,"[ERROR] could not open file ",A)') TRIM(filename)
-            WRITE(error_unit,'(4X,"I/O error message: ",A)')         TRIM(msg)
-        STOP 
+        IF (stat/=0) THEN
+            WRITE (error_unit, '(4X,"[ERROR] could not open file ",A)') TRIM(filename)
+            WRITE (error_unit, '(4X,"I/O error message: ",A)') TRIM(msg)
+            STOP
         END IF
     END SUBROUTINE check_file_open
 
@@ -50,11 +50,11 @@ CONTAINS
 
         CHARACTER(len=str_len)                                     :: msg  ! store error message
         INTEGER                                                   :: i, j, stat, runit
-        
+
         sys%framecount = 0
-        
-        IF (gs%spectral_type%read_function/='MD-RR' .AND. gs%spectral_type%read_function/='MD-ABS') THEN 
-            OPEN (FILE=filename, STATUS='old', ACTION='read',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit)
+
+        IF (gs%spectral_type%read_function/='MD-RR' .AND. gs%spectral_type%read_function/='MD-ABS') THEN
+            OPEN (FILE=filename, STATUS='old', ACTION='read', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
             !Check if file exists
             CALL check_file_open(stat, msg, filename)
             READ (runit, *) sys%natom
@@ -66,7 +66,7 @@ CONTAINS
 
         ALLOCATE (sys%element(sys%natom), sys%coord(sys%natom, 3))
 
-        OPEN (FILE=filename, STATUS='old', ACTION='read',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit)
+        OPEN (FILE=filename, STATUS='old', ACTION='read', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
         !Check if file exists
         CALL check_file_open(stat, msg, filename)
         DO
@@ -81,13 +81,10 @@ CONTAINS
         CLOSE (runit)
 
         IF (gs%spectral_type%read_function/='P') THEN
-            IF (dips%type_dipole=='berry' .OR. dips%type_dipole=='dfpt') THEN !!gas phase
+            IF (dips%type_dipole=='berry' .OR. dips%type_dipole=='dfpt' .OR. dips%type_dipole=='wannier') THEN !!gas phase
                 sys%mol_num = 1
             END IF
         END IF
-       
-        WRITE (*, '(4X,"Number of mols", T60, I0)') sys%mol_num
-        WRITE (*, '(4X,"Number of frames", T60, I0)')   sys%framecount
 
     END SUBROUTINE read_coord
 
@@ -104,22 +101,22 @@ CONTAINS
         INTEGER                                                    :: i, j, stat, runit, buff
 
         ALLOCATE (coord_v(sys%framecount, natom, 3))
-        OPEN (FILE=filename, STATUS='old', ACTION='read',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit)
+        OPEN (FILE=filename, STATUS='old', ACTION='read', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
         !Check if file exists
         CALL check_file_open(stat, msg, filename)
         !Start reading if file found
         DO
             DO j = 1, sys%framecount
-                READ (runit, *, END=999) 
+                READ (runit, *, END=999)
                 READ (runit, *)
                 DO i = 1, natom
                     IF (ALLOCATED(sys%element)) THEN
-                        READ (runit, *) sys%element(i) , coord_v(j, i, 1), coord_v(j, i, 2), coord_v(j, i, 3)
-                    ELSE 
-                        READ (runit, *) buff , coord_v(j, i, 1), coord_v(j, i, 2), coord_v(j, i, 3)
+                        READ (runit, *) sys%element(i), coord_v(j, i, 1), coord_v(j, i, 2), coord_v(j, i, 3)
+                    ELSE
+                        READ (runit, *) buff, coord_v(j, i, 1), coord_v(j, i, 2), coord_v(j, i, 3)
                     END IF
                 END DO
-                
+
             END DO
         END DO
 999     CONTINUE
@@ -144,7 +141,7 @@ CONTAINS
 
             CALL stats%init_force(sys%natom, 1)
 
-            OPEN (FILE=stats%force_file, STATUS='old', ACTION='read',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit)
+            OPEN (FILE=stats%force_file, STATUS='old', ACTION='read', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
             !Check if file exists
             CALL check_file_open(stat, msg, stats%force_file)
             DO i = 1, 2
@@ -162,7 +159,7 @@ CONTAINS
 
         ELSEIF (stats%diag_hessian=='n') THEN
             stats%nmodes = 0
-            OPEN (FILE=stats%normal_freq_file, STATUS='old', ACTION='read',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) !Reading normal freqs/coords
+            OPEN (FILE=stats%normal_freq_file, STATUS='old', ACTION='read', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit) !Reading normal freqs/coords
             !Check if file exists
             CALL check_file_open(stat, msg, stats%normal_freq_file)
             DO
@@ -174,7 +171,7 @@ CONTAINS
 
             ALLOCATE (stats%freq(stats%nmodes), stats%disp(stats%nmodes, sys%natom, 3))
 
-            OPEN (FILE=stats%normal_freq_file, STATUS='old', ACTION='read',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) !Reading normal freqs/coords
+            OPEN (FILE=stats%normal_freq_file, STATUS='old', ACTION='read', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit) !Reading normal freqs/coords
             !Check if file exists
             CALL check_file_open(stat, msg, stats%normal_freq_file)
             DO i = 1, stats%nmodes
@@ -183,8 +180,7 @@ CONTAINS
 997         CONTINUE
             CLOSE (runit)
 
-  
-            OPEN (FILE=stats%normal_displ_file, STATUS='old', ACTION='read',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) !Reading normal freqs/coords
+            OPEN (FILE=stats%normal_displ_file, STATUS='old', ACTION='read', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit) !Reading normal freqs/coords
             !Check if file exists
             CALL check_file_open(stat, msg, stats%normal_displ_file)
             DO i = 1, stats%nmodes
@@ -213,12 +209,11 @@ CONTAINS
         INTEGER                                                    :: stat, i_pol, j_pol, xyz
 
         !IF (PRESENT(static_dip)) ALLOCATE (static_dip(sys%natom, 3, 2, 3))
-        IF (PRESENT(dips))  CALL dips%init_dip(sys%natom, 1)
-        IF (PRESENT(rams))  CALL rams%init_pol(sys%natom, 1)
-        
+        IF (PRESENT(dips)) CALL dips%init_dip(sys%natom, 1)
+        IF (PRESENT(rams)) CALL rams%init_pol(sys%natom, 1)
 
         IF (dips%type_dipole=='dfpt') THEN
-            OPEN (FILE=rams%static_pol_file, STATUS='old', ACTION='read',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) !Reading polarizabilties
+            OPEN (FILE=rams%static_pol_file, STATUS='old', ACTION='read', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit) !Reading polarizabilties
             !Check if file exists
             CALL check_file_open(stat, msg, rams%static_pol_file)
             DO
@@ -245,7 +240,7 @@ CONTAINS
             CLOSE (runit)
 
         ELSEIF (dips%type_dipole=='berry') THEN
-            OPEN (FILE=dips%dip_file, STATUS='old', ACTION='read',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit)!Reading dipoles
+            OPEN (FILE=dips%dip_file, STATUS='old', ACTION='read', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)!Reading dipoles
             !Check if file exists
             CALL check_file_open(stat, msg, dips%dip_file)
             DO
@@ -284,7 +279,7 @@ CONTAINS
         !! Allocate
         CALL rams%RR%init_rr_static_dip(static_dip_rtp, sys%natom, rams%RR%framecount_rtp + 1)
 
-        OPEN (FILE=static_dip_file, STATUS='old', ACTION='read',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) !Reading polarizabilties
+        OPEN (FILE=static_dip_file, STATUS='old', ACTION='read', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit) !Reading polarizabilties
         !Check if file exists
         CALL check_file_open(stat, msg, static_dip_file)
         DO

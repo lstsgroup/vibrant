@@ -1,8 +1,20 @@
-MD-IR
-1
-2
-2
-n
-wannier_free_COF-1_sc_1250.xyz
-2.5
-n
+&global
+ spectra MD-IR
+ temperature 300
+&end global
+&dipoles
+ type_dipole wannier
+ dip_file wannier_free_COF-1_sc_1250.xyz
+&end dipoles
+&system
+ &cell
+  box_x 15.100 
+  box_y 15.101
+  box_z 13.457
+  cell_type hexagonal
+ &end cell
+%end system
+&md
+ time_step 2.5
+ correlation_depth 512
+&end md

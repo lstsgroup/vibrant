@@ -27,7 +27,7 @@ MODULE vib_types
 
     !***************************************************************************
     TYPE spectral_type
-        CHARACTER(LEN=40)                               :: read_function ! spectral_type not needed NEEDED ANYMORE ! 
+        CHARACTER(LEN=40)                               :: read_function ! spectral_type not needed NEEDED ANYMORE !
     END TYPE spectral_type
 
     !***************************************************************************
@@ -44,6 +44,7 @@ MODULE vib_types
     TYPE cell
         CHARACTER(LEN=40)                              :: cell_type
         REAL(kind=dp)                                  :: box_all, box_x, box_y, box_z, vec(3), vec_pbc(3)
+        REAL(kind=dp)                                  :: angle_alpha, angle_beta, angle_gamma
     END TYPE cell
     !***************************************************************************
     TYPE frame_type
@@ -205,7 +206,7 @@ MODULE vib_types
         !numeric
         CHARACTER(LEN=40)                                   :: static_dip_free_file
         REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE   :: static_dip_free          ! Dipolemoments mybe move to dipole class
-        REAL(kind=dp)                                       :: laser_in
+        REAL(kind=dp), DIMENSION(:), ALLOCATABLE   :: laser_in
         REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE   :: static_dip_x             ! Dipolemoments mybe move to dipole class
         REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE   :: static_dip_y             ! Dipolemoments mybe move to dipole class
         REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE   :: static_dip_z             ! Dipolemoments mybe move to dipole class
@@ -324,7 +325,7 @@ CONTAINS
 
     SUBROUTINE init_rr(this)
         CLASS(resonant_raman), INTENT(INOUT) :: this
-        
+
         this%check_pade = ''
         this%framecount_rtp = -1
         this%framecount_rtp_pade = -1
@@ -433,18 +434,18 @@ CONTAINS
 
     SUBROUTINE init_raman(ram)
         TYPE(raman), INTENT(out) :: ram
-        ram%laser_in = -1.0_dp
+        !ram%laser_in = -1.0_dp
         !numeric
         ram%static_dip_free_file = ''
         ram%static_pol_file = ''
         !analytic
         ram%wannier_free = ''
-        ram%wannier_x = '' 
-        ram%wannier_y = '' 
+        ram%wannier_x = ''
+        ram%wannier_y = ''
         ram%wannier_z = ''
         ram%averaging = ''
         ram%direction = ''
-        
+
         CALL ram%RR%init_rr()
     END SUBROUTINE init_raman
 
@@ -586,6 +587,7 @@ CONTAINS
         !IF (ALLOCATED(rams%dip_x_file)) DEALLOCATE(rams%dip_x_file)
         !IF (ALLOCATED(rams%dip_y_file)) DEALLOCATE(rams%dip_y_file)
         !IF (ALLOCATED(rams%dip_z_file)) DEALLOCATE(rams%dip_z_file)
+        IF (ALLOCATED(rams%laser_in)) DEALLOCATE (rams%laser_in)
         IF (ALLOCATED(rams%static_dip_free)) DEALLOCATE (rams%static_dip_free)
         DO xyz = 1, 3
             !IF (ALLOCATED(rams%e_field(xyz)%static_dip_xyz)) DEALLOCATE(rams%e_field(xyz)%static_dip_xyz)
