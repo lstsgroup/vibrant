@@ -16,7 +16,7 @@
 
 MODULE fin_diff
     USE kinds, ONLY: dp
-    USE constants, ONLY: debye, bohr2ang, speed_light, fs2s, joule_unit, ev_unit, action_unit
+    USE constants, ONLY: pi, debye, bohr2ang, speed_light, fs2s, joule_unit, ev_unit, action_unit
     USE vib_types, ONLY: global_settings, systems, molecular_dynamics, static, dipoles, raman
     USE cell_types, ONLY: build_hmat, pbc, invert3x3, determinant3x3
     IMPLICIT NONE
@@ -48,47 +48,43 @@ CONTAINS
 !**************************************************************************************************************!
 
 !**************************************************************************************************************!
-    SUBROUTINE forward_diff(mol_num, alpha, dip_free, dip_x, gs, sys, dips)
+    SUBROUTINE forward_diff(mol_num, alpha, dip_free, dip_x, gs, sys, dips, rams)
         TYPE(global_settings), INTENT(INOUT) :: gs
         TYPE(systems), INTENT(INOUT)        :: sys
         TYPE(dipoles), INTENT(INOUT)        :: dips
+        TYPE(raman), OPTIONAL         :: rams
         INTEGER, INTENT(INOUT)                                    :: mol_num
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(INOUT)  :: dip_free, dip_x
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(OUT)    :: alpha
         REAL(kind=dp)  :: pol_quantum(3), diff, hmat(3, 3)
 
         INTEGER                                                  :: stat, i, j, k, m
+        REAL(kind=dp)    :: conv_unit, damping_factor
 
         ALLOCATE (alpha(sys%framecount, mol_num, 3))
 
-        IF (gs%spectral_type%read_function.NE.'MD-RR') THEN
-            DO j = 1, sys%framecount
-                DO i = 1, mol_num  !!! change to mol_num later
-                    DO k = 1, 3
+        IF (gs%spectral_type%read_function.EQ.'MD-RR' .OR. gs%spectral_type%read_function.EQ.'MD-ABS') THEN
+            conv_unit = rams%RR%damping_constant*joule_unit/ev_unit !! J
+            damping_factor = conv_unit/action_unit*rams%RR%dt_rtp*fs2s !! s-1
+        END IF
+
+        DO j = 1, sys%framecount
+            DO k = 1, 3
+                IF (gs%spectral_type%read_function.NE.'MD-RR' .AND. gs%spectral_type%read_function.NE.'MD-ABS') THEN
+                    DO i = 1, mol_num  !!! change to mol_num later
                         alpha(j, i, k) = REAL((dip_x(j, i, k) - dip_free(j, i, k))/dips%e_field, kind=dp)
                     END DO
-                END DO
-            END DO
-
-        ELSEIF (gs%spectral_type%read_function=='MD-RR') THEN
-            DO j = 1, sys%framecount
-                DO i = 2, mol_num
-                    DO k = 1, 3
-                        alpha(j, i - 1, k) = REAL((dip_x(j, i, k) - dip_x(j, 1, k)) &
-                                                  *(EXP(-7.0_dp*1.0_dp*REAL(i/(mol_num - 1.0_dp), kind=dp))**2.0_dp)/0.005_dp, &
-                                                  kind=dp)
+                ELSEIF (gs%spectral_type%read_function=='MD-RR' .OR. gs%spectral_type%read_function=='MD-ABS') THEN
+                    DO i = 2, mol_num
+                        !        alpha(j, i - 1, k) = REAL((dip_x(j, i, k) - dip_x(j, 1, k)) &
+                        !         * EXP( - (7.0_dp * REAL(i, kind=dp) / REAL(mol_num-1, kind=dp))**2 ) / dips%e_field, &
+                        !           kind=dp)
+                        alpha(j, i - 1, k) = REAL((dip_x(j, i, k) - dip_x(j, 1, k))*EXP(-1.0_dp*damping_factor*(i - 1)), KIND=dp)
+                        alpha(j, i - 1, k) = alpha(j, i - 1, k)*((COS((i - 1)/((mol_num - 1) - 1.0_dp)/2.0_dp*pi))**2) !!Hann window function
                     END DO
-                END DO
+                END IF
             END DO
-
-            DO j = 1, sys%framecount
-                DO i = 2, mol_num
-                    DO k = 1, 3
-                        alpha(j, i - 1, k) = alpha(j, i - 1, k)*0.5_dp*(1 + COS(2.0_dp*3.14_dp*i/(2.0_dp*(mol_num - 1))))
-                    END DO
-                END DO
-            END DO
-        END IF
+        END DO
 
     END SUBROUTINE forward_diff
 

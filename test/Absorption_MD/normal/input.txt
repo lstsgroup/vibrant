@@ -1,0 +1,16 @@
+&global
+ spectra MD-ABS
+&end global
+&dipoles
+ type_dipole berry
+ field_strength 0.005
+ dip_x_file o-NP_RTP_dipoles_X_256.xyz
+ dip_y_file o-NP_RTP_dipoles_Y_256.xyz
+ dip_z_file o-NP_RTP_dipoles_Z_256.xyz
+&end dipoles
+&rtp
+ rtp_time_step 0.0625
+ rtp_framecount 256
+ check_pade n
+ damping_constant 0.1
+&end rtp

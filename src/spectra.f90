@@ -18,13 +18,13 @@ MODULE calc_spectra
 
     USE setup, ONLY: conversion
     USE kinds, ONLY: dp, str_len
-    USE iso_fortran_env, ONLY: output_unit, error_unit
+    USE ISO_FORTRAN_ENV, ONLY: output_unit, error_unit
     USE vib_types, ONLY: global_settings, systems, molecular_dynamics, static, dipoles, raman
 
     USE constants, ONLY: pi, fs2s, debye, speed_light, const_planck, const_boltz, const_permit, cm2m, a3_to_debye_per_e, &
                          hartreebohr2evang, hessian_factor, bohr2ang, reccm2ev, am_u, debye2cm, avo_num, au2vm, ang, at_u, &
                          speed_light_au, debye, reccm2au
-    USE read_traj, ONLY: read_coord_frame,check_file_open
+    USE read_traj, ONLY: read_coord_frame, check_file_open
     USE fin_diff, ONLY: central_diff, forward_diff
     USE vel_cor, ONLY: cvv, cvv_iso, cvv_aniso, cvv_only_x, cvv_resraman
     USE dipole_calc, ONLY: compute_dipole
@@ -37,7 +37,7 @@ MODULE calc_spectra
 
     INCLUDE 'fftw3.f03'
 
-    PUBLIC :: spec_power, normal_mode_analysis, spec_static_ir, spec_static_raman, spec_ir, spec_raman, spec_abs, spec_static_resraman!, spec_resraman
+    PUBLIC :: spec_power, normal_mode_analysis, spec_static_ir, spec_static_raman, spec_ir, spec_raman, spec_abs, spec_static_resraman, spec_abs_md, spec_resraman
 
 CONTAINS
     SUBROUTINE spec_power(gs, sys, md)
@@ -45,7 +45,6 @@ CONTAINS
         TYPE(global_settings), INTENT(INOUT)        :: gs
         TYPE(systems), INTENT(INOUT)                :: sys
         TYPE(molecular_dynamics), INTENT(INOUT)     :: md
-
 
         INTEGER                                                  :: stat, i, runit
         INTEGER(kind=dp)                                          :: plan
@@ -81,8 +80,7 @@ CONTAINS
       !!Unit conversion to K.cm
         power_const = (md%dt*fs2s*am_u*speed_light/const_boltz)*2.0_dp/(sys%natom*3.0_dp)
 
-
-        OPEN (FILE='power_spec.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit)
+        OPEN (FILE='power_spec.txt', STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
         !Check if file exists
         CALL check_file_open(stat, msg, 'power_spec.txt')
         DO i = 0, 2*md%t_cor - 1
@@ -96,8 +94,8 @@ CONTAINS
         DEALLOCATE (power_int, freq)
 
     END SUBROUTINE spec_power
-!***********************************************************************************************!
 
+!***********************************************************************************************!
 !***********************************************************************************************!
     SUBROUTINE spec_ir(gs, sys, md, dips)
         TYPE(global_settings), INTENT(INOUT)        :: gs
@@ -141,8 +139,7 @@ CONTAINS
         !!conversion of IR units to K*cm*km*mol^-1
         ir_const = avo_num*md%dt*fs2s*2.0_dp*10.0d0/(12.0_dp*const_permit*speed_light*const_boltz)
 
-        
-        OPEN (FILE='IR_spectrum.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit)
+        OPEN (FILE='IR_spectrum.txt', STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
         !Check if file exists
         CALL check_file_open(stat, msg, 'IR_spectrum.txt')
         DO i = 0, 2*md%t_cor - 1
@@ -158,9 +155,8 @@ CONTAINS
 
     END SUBROUTINE spec_ir
 
-!!!****************************************************************************************!
-
-!!!****************************************************************************************!
+!***********************************************************************************************!
+!***********************************************************************************************!
     SUBROUTINE spec_raman(gs, sys, md, dips, rams)
         TYPE(global_settings), INTENT(INOUT)        :: gs
         TYPE(systems), INTENT(INOUT)        :: sys
@@ -246,6 +242,7 @@ CONTAINS
       !!!Find the frequency resolution in cm^-1
         freq_res = REAL(md%freq_range/(2.0_dp*md%t_cor), kind=dp)
         f = freq_res*md%dt*1.883652d-4
+        !f = freq_res*md%dt*2.0_dp*pi*speed_light*at_u!*1.883652d-4
 
         zhat_iso = REAL(zhat_iso, kind=dp)
         zhat_aniso = REAL(zhat_aniso, kind=dp)
@@ -257,24 +254,24 @@ CONTAINS
       !!Unit conversion of Debye^2/(E^2*s^2) into C^4*s^2/kg^2
         zhat_iso(:) = zhat_iso(:)*debye2cm*debye2cm/(au2vm*au2vm)
         zhat_aniso(:) = zhat_aniso(:)*debye2cm*debye2cm/(au2vm*au2vm)
-        DO i_laser = 1, size(rams%laser_in)
+        DO i_laser = 1, SIZE(rams%laser_in)
             DO i = 0, 2*md%t_cor - 2
                 freq(i) = i*freq_res
             !!conversion of the Raman intensities into m^2*K*cm*10^-30!!
                 raman_const(i) = const_planck/(8.0_dp*const_boltz*const_permit*const_permit) &
-                                *1.e+30*md%dt*fs2s*((((rams%laser_in(i_laser)/reccm2ev - freq(i))/cm2m)**4)/freq(i))* &
-                                (1.0_dp/(1.0_dp - EXP(-1._dp*const_planck*speed_light*cm2m*freq(i)/ &
-                                                    (const_boltz*gs%temp))))*2.0_dp
+                                 *1.e+30*md%dt*fs2s*((((rams%laser_in(i_laser)/reccm2ev - freq(i))/cm2m)**4)/freq(i))* &
+                                 (1.0_dp/(1.0_dp - EXP(-1._dp*const_planck*speed_light*cm2m*freq(i)/ &
+                                                       (const_boltz*gs%temp))))*2.0_dp
             END DO
 
     !!!ORTHOGONAL!!!
             !WRITE(fname,'("raman_orthogonal_laser_",F0.6,"eV.txt")') rams%laser_in(i_laser)
-            IF (i_laser == 1) THEN
+            IF (i_laser==1) THEN
                 output_fname = "raman_orthogonal.txt"
             ELSE
-                WRITE(output_fname,'("raman_orthogonal_",I0,".txt")') i_laser 
+                WRITE (output_fname, '("raman_orthogonal_",I0,".txt")') i_laser
             END IF
-            OPEN (FILE=output_fname, STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
+            OPEN (FILE=output_fname, STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
             !Check if file exist
             CALL check_file_open(stat, msg, output_fname)
             DO i = 0, 2*md%t_cor - 2
@@ -288,12 +285,12 @@ CONTAINS
 
     !!!PARALLEL!!!
             !WRITE(fname,'("raman_parallel_laser_",F0.6,"eV.txt")') rams%laser_in(i_laser)
-            IF (i_laser == 1) THEN
+            IF (i_laser==1) THEN
                 output_fname = "raman_parallel.txt"
             ELSE
-                WRITE(output_fname,'("raman_parallel_",I0,".txt")') i_laser 
+                WRITE (output_fname, '("raman_parallel_",I0,".txt")') i_laser
             END IF
-            OPEN (FILE=output_fname, STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
+            OPEN (FILE=output_fname, STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
             !Check if file exists
             CALL check_file_open(stat, msg, output_fname)
             DO i = 0, 2*md%t_cor - 2
@@ -307,12 +304,12 @@ CONTAINS
 
     !!!UNPOL!!!
             !WRITE(fname,'("raman_unpolarized_laser_",F0.6,"eV.txt")') rams%laser_in(i_laser)
-            IF (i_laser == 1) THEN
+            IF (i_laser==1) THEN
                 output_fname = "raman_unpolarized.txt"
             ELSE
-                WRITE(output_fname,'("raman_unpolarized_",I0,".txt")') i_laser 
+                WRITE (output_fname, '("raman_unpolarized_",I0,".txt")') i_laser
             END IF
-            OPEN (FILE=output_fname, STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) !Reading polarizabilties
+            OPEN (FILE=output_fname, STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit) !Reading polarizabilties
             !Check if file exists
             CALL check_file_open(stat, msg, output_fname)
             DO i = 0, 2*md%t_cor - 2
@@ -325,12 +322,12 @@ CONTAINS
 
     !!!DEPOL RATIO!!!
             !WRITE(fname,'("raman_depolarization_ratio_laser_",F0.6,"eV.txt")') rams%laser_in(i_laser)
-            IF (i_laser == 1) THEN
+            IF (i_laser==1) THEN
                 output_fname = "raman_depolarization_ratio.txt"
             ELSE
-                WRITE(output_fname,'("raman_depolarization_ratio_",I0,".txt")') i_laser 
+                WRITE (output_fname, '("raman_depolarization_ratio_",I0,".txt")') i_laser
             END IF
-            OPEN (FILE=output_fname, STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) !Reading polarizabilties
+            OPEN (FILE=output_fname, STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit) !Reading polarizabilties
             !Check if file exists
             CALL check_file_open(stat, msg, output_fname)
             DO i = 0, 2*md%t_cor - 2
@@ -464,7 +461,8 @@ CONTAINS
 
     END SUBROUTINE spec_raman
 
-!....................................................................................................................!
+!***********************************************************************************************!
+!***********************************************************************************************!
     SUBROUTINE normal_mode_analysis(sys, stats)
         TYPE(systems), INTENT(INOUT)        :: sys
         TYPE(static), INTENT(INOUT)        :: stats
@@ -504,7 +502,7 @@ CONTAINS
         n = SIZE(hessian, 1)
 
         !PRINT *, hessian(1, 1), "hess"
-        WRITE (*, '(4X, "hess", T60, G0)')  hessian(1, 1)
+        WRITE (*, '(4X, "hess", T60, G0)') hessian(1, 1)
 ! work size query
         lwork = -1
         CALL DSYEV('V', 'U', n, hessian, lda, w, work, lwork, info)
@@ -534,32 +532,30 @@ CONTAINS
             m = m + 2
         END DO
 
-        WRITE (*, '(4X, "stats%freq(1:3)", T60, G0)')  stats%freq(1:3)
+        WRITE (*, '(4X, "stats%freq(1:3)", T60, G0)') stats%freq(1:3)
 
-        OPEN (FILE='normal_mode_freq.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
+        OPEN (FILE='normal_mode_freq.txt', STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
         !Check if file exists
         CALL check_file_open(stat, msg, 'normal_mode_freq.txt')
         DO i = 1, stats%nmodes !!atom_num: 1st atom
             WRITE (runit, *) stats%freq(i)
         END DO
-        CLOSE(runit)
+        CLOSE (runit)
 
-        OPEN (FILE='normal_mode_displ.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
+        OPEN (FILE='normal_mode_displ.txt', STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
         !Check if file exists
-        CALL check_file_open(stat, msg, 'normal_mode_displ.txt')   
+        CALL check_file_open(stat, msg, 'normal_mode_displ.txt')
         DO i = 1, stats%nmodes !!atom_num: 1st atom
             DO j = 1, sys%natom !!dims: x dimension
                 WRITE (runit, *) stats%disp(i, j, 1:3)
             END DO
         END DO
-        CLOSE(runit)
+        CLOSE (runit)
 
     END SUBROUTINE normal_mode_analysis
 
-!....................................................................................................................!
-
-!....................................................................................................................!
-
+!***********************************************************************************************!
+!***********************************************************************************************!
     SUBROUTINE spec_static_ir(gs, sys, stats, dips)
 
         TYPE(global_settings), INTENT(INOUT)        :: gs
@@ -580,9 +576,9 @@ CONTAINS
         end_freq = INT(MAXVAL(stats%freq) + 1000.0_dp)
         freq_res = INT(end_freq - start_freq)
 
-        WRITE (*, '(4X, "Max freq: ", T60, G0)')  MAXVAL(stats%freq)
-        WRITE (*, '(4X, "end_freq: ", T60, I0)')   end_freq
-        WRITE (*, '(4X, "freq_res: ", T60, I0)')   freq_res
+        WRITE (*, '(4X, "Max freq: ", T60, G0)') MAXVAL(stats%freq)
+        WRITE (*, '(4X, "end_freq: ", T60, I0)') end_freq
+        WRITE (*, '(4X, "freq_res: ", T60, I0)') freq_res
 
         ALLOCATE (data2(freq_res + 1))
         data2 = 0.0_dp
@@ -605,7 +601,7 @@ CONTAINS
             data2(i) = data2(i) + broad
         END DO
 
-        OPEN (FILE='result_static_ir.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
+        OPEN (FILE='result_static_ir.txt', STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
         !Check if file exists
         CALL check_file_open(stat, msg, 'result_static_ir.txt')
         DO i = start_freq, end_freq
@@ -616,9 +612,9 @@ CONTAINS
         DEALLOCATE (gamma_sq, data2, ir_int, dips%dip_dq, stats%freq, stats%disp)
 
     END SUBROUTINE spec_static_ir
-!....................................................................................................................!
 
-!....................................................................................................................!
+!***********************************************************************************************!
+!***********************************************************************************************!
     SUBROUTINE spec_static_raman(gs, sys, stats, dips, rams)
 
         TYPE(global_settings), INTENT(INOUT)        :: gs
@@ -627,7 +623,7 @@ CONTAINS
         TYPE(dipoles), INTENT(INOUT)        :: dips
         TYPE(raman), INTENT(INOUT)        :: rams
 
-        INTEGER                                                  :: stat, i, j, x, freq_res,runit,i_laser
+        INTEGER                                                  :: stat, i, j, x, freq_res, runit, i_laser
         INTEGER                                                  :: start_freq, end_freq
         CHARACTER(len=str_len)                                      :: msg, fname
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE                    :: iso_sq, aniso_sq, ram_const, data2!,broad
@@ -654,13 +650,13 @@ CONTAINS
     !!!Conversion from angstrom^4 amu⁻¹ to m^4 kg -1
         iso_sq = iso_sq*(ang**4._dp)/am_u
         aniso_sq = aniso_sq*(ang**4._dp)/am_u
-        
-        DO i_laser = 1, size(rams%laser_in)
+
+        DO i_laser = 1, SIZE(rams%laser_in)
         !!! Conversion of static Raman units into 10^{-30}*cm^2/sr
             ram_const(:) = (const_planck/(8.0_dp*speed_light*cm2m*const_permit*const_permit)*1.e+30* &
                             REAL(((rams%laser_in(i_laser)/reccm2ev - stats%freq(:))**4.0_dp)/(stats%freq(:)*cm2m**3.0_dp), kind=dp)* &
                             (1.0_dp/(1.0_dp - EXP(-1._dp*const_planck*speed_light*cm2m*stats%freq(:)/ &
-                                                (const_boltz*gs%temp)))))/(cm2m**2._dp)
+                                                  (const_boltz*gs%temp)))))/(cm2m**2._dp)
 
         !!!Calculation of the unpolarized Raman intensities!!
             rams%raman_int(:) = REAL(((7.0_dp*aniso_sq(:)) + (45.0_dp*iso_sq(:)))/45.0_dp, kind=dp)*ram_const(:)
@@ -670,19 +666,18 @@ CONTAINS
                 broad = 0.0_dp
                 DO x = 1, stats%nmodes
                     broad = broad + (rams%raman_int(x)*(1.0_dp/(gs%fwhm*SQRT(2.0_dp*pi)))* &
-                                    EXP(-0.50_dp*((i - stats%freq(x))/gs%fwhm)**2.0_dp))
+                                     EXP(-0.50_dp*((i - stats%freq(x))/gs%fwhm)**2.0_dp))
                 END DO
                 data2(i) = data2(i) + broad
             END DO
 
-            
-            IF (i_laser == 1) THEN
+            IF (i_laser==1) THEN
                 fname = "result_static_raman.txt"
             ELSE
-                WRITE(fname,'("result_static_raman_",I0,".txt")') i_laser 
+                WRITE (fname, '("result_static_raman_",I0,".txt")') i_laser
             END IF
-            OPEN (FILE=fname, STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit)
-            CALL check_file_open(stat, msg,fname)
+            OPEN (FILE=fname, STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
+            CALL check_file_open(stat, msg, fname)
             DO i = start_freq, end_freq
                 WRITE (runit, *) i, data2(i)
             END DO
@@ -691,13 +686,13 @@ CONTAINS
         !!Write Molden output
             rams%raman_int = REAL(rams%raman_int/MINVAL(rams%raman_int), kind=dp)
             !WRITE(fname,'("raman_laser_",F0.6,"eV.mol")') rams%laser_in(i_laser)
-            IF (i_laser == 1) THEN
+            IF (i_laser==1) THEN
                 fname = "raman.mol"
             ELSE
-                WRITE(fname,'("raman_",I0,".mol")') i_laser 
+                WRITE (fname, '("raman_",I0,".mol")') i_laser
             END IF
-            OPEN (FILE=fname, STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit)
-            CALL check_file_open(stat, msg,fname)
+            OPEN (FILE=fname, STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
+            CALL check_file_open(stat, msg, fname)
             WRITE (runit, *) "[Molden Format]"
             WRITE (runit, *) "[GEOMETRIES] XYZ"
             WRITE (runit, *) sys%natom
@@ -731,16 +726,15 @@ CONTAINS
         DEALLOCATE (iso_sq, aniso_sq, data2, ram_const)
 
     END SUBROUTINE spec_static_raman
-!....................................................................................................................!
 
-!....................................................................................................................!
-
+!***********************************************************************************************!
+!***********************************************************************************************!
     SUBROUTINE spec_abs(gs, sys, dips, rams)
         TYPE(global_settings), INTENT(INOUT)        :: gs
         TYPE(systems), INTENT(INOUT)        :: sys
         TYPE(dipoles), INTENT(INOUT)        :: dips
         TYPE(raman), INTENT(INOUT)        :: rams
-        CHARACTER(len=256) :: filename,  msg
+        CHARACTER(len=256) :: filename, msg
         INTEGER                                                       :: stat, i, j, k, m, x, o, dims, dir, runit
         INTEGER(kind=dp)                                               :: plan
         REAL(kind=dp)                                                  :: rtp_freq_res, freq_au
@@ -806,7 +800,6 @@ CONTAINS
         !rams%RR%zhat_pol_rtp = rams%RR%zhat_pol_rtp/dips%e_field
         rams%RR%zhat_pol_rtp = rams%RR%zhat_pol_rtp*(rams%RR%dt_rtp*fs2s)/dips%e_field
 
-        !rams%RR%zhat_pol_rtp=rams%RR%zhat_pol_rtp/0.001_dp !!later make this an input variable
 !!!Finding frequency range
         rtp_freq_res = REAL(rams%RR%freq_range_rtp/rams%RR%framecount_rtp, kind=dp)
 
@@ -846,7 +839,7 @@ CONTAINS
       !! Conversion from cm-1 to a.u.
         freq_au = rtp_freq_res*(-1.0_dp)*reccm2au
 
-        OPEN (FILE='absorption_spectrum.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
+        OPEN (FILE='absorption_spectrum.txt', STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
         !Check if file exists
         CALL check_file_open(stat, msg, 'absorption_spectrum.txt')
         DO j = 1, 1 !!atom_num: 1st atom
@@ -862,9 +855,9 @@ CONTAINS
         DEALLOCATE (trace, abs_intens)
 
     END SUBROUTINE spec_abs
-!....................................................................................................................!
 
-!....................................................................................................................!
+!***********************************************************************************************!
+!***********************************************************************************************!
     SUBROUTINE spec_static_resraman(gs, sys, stats, rams)
 
         TYPE(global_settings), INTENT(INOUT)        :: gs
@@ -898,56 +891,48 @@ CONTAINS
         zhat_pol_dq_rtp = (0.0_dp, 0.0_dp)
         data2 = 0.0_dp
 
-
 !!!Finding laser frequency
         rtp_freq_res = REAL(rams%RR%freq_range_rtp/rams%RR%framecount_rtp, kind=dp)
         !rtp_point = ANINT(rams%laser_in/(rtp_freq_res*reccm2ev), kind=dp)
 
 !!!Finite differences
         zhat_pol_dxyz_rtp(:, :, :, :, :) = (rams%RR%zhat_pol_rtp(:, :, 2, :, :, :) &
-                                           - rams%RR%zhat_pol_rtp(:, :, 1, :, :, :))*factor
+                                            - rams%RR%zhat_pol_rtp(:, :, 1, :, :, :))*factor
 
 !!!Derivatives w.r.t. mass weighted normal coordinates
         DO i = 1, stats%nmodes
             DO o = 1, rams%RR%framecount_rtp
                 DO j = 1, sys%natom
                     zhat_pol_dq_rtp(i, :, :, o) = zhat_pol_dq_rtp(i, :, :, o) &
-                    + (zhat_pol_dxyz_rtp(j, 1, :, :, o)*stats%disp(i, j, 1)*sys%atom_mass_inv_sqrt(j)) &
-                    + (zhat_pol_dxyz_rtp(j, 2, :, :, o)*stats%disp(i, j, 2)*sys%atom_mass_inv_sqrt(j)) &
-                    + (zhat_pol_dxyz_rtp(j, 3, :, :, o)*stats%disp(i, j, 3)*sys%atom_mass_inv_sqrt(j))
+                                                  + (zhat_pol_dxyz_rtp(j, 1, :, :, o)*stats%disp(i, j, 1)*sys%atom_mass_inv_sqrt(j)) &
+                                                  + (zhat_pol_dxyz_rtp(j, 2, :, :, o)*stats%disp(i, j, 2)*sys%atom_mass_inv_sqrt(j)) &
+                                                  + (zhat_pol_dxyz_rtp(j, 3, :, :, o)*stats%disp(i, j, 3)*sys%atom_mass_inv_sqrt(j))
                 END DO
             END DO
         END DO
 
 !!!Isotropic and anisotropic contributions!!
-        iso_sq(:, :) = ABS((zhat_pol_dq_rtp(:,1,1,:) + zhat_pol_dq_rtp(:,2,2,:) + zhat_pol_dq_rtp(:,3,3,:))/3.0_dp)**2
+        iso_sq(:, :) = ABS((zhat_pol_dq_rtp(:, 1, 1, :) + zhat_pol_dq_rtp(:, 2, 2, :) + zhat_pol_dq_rtp(:, 3, 3, :))/3.0_dp)**2
 
-        aniso_sq(:, :) = 0.5_dp * (ABS(zhat_pol_dq_rtp(:,1,1,:) - zhat_pol_dq_rtp(:,2,2,:))**2 + &
-                           ABS(zhat_pol_dq_rtp(:,2,2,:) - zhat_pol_dq_rtp(:,3,3,:))**2 + &
-                           ABS(zhat_pol_dq_rtp(:,3,3,:) - zhat_pol_dq_rtp(:,1,1,:))**2)  &
-                     + 3.0_dp * (ABS(zhat_pol_dq_rtp(:,1,2,:))**2 + ABS(zhat_pol_dq_rtp(:,2,3,:))**2 + ABS(zhat_pol_dq_rtp(:,3,1,:))**2)
-
+        aniso_sq(:, :) = 0.5_dp*(ABS(zhat_pol_dq_rtp(:, 1, 1, :) - zhat_pol_dq_rtp(:, 2, 2, :))**2 + &
+                                 ABS(zhat_pol_dq_rtp(:, 2, 2, :) - zhat_pol_dq_rtp(:, 3, 3, :))**2 + &
+                                 ABS(zhat_pol_dq_rtp(:, 3, 3, :) - zhat_pol_dq_rtp(:, 1, 1, :))**2) &
+                         + 3.0_dp*(ABS(zhat_pol_dq_rtp(:, 1, 2, :))**2 + ABS(zhat_pol_dq_rtp(:, 2, 3, :))**2 + ABS(zhat_pol_dq_rtp(:, 3, 1, :))**2)
 
 !!!Conversion from (debye/E)^2 angstrom^-2 amu⁻¹ to angstrom^6 angstrom^-2 amu⁻¹
 
         iso_sq = iso_sq/(a3_to_debye_per_e*a3_to_debye_per_e)
         aniso_sq = aniso_sq/(a3_to_debye_per_e*a3_to_debye_per_e)
-        
+
         !!!Conversion from angstrom^4 amu⁻¹ to m^4 kg^-1
         iso_sq = iso_sq*(ang**4._dp)/am_u
         aniso_sq = aniso_sq*(ang**4._dp)/am_u
-        
-        WRITE (*, '(4X,"rtp_freq_res", T60, G0)') rtp_freq_res
-        WRITE (*, '(4X,"rams%RR%freq_range_rtp", T60, G0)') rams%RR%freq_range_rtp
-        WRITE (*, '(4X,"rtp_point", T60, I0)') rtp_point
-        WRITE (*, '(4X,"rams%RR%framecount_rtp", T60, I0)') rams%RR%framecount_rtp
+
         !!!Finding laser frequency
         rtp_freq_res = REAL(rams%RR%freq_range_rtp/rams%RR%framecount_rtp, kind=dp)
 
+        DO i_laser = 1, SIZE(rams%laser_in)
 
-
-        DO i_laser = 1, size(rams%laser_in)
-                
             rtp_point = ANINT(rams%laser_in(i_laser)/(rtp_freq_res*reccm2ev), kind=dp)
 
             WRITE (*, '(4X,"rams%laser_in", T60, G0)') rams%laser_in(i_laser)
@@ -955,28 +940,28 @@ CONTAINS
             ram_const(:) = (const_planck/(8.0_dp*speed_light*cm2m*const_permit*const_permit)*1.e+30* &
                             REAL(((rams%laser_in(i_laser)/reccm2ev - stats%freq(:))**4.0_dp)/(stats%freq(:)*cm2m**3.0_dp), kind=dp)* &
                             (1.0_dp/(1.0_dp - EXP(-1._dp*const_planck*speed_light*cm2m*stats%freq(:)/ &
-                                                (const_boltz*gs%temp)))))/(cm2m**2._dp)
+                                                  (const_boltz*gs%temp)))))/(cm2m**2._dp)
 
             !!!Calculation of the unpolarized resonance Raman intensities!!
             raman_int(:, rtp_point) = REAL(((7.0_dp*aniso_sq(:, rtp_point)) + (45.0_dp*iso_sq(:, rtp_point)))/45.0_dp, kind=dp)* &
-                                    ram_const(:)
+                                      ram_const(:)
 
             !!!Broadening the spectrum!!
             DO x = start_freq, end_freq
                 broad = 0.0_dp
                 DO i = 1, stats%nmodes
                     broad = broad + (raman_int(i, rtp_point)*(1.0_dp/(gs%fwhm*SQRT(2.0_dp*pi))) &
-                                    *EXP(-0.50_dp*((x - stats%freq(i))/gs%fwhm)**2.0_dp))
+                                     *EXP(-0.50_dp*((x - stats%freq(i))/gs%fwhm)**2.0_dp))
                 END DO
                 data2(x) = data2(x) + broad
             END DO
             data2(x) = data2(x) + broad
-            IF (i_laser == 1) THEN
+            IF (i_laser==1) THEN
                 fname = "result_static_resraman.txt"
             ELSE
-                WRITE(fname,'("result_static_resraman_",I0,".txt")') i_laser
+                WRITE (fname, '("result_static_resraman_",I0,".txt")') i_laser
             END IF
-            OPEN (FILE=fname, STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
+            OPEN (FILE=fname, STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
             !Check if file exists
             CALL check_file_open(stat, msg, fname)
             DO i = start_freq, end_freq
@@ -989,267 +974,280 @@ CONTAINS
 
     END SUBROUTINE spec_static_resraman
 
-!!....................................................................................................................!
+!***********************************************************************************************!
+!***********************************************************************************************!
+    SUBROUTINE spec_abs_md(gs, sys, md, rams, dips)
 
-!!....................................................................................................................!
-!
-    
-SUBROUTINE spec_resraman(sys, md, rams)
+        TYPE(global_settings) :: gs
+        TYPE(systems)         :: sys
+        TYPE(molecular_dynamics)   :: md
+        TYPE(dipoles)   :: dips
+        TYPE(raman)   :: rams
 
+        CHARACTER(LEN=str_len)                                        :: chara, msg
+        INTEGER                                                  :: stat, i, j, k, m, t0, t1, runit
+        INTEGER                                                  :: Nw, Nmd
+        INTEGER(kind=dp)                                          :: plan, rtp_point
+        REAL(kind=dp)                                             :: f, freq_res, rtp_freq_res, pade_freq_res, laser_in, freq_au
+        REAL(kind=dp), DIMENSION(:), ALLOCATABLE                    :: abs_intens, trace_pade, abs_intens_pade
+        REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE                  :: trace
+        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                :: alpha_x, alpha_y, alpha_z
+        REAL(kind=dp), DIMENSION(:), ALLOCATABLE                     :: raman_const, sinc_func, freq
+        COMPLEX(kind=dp), DIMENSION(:, :, :), ALLOCATABLE             :: zhat_resraman_x, zhat_resraman_y, zhat_resraman_z
+        COMPLEX(kind=dp), DIMENSION(:, :, :), ALLOCATABLE             :: y_out
 
+        Nw = rams%RR%framecount_rtp - 1
+        Nmd = sys%framecount
 
-    TYPE(systems)         :: sys
-    TYPE(molecular_dynamics)   :: md
-    TYPE(raman)   :: rams
-!    
-!    
-!    CHARACTER(LEN=40), INTENT(INOUT)                          :: rtp_dipole_x, rtp_dipole_y, rtp_dipole_z
-!COMPLEX(kind=dp), DIMENSION(:), ALLOCATABLE, INTENT(INOUT)   :: y_out
-!COMPLEX(kind=dp), DIMENSION(:, :), ALLOCATABLE, INTENT(INOUT) :: z_iso_resraman, z_aniso_resraman
-!CHARACTER(LEN=40)                                        :: chara
-!INTEGER                                                  :: stat, i, j, k, m, t0, t1
-!INTEGER(kind=dp)                                          :: plan
-!COMPLEX(kind=dp), DIMENSION(:, :, :), ALLOCATABLE             :: yx_out, yy_out, yz_out
-!COMPLEX(kind=dp), DIMENSION(:, :), ALLOCATABLE               :: zhat_iso_resraman, zhat_aniso_resraman
-!COMPLEX(kind=dp), DIMENSION(:, :, :), ALLOCATABLE             :: zhat_resraman_x, zhat_resraman_y, zhat_resraman_z
-!REAL(kind=dp)                                             :: f, freq_res, rtp_freq_res, pade_freq_res, laser_in
-!REAL(kind=dp), DIMENSION(:), ALLOCATABLE                    :: trace, abs_intens, trace_pade, abs_intens_pade
-!REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE                  :: zhat_unpol_resraman
-!REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                :: alpha_resraman_x, alpha_resraman_y, alpha_resraman_z
-!REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                :: alpha_resraman_x_diff_re, alpha_resraman_y_diff_re
-!REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                :: alpha_resraman_z_diff_re
-!REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                :: alpha_resraman_x_diff_im, alpha_resraman_y_diff_im
-!REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                :: alpha_resraman_z_diff_im
-!REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                :: alpha_resraman_x_im, alpha_resraman_y_im
-!REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                :: alpha_resraman_z_im
-!REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                :: alpha_resraman_x_re, alpha_resraman_y_re
-!REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                :: alpha_resraman_z_re
-!REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                :: alpha_x, alpha_y, alpha_z
-!REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                :: dip_x, dip_y, dip_z
-!
-!ALLOCATE (zhat_resraman_x( sys%framecount, natom, 3), zhat_resraman_y( sys%framecount, natom, 3), &
-!zhat_resraman_z( sys%framecount, natom, 3))
-!ALLOCATE (alpha_resraman_x( sys%framecount, natom, 3), alpha_resraman_y( sys%framecount, natom, 3), &
-!alpha_resraman_z( sys%framecount, natom, 3))
-!ALLOCATE (alpha_resraman_x_diff_re( sys%framecount - 2, natom, 3), alpha_resraman_y_diff_re( sys%framecount - 2, natom, 3), &
-!alpha_resraman_z_diff_re( sys%framecount - 2, natom, 3))
-!ALLOCATE (alpha_resraman_x_diff_im( sys%framecount - 2, natom, 3), alpha_resraman_y_diff_im( sys%framecount - 2, natom, 3), &
-!alpha_resraman_z_diff_im( sys%framecount - 2, natom, 3))
-!ALLOCATE (alpha_x( sys%framecount, natom, 3), alpha_y( sys%framecount, natom, 3), alpha_z( sys%framecount, natom, 3))
-!ALLOCATE (yx_out( sys%framecount, 10000, 3), yy_out( sys%framecount, 10000, 3), yz_out( sys%framecount, 10000, 3))
-!
+        ALLOCATE (zhat_resraman_x(sys%framecount, Nw, 3), zhat_resraman_y(sys%framecount, Nw, 3), zhat_resraman_z(sys%framecount, Nw, 3))
+        ALLOCATE (rams%RR%alpha_resraman_x_re(sys%framecount, rams%RR%framecount_rtp, 3), rams%RR%alpha_resraman_y_re(sys%framecount, rams%RR%framecount_rtp, 3), rams%RR%alpha_resraman_z_re(sys%framecount, rams%RR%framecount_rtp, 3))
+        ALLOCATE (rams%RR%alpha_resraman_x_im(sys%framecount, rams%RR%framecount_rtp, 3), rams%RR%alpha_resraman_y_im(sys%framecount, rams%RR%framecount_rtp, 3), rams%RR%alpha_resraman_z_im(sys%framecount, rams%RR%framecount_rtp, 3))
+
+        ALLOCATE (alpha_x(Nmd, Nw, 3), alpha_y(Nmd, Nw, 3), alpha_z(Nmd, Nw, 3))
+
+        zhat_resraman_x = COMPLEX(0._dp, 0.0_dp)
+        zhat_resraman_y = COMPLEX(0._dp, 0.0_dp)
+        zhat_resraman_z = COMPLEX(0._dp, 0.0_dp)
+
 !!!X-Field!!
-!CALL read_coord_frame(sys%mol_num, rtp_dipole_x, md%dip_x, sys)
-!CALL forward_diff(sys%mol_num, alpha_x, dip_x, dip_x, gs, sys, dips)
-!
-!zhat_resraman_x = COMPLEX(0._dp, 0.0_dp)
-!zhat_resraman_y = COMPLEX(0._dp, 0.0_dp)
-!zhat_resraman_z = COMPLEX(0._dp, 0.0_dp)
-!
-!DO i = 1,  sys%framecount
-!    DO j = 1, 3
-!        CALL dfftw_plan_dft_r2c_1d(plan, sys%natom, alpha_x(i, 1:sys%natom, j), zhat_resraman_x(i, 1:sys%natom, j), FFTW_ESTIMATE)
-!        CALL dfftw_execute_dft_r2c(plan, alpha_x(i, 1:sys%natom, j), zhat_resraman_x(i, 1:sys%natom, j)) !!!important to specify arrays!!
-!        CALL dfftw_destroy_plan(plan)
-!    END DO
-!END DO
-!
-!alpha_resraman_x_re = REAL(zhat_resraman_x, kind=dp)
-!alpha_resraman_x_im = AIMAG(zhat_resraman_x)
-!
-!!!Call Pade
-!DO i = 1, 1 !! sys%framecount
-!    DO j = 1, 3
-!        CALL interpolate(zhat_resraman_x(i, 1:natom, j), 10000, yx_out(i, :, j))
-!    END DO
-!END DO
-!
-!!OPEN(UNIT=40,FILE='y_out.txt',STATUS='unknown',IOSTAT=stat)
-!!DO i=1,10000
-!! WRITE(40,*) i/10000._dp,REAL(yx_out(i),kind=dp),AIMAG(yx_out(i))
-!!ENDDO
-!!CLOSE(40)
-!
-!!OPEN(UNIT=40,FILE='zhat_out.txt',STATUS='unknown',IOSTAT=stat)
-!!DO i=1,natom-1
-!! WRITE(40,*) i/(natom-1._dp),REAL(zhat_resraman_x(1,i,1),kind=dp),AIMAG(zhat_resraman_x(1,i,1))
-!!ENDDO
-!!CLOSE(40)
-!
-!CALL central_diff(sys%natom, alpha_resraman_x_re, alpha_resraman_x_diff_re, sys, md)
-!CALL central_diff(sys%natom, alpha_resraman_x_im, alpha_resraman_x_diff_im, sys, md)
-!
-!
+        CALL forward_diff(rams%RR%framecount_rtp, alpha_x, rams%RR%dip_x_rtp, rams%RR%dip_x_rtp, gs, sys, dips, rams)
+
+        DO i = 1, sys%framecount
+            DO j = 1, 3
+                CALL dfftw_plan_dft_r2c_1d(plan, Nw, alpha_x(i, 1:Nw, j), zhat_resraman_x(i, 1:Nw, j), FFTW_ESTIMATE)
+                CALL dfftw_execute_dft_r2c(plan, alpha_x(i, 1:Nw, j), zhat_resraman_x(i, 1:Nw, j)) !!!important to specify arrays!!
+                CALL dfftw_destroy_plan(plan)
+            END DO
+        END DO
+
+        IF (rams%RR%check_pade=='y') THEN
+            ALLOCATE (y_out(Nmd, rams%RR%framecount_rtp_pade, 3))
+        !!Call Pade
+!$OMP PARALLEL DO COLLAPSE(2)
+            DO i = 1, Nmd
+                DO j = 1, 3
+                    CALL interpolate(Nw, zhat_resraman_x(i, 1:Nw, j), &
+                                     rams%RR%framecount_rtp_pade, y_out(i, :, j))
+                END DO
+            END DO
+!$OMP END PARALLEL DO
+            zhat_resraman_x = y_out
+            DEALLOCATE (y_out)
+        END IF
+
+        !!Multiply by dt_rtp coming from the FFT
+        zhat_resraman_x = zhat_resraman_x*rams%RR%dt_rtp*fs2s
+
+        rams%RR%alpha_resraman_x_re = REAL(zhat_resraman_x, kind=dp)
+        rams%RR%alpha_resraman_x_im = DIMAG(zhat_resraman_x)
+
 !!!Y-Field!!
-!
-!CALL read_coord_frame(sys%mol_num, rtp_dipole_y, dip_y, sys)
-!CALL forward_diff(sys%mol_num, alpha_y, dip_y, dip_y, gs, sys, dips)
-!
-!DO i = 1,  sys%framecount
-!    DO j = 1, 3
-!        CALL dfftw_plan_dft_r2c_1d(plan, sys%natom, alpha_y(i, 1:sys%natom, j), zhat_resraman_y(i, 1:sys%natom, j), FFTW_ESTIMATE)
-!        CALL dfftw_execute_dft_r2c(plan, alpha_y(i, 1:sys%natom, j), zhat_resraman_y(i, 1:sys%natom, j)) !!!important to specify arrays!!
-!        CALL dfftw_destroy_plan(plan)
-!    END DO
-!END DO
-!
-!alpha_resraman_y_re = REAL(zhat_resraman_x, kind=dp)
-!alpha_resraman_y_im = AIMAG(zhat_resraman_x)
-!
-!!!Call Pade
-!DO i = 1, 1 !! sys%framecount
-!    DO j = 1, 3
-!        CALL interpolate(zhat_resraman_y(i, 1:natom, j), 10000, yy_out(i, :, j))
-!    END DO
-!END DO
-!
-!!OPEN(UNIT=40,FILE='yy_out.txt',STATUS='unknown',IOSTAT=stat)
-!!DO i=1,10000
-!!  WRITE(40,*) i/10000._dp,REAL(yy_out(i),kind=dp),AIMAG(yy_out(i))
-!!ENDDO
-!!CLOSE(40)
-!
-!!pade_interpolation.f90OPEN(UNIT=40,FILE='zhaty_out.txt',STATUS='unknown',IOSTAT=stat)
-!!DO i=1,natom-1
-!!  WRITE(40,*) i/(natom-1._dp),REAL(zhat_resraman_y(1,i,2),kind=dp),AIMAG(zhat_resraman_y(1,i,2))
-!!ENDDO
-!!CLOSE(40)
-!
-!CALL central_diff(sys%natom, alpha_resraman_y_re, alpha_resraman_y_diff_re, sys, md)
-!CALL central_diff(sys%natom, alpha_resraman_y_im, alpha_resraman_y_diff_im, sys, md)
+        CALL forward_diff(rams%RR%framecount_rtp, alpha_y, rams%RR%dip_y_rtp, rams%RR%dip_y_rtp, gs, sys, dips, rams)
+
+        DO i = 1, sys%framecount
+            DO j = 1, 3
+                CALL dfftw_plan_dft_r2c_1d(plan, Nw, alpha_y(i, 1:Nw, j), zhat_resraman_y(i, 1:Nw, j), FFTW_ESTIMATE)
+                CALL dfftw_execute_dft_r2c(plan, alpha_y(i, 1:Nw, j), zhat_resraman_y(i, 1:Nw, j)) !!!important to specify arrays!!
+                CALL dfftw_destroy_plan(plan)
+            END DO
+        END DO
+
+        IF (rams%RR%check_pade=='y') THEN
+            ALLOCATE (y_out(Nmd, rams%RR%framecount_rtp_pade, 3))
+        !!Call Pade
+!$OMP PARALLEL DO COLLAPSE(2)
+            DO i = 1, Nmd
+                DO j = 1, 3
+                    CALL interpolate(Nw, zhat_resraman_y(i, 1:Nw, j), &
+                                     rams%RR%framecount_rtp_pade, y_out(i, :, j))
+                END DO
+            END DO
+!$OMP END PARALLEL DO
+            zhat_resraman_y = y_out
+            DEALLOCATE (y_out)
+        END IF
+
+!!!Finding laser frequency
+        rtp_freq_res = REAL(rams%RR%freq_range_rtp/Nw, kind=dp)
+
+        !!Multiply by dt_rtp coming from the FFT
+        zhat_resraman_y = zhat_resraman_y*rams%RR%dt_rtp*fs2s
+
+        rams%RR%alpha_resraman_y_re = REAL(zhat_resraman_y, kind=dp)
+        rams%RR%alpha_resraman_y_im = DIMAG(zhat_resraman_y)
 !
 !!!Z-Field!!
-!
-!CALL read_coord_frame(sys%natom, rtp_dipole_z, dip_z, sys)
-!CALL forward_diff(sys%mol_num, alpha_z, dip_z, dip_z, gs, sys, dips)
-!
-!DO i = 1, sys% sys%framecount
-!    DO j = 1, 3
-!        CALL dfftw_plan_dft_r2c_1d(plan, natom, alpha_z(i, 1:natom - 1, j), zhat_resraman_z(i, 1:natom, j), FFTW_ESTIMATE)
-!        CALL dfftw_execute_dft_r2c(plan, alpha_z(i, 1:natom, j), zhat_resraman_z(i, 1:natom, j)) !!!important to specify arrays!!
-!        CALL dfftw_destroy_plan(plan)
-!    END DO
-!END DO
-!
-!alpha_resraman_z_re = REAL(zhat_resraman_x, kind=dp)
-!alpha_resraman_z_im = AIMAG(zhat_resraman_x)
-!
-!!!Call Pade
-!DO i = 1, 1 !! sys%framecount
-!    DO j = 1, 3
-!        CALL interpolate(sys%natom, zhat_resraman_z(i, 1:sys%natom, j), 10000, yz_out(i, :, j))
-!    END DO
-!END DO
-!
-!!OPEN(UNIT=40,FILE='yz_out.txt',STATUS='unknown',IOSTAT=stat)
-!!DO i=1,10000
-!!  WRITE(40,*) i/10000._dp,REAL(yz_out(i),kind=dp),AIMAG(yz_out(i))
-!!ENDDO
-!!CLOSE(40)
-!
-!!OPEN(UNIT=40,FILE='zhatz_out.txt',STATUS='unknown',IOSTAT=stat)
-!!DO i=1,natom-1
-!!  WRITE(40,*) i/(natom-1._dp),REAL(zhat_resraman_z(1,i,3),kind=dp),AIMAG(zhat_resraman_z(1,i,3))
-!!ENDDO
-!!CLOSE(40)
-!
-!CALL central_diff(sys%natom, alpha_resraman_z_re, alpha_resraman_z_diff_re, sys, md)
-!CALL central_diff(sys%natom, alpha_resraman_z_im, alpha_resraman_z_diff_im, sys, md)
-!
-!!!!Calculate absorption spectra
-!
-!rtp_freq_res = REAL(rams%RR%freq_range_rtp/(sys%natom), kind=dp)
-!pade_freq_res = REAL(rams%RR%freq_range_rtp/(10000), kind=dp)
-!
-!ALLOCATE (abs_intens(sys%natom), trace(sys%sys%natom))
-!ALLOCATE (abs_intens_pade(10000), trace_pade(10000))
-!
-!DO i = 1, 1
-!    DO j = 1, sys%natom
-!        trace(j) = DIMAG(zhat_resraman_x(i, j, 1)) + DIMAG(zhat_resraman_y(i, j, 2)) + DIMAG(zhat_resraman_z(i, j, 3))
-!        abs_intens(j) = (4.0_dp*pi*trace(j))/(3.0_dp*speed_light)
-!    END DO
-!END DO
-!
-!OPEN (FILE='absorption_spectra.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
-!CALL check_file_open(stat, msg, 'absorption_spectra.txt')
-!DO i = 1, natom
-!    WRITE (runit, *) i*rtp_freq_res*1.23984198e-4, abs_intens(i)*i*rtp_freq_res
-!END DO
-!CLOSE (runit)
-!
-!DO i = 1, 1
-!    DO j = 1, 10000
-!        trace_pade(j) = DIMAG(yx_out(i, j, 1)) + DIMAG(yy_out(i, j, 2)) + DIMAG(yz_out(i, j, 3))
-!        abs_intens_pade(j) = (4.0_dp*pi*trace_pade(j))/(3.0_dp*speed_light)
-!    END DO
-!END DO
-!
-!OPEN (FILE='absorption_spectra_pade.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
-!CALL check_file_open(stat, msg, 'absorption_spectra_pade.txt')
-!DO i = 1, 10000
-!WRITE (runit, *) i*pade_freq_res*1.23984198e-4, abs_intens_pade(i)*i*pade_freq_res
-!END DO
-!CLOSE (runit)
-!
-!!!Generate the spectrum!!
-!
-!CALL cvv_resraman( sys%framecount, natom, md%dt, alpha_resraman_x_diff_re, alpha_resraman_y_diff_re, &
-! alpha_resraman_z_diff_re, alpha_resraman_x_diff_im, alpha_resraman_y_diff_im, alpha_resraman_z_diff_im, &
-! z_iso_resraman, z_aniso_resraman, md)
-!
-!ALLOCATE (zhat_iso_resraman(0:md%t_cor*2, natom), zhat_aniso_resraman(0:md%t_cor*2, natom))
-!ALLOCATE (zhat_unpol_resraman(0:md%t_cor*2, natom))
-!
-!zhat_iso_resraman = COMPLEX(0._dp, 0.0_dp)
-!zhat_aniso_resraman = COMPLEX(0._dp, 0.0_dp)
-!
-!DO j = 1, sys%natom
-!    CALL dfftw_plan_dft_1d(plan, 2*md%t_cor, z_iso_resraman(0:md%t_cor*2, j), zhat_iso_resraman(0:md%t_cor*2, j), &
-!            FFTW_FORWARD, FFTW_ESTIMATE)
-!    CALL dfftw_execute_dft(plan, z_iso_resraman(0:md%t_cor*2, j), zhat_iso_resraman(0:md%t_cor*2, j)) !!!important to specify arrays!!
-!    CALL dfftw_destroy_plan(plan)
-!
-!    CALL dfftw_plan_dft_1d(plan, 2*md%t_cor, z_aniso_resraman(0:md%t_cor*2, j), zhat_aniso_resraman(0:md%t_cor*2, j), &
-!            FFTW_FORWARD, FFTW_ESTIMATE)
-!    CALL dfftw_execute_dft(plan, z_aniso_resraman(0:md%t_cor*2, j), zhat_aniso_resraman(0:md%t_cor*2, j)) !!!important to specify arrays!!
-!    CALL dfftw_destroy_plan(plan)
-!END DO
-!
-!freq_res = REAL(md%freq_range/(2*md%t_cor), kind=dp)
-!j = ANINT(rams%laser_in(1)/rtp_freq_res, kind=dp)
-!
-!!!!!UNPOLARIZED!!!!
-!
-!!zhat_iso_resraman=AIMAG(zhat_iso_resraman)
-!!zhat_aniso_resraman=AIMAG(zhat_aniso_resraman)
-!
-!!OPEN(UNIT=30,FILE='zhat_aimag.txt',STATUS='unknown',IOSTAT=stat)
-!!DO i=0,2*md%t_cor-2
-!! WRITE(30,*) REAL(zhat_aniso_resraman(i,j),kind=dp),AIMAG(zhat_aniso_resraman(i,j))
-!!ENDDO
-!!CLOSE(30)
-!
-!f = freq_res*md%dt*1.883652d-4
-!OPEN (FILE='o-NP_resraman.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
-!CALL check_file_open(stat, msg, 'o-NP_resraman.txt')
-!    DO i = 0, 2*md%t_cor - 2
-!        ! j=22
-!        !zhat_iso_resraman(i+1,j),AIMAG(zhat_iso_resraman(i+1,j),kind=dp)*(f*(i+1)/SIN(f*(i+1)))**2._dp
-!        zhat_iso_resraman(i + 1, j) = (zhat_iso_resraman(i + 1, j))*(f*(i + 1)/SIN(f*(i + 1)))**2._dp
-!        zhat_aniso_resraman(i + 1, j) = (zhat_aniso_resraman(i + 1, j))*(f*(i + 1)/SIN(f*(i + 1)))**2._dp
-!
-!        zhat_unpol_resraman(i, j) = (zhat_iso_resraman(i, j)) + (zhat_aniso_resraman(i, j)*7.0_dp/45.0_dp)* &
-!                    ((const_planck)/(8.0_dp*const_boltz*const_permit*const_permit) &
-!                        *1d-29*0.421_dp*md%dt*((((laser_in*j) - ((i)*freq_res))**4)/((i)*freq_res)) &
-!                        *(1.0_dp/(1.0_dp - EXP((-1.438777_dp*((i)*freq_res))/gs%temp))))*2.0_dp*2.0_dp*pi
-!        zhat_unpol_resraman(0, j) = 0.0_dp
-!    IF ((i*freq_res).GE.5000.0_dp) CYCLE
-!    !WRITE(73,*) i*freq_res,REAL(zhat_unpol_resraman(i,j),kind=dp),j
-!        WRITE (runit, *) i*freq_res, zhat_unpol_resraman(i, j), j
-!    ! ENDDO
-!    END DO
-!CLOSE (runit)
+        CALL forward_diff(rams%RR%framecount_rtp, alpha_z, rams%RR%dip_z_rtp, rams%RR%dip_z_rtp, gs, sys, dips, rams)
 
-END SUBROUTINE spec_resraman
+        DO i = 1, sys%framecount
+            DO j = 1, 3
+                CALL dfftw_plan_dft_r2c_1d(plan, Nw, alpha_z(i, 1:Nw, j), zhat_resraman_z(i, 1:Nw, j), FFTW_ESTIMATE)
+                CALL dfftw_execute_dft_r2c(plan, alpha_z(i, 1:Nw, j), zhat_resraman_z(i, 1:Nw, j)) !!!important to specify arrays!!
+                CALL dfftw_destroy_plan(plan)
+            END DO
+        END DO
+
+        IF (rams%RR%check_pade=='y') THEN
+            ALLOCATE (y_out(Nmd, rams%RR%framecount_rtp_pade, 3))
+        !!Call Pade
+!$OMP PARALLEL DO COLLAPSE(2)
+            DO i = 1, Nmd
+                DO j = 1, 3
+                    CALL interpolate(Nw, zhat_resraman_z(i, 1:Nw, j), &
+                                     rams%RR%framecount_rtp_pade, y_out(i, :, j))
+                END DO
+            END DO
+!$OMP END PARALLEL DO
+            Nw = rams%RR%framecount_rtp_pade
+            zhat_resraman_z = y_out
+            DEALLOCATE (y_out)
+        END IF
+
+        !!Multiply by dt_rtp coming from the FFT
+        zhat_resraman_z = zhat_resraman_z*rams%RR%dt_rtp*fs2s
+
+        rams%RR%alpha_resraman_z_re = REAL(zhat_resraman_z, kind=dp)
+        rams%RR%alpha_resraman_z_im = DIMAG(zhat_resraman_z)
+
+!!!!Calculate absorption spectra
+        ALLOCATE (trace(Nmd, Nw), abs_intens(Nw))
+
+        trace = 0.0_dp
+        trace(:, :) = rams%RR%alpha_resraman_x_im(:, :, 1) + rams%RR%alpha_resraman_y_im(:, :, 2) + rams%RR%alpha_resraman_z_im(:, :, 3)
+
+        abs_intens(:) = SUM(trace(1:Nmd, :), DIM=1)/REAL(Nmd, dp) !!average over MD snapshots
+
+        !!Conversion of absorption spectrum units into a.u.
+        abs_intens(:) = abs_intens(:)*(4.0_dp*pi*debye)/(3.0_dp*speed_light_au*at_u)
+
+        !! Conversion from cm-1 to a.u.
+        freq_au = rtp_freq_res*reccm2au
+
+        rtp_freq_res = REAL(rams%RR%freq_range_rtp/Nw, kind=dp)
+
+        OPEN (FILE='absorption_spectrum_md.txt', STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
+        !Check if file exists
+        CALL check_file_open(stat, msg, 'absorption_spectrum_md.txt')
+        DO i = 1, Nw
+            WRITE (runit, *) i*rtp_freq_res*reccm2ev, abs_intens(i)*i*freq_au
+        END DO
+        CLOSE (runit)
+
+        DEALLOCATE (zhat_resraman_x, zhat_resraman_y, zhat_resraman_z)
+        DEALLOCATE (alpha_x, alpha_y, alpha_z)
+        DEALLOCATE (trace, abs_intens)
+
+    END SUBROUTINE spec_abs_md
+
+!***********************************************************************************************!
+!***********************************************************************************************!
+    SUBROUTINE spec_resraman(gs, sys, md, rams, dips)
+
+        TYPE(global_settings) :: gs
+        TYPE(systems)         :: sys
+        TYPE(molecular_dynamics)   :: md
+        TYPE(dipoles)   :: dips
+        TYPE(raman)   :: rams
+
+        CHARACTER(LEN=str_len)                                      :: chara, msg
+        INTEGER                                                  :: stat, i, j, k, m, runit, i_laser
+        INTEGER                                                  :: Nw, Nmd
+        INTEGER(kind=dp)                                          :: plan, rtp_point
+        REAL(kind=dp)                                             :: f, freq_res, rtp_freq_res, pade_freq_res, laser_in
+        REAL(kind=dp), DIMENSION(:), ALLOCATABLE                    :: trace, abs_intens, trace_pade, abs_intens_pade
+        REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE                  :: zhat_unpol_resraman
+        REAL(kind=dp), DIMENSION(:), ALLOCATABLE                     :: raman_const, sinc_func, freq
+        COMPLEX(kind=dp), DIMENSION(:, :), ALLOCATABLE               :: zhat_iso_resraman, zhat_aniso_resraman
+
+        IF (rams%RR%check_pade=='n') THEN
+            Nw = rams%RR%framecount_rtp - 1
+        ELSEIF (rams%RR%check_pade=='y') THEN
+            Nw = rams%RR%framecount_rtp_pade
+        END IF
+
+        Nmd = sys%framecount - 2
+
+        ALLOCATE (rams%RR%alpha_resraman_x_diff_re(Nmd, Nw, 3), rams%RR%alpha_resraman_y_diff_re(Nmd, Nw, 3), rams%RR%alpha_resraman_z_diff_re(Nmd, Nw, 3))
+        ALLOCATE (rams%RR%alpha_resraman_x_diff_im(Nmd, Nw, 3), rams%RR%alpha_resraman_y_diff_im(Nmd, Nw, 3), rams%RR%alpha_resraman_z_diff_im(Nmd, Nw, 3))
+
+        ALLOCATE (freq(0:2*md%t_cor), raman_const(0:2*md%t_cor))
+
+!!!X-Field!!
+        CALL central_diff(Nw, rams%RR%alpha_resraman_x_re, rams%RR%alpha_resraman_x_diff_re, sys, md)
+        CALL central_diff(Nw, rams%RR%alpha_resraman_x_im, rams%RR%alpha_resraman_x_diff_im, sys, md)
+
+!!!Y-Field!!
+        CALL central_diff(Nw, rams%RR%alpha_resraman_y_re, rams%RR%alpha_resraman_y_diff_re, sys, md)
+        CALL central_diff(Nw, rams%RR%alpha_resraman_y_im, rams%RR%alpha_resraman_y_diff_im, sys, md)
+!
+!!!Z-Field!!
+        CALL central_diff(Nw, rams%RR%alpha_resraman_z_re, rams%RR%alpha_resraman_z_diff_re, sys, md)
+        CALL central_diff(Nw, rams%RR%alpha_resraman_z_im, rams%RR%alpha_resraman_z_diff_im, sys, md)
+
+!!!Generate the spectrum!!
+        CALL cvv_resraman(sys, md, rams)
+
+        ALLOCATE (zhat_iso_resraman(0:md%t_cor*2, Nw), zhat_aniso_resraman(0:md%t_cor*2, Nw))
+        ALLOCATE (zhat_unpol_resraman(0:md%t_cor*2, Nw))
+
+        zhat_iso_resraman = COMPLEX(0._dp, 0.0_dp)
+        zhat_aniso_resraman = COMPLEX(0._dp, 0.0_dp)
+
+!!!Finding laser frequency
+        rtp_freq_res = REAL(rams%RR%freq_range_rtp/Nw, kind=dp)
+
+        DO i_laser = 1, SIZE(rams%laser_in)
+            rtp_point = ANINT(rams%laser_in(i_laser)/(rtp_freq_res*reccm2ev), kind=dp)
+            CALL dfftw_plan_dft_1d(plan, 2*md%t_cor, rams%RR%z_iso_resraman(0:2*md%t_cor, rtp_point), zhat_iso_resraman(0:2*md%t_cor, rtp_point), &
+                                   FFTW_FORWARD, FFTW_ESTIMATE)
+            CALL dfftw_execute_dft(plan, rams%RR%z_iso_resraman(0:2*md%t_cor, rtp_point), zhat_iso_resraman(0:2*md%t_cor, rtp_point)) !!!important to specify arrays!!
+            CALL dfftw_destroy_plan(plan)
+
+            CALL dfftw_plan_dft_1d(plan, 2*md%t_cor, rams%RR%z_aniso_resraman(0:2*md%t_cor, rtp_point), zhat_aniso_resraman(0:2*md%t_cor, rtp_point), &
+                                   FFTW_FORWARD, FFTW_ESTIMATE)
+            CALL dfftw_execute_dft(plan, rams%RR%z_aniso_resraman(0:2*md%t_cor, rtp_point), zhat_aniso_resraman(0:2*md%t_cor, rtp_point)) !!!important to specify arrays!!
+            CALL dfftw_destroy_plan(plan)
+
+        END DO
+!!!Finding frequency range
+        freq_res = REAL(md%freq_range/(2*md%t_cor), kind=dp)
+        f = freq_res*md%dt*1.883652d-4
+
+!!!!!UNPOLARIZED!!!!
+!Unit conversion of Debye^2/(E^2*s^2) into C^4*s^2/kg^2
+        zhat_iso_resraman(:, :) = zhat_iso_resraman(:, :)*debye2cm*debye2cm/(au2vm*au2vm)
+        zhat_aniso_resraman(:, :) = zhat_aniso_resraman(:, :)*debye2cm*debye2cm/(au2vm*au2vm)
+
+        OPEN (FILE='resonance_raman_unpol.txt', STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
+        CALL check_file_open(stat, msg, 'resonance_raman_unpol.txt')
+        DO i_laser = 1, SIZE(rams%laser_in)
+            rtp_point = ANINT(rams%laser_in(i_laser)/(rtp_freq_res*reccm2ev), kind=dp)
+            DO i = 0, 2*md%t_cor - 1
+                freq(i) = i*freq_res
+                IF (i==0) THEN
+                    raman_const(i) = 0.0_dp
+                ELSE
+         !!conversion of the Raman intensities into m^2*K*cm*10^-30!!
+                    raman_const(i) = const_planck/(8.0_dp*const_boltz*const_permit*const_permit) &
+                                     *1.e+30*md%dt*fs2s*((((rams%laser_in(i_laser)/reccm2ev - freq(i))/cm2m)**4)/freq(i))* &
+                                     (1.0_dp/(1.0_dp - EXP(-1._dp*const_planck*speed_light*cm2m*freq(i)/ &
+                                                           (const_boltz*gs%temp))))*2.0_dp
+                END IF
+                zhat_iso_resraman(i + 1, rtp_point) = (zhat_iso_resraman(i + 1, rtp_point))*(f*(i + 1)/SIN(f*(i + 1)))**2._dp
+                zhat_aniso_resraman(i + 1, rtp_point) = (zhat_aniso_resraman(i + 1, rtp_point))*(f*(i + 1)/SIN(f*(i + 1)))**2._dp
+
+                zhat_unpol_resraman(i, rtp_point) = REAL(zhat_iso_resraman(i, rtp_point) + (zhat_aniso_resraman(i, rtp_point)*7.0_dp/45.0_dp), KIND=dp)*raman_const(i)
+
+                zhat_unpol_resraman(0, rtp_point) = 0.0_dp
+
+                IF ((i*freq_res).GE.5000.0_dp) CYCLE
+                WRITE (runit, *) i*freq_res, zhat_unpol_resraman(i, rtp_point)
+            END DO
+        END DO
+        CLOSE (runit)
+
+        DEALLOCATE (zhat_iso_resraman, zhat_aniso_resraman, zhat_unpol_resraman, freq, raman_const)
+
+    END SUBROUTINE spec_resraman
+
 END MODULE calc_spectra

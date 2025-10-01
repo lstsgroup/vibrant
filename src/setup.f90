@@ -292,7 +292,7 @@ CONTAINS
 
         freq_range = REAL((1.0_dp/(dt*1e-15))/speed_light, kind=dp)
         freq_range_rtp = REAL((1.0_dp/(dt_rtp*1e-15))/speed_light, kind=dp)
-
+print*, freq_range_rtp, "freq range check"
         ! freq_res = REAL(freq_range/(2.0_dp*md%t_cor), kind=dp)
         !sinc_const = freq_res*dt*1.883652d-4 !!for sinc function
 

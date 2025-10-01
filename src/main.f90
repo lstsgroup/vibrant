@@ -17,7 +17,7 @@
 PROGRAM vib2d
 
     USE, INTRINSIC           :: ISO_C_BINDING
-    USE iso_fortran_env, ONLY: output_unit, error_unit
+    USE ISO_FORTRAN_ENV, ONLY: output_unit, error_unit
     USE kinds, ONLY: dp, str_len
     USE constants, ONLY: speed_light, const_planck, const_permit, pi, const_charge, const_boltz, joule_unit, &
                          debye, ev_unit, action_unit, bohr2ang, hartreebohr2evang, am_u, at_u, ang, fs2s, reccm2ev, &
@@ -32,7 +32,7 @@ PROGRAM vib2d
     USE vel_cor, ONLY: cvv, cvv_iso, cvv_aniso, cvv_only_x, cvv_resraman
     USE fin_diff, ONLY: central_diff, forward_diff, finite_diff_static, finite_diff_static_resraman
     USE calc_spectra, ONLY: spec_power, normal_mode_analysis, spec_static_ir, spec_static_raman, &
-                            spec_ir, spec_raman, spec_abs, spec_static_resraman,  spec_resraman
+                            spec_ir, spec_raman, spec_abs, spec_static_resraman, spec_abs_md, spec_resraman
     USE omp_lib, ONLY: omp_get_num_threads
     USE timing, ONLY: timings
     USE config_info, ONLY: output_config_info
@@ -122,9 +122,9 @@ PROGRAM vib2d
     CALL parse_command_line(input_file_name)
 
     CALL parse_input(gs, sys, md, stats, dips, rams, input_file_name)
-    WRITE(*,'(90A, /)') REPEAT("-",90)
+    WRITE (*, '(90A, /)') REPEAT("-", 90)
     CALL check_input(gs, sys, md, stats, dips, rams)
-    WRITE(*,'(90A)') REPEAT("-",90)
+    WRITE (*, '(90A)') REPEAT("-", 90)
     !write(*,*) "input_file_name", input_file_name
     !write(*,*) "temperature", gs%temp
     !write(*,*) "laserin", gs%laser_in
@@ -307,7 +307,6 @@ PROGRAM vib2d
         CALL timings%register("calculate absorption spectrum")
         CALL spec_abs(gs, sys, dips, rams)
         !***************************************************************************
-
         !***************************************************************************
     ELSEIF (gs%spectral_type%read_function=='RR') THEN
         CALL timings%register("reading coordinates")
@@ -335,14 +334,28 @@ PROGRAM vib2d
         CALL spec_static_resraman(gs, sys, stats, rams)
         !***************************************************************************
         !***************************************************************************
+    ELSEIF (gs%spectral_type%read_function=='MD-ABS') THEN
+        CALL timings%register("reading initial coordinates")
+        CALL read_coord(dips%dip_x_file, gs, sys, dips, rams)
+        CALL timings%register("read coordinates for all frames")
+        CALL read_coord_frame(rams%RR%framecount_rtp, dips%dip_x_file, rams%RR%dip_x_rtp, sys)
+        CALL read_coord_frame(rams%RR%framecount_rtp, dips%dip_y_file, rams%RR%dip_y_rtp, sys)
+        CALL read_coord_frame(rams%RR%framecount_rtp, dips%dip_z_file, rams%RR%dip_z_rtp, sys)
+        CALL timings%register("calculate MD-based absorption spectrum")
+        CALL spec_abs_md(gs, sys, md, rams, dips)
+        !***************************************************************************
+        !***************************************************************************
     ELSEIF (gs%spectral_type%read_function=='MD-RR') THEN
-        CALL timings%register("reading coordinates")
-        !CALL read_coord(sys%filename, gs, sys, dips)
-
+        CALL timings%register("reading initial coordinates")
+        CALL read_coord(dips%dip_x_file, gs, sys, dips, rams)
+        CALL timings%register("read coordinates for all frames")
+        CALL read_coord_frame(rams%RR%framecount_rtp, dips%dip_x_file, rams%RR%dip_x_rtp, sys)
+        CALL read_coord_frame(rams%RR%framecount_rtp, dips%dip_y_file, rams%RR%dip_y_rtp, sys)
+        CALL read_coord_frame(rams%RR%framecount_rtp, dips%dip_z_file, rams%RR%dip_z_rtp, sys)
+        CALL timings%register("calculate MD-based absorption spectrum")
+        CALL spec_abs_md(gs, sys, md, rams, dips)
         CALL timings%register("calculate resonance Raman spectrum")
-        !CALL spec_resraman(sys, md, rams)
-        !CALL spec_resraman(natom,framecount,element,rtp_dipole_x,rtp_dipole_y,rtp_dipole_z,type_input,mol_num,system,&
-        !     read_function,dt,z_iso_resraman,z_aniso_resraman,freq_range,freq_range_rtp,laser_in_resraman,y_out)
+        CALL spec_resraman(gs, sys, md, rams, dips)
     END IF
 
     CALL timings%report_all()
