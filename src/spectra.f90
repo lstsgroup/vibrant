@@ -928,10 +928,6 @@ CONTAINS
         iso_sq = iso_sq*(ang**4._dp)/am_u
         aniso_sq = aniso_sq*(ang**4._dp)/am_u
 
-        WRITE (*, '(4X,"rtp_freq_res", T60, G0)') rtp_freq_res
-        WRITE (*, '(4X,"rams%RR%freq_range_rtp", T60, G0)') rams%RR%freq_range_rtp
-        WRITE (*, '(4X,"rtp_point", T60, I0)') rtp_point
-        WRITE (*, '(4X,"rams%RR%framecount_rtp", T60, I0)') rams%RR%framecount_rtp
         !!!Finding laser frequency
         rtp_freq_res = REAL(rams%RR%freq_range_rtp/rams%RR%framecount_rtp, kind=dp)
 
@@ -1154,7 +1150,7 @@ CONTAINS
         TYPE(raman)   :: rams
 
         CHARACTER(LEN=str_len)                                      :: chara, msg
-        INTEGER                                                  :: stat, i, j, k, m, runit
+        INTEGER                                                  :: stat, i, j, k, m, runit, i_laser
         INTEGER                                                  :: Nw, Nmd
         INTEGER(kind=dp)                                          :: plan, rtp_point
         REAL(kind=dp)                                             :: f, freq_res, rtp_freq_res, pade_freq_res, laser_in
@@ -1199,18 +1195,20 @@ CONTAINS
 
 !!!Finding laser frequency
         rtp_freq_res = REAL(rams%RR%freq_range_rtp/Nw, kind=dp)
-        rtp_point = ANINT(rams%laser_in/(rtp_freq_res*reccm2ev), kind=dp)
 
-        CALL dfftw_plan_dft_1d(plan, 2*md%t_cor, rams%RR%z_iso_resraman(0:2*md%t_cor, rtp_point), zhat_iso_resraman(0:2*md%t_cor, rtp_point), &
-                               FFTW_FORWARD, FFTW_ESTIMATE)
-        CALL dfftw_execute_dft(plan, rams%RR%z_iso_resraman(0:2*md%t_cor, rtp_point), zhat_iso_resraman(0:2*md%t_cor, rtp_point)) !!!important to specify arrays!!
-        CALL dfftw_destroy_plan(plan)
+        DO i_laser = 1, SIZE(rams%laser_in)
+            rtp_point = ANINT(rams%laser_in(i_laser)/(rtp_freq_res*reccm2ev), kind=dp)
+            CALL dfftw_plan_dft_1d(plan, 2*md%t_cor, rams%RR%z_iso_resraman(0:2*md%t_cor, rtp_point), zhat_iso_resraman(0:2*md%t_cor, rtp_point), &
+                                   FFTW_FORWARD, FFTW_ESTIMATE)
+            CALL dfftw_execute_dft(plan, rams%RR%z_iso_resraman(0:2*md%t_cor, rtp_point), zhat_iso_resraman(0:2*md%t_cor, rtp_point)) !!!important to specify arrays!!
+            CALL dfftw_destroy_plan(plan)
 
-        CALL dfftw_plan_dft_1d(plan, 2*md%t_cor, rams%RR%z_aniso_resraman(0:2*md%t_cor, rtp_point), zhat_aniso_resraman(0:2*md%t_cor, rtp_point), &
-                               FFTW_FORWARD, FFTW_ESTIMATE)
-        CALL dfftw_execute_dft(plan, rams%RR%z_aniso_resraman(0:2*md%t_cor, rtp_point), zhat_aniso_resraman(0:2*md%t_cor, rtp_point)) !!!important to specify arrays!!
-        CALL dfftw_destroy_plan(plan)
+            CALL dfftw_plan_dft_1d(plan, 2*md%t_cor, rams%RR%z_aniso_resraman(0:2*md%t_cor, rtp_point), zhat_aniso_resraman(0:2*md%t_cor, rtp_point), &
+                                   FFTW_FORWARD, FFTW_ESTIMATE)
+            CALL dfftw_execute_dft(plan, rams%RR%z_aniso_resraman(0:2*md%t_cor, rtp_point), zhat_aniso_resraman(0:2*md%t_cor, rtp_point)) !!!important to specify arrays!!
+            CALL dfftw_destroy_plan(plan)
 
+        END DO
 !!!Finding frequency range
         freq_res = REAL(md%freq_range/(2*md%t_cor), kind=dp)
         f = freq_res*md%dt*1.883652d-4
@@ -1220,31 +1218,31 @@ CONTAINS
         zhat_iso_resraman(:, :) = zhat_iso_resraman(:, :)*debye2cm*debye2cm/(au2vm*au2vm)
         zhat_aniso_resraman(:, :) = zhat_aniso_resraman(:, :)*debye2cm*debye2cm/(au2vm*au2vm)
 
-        DO i = 0, 2*md%t_cor - 1
-            freq(i) = i*freq_res
-            IF (i==0) THEN
-                raman_const(i) = 0.0_dp
-            ELSE
-         !!conversion of the Raman intensities into m^2*K*cm*10^-30!!
-                raman_const(i) = const_planck/(8.0_dp*const_boltz*const_permit*const_permit) &
-                                 *1.e+30*md%dt*fs2s*((((rams%laser_in/reccm2ev - freq(i))/cm2m)**4)/freq(i))* &
-                                 (1.0_dp/(1.0_dp - EXP(-1._dp*const_planck*speed_light*cm2m*freq(i)/ &
-                                                       (const_boltz*gs%temp))))*2.0_dp
-            END IF
-        END DO
-
         OPEN (FILE='resonance_raman_unpol.txt', STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
         CALL check_file_open(stat, msg, 'resonance_raman_unpol.txt')
-        DO i = 0, 2*md%t_cor - 2
-            zhat_iso_resraman(i + 1, rtp_point) = (zhat_iso_resraman(i + 1, rtp_point))*(f*(i + 1)/SIN(f*(i + 1)))**2._dp
-            zhat_aniso_resraman(i + 1, rtp_point) = (zhat_aniso_resraman(i + 1, rtp_point))*(f*(i + 1)/SIN(f*(i + 1)))**2._dp
+        DO i_laser = 1, SIZE(rams%laser_in)
+            rtp_point = ANINT(rams%laser_in(i_laser)/(rtp_freq_res*reccm2ev), kind=dp)
+            DO i = 0, 2*md%t_cor - 1
+                freq(i) = i*freq_res
+                IF (i==0) THEN
+                    raman_const(i) = 0.0_dp
+                ELSE
+         !!conversion of the Raman intensities into m^2*K*cm*10^-30!!
+                    raman_const(i) = const_planck/(8.0_dp*const_boltz*const_permit*const_permit) &
+                                     *1.e+30*md%dt*fs2s*((((rams%laser_in(i_laser)/reccm2ev - freq(i))/cm2m)**4)/freq(i))* &
+                                     (1.0_dp/(1.0_dp - EXP(-1._dp*const_planck*speed_light*cm2m*freq(i)/ &
+                                                           (const_boltz*gs%temp))))*2.0_dp
+                END IF
+                zhat_iso_resraman(i + 1, rtp_point) = (zhat_iso_resraman(i + 1, rtp_point))*(f*(i + 1)/SIN(f*(i + 1)))**2._dp
+                zhat_aniso_resraman(i + 1, rtp_point) = (zhat_aniso_resraman(i + 1, rtp_point))*(f*(i + 1)/SIN(f*(i + 1)))**2._dp
 
-            zhat_unpol_resraman(i, rtp_point) = REAL(zhat_iso_resraman(i, rtp_point) + (zhat_aniso_resraman(i, rtp_point)*7.0_dp/45.0_dp), KIND=dp)*raman_const(i)
+                zhat_unpol_resraman(i, rtp_point) = REAL(zhat_iso_resraman(i, rtp_point) + (zhat_aniso_resraman(i, rtp_point)*7.0_dp/45.0_dp), KIND=dp)*raman_const(i)
 
-            zhat_unpol_resraman(0, rtp_point) = 0.0_dp
+                zhat_unpol_resraman(0, rtp_point) = 0.0_dp
 
-            IF ((i*freq_res).GE.5000.0_dp) CYCLE
-            WRITE (runit, *) i*freq_res, zhat_unpol_resraman(i, rtp_point)
+                IF ((i*freq_res).GE.5000.0_dp) CYCLE
+                WRITE (runit, *) i*freq_res, zhat_unpol_resraman(i, rtp_point)
+            END DO
         END DO
         CLOSE (runit)
 
