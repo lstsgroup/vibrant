@@ -78,7 +78,14 @@ CONTAINS
         TYPE(dipoles), INTENT(INOUT)            :: dips
         TYPE(raman), INTENT(INOUT)           :: rams
         CHARACTER(LEN=str_len), INTENT(IN) :: input_file_name
-        INTEGER :: ios, i, n
+        INTEGER :: ios, i, n, m
+        integer :: p
+        real(dp) ::val
+        real(dp) :: buf(10), sentinel
+       
+        character(len=:), allocatable :: rest
+        character(len=:), allocatable :: s
+        character(len=str_len) :: tmp(10)
         CHARACTER(len=256) :: iomsg
         !** intermal variables
         INTEGER :: runit, stat
@@ -355,20 +362,22 @@ CONTAINS
 
             IF (in_raman) THEN
                 IF (INDEX(to_lower(line), 'laser_in')>0) THEN !Type of the dipole moment
-                    ! Anzahl Werte grob bestimmen: Kommata zählen + 1  (funktioniert, wenn keine Trailing-Kommas)
-                    n = COUNT([(line(i:i)==',', i=1, LEN_TRIM(line))]) + 1
-                    ALLOCATE (rams%laser_in(MIN(n, 10)))
-                    IF (n>10) THEN
-                        WRITE (error_unit, '(4X,"[WARN]  ",A)') 'More than 10 laser frequencies defined. Only first 10 will be considered'
-                    END IF
-                    READ (line, *) dummy, rams%laser_in
-                    IF (SIZE(rams%laser_in)==1) THEN
-                        WRITE (*, '(4X,A, T60, F0.6)') 'Incident laser frequency (eV):', rams%laser_in !rams%laser_in
+                    sentinel = huge(1.0_dp)
+                    buf = sentinel
+
+                    READ(line,*, iostat=ios) dummy, (buf(i), i=1,10)
+                    m = count(buf /= sentinel)
+
+                    ALLOCATE(rams%laser_in(m))
+                    rams%laser_in = buf(:m) 
+
+                    IF (m == 1) THEN
+                        WRITE (*, '(4X,A, T60, F0.6)') 'Incident laser frequency (eV):', rams%laser_in
                     ELSE
-                        WRITE (*, '(4X,A)') 'Multiple incidents laser frequencies found:'
-                        DO i = 1, SIZE(rams%laser_in)
+                        WRITE (*, '(4X,A)') 'Found incident laser frequencies:'
+                        DO i = 1, m
                             WRITE (*, '(6X,I0, A, T60, F0.6)') i, " Incident laser frequency (eV)", rams%laser_in(i)
-                        END DO
+                        END DO 
                     END IF
                 END IF
             END IF
