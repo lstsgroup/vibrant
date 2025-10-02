@@ -27,7 +27,7 @@ MODULE calc_spectra
     USE read_traj, ONLY: read_coord_frame,check_file_open
     USE fin_diff, ONLY: central_diff, forward_diff
     USE vel_cor, ONLY: cvv, cvv_iso, cvv_aniso, cvv_only_x, cvv_resraman
-    USE dipole_calc, ONLY: compute_dipole, check_jumps
+    USE dipole_calc!, ONLY: compute_dipole, check_jumps
     USE pade, ONLY: interpolate
 
     USE, INTRINSIC                              :: ISO_C_BINDING
@@ -114,10 +114,18 @@ CONTAINS
         ALLOCATE (md%zhat(0:2*md%t_cor - 1), ir_int(0:2*md%t_cor - 1), freq(0:2*md%t_cor - 1))
         md%zhat = COMPLEX(0._dp, 0.0_dp)
 
-        IF (dips%type_dipole=='wannier') THEN !!fragment approach or whole supercell
-            CALL read_coord_frame(sys%natom, dips%dip_file, md%coord_v, sys)
-            CALL compute_dipole(dips%dipole, sys, md)
-            CALL central_diff(sys%mol_num, dips%dipole, md%v, sys, md)
+        IF (dips%type_dipole=='wannier') THEN !!Wannier centers
+            IF (sys%fragments%frag.EQV..FALSE.) THEN !!Whole supercell
+                CALL read_coord_frame(sys%natom, dips%dip_file, md%coord_v, sys)
+                CALL compute_dipole(dips%dipole, sys, md)
+                CALL central_diff(sys%mol_num, dips%dipole, md%v, sys, md)
+            ELSEIF (sys%fragments%frag.EQV..TRUE.) THEN !!Fragments
+                CALL read_coord_frame(sys%natom, dips%dip_file, md%coord_v, sys)
+                CALL assign_wannier(sys, md)
+                CALL compute_dipole_frag(dips%dipole, sys, md)
+                CALL central_diff(sys%fragments%nfrag, dips%dipole, md%v, sys, md)
+                sys%mol_num = sys%fragments%nfrag
+            ENDIF
         ELSEIF (dips%type_dipole=='berry') THEN !!Berry phase dipoles
             CALL read_coord_frame(sys%mol_num, dips%dip_file, md%coord_v, sys)
             CALL check_jumps(md%coord_v, sys, md)

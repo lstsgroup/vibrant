@@ -23,22 +23,39 @@ MODULE vib_types
     PRIVATE
 
     PUBLIC :: global_settings, systems, molecular_dynamics, static, dipoles, raman, static_property, init_global_settings, &
-              init_systems, init_molecular_dynamics, init_static, init_dipoles, init_raman, deallocate_types
+              init_systems, init_molecular_dynamics, init_static, init_dipoles, init_raman, deallocate_types, fragment_type
 
     !***************************************************************************
     TYPE spectral_type
         CHARACTER(LEN=40)                               :: read_function ! spectral_type not needed NEEDED ANYMORE ! 
     END TYPE spectral_type
 
+
+    !***************************************************************************
+TYPE fragment_frame_type
+    INTEGER, ALLOCATABLE :: frag_atoms(:)   ! per-frame augmented list (atoms + Wannier)
+END TYPE fragment_frame_type
+
+
+    !***************************************************************************
+    TYPE fragment_type
+        INTEGER, ALLOCATABLE :: frag_atoms(:)
+    END TYPE fragment_type
     !***************************************************************************
     TYPE fragments
-        INTEGER                                             :: nfrag
-        INTEGER, DIMENSION(:), ALLOCATABLE                  :: natom_frag
-        INTEGER, DIMENSION(:, :, :), ALLOCATABLE            :: fragment
+        LOGICAL                                          ::  frag !yes/no
+        INTEGER                                             :: nfrag, natom_frag
+        INTEGER, DIMENSION(:), ALLOCATABLE :: frag_atoms
+        TYPE(fragment_type), ALLOCATABLE :: fragment(:)
+ TYPE(fragment_frame_type), ALLOCATABLE :: fragment_frame(:, :) ! (frame, frag) 
+      ! TYPE(fragment_type), ALLOCATABLE                  :: natom_frag(:)
+    !    INTEGER, DIMENSION(:, :), ALLOCATABLE            :: fragment
+        !INTEGER, DIMENSION(:, :, :), ALLOCATABLE            :: fragment
         REAL(kind=dp)                                       :: mass_tot_cell
         REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE         :: mass_tot_frag
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE      :: refpoint
     END TYPE fragments
+
 
     !***************************************************************************
     TYPE cell
@@ -119,7 +136,7 @@ MODULE vib_types
         REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE         :: coord                ! ALLOCATE sys%coord(sys%natom, 3)
         REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE         :: mass_mat             ! ALLOCATE sys%mass_mat(sys%natom, sys%natom)
         TYPE(CELL)                                          :: cell
-        TYPE(fragments)                                     :: fragments! <--- NEEDED?
+        TYPE(fragments)                                     :: fragments! 
     END TYPE systems
 
     !***************************************************************************
@@ -507,7 +524,7 @@ CONTAINS
         !IF (ALLOCATED(sys%cell%vec_pbc(3))) DEALLOCATE(sys%cell%vec_pbc(3))
 
         !IF (ALLOCATED(sys%fragments%nfrag)) DEALLOCATE(sys%fragments%nfrag)
-        IF (ALLOCATED(sys%fragments%natom_frag)) DEALLOCATE (sys%fragments%natom_frag)
+       ! IF (ALLOCATED(sys%fragments%natom_frag)) DEALLOCATE (sys%fragments%natom_frag)
         IF (ALLOCATED(sys%fragments%fragment)) DEALLOCATE (sys%fragments%fragment)
         !IF (ALLOCATED(sys%fragments%mass_tot_cell)) DEALLOCATE(sys%fragments%mass_tot_cell)
         IF (ALLOCATED(sys%fragments%mass_tot_frag)) DEALLOCATE (sys%fragments%mass_tot_frag)
