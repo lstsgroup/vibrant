@@ -79,9 +79,7 @@ CONTAINS
         TYPE(raman), INTENT(INOUT)           :: rams
         CHARACTER(LEN=str_len), INTENT(IN) :: input_file_name
         INTEGER :: ios, i, n, m
-        integer :: p
-        real(dp) ::val
-        real(dp) :: buf(10), sentinel
+        REAL(dp) :: buf(10), sentinel
        
         character(len=:), allocatable :: rest
         character(len=:), allocatable :: s
@@ -367,9 +365,14 @@ CONTAINS
 
                     READ(line,*, iostat=ios) dummy, (buf(i), i=1,10)
                     m = count(buf /= sentinel)
-
-                    ALLOCATE(rams%laser_in(m))
-                    rams%laser_in = buf(:m) 
+                    
+                    IF (m == 0) THEN
+                        WRITE(error_unit,'(4X,"[Error]  ",A)') 'No laser frequencies provided after laser_in'
+                        STOP
+                    ELSE
+                        ALLOCATE(rams%laser_in(m))
+                        rams%laser_in = buf(:m) 
+                    END IF
 
                     IF (m == 1) THEN
                         WRITE (*, '(4X,A, T60, F0.6)') 'Incident laser frequency (eV):', rams%laser_in
