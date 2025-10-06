@@ -288,7 +288,8 @@ CONTAINS
             outfile = "raman_orthogonal.txt"
             WRITE(c_label, '("INT ",F10.6, " eV")') rams%laser_in(i_laser)
             IF (i_laser == 1) THEN
-                CALL write_spectra_data(outfile, c_label, 1,  2*md%t_cor - 2, raman_ortho(:), freq, 5000.0_dp)
+                !CALL write_spectra_data(outfile, c_label, 1,  2*md%t_cor - 2, raman_ortho(:), freq, 5000.0_dp)
+                CALL write_spectra_data(outfile, c_label, freq, raman_ortho(:), 5000.0_dp)
             ELSE
                 !WRITE(c_label,'("INT ",F10.6, " eV")') rams%laser_in(i_laser)
                 CALL append_column(outfile, c_label, raman_ortho(:), freq, 5000.0_dp)
@@ -333,7 +334,8 @@ CONTAINS
             outfile = "raman_parallel.txt"
             WRITE(c_label, '("INT ",F10.6, " eV")') rams%laser_in(i_laser)
             IF (i_laser == 1) THEN
-                CALL write_spectra_data(outfile, c_label, 1,  2*md%t_cor - 2, raman_para(:), freq, 5000.0_dp)
+                !CALL write_spectra_data(outfile, c_label, 1,  2*md%t_cor - 2, raman_para(:), freq, 5000.0_dp)
+                CALL write_spectra_data(outfile, c_label, freq, raman_para(:), 5000.0_dp)
             ELSE
                 !WRITE(c_label,'("INT ",F10.6, " eV")') rams%laser_in(i_laser)
                 CALL append_column(outfile, c_label, raman_para(:), freq, 5000.0_dp)
@@ -359,7 +361,8 @@ CONTAINS
             outfile = "raman_unpolarized.txt"
             WRITE(c_label, '("INT ",F10.6, " eV")') rams%laser_in(i_laser)
             IF (i_laser == 1) THEN
-                CALL write_spectra_data(outfile, c_label, 1,  2*md%t_cor - 2, raman_unpol(:), freq, 5000.0_dp)
+                !CALL write_spectra_data(outfile, c_label, 1,  2*md%t_cor - 2, raman_unpol(:), freq, 5000.0_dp)
+                CALL write_spectra_data(outfile, c_label, freq, raman_unpol(:), 5000.0_dp)
             ELSE
                 !WRITE(c_label,'("INT ",F10.6, " eV")') rams%laser_in(i_laser)
                 CALL append_column(outfile, c_label, raman_unpol(:), freq, 5000.0_dp)
@@ -386,7 +389,8 @@ CONTAINS
             outfile = "raman_depolarization_ratio.txt"
             WRITE(c_label, '("INT ",F10.6, " eV")') rams%laser_in(i_laser)
             IF (i_laser == 1) THEN
-                CALL write_spectra_data(outfile, c_label, 1,  2*md%t_cor - 2, raman_depol(:), freq, 5000.0_dp)
+                !CALL write_spectra_data(outfile, c_label, 1,  2*md%t_cor - 2, raman_depol(:), freq, 5000.0_dp)
+                CALL write_spectra_data(outfile, c_label, freq, raman_depol(:), 5000.0_dp)
             ELSE
                 !WRITE(c_label,'("INT ",F10.6, " eV")') rams%laser_in(i_laser)
                 CALL append_column(outfile, c_label, raman_depol(:), freq, 5000.0_dp)
@@ -683,7 +687,7 @@ CONTAINS
         INTEGER                                                  :: start_freq, end_freq, recl
         LOGICAL                                                   :: first_column
         CHARACTER(len=str_len)                                      :: msg, fname, outfile, c_label
-        REAL(kind=dp), DIMENSION(:), ALLOCATABLE                    :: iso_sq, aniso_sq, ram_const, data2!,broad
+        REAL(kind=dp), DIMENSION(:), ALLOCATABLE                    :: iso_sq, aniso_sq, ram_const, data2, freq!,broad
         REAL(kind=dp)                                             :: broad
 
         
@@ -694,6 +698,7 @@ CONTAINS
         end_freq = INT(MAXVAL(stats%freq) + 1000.0_dp)
         freq_res = INT(end_freq - start_freq)
         ALLOCATE (data2(freq_res + 1))
+        ALLOCATE (freq(freq_res + 1))
         data2 = 0.0_dp
         recl    = 4096
 
@@ -724,6 +729,7 @@ CONTAINS
             rams%raman_int(:) = REAL(((7.0_dp*aniso_sq(:)) + (45.0_dp*iso_sq(:)))/45.0_dp, kind=dp)*ram_const(:)
         
             data2(:) = 0.0_dp
+            freq(:) = 0.0_dp
             !!! Broadening
             DO i = start_freq, end_freq
                 broad = 0.0_dp
@@ -731,6 +737,7 @@ CONTAINS
                     broad = broad + (rams%raman_int(x)*(1.0_dp/(gs%fwhm*SQRT(2.0_dp*pi)))* &
                                      EXP(-0.50_dp*((i - stats%freq(x))/gs%fwhm)**2.0_dp))
                 END DO
+                freq(i) = i
                 data2(i) = broad
             END DO
 
@@ -738,10 +745,11 @@ CONTAINS
 
             WRITE(c_label, '("INT ",F10.6, " eV")') rams%laser_in(i_laser)
             IF (i_laser == 1) THEN
-                CALL write_spectra_data(outfile, c_label, start_freq, end_freq, data2(:))
+                !CALL write_spectra_data(outfile, c_label, start_freq, end_freq, data2(:))
+                CALL write_spectra_data(outfile, c_label, freq, data2(:))
             ELSE
                 !WRITE(c_label,'("INT ",F10.6, " eV")') rams%laser_in(i_laser)
-                CALL append_column(outfile, c_label, data2(:))
+                CALL append_column(outfile, c_label, data2(:), freq)
             END IF
         !!Write Molden output
             IF (i_laser==1) THEN
@@ -785,13 +793,14 @@ CONTAINS
 
     END SUBROUTINE spec_static_raman
 
-    SUBROUTINE write_spectra_data(outfile, header, start_freq, end_freq, DATA, freq, cutoff)
+
+    SUBROUTINE write_spectra_data(outfile, header, freq, intensities, freq_cutoff)
         CHARACTER(*), INTENT(in) :: outfile
         CHARACTER(*), INTENT(in) :: header
-        INTEGER, INTENT(in) :: start_freq, end_freq
-        REAL(dp), INTENT(in) :: DATA(:)
-        REAL(dp),     INTENT(in), OPTIONAL :: freq(:)
-        REAL(dp),     INTENT(in), OPTIONAL :: cutoff
+        !INTEGER, INTENT(in) :: start_freq, end_freq
+        REAL(dp), INTENT(in) :: freq(:)
+        REAL(dp), INTENT(in) :: intensities(:)
+        REAL(dp),     INTENT(in), OPTIONAL :: freq_cutoff
 
         INTEGER :: runit, stat, i
         CHARACTER(len=256) :: msg
@@ -800,31 +809,30 @@ CONTAINS
         OPEN (file=outfile, status='replace', action='write', iostat=stat, iomsg=msg, newunit=runit)
         CALL check_file_open(stat, msg, outfile)
 
-        IF (PRESENT(freq) .AND. PRESENT(cutoff)) THEN
-            ! Header:
-            WRITE (runit, '(A22,6X,A20)') 'FREQ', TRIM(header)
-            DO i = start_freq, end_freq
-                IF (freq(i).GE.cutoff) CYCLE
-                WRITE (runit, '(F22.16,1X,ES25.16E3)') freq(i), DATA(i)
+        WRITE (runit, '(A22,1X,A25)') 'FREQ', TRIM(header)
+        !WRITE (runit, '(A6,6X,A20)') 'FREQ', TRIM(header)
+        IF (PRESENT(freq_cutoff)) THEN
+       
+            DO i = 1, SIZE(freq)
+                IF (freq(i).GE.freq_cutoff) EXIT
+                WRITE (runit, '(F22.16,1X,ES25.16E3)') freq(i), intensities(i)
             END DO
         ELSE
-            ! Header:
-            WRITE (runit, '(A6,6X,A20)') 'FREQ', TRIM(header)
-            DO i = start_freq, end_freq
-                WRITE (runit, '(I6,1X,ES25.16E3)') i, DATA(i)
+            DO i = 1, SIZE(freq)
+                WRITE (runit, '(I22,1X,ES25.16E3)') i, intensities(i)
             END DO
         END IF
 
         CLOSE (runit)
     END SUBROUTINE write_spectra_data
 
-    SUBROUTINE append_column(filename, header, DATA, freq, cutoff)
+    SUBROUTINE append_column(filename, header, intensities, freq, cutoff)
         !! Fügt eine Spalte `data` in die Datei `filename` hinzu.
         !! Falls die Datei neu ist, wird `header` als Kopfzeile geschrieben.
         CHARACTER(len=*), INTENT(in) :: filename
         CHARACTER(len=*), INTENT(in) :: header
-        REAL(kind=dp), INTENT(in) :: DATA(:)
-        REAL(dp),     INTENT(in), OPTIONAL :: freq(:)
+        REAL(kind=dp), INTENT(in) :: intensities(:)
+        REAL(dp),     INTENT(in) :: freq(:)
         REAL(dp),     INTENT(in), OPTIONAL :: cutoff
     
         INTEGER :: runit, ios, n, i, stat, nlines
@@ -833,6 +841,7 @@ CONTAINS
         CHARACTER(len=30)   :: VALUE, msg
         CHARACTER(len=1024) :: buf
         CHARACTER(len=str_len), ALLOCATABLE :: lines(:)
+        REAL(dp),    ALLOCATABLE :: freq_in_file(:)
     
         ! ---------- loop 1: read all data rows into lines(:) ----------
         OPEN (file=filename, status="old", action="readwrite", IOMSG=msg, IOSTAT=stat, newunit=runit)
@@ -849,31 +858,40 @@ CONTAINS
     
         ! --- allocate after counting ---
         ALLOCATE (lines(nlines))
+        ALLOCATE (freq_in_file(nlines-1))
     
-        ! --- pass 2: fill ---
+        ! --- pass 2: fill  lines and extract freq data---
         DO i = 1, nlines
             READ (runit, '(A)', iostat=ios) lines(i)
+            IF (i.GE.2) THEN
+            READ (lines(i), *) freq_in_file(i-1)
+            END IF
         END DO
-
-        IF (nlines-1/=SIZE(DATA) .AND. .NOT. PRESENT(cutoff)) THEN
-            CLOSE (runit)
-            WRITE (error_unit, '(4X,"[ERROR] ",A)') "append_column: file has fewer rows (", nlines, ") than data (", SIZE(DATA), ")."
-            RETURN
-        END IF
         REWIND (runit)
+
         ! ---------- loop 2: write the updated file ----------
-    
-        WRITE (runit, '(A,1X,A20)') TRIM(lines(1)), TRIM(header)
-        IF (PRESENT(freq) .AND. PRESENT(cutoff)) THEN
+        WRITE (runit, '(A,1X,A25)') TRIM(lines(1)), TRIM(header)
+        IF (PRESENT(cutoff)) THEN
             DO i = 1, SIZE(lines) -1
-                !IF (freq(i).GE.cutoff) CYCLE
+                IF (freq(i).GE.cutoff) EXIT
+                IF (freq_in_file(i) == freq(i))THEN
                 !PRINT *,freq(i)!, TRIM(lines(i+1))
-                WRITE (runit, '(A,1X,ES20.10E3)') TRIM(lines(i+1)), DATA(i)
+                    WRITE (runit, '(A,1X,ES25.16E3)') TRIM(lines(i+1)), intensities(i)
+                ELSE
+                    WRITE (error_unit, '(4X,"[ERROR] ",A)') "append_column: freq in file not equal to given freq."
+                    RETURN
+                END IF
             END DO
         ELSE
-            DO i = 1, SIZE(DATA)
-                !WRITE (VALUE, '(F12.8)') DATA(i)
-                WRITE (runit, '(A,1X,ES20.10E3)') TRIM(lines(i+1)), DATA(i)
+            DO i = 1, SIZE(freq)
+                IF (freq_in_file(i) == freq(i))THEN
+                    !PRINT *,freq(i)!, TRIM(lines(i+1))
+                        WRITE (runit, '(A,1X,ES25.16E3)') TRIM(lines(i+1)), intensities(i)
+                    ELSE
+                        WRITE (error_unit, '(4X,"[ERROR] ",A)') "append_column: freq in file not equal to given freq."
+                        RETURN
+                    END IF
+                !WRITE (runit, '(A,1X,ES25.16E3)') TRIM(lines(i+1)), intensities(i)
             END DO
         END IF 
         CLOSE (runit)
@@ -1023,7 +1041,7 @@ CONTAINS
         CHARACTER(len=str_len)                                         :: msg, fname, outfile, c_label
         REAL(kind=dp)                                                  :: broad, factor
         REAL(kind=dp)                                                  :: rtp_freq_res, pade_freq_res
-        REAL(kind=dp), DIMENSION(:), ALLOCATABLE                         :: data2, ram_const
+        REAL(kind=dp), DIMENSION(:), ALLOCATABLE                         :: data2, ram_const, freq
         REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE                       :: iso_sq, aniso_sq, raman_int
         COMPLEX(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE                   :: zhat_pol_dq_rtp
         COMPLEX(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE                 :: zhat_pol_dxyz_rtp
@@ -1035,6 +1053,7 @@ CONTAINS
         freq_res = INT(end_freq - start_freq)
 
         ALLOCATE (data2(freq_res*stats%nmodes))
+        ALLOCATE (freq(freq_res+1))
         ALLOCATE (zhat_pol_dxyz_rtp(sys%natom, 3, 3, 3, rams%RR%framecount_rtp))
         ALLOCATE (zhat_pol_dq_rtp(stats%nmodes, 3, 3, rams%RR%framecount_rtp))
         ALLOCATE (iso_sq(stats%nmodes, rams%RR%framecount_rtp), aniso_sq(stats%nmodes, rams%RR%framecount_rtp))
@@ -1043,6 +1062,7 @@ CONTAINS
 
         zhat_pol_dq_rtp = (0.0_dp, 0.0_dp)
         data2 = 0.0_dp
+        freq = 0.0_dp
 
 !!!Finding laser frequency
         rtp_freq_res = REAL(rams%RR%freq_range_rtp/rams%RR%framecount_rtp, kind=dp)
@@ -1100,6 +1120,7 @@ CONTAINS
                                       ram_const(:)
                                       
             data2(:) = 0.0_dp
+            freq(:) = 0.0_dp
             !!!Broadening the spectrum!!
             DO x = start_freq, end_freq
                 broad = 0.0_dp
@@ -1108,16 +1129,18 @@ CONTAINS
                                      *EXP(-0.50_dp*((x - stats%freq(i))/gs%fwhm)**2.0_dp))
                 END DO
                 data2(x) = broad
+                freq(x)  = x
             END DO
 
 
             ! Label z. B. "laser_1", "laser_2", ...
             WRITE(c_label, '("INT ",F10.6, " eV")') rams%laser_in(i_laser)
             IF (i_laser == 1) THEN
-                CALL write_spectra_data(outfile, c_label, start_freq, end_freq, data2(:))
+                !CALL write_spectra_data(outfile, c_label, start_freq, end_freq, data2(:))
+                CALL write_spectra_data(outfile, c_label, freq, data2(:))
             ELSE
                 !WRITE(c_label,'("INT ",F10.6, " eV")') rams%laser_in(i_laser)
-                CALL append_column(outfile, c_label, data2(:))
+                CALL append_column(outfile, c_label, data2(:), freq)
             END IF
 
 
@@ -1408,10 +1431,11 @@ CONTAINS
                 !IF ((i*freq_res).GE.5000.0_dp) CYCLE
                 !WRITE (runit, *) i*freq_res, zhat_unpol_resraman(i, rtp_point)
             END DO
+
             outfile = "resonance_raman_unpol.txt"
             WRITE(c_label, '("INT ",F10.6, " eV")') rams%laser_in(i_laser)
             IF (i_laser == 1) THEN
-                CALL write_spectra_data(outfile, c_label, 1, 2*md%t_cor - 1, zhat_unpol_resraman(:,rtp_point ), freq, 5000.0_dp)
+                CALL write_spectra_data(outfile, c_label, freq, zhat_unpol_resraman(:,rtp_point ), 5000.0_dp)
             ELSE
                 !WRITE(c_label,'("INT ",F10.6, " eV")') rams%laser_in(i_laser)
                 CALL append_column(outfile, c_label, zhat_unpol_resraman(:,rtp_point), freq, 5000.0_dp)
