@@ -117,6 +117,7 @@ MODULE vib_types
         TYPE(spectral_type)                              ::  spectral_type ! global setting of spectral type 'P' , 'IR' , 'R' etc.
         REAL(kind=dp)                                       ::  temp
         REAL(kind=dp)                                       ::  fwhm
+        CHARACTER(LEN=40)                                   :: spectra_verbosity
     END TYPE global_settings
 
     !***************************************************************************
@@ -384,7 +385,7 @@ CONTAINS
 
     SUBROUTINE init_global_settings(gs)
         TYPE(global_settings), INTENT(out) :: gs
-
+        gs%spectra_verbosity = 'normal'
         gs%temp = -1.0_dp
         gs%spectral_type%read_function = ''
     END SUBROUTINE init_global_settings

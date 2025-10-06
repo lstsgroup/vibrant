@@ -275,7 +275,6 @@ CONTAINS
     !!!ORTHOGONAL!!!
 
              ! Label z. B. "laser_1", "laser_2", ...
-           
             DO i = 0, 2*md%t_cor - 2
                 IF (i_laser == 1) THEN
                 zhat_aniso(i + 1) = REAL(zhat_aniso(i + 1), kind=dp)*(f*(i + 1)/SIN(f*(i + 1)))**2._dp
@@ -285,14 +284,16 @@ CONTAINS
                 IF (freq(i).GE.5000.0_dp) CYCLE
             !    WRITE (runit, *) freq(i), raman_ortho(i)
             END DO
-            outfile = "raman_orthogonal.txt"
-            WRITE(c_label, '("INT ",F10.6, " eV")') rams%laser_in(i_laser)
-            IF (i_laser == 1) THEN
-                !CALL write_spectra_data(outfile, c_label, 1,  2*md%t_cor - 2, raman_ortho(:), freq, 5000.0_dp)
-                CALL write_spectra_data(outfile, c_label, freq, raman_ortho(:), 5000.0_dp)
-            ELSE
-                !WRITE(c_label,'("INT ",F10.6, " eV")') rams%laser_in(i_laser)
-                CALL append_column(outfile, c_label, raman_ortho(:), freq, 5000.0_dp)
+            IF (gs%spectra_verbosity == 'high') THEN
+                outfile = "raman_orthogonal.txt"
+                WRITE(c_label, '("INT ",F10.6, " eV")') rams%laser_in(i_laser)
+                IF (i_laser == 1) THEN
+                    !CALL write_spectra_data(outfile, c_label, 1,  2*md%t_cor - 2, raman_ortho(:), freq, 5000.0_dp)
+                    CALL write_spectra_data(outfile, c_label, freq, raman_ortho(:), 5000.0_dp)
+                ELSE
+                    !WRITE(c_label,'("INT ",F10.6, " eV")') rams%laser_in(i_laser)
+                    CALL append_column(outfile, c_label, raman_ortho(:), freq, 5000.0_dp)
+                END IF
             END IF
             !WRITE(fname,'("raman_orthogonal_laser_",F0.6,"eV.txt")') rams%laser_in(i_laser)
             !IF (i_laser==1) THEN
@@ -331,14 +332,16 @@ CONTAINS
                 IF (freq(i).GE.5000.0_dp) CYCLE
                 !WRITE (runit, *) freq(i), raman_para(i)
             END DO
-            outfile = "raman_parallel.txt"
-            WRITE(c_label, '("INT ",F10.6, " eV")') rams%laser_in(i_laser)
-            IF (i_laser == 1) THEN
-                !CALL write_spectra_data(outfile, c_label, 1,  2*md%t_cor - 2, raman_para(:), freq, 5000.0_dp)
-                CALL write_spectra_data(outfile, c_label, freq, raman_para(:), 5000.0_dp)
-            ELSE
-                !WRITE(c_label,'("INT ",F10.6, " eV")') rams%laser_in(i_laser)
-                CALL append_column(outfile, c_label, raman_para(:), freq, 5000.0_dp)
+            IF (gs%spectra_verbosity == 'high') THEN
+                outfile = "raman_parallel.txt"
+                WRITE(c_label, '("INT ",F10.6, " eV")') rams%laser_in(i_laser)
+                IF (i_laser == 1) THEN
+                    !CALL write_spectra_data(outfile, c_label, 1,  2*md%t_cor - 2, raman_para(:), freq, 5000.0_dp)
+                    CALL write_spectra_data(outfile, c_label, freq, raman_para(:), 5000.0_dp)
+                ELSE
+                    !WRITE(c_label,'("INT ",F10.6, " eV")') rams%laser_in(i_laser)
+                    CALL append_column(outfile, c_label, raman_para(:), freq, 5000.0_dp)
+                END IF
             END IF
             !CLOSE (runit)
 
@@ -358,14 +361,16 @@ CONTAINS
                 IF (freq(i).GE.5000.0_dp) CYCLE
                 !WRITE (runit, *) freq(i), raman_unpol(i)
             END DO
-            outfile = "raman_unpolarized.txt"
-            WRITE(c_label, '("INT ",F10.6, " eV")') rams%laser_in(i_laser)
-            IF (i_laser == 1) THEN
-                !CALL write_spectra_data(outfile, c_label, 1,  2*md%t_cor - 2, raman_unpol(:), freq, 5000.0_dp)
-                CALL write_spectra_data(outfile, c_label, freq, raman_unpol(:), 5000.0_dp)
-            ELSE
-                !WRITE(c_label,'("INT ",F10.6, " eV")') rams%laser_in(i_laser)
-                CALL append_column(outfile, c_label, raman_unpol(:), freq, 5000.0_dp)
+            IF (gs%spectra_verbosity == 'high' .OR. gs%spectra_verbosity == 'normal') THEN
+                outfile = "raman_unpolarized.txt"
+                WRITE(c_label, '("INT ",F10.6, " eV")') rams%laser_in(i_laser)
+                IF (i_laser == 1) THEN
+                    !CALL write_spectra_data(outfile, c_label, 1,  2*md%t_cor - 2, raman_unpol(:), freq, 5000.0_dp)
+                    CALL write_spectra_data(outfile, c_label, freq, raman_unpol(:), 5000.0_dp)
+                ELSE
+                    !WRITE(c_label,'("INT ",F10.6, " eV")') rams%laser_in(i_laser)
+                    CALL append_column(outfile, c_label, raman_unpol(:), freq, 5000.0_dp)
+                END IF
             END IF
             !CLOSE (runit)
 
@@ -386,14 +391,16 @@ CONTAINS
                 IF (freq(i).GE.5000.0_dp) CYCLE
                 !WRITE (runit, *) freq(i), raman_depol(i)
             END DO
-            outfile = "raman_depolarization_ratio.txt"
-            WRITE(c_label, '("INT ",F10.6, " eV")') rams%laser_in(i_laser)
-            IF (i_laser == 1) THEN
-                !CALL write_spectra_data(outfile, c_label, 1,  2*md%t_cor - 2, raman_depol(:), freq, 5000.0_dp)
-                CALL write_spectra_data(outfile, c_label, freq, raman_depol(:), 5000.0_dp)
-            ELSE
-                !WRITE(c_label,'("INT ",F10.6, " eV")') rams%laser_in(i_laser)
-                CALL append_column(outfile, c_label, raman_depol(:), freq, 5000.0_dp)
+            IF (gs%spectra_verbosity == 'high') THEN
+                outfile = "raman_depolarization_ratio.txt"
+                WRITE(c_label, '("INT ",F10.6, " eV")') rams%laser_in(i_laser)
+                IF (i_laser == 1) THEN
+                    !CALL write_spectra_data(outfile, c_label, 1,  2*md%t_cor - 2, raman_depol(:), freq, 5000.0_dp)
+                    CALL write_spectra_data(outfile, c_label, freq, raman_depol(:), 5000.0_dp)
+                ELSE
+                    !WRITE(c_label,'("INT ",F10.6, " eV")') rams%laser_in(i_laser)
+                    CALL append_column(outfile, c_label, raman_depol(:), freq, 5000.0_dp)
+                END IF
             END IF
             !CLOSE (runit)
         END DO
