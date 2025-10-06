@@ -178,7 +178,7 @@ CONTAINS
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE                    :: raman_const, sinc_func, freq
         REAL(kind=dp)                                             :: f, freq_res
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                :: dip_free!,rams%e_field(1)%dip_xyz,rams%e_field(2)%dip_xyz,rams%e_field(3)%dip_xyz
-        CHARACTER(len=40)                                         :: output_fname, f_name, idx
+        CHARACTER(len=40)                                         :: output_fname, f_name, idx, outfile, c_label
         !REAL(kind=dp), DIMENSION(:,:, :, :), ALLOCATABLE                :: alpha_xyz, dip_xyz, alpha_diff_xyz
         !REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                ::rams%e_field(1)%alpha_diff_xyz,rams%e_field(2)%alpha_diff_xyz,rams%e_field(3)%alpha_diff_xyz
 
@@ -249,15 +249,20 @@ CONTAINS
 
         zhat_iso = REAL(zhat_iso, kind=dp)
         zhat_aniso = REAL(zhat_aniso, kind=dp)
-        raman_ortho = 0.0d0
-        raman_para = 0.0d0
-        raman_unpol = 0.0d0
-        raman_depol = 0.0d0
+        !raman_ortho = 0.0d0
+        !raman_para = 0.0d0
+        !raman_unpol = 0.0d0
+        !raman_depol = 0.0d0
 
       !!Unit conversion of Debye^2/(E^2*s^2) into C^4*s^2/kg^2
         zhat_iso(:) = zhat_iso(:)*debye2cm*debye2cm/(au2vm*au2vm)
         zhat_aniso(:) = zhat_aniso(:)*debye2cm*debye2cm/(au2vm*au2vm)
         DO i_laser = 1, SIZE(rams%laser_in)
+            raman_ortho = 0.0d0
+            raman_para = 0.0d0
+            raman_unpol = 0.0d0
+            raman_depol = 0.0d0
+            freq = 0
             DO i = 0, 2*md%t_cor - 2
                 freq(i) = i*freq_res
             !!conversion of the Raman intensities into m^2*K*cm*10^-30!!
@@ -268,77 +273,129 @@ CONTAINS
             END DO
 
     !!!ORTHOGONAL!!!
-            !WRITE(fname,'("raman_orthogonal_laser_",F0.6,"eV.txt")') rams%laser_in(i_laser)
-            IF (i_laser==1) THEN
-                output_fname = "raman_orthogonal.txt"
-            ELSE
-                WRITE (output_fname, '("raman_orthogonal_",I0,".txt")') i_laser
-            END IF
-            OPEN (FILE=output_fname, STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
-            !Check if file exist
-            CALL check_file_open(stat, msg, output_fname)
+
+             ! Label z. B. "laser_1", "laser_2", ...
+           
             DO i = 0, 2*md%t_cor - 2
+                IF (i_laser == 1) THEN
                 zhat_aniso(i + 1) = REAL(zhat_aniso(i + 1), kind=dp)*(f*(i + 1)/SIN(f*(i + 1)))**2._dp
+                END IF
                 raman_ortho(i) = ((REAL(zhat_aniso(i), kind=dp))/15.0_dp)*raman_const(i)
                 raman_ortho(0) = 0.0_dp
                 IF (freq(i).GE.5000.0_dp) CYCLE
-                WRITE (runit, *) freq(i), raman_ortho(i)
+            !    WRITE (runit, *) freq(i), raman_ortho(i)
             END DO
-            CLOSE (runit)
+            outfile = "raman_orthogonal.txt"
+            WRITE(c_label, '("INT ",F10.6, " eV")') rams%laser_in(i_laser)
+            IF (i_laser == 1) THEN
+                !CALL write_spectra_data(outfile, c_label, 1,  2*md%t_cor - 2, raman_ortho(:), freq, 5000.0_dp)
+                CALL write_spectra_data(outfile, c_label, freq, raman_ortho(:), 5000.0_dp)
+            ELSE
+                !WRITE(c_label,'("INT ",F10.6, " eV")') rams%laser_in(i_laser)
+                CALL append_column(outfile, c_label, raman_ortho(:), freq, 5000.0_dp)
+            END IF
+            !WRITE(fname,'("raman_orthogonal_laser_",F0.6,"eV.txt")') rams%laser_in(i_laser)
+            !IF (i_laser==1) THEN
+            !    output_fname = "raman_orthogonal.txt"
+            !ELSE
+            !    WRITE (output_fname, '("raman_orthogonal_",I0,".txt")') i_laser
+            !END IF
+            !OPEN (FILE=output_fname, STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
+            !!Check if file exist
+            !CALL check_file_open(stat, msg, output_fname)
+            !DO i = 0, 2*md%t_cor - 2
+            !    zhat_aniso(i + 1) = REAL(zhat_aniso(i + 1), kind=dp)*(f*(i + 1)/SIN(f*(i + 1)))**2._dp
+            !    raman_ortho(i) = ((REAL(zhat_aniso(i), kind=dp))/15.0_dp)*raman_const(i)
+            !    raman_ortho(0) = 0.0_dp
+            !    IF (freq(i).GE.5000.0_dp) CYCLE
+            !    WRITE (runit, *) freq(i), raman_ortho(i)
+            !END DO
+            !CLOSE (runit)
 
     !!!PARALLEL!!!
             !WRITE(fname,'("raman_parallel_laser_",F0.6,"eV.txt")') rams%laser_in(i_laser)
-            IF (i_laser==1) THEN
-                output_fname = "raman_parallel.txt"
-            ELSE
-                WRITE (output_fname, '("raman_parallel_",I0,".txt")') i_laser
-            END IF
-            OPEN (FILE=output_fname, STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
-            !Check if file exists
-            CALL check_file_open(stat, msg, output_fname)
+            !IF (i_laser==1) THEN
+            !    output_fname = "raman_parallel.txt"
+            !ELSE
+            !    WRITE (output_fname, '("raman_parallel_",I0,".txt")') i_laser
+            !END IF
+            !OPEN (FILE=output_fname, STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
+            !!Check if file exists
+            !CALL check_file_open(stat, msg, output_fname)
             DO i = 0, 2*md%t_cor - 2
+                IF (i_laser == 1) THEN
                 zhat_iso(i + 1) = REAL(zhat_iso(i + 1), kind=dp)*(f*(i + 1)/SIN(f*(i + 1)))**2._dp
+                END IF
                 raman_para(i) = (zhat_iso(i) + (zhat_aniso(i)*4.0_dp/45.0_dp))*raman_const(i)
                 raman_para(0) = 0.0_dp
                 IF (freq(i).GE.5000.0_dp) CYCLE
-                WRITE (runit, *) freq(i), raman_para(i)
+                !WRITE (runit, *) freq(i), raman_para(i)
             END DO
-            CLOSE (runit)
+            outfile = "raman_parallel.txt"
+            WRITE(c_label, '("INT ",F10.6, " eV")') rams%laser_in(i_laser)
+            IF (i_laser == 1) THEN
+                !CALL write_spectra_data(outfile, c_label, 1,  2*md%t_cor - 2, raman_para(:), freq, 5000.0_dp)
+                CALL write_spectra_data(outfile, c_label, freq, raman_para(:), 5000.0_dp)
+            ELSE
+                !WRITE(c_label,'("INT ",F10.6, " eV")') rams%laser_in(i_laser)
+                CALL append_column(outfile, c_label, raman_para(:), freq, 5000.0_dp)
+            END IF
+            !CLOSE (runit)
 
     !!!UNPOL!!!
             !WRITE(fname,'("raman_unpolarized_laser_",F0.6,"eV.txt")') rams%laser_in(i_laser)
-            IF (i_laser==1) THEN
-                output_fname = "raman_unpolarized.txt"
-            ELSE
-                WRITE (output_fname, '("raman_unpolarized_",I0,".txt")') i_laser
-            END IF
-            OPEN (FILE=output_fname, STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit) !Reading polarizabilties
-            !Check if file exists
-            CALL check_file_open(stat, msg, output_fname)
+            !IF (i_laser==1) THEN
+            !    output_fname = "raman_unpolarized.txt"
+            !ELSE
+            !    WRITE (output_fname, '("raman_unpolarized_",I0,".txt")') i_laser
+            !END IF
+            !OPEN (FILE=output_fname, STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit) !Reading polarizabilties
+            !!Check if file exists
+            !CALL check_file_open(stat, msg, output_fname)
             DO i = 0, 2*md%t_cor - 2
                 raman_unpol(i) = raman_ortho(i) + raman_para(i)
                 raman_unpol(0) = 0.00_dp
                 IF (freq(i).GE.5000.0_dp) CYCLE
-                WRITE (runit, *) freq(i), raman_unpol(i)
+                !WRITE (runit, *) freq(i), raman_unpol(i)
             END DO
-            CLOSE (runit)
+            outfile = "raman_unpolarized.txt"
+            WRITE(c_label, '("INT ",F10.6, " eV")') rams%laser_in(i_laser)
+            IF (i_laser == 1) THEN
+                !CALL write_spectra_data(outfile, c_label, 1,  2*md%t_cor - 2, raman_unpol(:), freq, 5000.0_dp)
+                CALL write_spectra_data(outfile, c_label, freq, raman_unpol(:), 5000.0_dp)
+            ELSE
+                !WRITE(c_label,'("INT ",F10.6, " eV")') rams%laser_in(i_laser)
+                CALL append_column(outfile, c_label, raman_unpol(:), freq, 5000.0_dp)
+            END IF
+            !CLOSE (runit)
 
     !!!DEPOL RATIO!!!
-            !WRITE(fname,'("raman_depolarization_ratio_laser_",F0.6,"eV.txt")') rams%laser_in(i_laser)
-            IF (i_laser==1) THEN
-                output_fname = "raman_depolarization_ratio.txt"
-            ELSE
-                WRITE (output_fname, '("raman_depolarization_ratio_",I0,".txt")') i_laser
-            END IF
-            OPEN (FILE=output_fname, STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit) !Reading polarizabilties
-            !Check if file exists
-            CALL check_file_open(stat, msg, output_fname)
+            !!WRITE(fname,'("raman_depolarization_ratio_laser_",F0.6,"eV.txt")') rams%laser_in(i_laser)
+            !IF (i_laser==1) THEN
+            !    output_fname = "raman_depolarization_ratio.txt"
+            !ELSE
+            !    WRITE (output_fname, '("raman_depolarization_ratio_",I0,".txt")') i_laser
+            !END IF
+            !OPEN (FILE=output_fname, STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit) !Reading polarizabilties
+            !!Check if file exists
+            !CALL check_file_open(stat, msg, output_fname)
+            
             DO i = 0, 2*md%t_cor - 2
                 raman_depol(i) = REAL(raman_ortho(i), kind=dp)/REAL(raman_para(i), kind=dp)
+                raman_depol(0) = 0.00_dp
                 IF (freq(i).GE.5000.0_dp) CYCLE
-                WRITE (runit, *) freq(i), raman_depol(i)
+                !WRITE (runit, *) freq(i), raman_depol(i)
             END DO
-            CLOSE (runit)
+            outfile = "raman_depolarization_ratio.txt"
+            WRITE(c_label, '("INT ",F10.6, " eV")') rams%laser_in(i_laser)
+            IF (i_laser == 1) THEN
+                !CALL write_spectra_data(outfile, c_label, 1,  2*md%t_cor - 2, raman_depol(:), freq, 5000.0_dp)
+                CALL write_spectra_data(outfile, c_label, freq, raman_depol(:), 5000.0_dp)
+            ELSE
+                !WRITE(c_label,'("INT ",F10.6, " eV")') rams%laser_in(i_laser)
+                CALL append_column(outfile, c_label, raman_depol(:), freq, 5000.0_dp)
+            END IF
+            !CLOSE (runit)
         END DO
         DEALLOCATE (rams%z_iso, rams%z_aniso)
         DEALLOCATE (raman_depol, raman_para, raman_unpol, raman_ortho, zhat_aniso, zhat_iso)
@@ -627,19 +684,26 @@ CONTAINS
         TYPE(raman), INTENT(INOUT)        :: rams
 
         INTEGER                                                  :: stat, i, j, x, freq_res, runit, i_laser
-        INTEGER                                                  :: start_freq, end_freq
-        CHARACTER(len=str_len)                                      :: msg, fname
-        REAL(kind=dp), DIMENSION(:), ALLOCATABLE                    :: iso_sq, aniso_sq, ram_const, data2!,broad
+        INTEGER                                                  :: start_freq, end_freq, recl
+        LOGICAL                                                   :: first_column
+        CHARACTER(len=str_len)                                      :: msg, fname, outfile, c_label
+        REAL(kind=dp), DIMENSION(:), ALLOCATABLE                    :: iso_sq, aniso_sq, ram_const, data2, freq!,broad
         REAL(kind=dp)                                             :: broad
 
+        
         ALLOCATE (iso_sq(stats%nmodes), aniso_sq(stats%nmodes))
         ALLOCATE (rams%raman_int(stats%nmodes), ram_const(stats%nmodes))
-
+        
         start_freq = 1
         end_freq = INT(MAXVAL(stats%freq) + 1000.0_dp)
         freq_res = INT(end_freq - start_freq)
         ALLOCATE (data2(freq_res + 1))
+        ALLOCATE (freq(freq_res + 1))
         data2 = 0.0_dp
+        recl    = 4096
+
+
+        outfile = 'result_static_raman.txt'
 
     !!!Isotropic and anisotropic contributions!!
         iso_sq(:) = REAL((rams%pol_dq(:, 1, 1) + rams%pol_dq(:, 2, 2) + rams%pol_dq(:, 3, 3))/3.0_dp, kind=dp)**2.0_dp
@@ -653,82 +717,185 @@ CONTAINS
     !!!Conversion from angstrom^4 amu⁻¹ to m^4 kg -1
         iso_sq = iso_sq*(ang**4._dp)/am_u
         aniso_sq = aniso_sq*(ang**4._dp)/am_u
-
         DO i_laser = 1, SIZE(rams%laser_in)
-        !!! Conversion of static Raman units into 10^{-30}*cm^2/sr
+
+            !!! Conversion of static Raman units into 10^{-30}*cm^2/sr
             ram_const(:) = (const_planck/(8.0_dp*speed_light*cm2m*const_permit*const_permit)*1.e+30* &
                             REAL(((rams%laser_in(i_laser)/reccm2ev - stats%freq(:))**4.0_dp)/(stats%freq(:)*cm2m**3.0_dp), kind=dp)* &
                             (1.0_dp/(1.0_dp - EXP(-1._dp*const_planck*speed_light*cm2m*stats%freq(:)/ &
                                                   (const_boltz*gs%temp)))))/(cm2m**2._dp)
-
-        !!!Calculation of the unpolarized Raman intensities!!
+        
+            !!! Unpolarized Raman intensities
             rams%raman_int(:) = REAL(((7.0_dp*aniso_sq(:)) + (45.0_dp*iso_sq(:)))/45.0_dp, kind=dp)*ram_const(:)
-
-        !!!Broadening the spectrum!!
+        
+            data2(:) = 0.0_dp
+            freq(:) = 0.0_dp
+            !!! Broadening
             DO i = start_freq, end_freq
                 broad = 0.0_dp
                 DO x = 1, stats%nmodes
                     broad = broad + (rams%raman_int(x)*(1.0_dp/(gs%fwhm*SQRT(2.0_dp*pi)))* &
                                      EXP(-0.50_dp*((i - stats%freq(x))/gs%fwhm)**2.0_dp))
                 END DO
-                data2(i) = data2(i) + broad
+                freq(i) = i
+                data2(i) = broad
             END DO
 
-            IF (i_laser==1) THEN
-                fname = "result_static_raman.txt"
+            ! Label z. B. "laser_1", "laser_2", ...
+
+            WRITE(c_label, '("INT ",F10.6, " eV")') rams%laser_in(i_laser)
+            IF (i_laser == 1) THEN
+                !CALL write_spectra_data(outfile, c_label, start_freq, end_freq, data2(:))
+                CALL write_spectra_data(outfile, c_label, freq, data2(:))
             ELSE
-                WRITE (fname, '("result_static_raman_",I0,".txt")') i_laser
+                !WRITE(c_label,'("INT ",F10.6, " eV")') rams%laser_in(i_laser)
+                CALL append_column(outfile, c_label, data2(:), freq)
             END IF
-            OPEN (FILE=fname, STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
-            CALL check_file_open(stat, msg, fname)
-            DO i = start_freq, end_freq
-                WRITE (runit, *) i, data2(i)
-            END DO
-            CLOSE (runit)
-
         !!Write Molden output
-            rams%raman_int = REAL(rams%raman_int/MINVAL(rams%raman_int), kind=dp)
-            !WRITE(fname,'("raman_laser_",F0.6,"eV.mol")') rams%laser_in(i_laser)
             IF (i_laser==1) THEN
+                rams%raman_int = REAL(rams%raman_int/MINVAL(rams%raman_int), kind=dp)
+                WRITE (error_unit, '(4X,"[WARN]  ",A)') 'Molden file will be create for only first laser_in value'
                 fname = "raman.mol"
-            ELSE
-                WRITE (fname, '("raman_",I0,".mol")') i_laser
-            END IF
-            OPEN (FILE=fname, STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
-            CALL check_file_open(stat, msg, fname)
-            WRITE (runit, *) "[Molden Format]"
-            WRITE (runit, *) "[GEOMETRIES] XYZ"
-            WRITE (runit, *) sys%natom
-            WRITE (runit, *)
-            DO i = 1, sys%natom
-                WRITE (runit, *) sys%element(i), sys%coord(i, 1), sys%coord(i, 2), sys%coord(i, 3)
-            END DO
-            WRITE (runit, *) "[stats%freq]"
-            DO i = 1, stats%nmodes
-                WRITE (runit, *) stats%freq(i)
-            END DO
-            WRITE (runit, *) "[INT]"
-            DO i = 1, stats%nmodes
-                WRITE (runit, *) rams%raman_int(i)
-            END DO
-            WRITE (runit, *) "[FR-sys%coord]"
-            WRITE (runit, *) sys%natom
-            WRITE (runit, *)
-            DO i = 1, sys%natom
-                WRITE (runit, *) sys%element(i), sys%coord(i, 1)/bohr2ang, sys%coord(i, 2)/bohr2ang, sys%coord(i, 3)/bohr2ang
-            END DO
-            WRITE (runit, *) "[FR-NORM-sys%coord]"
-            DO i = 1, stats%nmodes
-                WRITE (runit, *) "vibration", i
-                DO j = 1, sys%natom
-                    WRITE (runit, *) stats%disp(i, j, 1)/bohr2ang, stats%disp(i, j, 2)/bohr2ang, stats%disp(i, j, 3)/bohr2ang
+                OPEN (FILE=fname, STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
+                CALL check_file_open(stat, msg, fname)
+                WRITE (runit, *) "[Molden Format]"
+                WRITE (runit, *) "[GEOMETRIES] XYZ"
+                WRITE (runit, *) sys%natom
+                WRITE (runit, *)
+                DO i = 1, sys%natom
+                    WRITE (runit, *) sys%element(i), sys%coord(i, 1), sys%coord(i, 2), sys%coord(i, 3)
                 END DO
-            END DO
-            CLOSE (runit)
+                WRITE (runit, *) "[stats%freq]"
+                DO i = 1, stats%nmodes
+                    WRITE (runit, *) stats%freq(i)
+                END DO
+                WRITE (runit, *) "[INT]"
+                DO i = 1, stats%nmodes
+                    WRITE (runit, *) rams%raman_int(i)
+                END DO
+                WRITE (runit, *) "[FR-sys%coord]"
+                WRITE (runit, *) sys%natom
+                WRITE (runit, *)
+                DO i = 1, sys%natom
+                    WRITE (runit, *) sys%element(i), sys%coord(i, 1)/bohr2ang, sys%coord(i, 2)/bohr2ang, sys%coord(i, 3)/bohr2ang
+                END DO
+                WRITE (runit, *) "[FR-NORM-sys%coord]"
+                DO i = 1, stats%nmodes
+                    WRITE (runit, *) "vibration", i
+                    DO j = 1, sys%natom
+                        WRITE (runit, *) stats%disp(i, j, 1)/bohr2ang, stats%disp(i, j, 2)/bohr2ang, stats%disp(i, j, 3)/bohr2ang
+                    END DO
+                END DO
+                CLOSE (runit)
+            END IF
         END DO
         DEALLOCATE (iso_sq, aniso_sq, data2, ram_const)
 
     END SUBROUTINE spec_static_raman
+
+
+    SUBROUTINE write_spectra_data(outfile, header, freq, intensities, freq_cutoff)
+        CHARACTER(*), INTENT(in) :: outfile
+        CHARACTER(*), INTENT(in) :: header
+        !INTEGER, INTENT(in) :: start_freq, end_freq
+        REAL(dp), INTENT(in) :: freq(:)
+        REAL(dp), INTENT(in) :: intensities(:)
+        REAL(dp),     INTENT(in), OPTIONAL :: freq_cutoff
+
+        INTEGER :: runit, stat, i
+        CHARACTER(len=256) :: msg
+
+       
+        OPEN (file=outfile, status='replace', action='write', iostat=stat, iomsg=msg, newunit=runit)
+        CALL check_file_open(stat, msg, outfile)
+
+        WRITE (runit, '(A22,1X,A25)') 'FREQ', TRIM(header)
+        !WRITE (runit, '(A6,6X,A20)') 'FREQ', TRIM(header)
+        IF (PRESENT(freq_cutoff)) THEN
+       
+            DO i = 1, SIZE(freq)
+                IF (freq(i).GE.freq_cutoff) EXIT
+                WRITE (runit, '(F22.16,1X,ES25.16E3)') freq(i), intensities(i)
+            END DO
+        ELSE
+            DO i = 1, SIZE(freq)
+                WRITE (runit, '(I22,1X,ES25.16E3)') i, intensities(i)
+            END DO
+        END IF
+
+        CLOSE (runit)
+    END SUBROUTINE write_spectra_data
+
+    SUBROUTINE append_column(filename, header, intensities, freq, cutoff)
+        !! Fügt eine Spalte `data` in die Datei `filename` hinzu.
+        !! Falls die Datei neu ist, wird `header` als Kopfzeile geschrieben.
+        CHARACTER(len=*), INTENT(in) :: filename
+        CHARACTER(len=*), INTENT(in) :: header
+        REAL(kind=dp), INTENT(in) :: intensities(:)
+        REAL(dp),     INTENT(in) :: freq(:)
+        REAL(dp),     INTENT(in), OPTIONAL :: cutoff
+    
+        INTEGER :: runit, ios, n, i, stat, nlines
+        LOGICAL :: exists
+        CHARACTER(len=1024) :: line
+        CHARACTER(len=30)   :: VALUE, msg
+        CHARACTER(len=1024) :: buf
+        CHARACTER(len=str_len), ALLOCATABLE :: lines(:)
+        REAL(dp),    ALLOCATABLE :: freq_in_file(:)
+    
+        ! ---------- loop 1: read all data rows into lines(:) ----------
+        OPEN (file=filename, status="old", action="readwrite", IOMSG=msg, IOSTAT=stat, newunit=runit)
+        CALL check_file_open(stat, msg, filename)
+    
+        nlines = 0
+        DO
+            READ (runit, '(A)', iostat=ios) buf
+            IF (ios/=0) EXIT
+            IF (LEN_TRIM(buf)==0) EXIT   ! stop at empty line if you want
+            nlines = nlines + 1
+        END DO
+        REWIND (runit)
+    
+        ! --- allocate after counting ---
+        ALLOCATE (lines(nlines))
+        ALLOCATE (freq_in_file(nlines-1))
+    
+        ! --- pass 2: fill  lines and extract freq data---
+        DO i = 1, nlines
+            READ (runit, '(A)', iostat=ios) lines(i)
+            IF (i.GE.2) THEN
+            READ (lines(i), *) freq_in_file(i-1)
+            END IF
+        END DO
+        REWIND (runit)
+
+        ! ---------- loop 2: write the updated file ----------
+        WRITE (runit, '(A,1X,A25)') TRIM(lines(1)), TRIM(header)
+        IF (PRESENT(cutoff)) THEN
+            DO i = 1, SIZE(lines) -1
+                IF (freq(i).GE.cutoff) EXIT
+                IF (freq_in_file(i) == freq(i))THEN
+                !PRINT *,freq(i)!, TRIM(lines(i+1))
+                    WRITE (runit, '(A,1X,ES25.16E3)') TRIM(lines(i+1)), intensities(i)
+                ELSE
+                    WRITE (error_unit, '(4X,"[ERROR] ",A)') "append_column: freq in file not equal to given freq."
+                    RETURN
+                END IF
+            END DO
+        ELSE
+            DO i = 1, SIZE(freq)
+                IF (freq_in_file(i) == freq(i))THEN
+                    !PRINT *,freq(i)!, TRIM(lines(i+1))
+                        WRITE (runit, '(A,1X,ES25.16E3)') TRIM(lines(i+1)), intensities(i)
+                    ELSE
+                        WRITE (error_unit, '(4X,"[ERROR] ",A)') "append_column: freq in file not equal to given freq."
+                        RETURN
+                    END IF
+                !WRITE (runit, '(A,1X,ES25.16E3)') TRIM(lines(i+1)), intensities(i)
+            END DO
+        END IF 
+        CLOSE (runit)
+    END SUBROUTINE append_column
 
 !***********************************************************************************************!
 !***********************************************************************************************!
@@ -871,10 +1038,10 @@ CONTAINS
         INTEGER                                                       :: stat, i, j, k, m, x, freq_res, l, o, n, r, runit, i_laser
         INTEGER                                                       :: start_freq, end_freq, rtp_point
         INTEGER(kind=dp)                                               :: plan
-        CHARACTER(len=str_len)                                         :: msg, fname
+        CHARACTER(len=str_len)                                         :: msg, fname, outfile, c_label
         REAL(kind=dp)                                                  :: broad, factor
         REAL(kind=dp)                                                  :: rtp_freq_res, pade_freq_res
-        REAL(kind=dp), DIMENSION(:), ALLOCATABLE                         :: data2, ram_const
+        REAL(kind=dp), DIMENSION(:), ALLOCATABLE                         :: data2, ram_const, freq
         REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE                       :: iso_sq, aniso_sq, raman_int
         COMPLEX(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE                   :: zhat_pol_dq_rtp
         COMPLEX(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE                 :: zhat_pol_dxyz_rtp
@@ -886,13 +1053,16 @@ CONTAINS
         freq_res = INT(end_freq - start_freq)
 
         ALLOCATE (data2(freq_res*stats%nmodes))
+        ALLOCATE (freq(freq_res+1))
         ALLOCATE (zhat_pol_dxyz_rtp(sys%natom, 3, 3, 3, rams%RR%framecount_rtp))
         ALLOCATE (zhat_pol_dq_rtp(stats%nmodes, 3, 3, rams%RR%framecount_rtp))
         ALLOCATE (iso_sq(stats%nmodes, rams%RR%framecount_rtp), aniso_sq(stats%nmodes, rams%RR%framecount_rtp))
         ALLOCATE (raman_int(stats%nmodes, rams%RR%framecount_rtp), ram_const(stats%nmodes))
+        outfile = 'result_static_resraman.txt'
 
         zhat_pol_dq_rtp = (0.0_dp, 0.0_dp)
         data2 = 0.0_dp
+        freq = 0.0_dp
 
 !!!Finding laser frequency
         rtp_freq_res = REAL(rams%RR%freq_range_rtp/rams%RR%framecount_rtp, kind=dp)
@@ -948,7 +1118,9 @@ CONTAINS
             !!!Calculation of the unpolarized resonance Raman intensities!!
             raman_int(:, rtp_point) = REAL(((7.0_dp*aniso_sq(:, rtp_point)) + (45.0_dp*iso_sq(:, rtp_point)))/45.0_dp, kind=dp)* &
                                       ram_const(:)
-
+                                      
+            data2(:) = 0.0_dp
+            freq(:) = 0.0_dp
             !!!Broadening the spectrum!!
             DO x = start_freq, end_freq
                 broad = 0.0_dp
@@ -956,21 +1128,34 @@ CONTAINS
                     broad = broad + (raman_int(i, rtp_point)*(1.0_dp/(gs%fwhm*SQRT(2.0_dp*pi))) &
                                      *EXP(-0.50_dp*((x - stats%freq(i))/gs%fwhm)**2.0_dp))
                 END DO
-                data2(x) = data2(x) + broad
+                data2(x) = broad
+                freq(x)  = x
             END DO
-            data2(x) = data2(x) + broad
-            IF (i_laser==1) THEN
-                fname = "result_static_resraman.txt"
+
+
+            ! Label z. B. "laser_1", "laser_2", ...
+            WRITE(c_label, '("INT ",F10.6, " eV")') rams%laser_in(i_laser)
+            IF (i_laser == 1) THEN
+                !CALL write_spectra_data(outfile, c_label, start_freq, end_freq, data2(:))
+                CALL write_spectra_data(outfile, c_label, freq, data2(:))
             ELSE
-                WRITE (fname, '("result_static_resraman_",I0,".txt")') i_laser
+                !WRITE(c_label,'("INT ",F10.6, " eV")') rams%laser_in(i_laser)
+                CALL append_column(outfile, c_label, data2(:), freq)
             END IF
-            OPEN (FILE=fname, STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
-            !Check if file exists
-            CALL check_file_open(stat, msg, fname)
-            DO i = start_freq, end_freq
-                WRITE (runit, *) i, data2(i)
-            END DO
-            CLOSE (runit)
+
+
+            !IF (i_laser==1) THEN
+            !    fname = "result_static_resraman.txt"
+            !ELSE
+            !    WRITE (fname, '("result_static_resraman_",I0,".txt")') i_laser
+            !END IF
+            !OPEN (FILE=fname, STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
+            !!Check if file exists
+            !CALL check_file_open(stat, msg, fname)
+            !DO i = start_freq, end_freq
+            !    WRITE (runit, *) i, data2(i)
+            !END DO
+            !CLOSE (runit)
         END DO
         DEALLOCATE (iso_sq, aniso_sq, data2, ram_const, raman_int, stats%disp, stats%freq)
         DEALLOCATE (rams%RR%zhat_pol_rtp, zhat_pol_dxyz_rtp, zhat_pol_dq_rtp)
@@ -1152,7 +1337,7 @@ CONTAINS
         TYPE(dipoles)   :: dips
         TYPE(raman)   :: rams
 
-        CHARACTER(LEN=str_len)                                      :: chara, msg
+        CHARACTER(LEN=str_len)                                      :: chara, msg, c_label, outfile
         INTEGER                                                  :: stat, i, j, k, m, runit, i_laser
         INTEGER                                                  :: Nw, Nmd
         INTEGER(kind=dp)                                          :: plan, rtp_point
@@ -1221,8 +1406,8 @@ CONTAINS
         zhat_iso_resraman(:, :) = zhat_iso_resraman(:, :)*debye2cm*debye2cm/(au2vm*au2vm)
         zhat_aniso_resraman(:, :) = zhat_aniso_resraman(:, :)*debye2cm*debye2cm/(au2vm*au2vm)
 
-        OPEN (FILE='resonance_raman_unpol.txt', STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
-        CALL check_file_open(stat, msg, 'resonance_raman_unpol.txt')
+        !OPEN (FILE='resonance_raman_unpol.txt', STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
+        !CALL check_file_open(stat, msg, 'resonance_raman_unpol.txt')
         DO i_laser = 1, SIZE(rams%laser_in)
             rtp_point = ANINT(rams%laser_in(i_laser)/(rtp_freq_res*reccm2ev), kind=dp)
             DO i = 0, 2*md%t_cor - 1
@@ -1243,11 +1428,20 @@ CONTAINS
 
                 zhat_unpol_resraman(0, rtp_point) = 0.0_dp
 
-                IF ((i*freq_res).GE.5000.0_dp) CYCLE
-                WRITE (runit, *) i*freq_res, zhat_unpol_resraman(i, rtp_point)
+                !IF ((i*freq_res).GE.5000.0_dp) CYCLE
+                !WRITE (runit, *) i*freq_res, zhat_unpol_resraman(i, rtp_point)
             END DO
+
+            outfile = "resonance_raman_unpol.txt"
+            WRITE(c_label, '("INT ",F10.6, " eV")') rams%laser_in(i_laser)
+            IF (i_laser == 1) THEN
+                CALL write_spectra_data(outfile, c_label, freq, zhat_unpol_resraman(:,rtp_point ), 5000.0_dp)
+            ELSE
+                !WRITE(c_label,'("INT ",F10.6, " eV")') rams%laser_in(i_laser)
+                CALL append_column(outfile, c_label, zhat_unpol_resraman(:,rtp_point), freq, 5000.0_dp)
+            END IF
         END DO
-        CLOSE (runit)
+        !CLOSE (runit)
 
         DEALLOCATE (zhat_iso_resraman, zhat_aniso_resraman, zhat_unpol_resraman, freq, raman_const)
 
