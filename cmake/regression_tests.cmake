@@ -33,6 +33,11 @@ add_test(
     WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test/IR_Wannier_whole
 )
 add_test(
+    NAME IR_Wannier_frag
+    COMMAND pytest test_IR_Wannier_frag.py
+    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test/IR_Wannier_frag
+)
+add_test(
     NAME Raman_Berry
     COMMAND pytest test_Raman_Berry.py
     WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test/Raman_Berry
@@ -46,6 +51,11 @@ add_test(
     NAME Raman_Wannier_whole
     COMMAND pytest test_Raman_Wannier_whole.py
     WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test/Raman_Wannier_whole
+)
+add_test(
+    NAME Raman_Wannier_frag
+    COMMAND pytest test_Raman_Wannier_frag.py
+    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test/Raman_Wannier_frag
 )
 add_test(
     NAME Power_pos_mw

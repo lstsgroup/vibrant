@@ -206,6 +206,7 @@ CONTAINS
         END DO
         CLOSE (12)
 
+        DEALLOCATE (sys%fragments%refpoint)
     END SUBROUTINE compute_dipole_frag
 
 !******************************************************************************************************************!

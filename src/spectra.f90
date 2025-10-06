@@ -203,8 +203,15 @@ CONTAINS
 
 !!FIELD_FREE!!!
         IF (dips%type_dipole=='wannier') THEN
-            CALL read_coord_frame(sys%natom, dips%dip_file, md%coord_v, sys)
-            CALL compute_dipole(dip_free, sys, md)
+            IF (sys%fragments%frag.EQV..FALSE.) THEN !!Whole supercell
+                CALL read_coord_frame(sys%natom, dips%dip_file, md%coord_v, sys)
+                CALL compute_dipole(dip_free, sys, md)
+            ELSEIF (sys%fragments%frag.EQV..TRUE.) THEN !!Fragments
+                CALL read_coord_frame(sys%natom, dips%dip_file, md%coord_v, sys)
+                CALL assign_wannier(sys, md)
+                CALL compute_dipole_frag(dip_free, sys, md)
+                sys%mol_num = sys%fragments%nfrag
+            ENDIF
         ELSEIF (dips%type_dipole=='berry') THEN
             CALL read_coord_frame(sys%natom, dips%dip_file, dip_free, sys)
             CALL check_jumps(dip_free, sys, md)
@@ -221,9 +228,17 @@ CONTAINS
             END IF
             CALL read_coord_frame(sys%natom, f_name, md%coord_v, sys)
             IF (dips%type_dipole=='wannier') THEN
-                CALL compute_dipole(dips%dipole, sys, md)
-                CALL forward_diff(sys%mol_num, rams%e_field(xyz)%alpha_xyz, dip_free, dips%dipole, gs, sys, dips)
-                DEALLOCATE (dips%dipole)
+                IF (sys%fragments%frag.EQV..FALSE.) THEN !!Whole supercell                
+                    CALL compute_dipole(dips%dipole, sys, md)
+                    CALL forward_diff(sys%mol_num, rams%e_field(xyz)%alpha_xyz, dip_free, dips%dipole, gs, sys, dips)
+                    DEALLOCATE (dips%dipole)
+                ELSEIF (sys%fragments%frag.EQV..TRUE.) THEN !!Whole supercell                
+                    CALL assign_wannier(sys, md)
+                    CALL compute_dipole_frag(dips%dipole, sys, md)
+                    sys%mol_num = sys%fragments%nfrag
+                    CALL forward_diff(sys%mol_num, rams%e_field(xyz)%alpha_xyz, dip_free, dips%dipole, gs, sys, dips)
+                    DEALLOCATE (dips%dipole)
+                ENDIF
             ELSEIF (dips%type_dipole=='berry') THEN
                 CALL check_jumps(md%coord_v, sys, md)
                 CALL forward_diff(sys%mol_num, rams%e_field(xyz)%alpha_xyz, dip_free, md%coord_v, gs, sys, dips)

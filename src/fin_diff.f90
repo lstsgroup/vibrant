@@ -63,7 +63,7 @@ CONTAINS
 
         IF (gs%spectral_type%read_function.NE.'MD-RR') THEN
             DO j = 1, sys%framecount
-                DO i = 1, mol_num  !!! change to mol_num later
+                DO i = 1, mol_num  
                     DO k = 1, 3
                         alpha(j, i, k) = REAL((dip_x(j, i, k) - dip_free(j, i, k))/dips%e_field, kind=dp)
                     END DO
