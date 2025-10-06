@@ -230,6 +230,15 @@ CONTAINS
                 ELSEIF (INDEX(to_lower(line), 'fwhm')>0) THEN
                     READ (line, *) dummy, gs%fwhm
                     WRITE (*, '(4X,A, T60, F0.4)') 'FWHM for Gaussian broadening (cm^-1):', gs%fwhm
+                ELSEIF (INDEX(to_lower(line), 'spectra_verbosity')>0) THEN 
+                    READ (line, *) dummy, gs%spectra_verbosity
+                    IF (TRIM(gs%spectra_verbosity)/= 'normal' .AND. TRIM(gs%spectra_verbosity)/= 'high' ) THEN
+                        WRITE (error_unit, '(4X,"[WARN] ",A)') 'spectra verbosity incorrectly defined in the input.'
+                        WRITE (error_unit, '(4X,"[WARN] ",A)') 'Please use keyword "normal" or "high".'
+                        gs%spectra_verbosity = 'normal'
+                        WRITE (error_unit, '(4X,"[WARN] ",A)') 'Spectra verbosity is now set to normal'
+                    END IF
+                    WRITE (*, '(4X,A, T60, A)') 'Spectra output verbosity:', gs%spectra_verbosity
                 ELSEIF (INDEX(to_lower(line), 'spectra')>0) THEN
                     READ (line, *) dummy, gs%spectral_type%read_function
                     WRITE (*, '(4X,A, T60, A)') 'spectra:', TRIM(gs%spectral_type%read_function)
