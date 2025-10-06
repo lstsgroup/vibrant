@@ -38,7 +38,7 @@ def test_Raman_Berry(vibrant_binary_path):
     
     # parse filenames
     x_ref, y_ref = parse_spectrum_from_file(reference)
-    x_test, y_test = parse_spectrum_from_file(test, hrd=1)
+    x_test, y_test = parse_spectrum_from_file(test, hdr=1)
 
     # compare test against reference
     assert np.allclose(x_ref, x_test, atol=1e-8)
