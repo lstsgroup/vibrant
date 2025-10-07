@@ -32,15 +32,23 @@ def test_Raman_Berry(vibrant_binary_path):
     assert returncode == 0
     
     # file names
-    reference = "output/raman_unpolarized.txt"
-    test = "raman_unpolarized.txt"
+    reference1 = "output/raman_unpolarized_frag_1.txt"
+    test1 = "raman_unpolarized_frag_1.txt"
+    
+    reference2 = "output/raman_unpolarized_frag_2.txt"
+    test2 = "raman_unpolarized_frag_2.txt"
     
     # parse filenames
-    x_ref, y_ref = parse_spectrum_from_file(reference)
-    x_test, y_test = parse_spectrum_from_file(test)
+    x_ref1, y_ref1 = parse_spectrum_from_file(reference1)
+    x_test1, y_test1 = parse_spectrum_from_file(test1)
+    
+    x_ref2, y_ref2 = parse_spectrum_from_file(reference2)
+    x_test2, y_test2 = parse_spectrum_from_file(test2)
 
     # compare test against reference
-    assert np.allclose(x_ref, x_test, atol=1e-8)
-    assert np.allclose(y_ref, y_test, atol=1e-8)
+    assert np.allclose(x_ref1, x_test1, atol=1e-8)
+    assert np.allclose(y_ref1, y_test1, atol=1e-8)
+    assert np.allclose(x_ref2, x_test2, atol=1e-8)
+    assert np.allclose(y_ref2, y_test2, atol=1e-8)
 
     

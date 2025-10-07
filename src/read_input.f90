@@ -81,14 +81,16 @@ CONTAINS
         INTEGER :: ios, i, n
         CHARACTER(len=256) :: iomsg
         TYPE(fragment_type), ALLOCATABLE :: tmp(:)
+        TYPE(fragment_group), ALLOCATABLE :: tmp_group(:)
+        TYPE(fragment_type), ALLOCATABLE  :: tmp_frag(:)
         !** intermal variables
         INTEGER :: runit, stat
-        INTEGER :: arr(200), nfound, frag_id
+        INTEGER :: arr(200), nfound, group_id, frag_id
         CHARACTER(len=str_len) :: dummy, line, msg
         LOGICAL :: in_global = .FALSE.
         LOGICAL :: in_system = .FALSE.
         LOGICAL :: in_cell = .FALSE.
-        LOGICAL :: in_fragment = .FALSE.
+        LOGICAL :: in_fragment_group = .FALSE.
         LOGICAL :: in_coordinates = .FALSE.
         LOGICAL :: in_fragments = .FALSE.
         LOGICAL :: in_md = .FALSE.
@@ -98,7 +100,9 @@ CONTAINS
         LOGICAL :: in_raman = .FALSE.
         LOGICAL :: in_rtp = .FALSE.
         LOGICAL :: angles_set = .FALSE.
+
         sys%fragments%frag = .FALSE.
+        sys%fragments%ngroup = 0                        ! initialize
 
         WRITE (*, '(2X, A)') "Input Data:"
         OPEN (FILE=TRIM(input_file_name), STATUS='old', ACTION='read', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
@@ -141,15 +145,40 @@ CONTAINS
             END IF
 
             IF (INDEX(line, '&fragment')>0) THEN
-                in_fragment = .TRUE.
+                in_fragment_group = .TRUE.
                 sys%fragments%frag = .TRUE.
+                sys%fragments%ngroup = sys%fragments%ngroup + 1
+                group_id = sys%fragments%ngroup
+
+                ! allocate/expand type_frag
+                IF (.NOT. ALLOCATED(sys%fragments%type_frag)) THEN
+                    ALLOCATE (sys%fragments%type_frag(1))
+                ELSE
+                    CALL MOVE_ALLOC(sys%fragments%type_frag, tmp_group)
+                    ALLOCATE (sys%fragments%type_frag(SIZE(tmp_group) + 1))
+                    sys%fragments%type_frag(1:SIZE(tmp_group)) = tmp_group
+                    DEALLOCATE (tmp_group)
+                END IF
+
+                sys%fragments%type_frag(group_id)%nfrag = 0
                 CYCLE
             END IF
 
             IF (INDEX(line, '&end fragment')>0) THEN
-                in_fragment = .FALSE.
+                in_fragment_group = .FALSE.
                 CYCLE
             END IF
+
+            !      IF (INDEX(line, '&fragment')>0) THEN
+            !         in_fragment = .TRUE.
+            !         sys%fragments%frag = .TRUE.
+            !         CYCLE
+            !     END IF
+
+            !      IF (INDEX(line, '&end fragment')>0) THEN
+            !         in_fragment = .FALSE.
+            !        CYCLE
+            !    END IF
 
             IF (INDEX(line, '&coordinates')>0) THEN
                 in_coordinates = .TRUE.
@@ -161,15 +190,15 @@ CONTAINS
                 CYCLE
             END IF
 
-            IF (INDEX(line, '&fragments')>0) THEN
-                in_fragments = .TRUE.
-                CYCLE
-            END IF
+            ! IF (INDEX(line, '&fragments')>0) THEN
+            !   in_fragments = .TRUE.
+            !    CYCLE
+            ! END IF
 
-            IF (INDEX(line, '&end fragments')>0) THEN
-                in_fragments = .FALSE.
-                CYCLE
-            END IF
+            ! IF (INDEX(line, '&end fragments')>0) THEN
+            !     in_fragments = .FALSE.
+            !      CYCLE
+            !   END IF
 
             IF (INDEX(line, '&md')>0) THEN
                 in_md = .TRUE.
@@ -285,34 +314,32 @@ CONTAINS
                         READ (line, *) dummy, sys%cell%angle_gamma
                         WRITE (*, *) "Angle gamma: ", sys%cell%angle_gamma
                     END IF
+                END IF
 
-                ELSEIF (in_fragment) THEN
+                IF (in_fragment_group) THEN
                     IF (INDEX(to_lower(line), 'atom_list')>0) THEN
                         arr = 0
                         READ (line, *, IOSTAT=ios) dummy, (arr(i), i=1, 200)
                         nfound = COUNT(arr/=0)
 
-                        sys%fragments%nfrag = sys%fragments%nfrag + 1
-                        frag_id = sys%fragments%nfrag
+                        sys%fragments%type_frag(group_id)%nfrag = &
+                            sys%fragments%type_frag(group_id)%nfrag + 1
+                        frag_id = sys%fragments%type_frag(group_id)%nfrag
 
-                        ! extend the fragment array
-                        IF (.NOT. ALLOCATED(sys%fragments%fragment)) THEN
-                            ALLOCATE (sys%fragments%fragment(1))
+                        ! extend fragment array inside this group
+                        IF (.NOT. ALLOCATED(sys%fragments%type_frag(group_id)%fragment)) THEN
+                            ALLOCATE (sys%fragments%type_frag(group_id)%fragment(1))
                         ELSE
-                            CALL MOVE_ALLOC(sys%fragments%fragment, tmp)
-                            ALLOCATE (sys%fragments%fragment(SIZE(tmp) + 1))
-                            sys%fragments%fragment(1:SIZE(tmp)) = tmp
-                            DEALLOCATE (tmp)
+                            CALL MOVE_ALLOC(sys%fragments%type_frag(group_id)%fragment, tmp_frag)
+                            ALLOCATE (sys%fragments%type_frag(group_id)%fragment(SIZE(tmp_frag) + 1))
+                            sys%fragments%type_frag(group_id)%fragment(1:SIZE(tmp_frag)) = tmp_frag
+                            DEALLOCATE (tmp_frag)
                         END IF
 
-                        ! now allocate and assign atoms for this fragment
-                        ALLOCATE (sys%fragments%fragment(frag_id)%frag_atoms(nfound))
-                        sys%fragments%fragment(frag_id)%frag_atoms = arr(1:nfound)
+                        ! assign atoms
+                        ALLOCATE (sys%fragments%type_frag(group_id)%fragment(frag_id)%frag_atoms(nfound))
+                        sys%fragments%type_frag(group_id)%fragment(frag_id)%frag_atoms = arr(1:nfound)
                     END IF
-
-                ELSEIF (INDEX(to_lower(line), 'frag_type ')>0) THEN !'Does the system contain more than one molecule? (y/n)'
-                    READ (line, *) dummy, sys%frag_type
-                    WRITE (*, '(4X,A, T60, A)') 'frag_type:', TRIM(sys%frag_type)
                 END IF
             END IF
 
@@ -417,7 +444,6 @@ CONTAINS
                 END IF
             END IF
             !IF (in_coordinates) THEN
-            !IF (in_coordinates) THEN
             !    IF (INDEX(line, 'xyz_filename')>0) THEN
             !        READ (line, *) dummy, input%system%coordinates%xyz_filename
             !        input%system%coordinates%present = .TRUE.
@@ -449,6 +475,8 @@ CONTAINS
 
     END SUBROUTINE parse_input
 
+!*********************************************************************************************************!
+!*********************************************************************************************************!
     SUBROUTINE check_input(gs, sys, md, stats, dips, rams)
 
         TYPE(global_settings)       :: gs
@@ -900,4 +928,5 @@ CONTAINS
         END IF
 
     END SUBROUTINE check_input
+
 END MODULE read_input

@@ -20,6 +20,20 @@
   angle_gamma 120 
  &end cell
  &fragment
+  atom_list 237 239 241 243 245 247 
+  atom_list 265 226 228 230 261 263
+  atom_list 307 272 270 303 305 268
+  atom_list 285 279 281 283 289 287
+  atom_list 310 347 345 314 312 349
+  atom_list 329 327 325 323 321 331
+  atom_list 100 102 104 139 135 137
+  atom_list 117 115 113 119 111 121 
+  atom_list 161 155 157 159 153 163
+  atom_list 142 181 144 146 177 179
+  atom_list 184 223 221 219 188 186
+  atom_list 201 199 197 195 205 203
+ %end fragment
+ &fragment
   atom_list 43 56 50 44 47 53 46 52 45 55 48 49 54 51
   atom_list 15 28 16 25 22 19 26 27 24 23 17 18 20 21
   atom_list 38 42 33 30 29 39 36 32 31 34 35 37 40 41
@@ -31,7 +45,7 @@
 %end system
 &md
  time_step 2.5
- correlation_depth 64
+ correlation_depth 16
 &end md
 &raman
  laser_in 1.165256

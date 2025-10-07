@@ -33,15 +33,22 @@ def test_IR_Wannier_whole(vibrant_binary_path):
     assert returncode == 0
     
     # file names
-    reference = "output/IR_spectrum.txt"
-    test = "IR_spectrum.txt"
+    reference1 = "output/IR_spectrum_fragment_1.txt"
+    test1 = "IR_spectrum_fragment_1.txt"
     
+    reference2 = "output/IR_spectrum_fragment_2.txt" 
+    test2 = "IR_spectrum_fragment_2.txt"
+
     # parse filenames
-    x_ref, y_ref = parse_ir_spectrum_from_file(reference)
-    x_test, y_test = parse_ir_spectrum_from_file(test)
+    x_ref1, y_ref1 = parse_ir_spectrum_from_file(reference1)
+    x_test1, y_test1 = parse_ir_spectrum_from_file(test1)
+
+    x_ref2, y_ref2 = parse_ir_spectrum_from_file(reference2)
+    x_test2, y_test2 = parse_ir_spectrum_from_file(test2)
 
     # compare test against reference
-    assert np.allclose(x_ref, x_test, atol=1e-8)
-    assert np.allclose(y_ref, y_test, atol=1e-8)
+    assert np.allclose(x_ref1, x_test1, atol=1e-8)
+    assert np.allclose(y_ref1, y_test1, atol=1e-8)
+    assert np.allclose(x_ref2, x_test2, atol=1e-8)
+    assert np.allclose(y_ref2, y_test2, atol=1e-8)
 
-    

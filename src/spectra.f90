@@ -18,13 +18,13 @@ MODULE calc_spectra
 
     USE setup, ONLY: conversion
     USE kinds, ONLY: dp, str_len
-    USE iso_fortran_env, ONLY: output_unit, error_unit
+    USE ISO_FORTRAN_ENV, ONLY: output_unit, error_unit
     USE vib_types, ONLY: global_settings, systems, molecular_dynamics, static, dipoles, raman
 
     USE constants, ONLY: pi, fs2s, debye, speed_light, const_planck, const_boltz, const_permit, cm2m, a3_to_debye_per_e, &
                          hartreebohr2evang, hessian_factor, bohr2ang, reccm2ev, am_u, debye2cm, avo_num, au2vm, ang, at_u, &
                          speed_light_au, debye, reccm2au
-    USE read_traj, ONLY: read_coord_frame,check_file_open
+    USE read_traj, ONLY: read_coord_frame, check_file_open
     USE fin_diff, ONLY: central_diff, forward_diff
     USE vel_cor, ONLY: cvv, cvv_iso, cvv_aniso, cvv_only_x, cvv_resraman
     USE dipole_calc!, ONLY: compute_dipole, check_jumps
@@ -37,7 +37,8 @@ MODULE calc_spectra
 
     INCLUDE 'fftw3.f03'
 
-    PUBLIC :: spec_power, normal_mode_analysis, spec_static_ir, spec_static_raman, spec_ir, spec_raman, spec_abs, spec_static_resraman!, spec_resraman
+    PUBLIC :: spec_power, normal_mode_analysis, spec_static_ir, spec_static_raman, &
+              spec_ir, spec_raman, spec_abs, spec_static_resraman!, spec_resraman
 
 CONTAINS
     SUBROUTINE spec_power(gs, sys, md)
@@ -45,7 +46,6 @@ CONTAINS
         TYPE(global_settings), INTENT(INOUT)        :: gs
         TYPE(systems), INTENT(INOUT)                :: sys
         TYPE(molecular_dynamics), INTENT(INOUT)     :: md
-
 
         INTEGER                                                  :: stat, i, runit
         INTEGER(kind=dp)                                          :: plan
@@ -81,8 +81,7 @@ CONTAINS
       !!Unit conversion to K.cm
         power_const = (md%dt*fs2s*am_u*speed_light/const_boltz)*2.0_dp/(sys%natom*3.0_dp)
 
-
-        OPEN (FILE='power_spec.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit)
+        OPEN (FILE='power_spec.txt', STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
         !Check if file exists
         CALL check_file_open(stat, msg, 'power_spec.txt')
         DO i = 0, 2*md%t_cor - 1
@@ -97,79 +96,86 @@ CONTAINS
 
     END SUBROUTINE spec_power
 !***********************************************************************************************!
-
 !***********************************************************************************************!
     SUBROUTINE spec_ir(gs, sys, md, dips)
-        TYPE(global_settings), INTENT(INOUT)        :: gs
-        TYPE(systems), INTENT(INOUT)                :: sys
-        TYPE(molecular_dynamics), INTENT(INOUT)     :: md
-        TYPE(dipoles), INTENT(INOUT)     :: dips
+        TYPE(global_settings), INTENT(INOUT) :: gs
+        TYPE(systems), INTENT(INOUT) :: sys
+        TYPE(molecular_dynamics), INTENT(INOUT) :: md
+        TYPE(dipoles), INTENT(INOUT) :: dips
 
-        INTEGER                                                  :: stat, i, runit
-        INTEGER(kind=dp)                                          :: plan
-        CHARACTER(LEN=str_len)                                          :: msg
-        REAL(kind=dp)                                          :: freq_range, freq_res, sinc_const, ir_const
-        REAL(kind=dp), DIMENSION(:), ALLOCATABLE               :: ir_int, freq
+        INTEGER :: stat, i, i_group, runit
+        INTEGER(KIND=dp) :: plan
+        CHARACTER(LEN=str_len) :: msg
+        CHARACTER(LEN=40) :: output_fname, f_name, idx
+        REAL(KIND=dp) :: freq_range, freq_res, sinc_const, ir_const
+        REAL(KIND=dp), ALLOCATABLE :: ir_int(:), freq(:), z_frag(:, :)
+        COMPLEX(KIND=dp), ALLOCATABLE :: zhat_frag(:, :)
+        REAL(KIND=dp), ALLOCATABLE :: v_frag(:, :, :, :), dipole_frag(:, :, :, :)
 
         ALLOCATE (md%zhat(0:2*md%t_cor - 1), ir_int(0:2*md%t_cor - 1), freq(0:2*md%t_cor - 1))
-        md%zhat = COMPLEX(0._dp, 0.0_dp)
-
-        IF (dips%type_dipole=='wannier') THEN !!Wannier centers
-            IF (sys%fragments%frag.EQV..FALSE.) THEN !!Whole supercell
-                CALL read_coord_frame(sys%natom, dips%dip_file, md%coord_v, sys)
-                CALL compute_dipole(dips%dipole, sys, md)
-                CALL central_diff(sys%mol_num, dips%dipole, md%v, sys, md)
-            ELSEIF (sys%fragments%frag.EQV..TRUE.) THEN !!Fragments
-                CALL read_coord_frame(sys%natom, dips%dip_file, md%coord_v, sys)
-                CALL assign_wannier(sys, md)
-                CALL compute_dipole_frag(dips%dipole, sys, md)
-                CALL central_diff(sys%fragments%nfrag, dips%dipole, md%v, sys, md)
-                sys%mol_num = sys%fragments%nfrag
-            ENDIF
-        ELSEIF (dips%type_dipole=='berry') THEN !!Berry phase dipoles
-            CALL read_coord_frame(sys%mol_num, dips%dip_file, md%coord_v, sys)
-            CALL check_jumps(md%coord_v, sys, md)
-            CALL central_diff(sys%mol_num, md%coord_v, md%v, sys, md)
+        md%zhat = CMPLX(0._dp, 0.0_dp)
+        IF (.NOT. sys%fragments%frag) THEN
+            sys%fragments%ngroup = 1
         END IF
 
-        CALL cvv(sys%mol_num, md%v, sys, gs, md)
+        ! Frequencies and constants
+        freq_range = REAL((1._dp/(md%dt*fs2s))/speed_light, dp)
+        freq_res = REAL(freq_range/(2._dp*md%t_cor), dp)
+        sinc_const = freq_res*md%dt*fs2s*2._dp*pi*speed_light
+        ir_const = avo_num*md%dt*fs2s*2._dp*10._dp/(12._dp*const_permit*speed_light*const_boltz)
 
-        CALL dfftw_plan_dft_r2c_1d(plan, 2*md%t_cor, md%z(0:2*md%t_cor - 1), md%zhat(0:2*md%t_cor - 1), FFTW_ESTIMATE) !!FFT!!
-        CALL dfftw_execute_dft_r2c(plan, md%z, md%zhat)
-        CALL dfftw_destroy_plan(plan)
+        DO i_group = 1, sys%fragments%ngroup
+            ! Dipole handling
+            IF (dips%type_dipole=='wannier') THEN
+                CALL read_coord_frame(sys%natom, dips%dip_file, md%coord_v, sys)
+                IF (.NOT. sys%fragments%frag) THEN
+                    CALL compute_dipole(dips%dipole, sys, md)
+                    ALLOCATE (md%v(sys%framecount, sys%natom, 3))
+                    CALL central_diff(sys%mol_num, dips%dipole, md%v, sys, md)
+                ELSE
+                    CALL assign_wannier(sys, md)
+                    CALL compute_dipole_frag(dipole_frag, sys, md)
+                    sys%mol_num = sys%fragments%type_frag(i_group)%nfrag
+                    CALL central_diff(sys%mol_num, dipole_frag(i_group, :, 1:sys%mol_num, :), md%v, sys, md)
+                END IF
+            ELSEIF (dips%type_dipole=='berry') THEN
+                CALL read_coord_frame(sys%mol_num, dips%dip_file, md%coord_v, sys)
+                CALL check_jumps(md%coord_v, sys, md)
+                ALLOCATE (md%v(sys%framecount, sys%natom, 3))
+                CALL central_diff(sys%mol_num, md%coord_v, md%v, sys, md)
+            END IF
+            CALL cvv(sys%mol_num, md%v, sys, gs, md)
 
-        freq_range = REAL((1.0_dp/(md%dt*fs2s))/speed_light, kind=dp)
-        freq_res = REAL(freq_range/(2.0_dp*md%t_cor), kind=dp)
+            ! FFT
+            CALL dfftw_plan_dft_r2c_1d(plan, 2*md%t_cor, md%z, md%zhat, FFTW_ESTIMATE)
+            CALL dfftw_execute_dft_r2c(plan, md%z, md%zhat)
+            CALL dfftw_destroy_plan(plan)
 
-        !!sinc function
-        sinc_const = freq_res*md%dt*fs2s*2.0_dp*pi*speed_light
+            md%zhat = REAL(md%zhat*debye2cm*debye2cm, dp)
 
-        md%zhat = REAL(md%zhat, kind=dp)
-        !!conversion of debye^2 to (C*m)^2
-        md%zhat(:) = md%zhat(:)*debye2cm*debye2cm !!conversion of debye^2 to (C*m)^2
-        !!conversion of IR units to K*cm*km*mol^-1
-        ir_const = avo_num*md%dt*fs2s*2.0_dp*10.0d0/(12.0_dp*const_permit*speed_light*const_boltz)
-
-        
-        OPEN (FILE='IR_spectrum.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit)
-        !Check if file exists
-        CALL check_file_open(stat, msg, 'IR_spectrum.txt')
-        DO i = 0, 2*md%t_cor - 1
-            freq(i) = i*freq_res
-            ir_int(i) = md%zhat(i)*ir_const*(sinc_const*(i)/SIN(sinc_const*(i)))**2._dp
-            IF (freq(i).GE.5000_dp) CYCLE
-            ir_int(0) = 0.00_dp
-            WRITE (runit, *) freq(i), -1.0_dp*REAL(ir_int(i), kind=dp)
+            ! Output
+            IF (.NOT. sys%fragments%frag) THEN
+                WRITE (output_fname, '("IR_spectrum.txt")')
+            ELSE
+                WRITE (output_fname, '("IR_spectrum_fragment_",I0,".txt")') i_group
+            END IF
+            OPEN (FILE=output_fname, STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
+            CALL check_file_open(stat, msg, output_fname)
+            DO i = 0, 2*md%t_cor - 1
+                freq(i) = i*freq_res
+                ir_int(i) = md%zhat(i)*ir_const*(sinc_const*i/SIN(sinc_const*i))**2._dp
+                IF (freq(i)>=5000._dp) CYCLE
+                ir_int(0) = 0._dp
+                WRITE (runit, *) freq(i), -REAL(ir_int(i), dp)
+            END DO
+            CLOSE (runit)
+            DEALLOCATE (md%z)
         END DO
-        CLOSE (runit)
-
         DEALLOCATE (ir_int, freq)
-
     END SUBROUTINE spec_ir
 
-!!!****************************************************************************************!
-
-!!!****************************************************************************************!
+!****************************************************************************************!
+!****************************************************************************************!
     SUBROUTINE spec_raman(gs, sys, md, dips, rams)
         TYPE(global_settings), INTENT(INOUT)        :: gs
         TYPE(systems), INTENT(INOUT)        :: sys
@@ -178,7 +184,7 @@ CONTAINS
         TYPE(raman), INTENT(INOUT)        :: rams
 
         CHARACTER(LEN=str_len)                                          :: msg, fname
-        INTEGER                                                  :: stat, i, j, xyz, runit, i_laser
+        INTEGER                                                  :: stat, i, j, xyz, runit, i_laser, i_group
         INTEGER(kind=dp)                                          :: plan
         INTEGER, DIMENSION(:), ALLOCATABLE                         :: natom_frag_free
         !INTEGER, DIMENSION(:), ALLOCATABLE                         :: natom_frag_y, natom_frag_z
@@ -190,6 +196,8 @@ CONTAINS
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE                    :: raman_const, sinc_func, freq
         REAL(kind=dp)                                             :: f, freq_res
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                :: dip_free!,rams%e_field(1)%dip_xyz,rams%e_field(2)%dip_xyz,rams%e_field(3)%dip_xyz
+        REAL(KIND=dp), ALLOCATABLE :: v_frag(:, :, :, :), dipole_frag(:, :, :, :)
+        REAL(KIND=dp), ALLOCATABLE :: dip_frag_free(:, :, :, :)
         CHARACTER(len=40)                                         :: output_fname, f_name, idx
         !REAL(kind=dp), DIMENSION(:,:, :, :), ALLOCATABLE                :: alpha_xyz, dip_xyz, alpha_diff_xyz
         !REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                ::rams%e_field(1)%alpha_diff_xyz,rams%e_field(2)%alpha_diff_xyz,rams%e_field(3)%alpha_diff_xyz
@@ -198,177 +206,192 @@ CONTAINS
         ALLOCATE (rams%e_field(1)%alpha_xyz(sys%framecount, sys%mol_num, 3))
         ALLOCATE (rams%e_field(2)%alpha_xyz(sys%framecount, sys%mol_num, 3))
         ALLOCATE (rams%e_field(3)%alpha_xyz(sys%framecount, sys%mol_num, 3))
+        ALLOCATE (freq(0:md%t_cor*2), raman_const(0:md%t_cor*2))
 
 !    IF (rams%averaging=='1') THEN
 
-!!FIELD_FREE!!!
-        IF (dips%type_dipole=='wannier') THEN
-            IF (sys%fragments%frag.EQV..FALSE.) THEN !!Whole supercell
-                CALL read_coord_frame(sys%natom, dips%dip_file, md%coord_v, sys)
-                CALL compute_dipole(dip_free, sys, md)
-            ELSEIF (sys%fragments%frag.EQV..TRUE.) THEN !!Fragments
-                CALL read_coord_frame(sys%natom, dips%dip_file, md%coord_v, sys)
-                CALL assign_wannier(sys, md)
-                CALL compute_dipole_frag(dip_free, sys, md)
-                sys%mol_num = sys%fragments%nfrag
-            ENDIF
-        ELSEIF (dips%type_dipole=='berry') THEN
-            CALL read_coord_frame(sys%natom, dips%dip_file, dip_free, sys)
-            CALL check_jumps(dip_free, sys, md)
+        IF (.NOT. sys%fragments%frag) THEN
+            sys%fragments%ngroup = 1
         END IF
-
-    !!!!ELECTRIC FIELD!!!
-        DO xyz = 1, 3 !X-FIELD Y-FIELD Z-FIELD
-            IF (xyz==1) THEN
-                f_name = dips%dip_x_file
-            ELSE IF (xyz==2) THEN
-                f_name = dips%dip_y_file
-            ELSE IF (xyz==3) THEN
-                f_name = dips%dip_z_file
-            END IF
-            CALL read_coord_frame(sys%natom, f_name, md%coord_v, sys)
-            IF (dips%type_dipole=='wannier') THEN
-                IF (sys%fragments%frag.EQV..FALSE.) THEN !!Whole supercell                
-                    CALL compute_dipole(dips%dipole, sys, md)
-                    CALL forward_diff(sys%mol_num, rams%e_field(xyz)%alpha_xyz, dip_free, dips%dipole, gs, sys, dips)
-                    DEALLOCATE (dips%dipole)
-                ELSEIF (sys%fragments%frag.EQV..TRUE.) THEN !!Whole supercell                
-                    CALL assign_wannier(sys, md)
-                    CALL compute_dipole_frag(dips%dipole, sys, md)
-                    sys%mol_num = sys%fragments%nfrag
-                    CALL forward_diff(sys%mol_num, rams%e_field(xyz)%alpha_xyz, dip_free, dips%dipole, gs, sys, dips)
-                    DEALLOCATE (dips%dipole)
-                ENDIF
-            ELSEIF (dips%type_dipole=='berry') THEN
-                CALL check_jumps(md%coord_v, sys, md)
-                CALL forward_diff(sys%mol_num, rams%e_field(xyz)%alpha_xyz, dip_free, md%coord_v, gs, sys, dips)
-            ELSEIF (dips%type_dipole=='dfpt') THEN
-                rams%e_field(xyz)%alpha_xyz = REAL(md%coord_v*a3_to_debye_per_e, kind=dp)
-            END IF
-            CALL central_diff(sys%mol_num, rams%e_field(xyz)%alpha_xyz, rams%e_field(xyz)%alpha_diff_xyz, sys, md)
-        END DO
-
-!!!ACF AND FFT CALC!!!
-        ALLOCATE (zhat_iso(0:md%t_cor*2), zhat_aniso(0:md%t_cor*2))
-        ALLOCATE (raman_ortho(0:md%t_cor*2), raman_para(0:md%t_cor*2), raman_depol(0:md%t_cor*2), raman_unpol(0:md%t_cor*2))
-        ALLOCATE (freq(0:md%t_cor*2), raman_const(0:md%t_cor*2))
-
-        zhat_iso = COMPLEX(0._dp, 0.0_dp)
-        zhat_aniso = COMPLEX(0._dp, 0.0_dp)
-
-        CALL cvv_iso(sys%mol_num, rams%z_iso, rams%e_field(1)%alpha_diff_xyz, rams%e_field(2)%alpha_diff_xyz, rams%e_field(3)%alpha_diff_xyz, sys, md)
-
-        CALL dfftw_plan_dft_r2c_1d(plan, 2*md%t_cor, rams%z_iso, zhat_iso, FFTW_ESTIMATE)
-        CALL dfftw_execute_dft_r2c(plan, rams%z_iso, zhat_iso)
-        CALL dfftw_destroy_plan(plan)
-
-        CALL cvv_aniso(sys%mol_num, rams%z_aniso, rams%e_field(1)%alpha_diff_xyz, rams%e_field(2)%alpha_diff_xyz, rams%e_field(3)%alpha_diff_xyz, sys, md)
-        !  END IF
-
-        CALL dfftw_plan_dft_r2c_1d(plan, 2*md%t_cor, rams%z_aniso, zhat_aniso, FFTW_ESTIMATE)
-        CALL dfftw_execute_dft_r2c(plan, rams%z_aniso, zhat_aniso)
-        CALL dfftw_destroy_plan(plan)
 
       !!!Find the frequency resolution in cm^-1
         freq_res = REAL(md%freq_range/(2.0_dp*md%t_cor), kind=dp)
         f = freq_res*md%dt*1.883652d-4
 
-        zhat_iso = REAL(zhat_iso, kind=dp)
-        zhat_aniso = REAL(zhat_aniso, kind=dp)
-        raman_ortho = 0.0d0
-        raman_para = 0.0d0
-        raman_unpol = 0.0d0
-        raman_depol = 0.0d0
+        DO i_group = 1, sys%fragments%ngroup
+!!FIELD_FREE!!!
+            IF (dips%type_dipole=='wannier') THEN
+                CALL read_coord_frame(sys%natom, dips%dip_file, md%coord_v, sys)
+                IF (.NOT. sys%fragments%frag) THEN
+                    CALL compute_dipole(dip_free, sys, md)
+                ELSE
+                    CALL assign_wannier(sys, md)
+                    CALL compute_dipole_frag(dip_frag_free, sys, md)
+                END IF
+            ELSEIF (dips%type_dipole=='berry') THEN
+                CALL read_coord_frame(sys%natom, dips%dip_file, dip_free, sys)
+                CALL check_jumps(dip_free, sys, md)
+            END IF
+
+    !!!!ELECTRIC FIELD!!!
+            DO xyz = 1, 3 !X-FIELD Y-FIELD Z-FIELD
+                IF (xyz==1) THEN
+                    f_name = dips%dip_x_file
+                ELSE IF (xyz==2) THEN
+                    f_name = dips%dip_y_file
+                ELSE IF (xyz==3) THEN
+                    f_name = dips%dip_z_file
+                END IF
+                CALL read_coord_frame(sys%natom, f_name, md%coord_v, sys)
+                IF (dips%type_dipole=='wannier') THEN
+                    IF (.NOT. sys%fragments%frag) THEN
+                        CALL compute_dipole(dips%dipole, sys, md)
+                        CALL forward_diff(sys%mol_num, rams%e_field(xyz)%alpha_xyz, dip_free, dips%dipole, gs, sys, dips)
+                        DEALLOCATE (dips%dipole)
+                    ELSE
+                        CALL assign_wannier(sys, md)
+                        CALL compute_dipole_frag(dipole_frag, sys, md)
+                        sys%mol_num = sys%fragments%type_frag(i_group)%nfrag
+                        CALL forward_diff(sys%mol_num, rams%e_field(xyz)%alpha_xyz, dip_frag_free(i_group, :, 1:sys%mol_num, :), dipole_frag(i_group, :, 1:sys%mol_num, :), gs, sys, dips)
+                    END IF
+                ELSEIF (dips%type_dipole=='berry') THEN
+                    CALL check_jumps(md%coord_v, sys, md)
+                    CALL forward_diff(sys%mol_num, rams%e_field(xyz)%alpha_xyz, dip_free, md%coord_v, gs, sys, dips)
+                ELSEIF (dips%type_dipole=='dfpt') THEN
+                    rams%e_field(xyz)%alpha_xyz = REAL(md%coord_v*a3_to_debye_per_e, kind=dp)
+                END IF
+                CALL central_diff(sys%mol_num, rams%e_field(xyz)%alpha_xyz, rams%e_field(xyz)%alpha_diff_xyz, sys, md)
+            END DO
+
+!!!ACF AND FFT CALC!!!
+            ALLOCATE (zhat_iso(0:md%t_cor*2), zhat_aniso(0:md%t_cor*2))
+            ALLOCATE (raman_ortho(0:md%t_cor*2), raman_para(0:md%t_cor*2), raman_depol(0:md%t_cor*2), raman_unpol(0:md%t_cor*2))
+
+            zhat_iso = COMPLEX(0._dp, 0.0_dp)
+            zhat_aniso = COMPLEX(0._dp, 0.0_dp)
+
+            CALL cvv_iso(sys%mol_num, rams%z_iso, rams%e_field(1)%alpha_diff_xyz, rams%e_field(2)%alpha_diff_xyz, rams%e_field(3)%alpha_diff_xyz, sys, md)
+
+            CALL dfftw_plan_dft_r2c_1d(plan, 2*md%t_cor, rams%z_iso, zhat_iso, FFTW_ESTIMATE)
+            CALL dfftw_execute_dft_r2c(plan, rams%z_iso, zhat_iso)
+            CALL dfftw_destroy_plan(plan)
+
+            CALL cvv_aniso(sys%mol_num, rams%z_aniso, rams%e_field(1)%alpha_diff_xyz, rams%e_field(2)%alpha_diff_xyz, rams%e_field(3)%alpha_diff_xyz, sys, md)
+
+            CALL dfftw_plan_dft_r2c_1d(plan, 2*md%t_cor, rams%z_aniso, zhat_aniso, FFTW_ESTIMATE)
+            CALL dfftw_execute_dft_r2c(plan, rams%z_aniso, zhat_aniso)
+            CALL dfftw_destroy_plan(plan)
+
+            zhat_iso = REAL(zhat_iso, kind=dp)
+            zhat_aniso = REAL(zhat_aniso, kind=dp)
+            raman_ortho = 0.0d0
+            raman_para = 0.0d0
+            raman_unpol = 0.0d0
+            raman_depol = 0.0d0
 
       !!Unit conversion of Debye^2/(E^2*s^2) into C^4*s^2/kg^2
-        zhat_iso(:) = zhat_iso(:)*debye2cm*debye2cm/(au2vm*au2vm)
-        zhat_aniso(:) = zhat_aniso(:)*debye2cm*debye2cm/(au2vm*au2vm)
-        DO i_laser = 1, size(rams%laser_in)
-            DO i = 0, 2*md%t_cor - 2
-                freq(i) = i*freq_res
+            zhat_iso(:) = zhat_iso(:)*debye2cm*debye2cm/(au2vm*au2vm)
+            zhat_aniso(:) = zhat_aniso(:)*debye2cm*debye2cm/(au2vm*au2vm)
+
+            DO i_laser = 1, SIZE(rams%laser_in)
+                DO i = 0, 2*md%t_cor - 2
+                    freq(i) = i*freq_res
             !!conversion of the Raman intensities into m^2*K*cm*10^-30!!
-                raman_const(i) = const_planck/(8.0_dp*const_boltz*const_permit*const_permit) &
-                                *1.e+30*md%dt*fs2s*((((rams%laser_in(i_laser)/reccm2ev - freq(i))/cm2m)**4)/freq(i))* &
-                                (1.0_dp/(1.0_dp - EXP(-1._dp*const_planck*speed_light*cm2m*freq(i)/ &
-                                                    (const_boltz*gs%temp))))*2.0_dp
-            END DO
+                    raman_const(i) = const_planck/(8.0_dp*const_boltz*const_permit*const_permit) &
+                                     *1.e+30*md%dt*fs2s*((((rams%laser_in(i_laser)/reccm2ev - freq(i))/cm2m)**4)/freq(i))* &
+                                     (1.0_dp/(1.0_dp - EXP(-1._dp*const_planck*speed_light*cm2m*freq(i)/ &
+                                                           (const_boltz*gs%temp))))*2.0_dp
+                END DO
 
     !!!ORTHOGONAL!!!
-            !WRITE(fname,'("raman_orthogonal_laser_",F0.6,"eV.txt")') rams%laser_in(i_laser)
-            IF (i_laser == 1) THEN
-                output_fname = "raman_orthogonal.txt"
-            ELSE
-                WRITE(output_fname,'("raman_orthogonal_",I0,".txt")') i_laser 
-            END IF
-            OPEN (FILE=output_fname, STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
-            !Check if file exist
-            CALL check_file_open(stat, msg, output_fname)
-            DO i = 0, 2*md%t_cor - 2
-                zhat_aniso(i + 1) = REAL(zhat_aniso(i + 1), kind=dp)*(f*(i + 1)/SIN(f*(i + 1)))**2._dp
-                raman_ortho(i) = ((REAL(zhat_aniso(i), kind=dp))/15.0_dp)*raman_const(i)
-                raman_ortho(0) = 0.0_dp
-                IF (freq(i).GE.5000.0_dp) CYCLE
-                WRITE (runit, *) freq(i), raman_ortho(i)
-            END DO
-            CLOSE (runit)
+                IF (i_laser==1 .AND. .NOT. sys%fragments%frag) THEN
+                    output_fname = "raman_orthogonal.txt"
+                ELSEIF (i_laser==1 .AND. sys%fragments%frag) THEN
+                    WRITE (output_fname, '("raman_orthogonal_frag_",I0,".txt")') i_group
+                ELSEIF (i_laser > 1 .AND. .NOT. sys%fragments%frag) THEN
+                    WRITE (output_fname, '("raman_orthogonal_laser_",I0,".txt")') i_laser
+                ELSEIF (i_laser > 1 .AND. sys%fragments%frag) THEN
+                    WRITE (output_fname, '("raman_orthogonal_frag_",I0,"laser_",I0,".txt")') i_group, i_laser
+                END IF
+                OPEN (FILE=output_fname, STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
+                !Check if file exist
+                CALL check_file_open(stat, msg, output_fname)
+                DO i = 0, 2*md%t_cor - 2
+                    zhat_aniso(i + 1) = REAL(zhat_aniso(i + 1), kind=dp)*(f*(i + 1)/SIN(f*(i + 1)))**2._dp
+                    raman_ortho(i) = ((REAL(zhat_aniso(i), kind=dp))/15.0_dp)*raman_const(i)
+                    raman_ortho(0) = 0.0_dp
+                    IF (freq(i).GE.5000.0_dp) CYCLE
+                    WRITE (runit, *) freq(i), raman_ortho(i)
+                END DO
+                CLOSE (runit)
 
     !!!PARALLEL!!!
-            !WRITE(fname,'("raman_parallel_laser_",F0.6,"eV.txt")') rams%laser_in(i_laser)
-            IF (i_laser == 1) THEN
-                output_fname = "raman_parallel.txt"
-            ELSE
-                WRITE(output_fname,'("raman_parallel_",I0,".txt")') i_laser 
-            END IF
-            OPEN (FILE=output_fname, STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
-            !Check if file exists
-            CALL check_file_open(stat, msg, output_fname)
-            DO i = 0, 2*md%t_cor - 2
-                zhat_iso(i + 1) = REAL(zhat_iso(i + 1), kind=dp)*(f*(i + 1)/SIN(f*(i + 1)))**2._dp
-                raman_para(i) = (zhat_iso(i) + (zhat_aniso(i)*4.0_dp/45.0_dp))*raman_const(i)
-                raman_para(0) = 0.0_dp
-                IF (freq(i).GE.5000.0_dp) CYCLE
-                WRITE (runit, *) freq(i), raman_para(i)
-            END DO
-            CLOSE (runit)
+                IF (i_laser==1 .AND. .NOT. sys%fragments%frag) THEN
+                    output_fname = "raman_parallel.txt"
+                ELSEIF (i_laser==1 .AND. sys%fragments%frag) THEN
+                    WRITE (output_fname, '("raman_parallel_frag_",I0,".txt")') i_group
+                ELSEIF (i_laser > 1 .AND. .NOT. sys%fragments%frag) THEN
+                    WRITE (output_fname, '("raman_parallel_laser_",I0,".txt")') i_laser
+                ELSEIF (i_laser > 1 .AND. sys%fragments%frag) THEN
+                    WRITE (output_fname, '("raman_parallel_frag_",I0,"laser_",I0,".txt")') i_group, i_laser
+                END IF
+                OPEN (FILE=output_fname, STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
+                !Check if file exists
+                CALL check_file_open(stat, msg, output_fname)
+                DO i = 0, 2*md%t_cor - 2
+                    zhat_iso(i + 1) = REAL(zhat_iso(i + 1), kind=dp)*(f*(i + 1)/SIN(f*(i + 1)))**2._dp
+                    raman_para(i) = (zhat_iso(i) + (zhat_aniso(i)*4.0_dp/45.0_dp))*raman_const(i)
+                    raman_para(0) = 0.0_dp
+                    IF (freq(i).GE.5000.0_dp) CYCLE
+                    WRITE (runit, *) freq(i), raman_para(i)
+                END DO
+                CLOSE (runit)
 
     !!!UNPOL!!!
-            !WRITE(fname,'("raman_unpolarized_laser_",F0.6,"eV.txt")') rams%laser_in(i_laser)
-            IF (i_laser == 1) THEN
-                output_fname = "raman_unpolarized.txt"
-            ELSE
-                WRITE(output_fname,'("raman_unpolarized_",I0,".txt")') i_laser 
-            END IF
-            OPEN (FILE=output_fname, STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) !Reading polarizabilties
-            !Check if file exists
-            CALL check_file_open(stat, msg, output_fname)
-            DO i = 0, 2*md%t_cor - 2
-                raman_unpol(i) = raman_ortho(i) + raman_para(i)
-                raman_unpol(0) = 0.00_dp
-                IF (freq(i).GE.5000.0_dp) CYCLE
-                WRITE (runit, *) freq(i), raman_unpol(i)
-            END DO
-            CLOSE (runit)
+                IF (i_laser==1 .AND. .NOT. sys%fragments%frag) THEN
+                    output_fname = "raman_unpolarized.txt"
+                ELSEIF (i_laser==1 .AND. sys%fragments%frag) THEN
+                    WRITE (output_fname, '("raman_unpolarized_frag_",I0,".txt")') i_group
+                ELSEIF (i_laser > 1 .AND. .NOT. sys%fragments%frag) THEN
+                    WRITE (output_fname, '("raman_unpolarized_laser_",I0,".txt")') i_laser
+                ELSEIF (i_laser > 1 .AND. sys%fragments%frag) THEN
+                    WRITE (output_fname, '("raman_unpolarized_frag_",I0,"laser_",I0,".txt")') i_group, i_laser
+                END IF
+                OPEN (FILE=output_fname, STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
+                !Check if file exist
+                CALL check_file_open(stat, msg, output_fname)
+                DO i = 0, 2*md%t_cor - 2
+                    raman_unpol(i) = raman_ortho(i) + raman_para(i)
+                    raman_unpol(0) = 0.00_dp
+                    IF (freq(i).GE.5000.0_dp) CYCLE
+                    WRITE (runit, *) freq(i), raman_unpol(i)
+                END DO
+                CLOSE (runit)
 
     !!!DEPOL RATIO!!!
-            !WRITE(fname,'("raman_depolarization_ratio_laser_",F0.6,"eV.txt")') rams%laser_in(i_laser)
-            IF (i_laser == 1) THEN
-                output_fname = "raman_depolarization_ratio.txt"
-            ELSE
-                WRITE(output_fname,'("raman_depolarization_ratio_",I0,".txt")') i_laser 
-            END IF
-            OPEN (FILE=output_fname, STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) !Reading polarizabilties
-            !Check if file exists
-            CALL check_file_open(stat, msg, output_fname)
-            DO i = 0, 2*md%t_cor - 2
-                raman_depol(i) = REAL(raman_ortho(i), kind=dp)/REAL(raman_para(i), kind=dp)
-                IF (freq(i).GE.5000.0_dp) CYCLE
-                WRITE (runit, *) freq(i), raman_depol(i)
+                IF (i_laser==1 .AND. .NOT. sys%fragments%frag) THEN
+                    output_fname = "raman_depolarization_ratio.txt"
+                ELSEIF (i_laser==1 .AND. sys%fragments%frag) THEN
+                    WRITE (output_fname, '("raman_depolarization_ratio_frag_",I0,".txt")') i_group
+                ELSEIF (i_laser > 1 .AND. .NOT. sys%fragments%frag) THEN
+                    WRITE (output_fname, '("raman_depolarization_ratio_laser_",I0,".txt")') i_laser
+                ELSEIF (i_laser > 1 .AND. sys%fragments%frag) THEN
+                    WRITE (output_fname, '("raman_depolarization_ratio_frag_",I0,"laser_",I0,".txt")') i_group, i_laser
+                END IF
+                OPEN (FILE=output_fname, STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
+                !Check if file exist
+                CALL check_file_open(stat, msg, output_fname)
+                DO i = 0, 2*md%t_cor - 2
+                    raman_depol(i) = REAL(raman_ortho(i), kind=dp)/REAL(raman_para(i), kind=dp)
+                    IF (freq(i).GE.5000.0_dp) CYCLE
+                    WRITE (runit, *) freq(i), raman_depol(i)
+                END DO
+                CLOSE (runit)
             END DO
-            CLOSE (runit)
+            DEALLOCATE (rams%z_iso, rams%z_aniso)
+            DEALLOCATE (raman_depol, raman_para, raman_unpol, raman_ortho, zhat_aniso, zhat_iso)
         END DO
-        DEALLOCATE (rams%z_iso, rams%z_aniso)
-        DEALLOCATE (raman_depol, raman_para, raman_unpol, raman_ortho, zhat_aniso, zhat_iso)
-
+        DEALLOCATE (freq, raman_const)
 !    ELSEIF (rams%averaging=='2') THEN
 
 !        IF (dips%type_dipole=='wannier') THEN
@@ -530,7 +553,7 @@ CONTAINS
         n = SIZE(hessian, 1)
 
         !PRINT *, hessian(1, 1), "hess"
-        WRITE (*, '(4X, "hess", T60, G0)')  hessian(1, 1)
+        WRITE (*, '(4X, "hess", T60, G0)') hessian(1, 1)
 ! work size query
         lwork = -1
         CALL DSYEV('V', 'U', n, hessian, lda, w, work, lwork, info)
@@ -560,25 +583,25 @@ CONTAINS
             m = m + 2
         END DO
 
-        WRITE (*, '(4X, "stats%freq(1:3)", T60, G0)')  stats%freq(1:3)
+        WRITE (*, '(4X, "stats%freq(1:3)", T60, G0)') stats%freq(1:3)
 
-        OPEN (FILE='normal_mode_freq.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
+        OPEN (FILE='normal_mode_freq.txt', STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
         !Check if file exists
         CALL check_file_open(stat, msg, 'normal_mode_freq.txt')
         DO i = 1, stats%nmodes !!atom_num: 1st atom
             WRITE (runit, *) stats%freq(i)
         END DO
-        CLOSE(runit)
+        CLOSE (runit)
 
-        OPEN (FILE='normal_mode_displ.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
+        OPEN (FILE='normal_mode_displ.txt', STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
         !Check if file exists
-        CALL check_file_open(stat, msg, 'normal_mode_displ.txt')   
+        CALL check_file_open(stat, msg, 'normal_mode_displ.txt')
         DO i = 1, stats%nmodes !!atom_num: 1st atom
             DO j = 1, sys%natom !!dims: x dimension
                 WRITE (runit, *) stats%disp(i, j, 1:3)
             END DO
         END DO
-        CLOSE(runit)
+        CLOSE (runit)
 
     END SUBROUTINE normal_mode_analysis
 
@@ -606,9 +629,9 @@ CONTAINS
         end_freq = INT(MAXVAL(stats%freq) + 1000.0_dp)
         freq_res = INT(end_freq - start_freq)
 
-        WRITE (*, '(4X, "Max freq: ", T60, G0)')  MAXVAL(stats%freq)
-        WRITE (*, '(4X, "end_freq: ", T60, I0)')   end_freq
-        WRITE (*, '(4X, "freq_res: ", T60, I0)')   freq_res
+        WRITE (*, '(4X, "Max freq: ", T60, G0)') MAXVAL(stats%freq)
+        WRITE (*, '(4X, "end_freq: ", T60, I0)') end_freq
+        WRITE (*, '(4X, "freq_res: ", T60, I0)') freq_res
 
         ALLOCATE (data2(freq_res + 1))
         data2 = 0.0_dp
@@ -631,7 +654,7 @@ CONTAINS
             data2(i) = data2(i) + broad
         END DO
 
-        OPEN (FILE='result_static_ir.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
+        OPEN (FILE='result_static_ir.txt', STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
         !Check if file exists
         CALL check_file_open(stat, msg, 'result_static_ir.txt')
         DO i = start_freq, end_freq
@@ -653,7 +676,7 @@ CONTAINS
         TYPE(dipoles), INTENT(INOUT)        :: dips
         TYPE(raman), INTENT(INOUT)        :: rams
 
-        INTEGER                                                  :: stat, i, j, x, freq_res,runit,i_laser
+        INTEGER                                                  :: stat, i, j, x, freq_res, runit, i_laser
         INTEGER                                                  :: start_freq, end_freq
         CHARACTER(len=str_len)                                      :: msg, fname
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE                    :: iso_sq, aniso_sq, ram_const, data2!,broad
@@ -680,13 +703,13 @@ CONTAINS
     !!!Conversion from angstrom^4 amu⁻¹ to m^4 kg -1
         iso_sq = iso_sq*(ang**4._dp)/am_u
         aniso_sq = aniso_sq*(ang**4._dp)/am_u
-        
-        DO i_laser = 1, size(rams%laser_in)
+
+        DO i_laser = 1, SIZE(rams%laser_in)
         !!! Conversion of static Raman units into 10^{-30}*cm^2/sr
             ram_const(:) = (const_planck/(8.0_dp*speed_light*cm2m*const_permit*const_permit)*1.e+30* &
                             REAL(((rams%laser_in(i_laser)/reccm2ev - stats%freq(:))**4.0_dp)/(stats%freq(:)*cm2m**3.0_dp), kind=dp)* &
                             (1.0_dp/(1.0_dp - EXP(-1._dp*const_planck*speed_light*cm2m*stats%freq(:)/ &
-                                                (const_boltz*gs%temp)))))/(cm2m**2._dp)
+                                                  (const_boltz*gs%temp)))))/(cm2m**2._dp)
 
         !!!Calculation of the unpolarized Raman intensities!!
             rams%raman_int(:) = REAL(((7.0_dp*aniso_sq(:)) + (45.0_dp*iso_sq(:)))/45.0_dp, kind=dp)*ram_const(:)
@@ -696,19 +719,18 @@ CONTAINS
                 broad = 0.0_dp
                 DO x = 1, stats%nmodes
                     broad = broad + (rams%raman_int(x)*(1.0_dp/(gs%fwhm*SQRT(2.0_dp*pi)))* &
-                                    EXP(-0.50_dp*((i - stats%freq(x))/gs%fwhm)**2.0_dp))
+                                     EXP(-0.50_dp*((i - stats%freq(x))/gs%fwhm)**2.0_dp))
                 END DO
                 data2(i) = data2(i) + broad
             END DO
 
-            
-            IF (i_laser == 1) THEN
+            IF (i_laser==1) THEN
                 fname = "result_static_raman.txt"
             ELSE
-                WRITE(fname,'("result_static_raman_",I0,".txt")') i_laser 
+                WRITE (fname, '("result_static_raman_",I0,".txt")') i_laser
             END IF
-            OPEN (FILE=fname, STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit)
-            CALL check_file_open(stat, msg,fname)
+            OPEN (FILE=fname, STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
+            CALL check_file_open(stat, msg, fname)
             DO i = start_freq, end_freq
                 WRITE (runit, *) i, data2(i)
             END DO
@@ -717,13 +739,13 @@ CONTAINS
         !!Write Molden output
             rams%raman_int = REAL(rams%raman_int/MINVAL(rams%raman_int), kind=dp)
             !WRITE(fname,'("raman_laser_",F0.6,"eV.mol")') rams%laser_in(i_laser)
-            IF (i_laser == 1) THEN
+            IF (i_laser==1) THEN
                 fname = "raman.mol"
             ELSE
-                WRITE(fname,'("raman_",I0,".mol")') i_laser 
+                WRITE (fname, '("raman_",I0,".mol")') i_laser
             END IF
-            OPEN (FILE=fname, STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit)
-            CALL check_file_open(stat, msg,fname)
+            OPEN (FILE=fname, STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
+            CALL check_file_open(stat, msg, fname)
             WRITE (runit, *) "[Molden Format]"
             WRITE (runit, *) "[GEOMETRIES] XYZ"
             WRITE (runit, *) sys%natom
@@ -766,7 +788,7 @@ CONTAINS
         TYPE(systems), INTENT(INOUT)        :: sys
         TYPE(dipoles), INTENT(INOUT)        :: dips
         TYPE(raman), INTENT(INOUT)        :: rams
-        CHARACTER(len=256) :: filename,  msg
+        CHARACTER(len=256) :: filename, msg
         INTEGER                                                       :: stat, i, j, k, m, x, o, dims, dir, runit
         INTEGER(kind=dp)                                               :: plan
         REAL(kind=dp)                                                  :: rtp_freq_res, freq_au
@@ -872,7 +894,7 @@ CONTAINS
       !! Conversion from cm-1 to a.u.
         freq_au = rtp_freq_res*(-1.0_dp)*reccm2au
 
-        OPEN (FILE='absorption_spectrum.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
+        OPEN (FILE='absorption_spectrum.txt', STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
         !Check if file exists
         CALL check_file_open(stat, msg, 'absorption_spectrum.txt')
         DO j = 1, 1 !!atom_num: 1st atom
@@ -924,45 +946,43 @@ CONTAINS
         zhat_pol_dq_rtp = (0.0_dp, 0.0_dp)
         data2 = 0.0_dp
 
-
 !!!Finding laser frequency
         rtp_freq_res = REAL(rams%RR%freq_range_rtp/rams%RR%framecount_rtp, kind=dp)
         !rtp_point = ANINT(rams%laser_in/(rtp_freq_res*reccm2ev), kind=dp)
 
 !!!Finite differences
         zhat_pol_dxyz_rtp(:, :, :, :, :) = (rams%RR%zhat_pol_rtp(:, :, 2, :, :, :) &
-                                           - rams%RR%zhat_pol_rtp(:, :, 1, :, :, :))*factor
+                                            - rams%RR%zhat_pol_rtp(:, :, 1, :, :, :))*factor
 
 !!!Derivatives w.r.t. mass weighted normal coordinates
         DO i = 1, stats%nmodes
             DO o = 1, rams%RR%framecount_rtp
                 DO j = 1, sys%natom
                     zhat_pol_dq_rtp(i, :, :, o) = zhat_pol_dq_rtp(i, :, :, o) &
-                    + (zhat_pol_dxyz_rtp(j, 1, :, :, o)*stats%disp(i, j, 1)*sys%atom_mass_inv_sqrt(j)) &
-                    + (zhat_pol_dxyz_rtp(j, 2, :, :, o)*stats%disp(i, j, 2)*sys%atom_mass_inv_sqrt(j)) &
-                    + (zhat_pol_dxyz_rtp(j, 3, :, :, o)*stats%disp(i, j, 3)*sys%atom_mass_inv_sqrt(j))
+                                                  + (zhat_pol_dxyz_rtp(j, 1, :, :, o)*stats%disp(i, j, 1)*sys%atom_mass_inv_sqrt(j)) &
+                                                  + (zhat_pol_dxyz_rtp(j, 2, :, :, o)*stats%disp(i, j, 2)*sys%atom_mass_inv_sqrt(j)) &
+                                                  + (zhat_pol_dxyz_rtp(j, 3, :, :, o)*stats%disp(i, j, 3)*sys%atom_mass_inv_sqrt(j))
                 END DO
             END DO
         END DO
 
 !!!Isotropic and anisotropic contributions!!
-        iso_sq(:, :) = ABS((zhat_pol_dq_rtp(:,1,1,:) + zhat_pol_dq_rtp(:,2,2,:) + zhat_pol_dq_rtp(:,3,3,:))/3.0_dp)**2
+        iso_sq(:, :) = ABS((zhat_pol_dq_rtp(:, 1, 1, :) + zhat_pol_dq_rtp(:, 2, 2, :) + zhat_pol_dq_rtp(:, 3, 3, :))/3.0_dp)**2
 
-        aniso_sq(:, :) = 0.5_dp * (ABS(zhat_pol_dq_rtp(:,1,1,:) - zhat_pol_dq_rtp(:,2,2,:))**2 + &
-                           ABS(zhat_pol_dq_rtp(:,2,2,:) - zhat_pol_dq_rtp(:,3,3,:))**2 + &
-                           ABS(zhat_pol_dq_rtp(:,3,3,:) - zhat_pol_dq_rtp(:,1,1,:))**2)  &
-                     + 3.0_dp * (ABS(zhat_pol_dq_rtp(:,1,2,:))**2 + ABS(zhat_pol_dq_rtp(:,2,3,:))**2 + ABS(zhat_pol_dq_rtp(:,3,1,:))**2)
-
+        aniso_sq(:, :) = 0.5_dp*(ABS(zhat_pol_dq_rtp(:, 1, 1, :) - zhat_pol_dq_rtp(:, 2, 2, :))**2 + &
+                                 ABS(zhat_pol_dq_rtp(:, 2, 2, :) - zhat_pol_dq_rtp(:, 3, 3, :))**2 + &
+                                 ABS(zhat_pol_dq_rtp(:, 3, 3, :) - zhat_pol_dq_rtp(:, 1, 1, :))**2) &
+                         + 3.0_dp*(ABS(zhat_pol_dq_rtp(:, 1, 2, :))**2 + ABS(zhat_pol_dq_rtp(:, 2, 3, :))**2 + ABS(zhat_pol_dq_rtp(:, 3, 1, :))**2)
 
 !!!Conversion from (debye/E)^2 angstrom^-2 amu⁻¹ to angstrom^6 angstrom^-2 amu⁻¹
 
         iso_sq = iso_sq/(a3_to_debye_per_e*a3_to_debye_per_e)
         aniso_sq = aniso_sq/(a3_to_debye_per_e*a3_to_debye_per_e)
-        
+
         !!!Conversion from angstrom^4 amu⁻¹ to m^4 kg^-1
         iso_sq = iso_sq*(ang**4._dp)/am_u
         aniso_sq = aniso_sq*(ang**4._dp)/am_u
-        
+
         WRITE (*, '(4X,"rtp_freq_res", T60, G0)') rtp_freq_res
         WRITE (*, '(4X,"rams%RR%freq_range_rtp", T60, G0)') rams%RR%freq_range_rtp
         WRITE (*, '(4X,"rtp_point", T60, I0)') rtp_point
@@ -970,10 +990,8 @@ CONTAINS
         !!!Finding laser frequency
         rtp_freq_res = REAL(rams%RR%freq_range_rtp/rams%RR%framecount_rtp, kind=dp)
 
+        DO i_laser = 1, SIZE(rams%laser_in)
 
-
-        DO i_laser = 1, size(rams%laser_in)
-                
             rtp_point = ANINT(rams%laser_in(i_laser)/(rtp_freq_res*reccm2ev), kind=dp)
 
             WRITE (*, '(4X,"rams%laser_in", T60, G0)') rams%laser_in(i_laser)
@@ -981,28 +999,28 @@ CONTAINS
             ram_const(:) = (const_planck/(8.0_dp*speed_light*cm2m*const_permit*const_permit)*1.e+30* &
                             REAL(((rams%laser_in(i_laser)/reccm2ev - stats%freq(:))**4.0_dp)/(stats%freq(:)*cm2m**3.0_dp), kind=dp)* &
                             (1.0_dp/(1.0_dp - EXP(-1._dp*const_planck*speed_light*cm2m*stats%freq(:)/ &
-                                                (const_boltz*gs%temp)))))/(cm2m**2._dp)
+                                                  (const_boltz*gs%temp)))))/(cm2m**2._dp)
 
             !!!Calculation of the unpolarized resonance Raman intensities!!
             raman_int(:, rtp_point) = REAL(((7.0_dp*aniso_sq(:, rtp_point)) + (45.0_dp*iso_sq(:, rtp_point)))/45.0_dp, kind=dp)* &
-                                    ram_const(:)
+                                      ram_const(:)
 
             !!!Broadening the spectrum!!
             DO x = start_freq, end_freq
                 broad = 0.0_dp
                 DO i = 1, stats%nmodes
                     broad = broad + (raman_int(i, rtp_point)*(1.0_dp/(gs%fwhm*SQRT(2.0_dp*pi))) &
-                                    *EXP(-0.50_dp*((x - stats%freq(i))/gs%fwhm)**2.0_dp))
+                                     *EXP(-0.50_dp*((x - stats%freq(i))/gs%fwhm)**2.0_dp))
                 END DO
                 data2(x) = data2(x) + broad
             END DO
             data2(x) = data2(x) + broad
-            IF (i_laser == 1) THEN
+            IF (i_laser==1) THEN
                 fname = "result_static_resraman.txt"
             ELSE
-                WRITE(fname,'("result_static_resraman_",I0,".txt")') i_laser
+                WRITE (fname, '("result_static_resraman_",I0,".txt")') i_laser
             END IF
-            OPEN (FILE=fname, STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
+            OPEN (FILE=fname, STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
             !Check if file exists
             CALL check_file_open(stat, msg, fname)
             DO i = start_freq, end_freq
@@ -1019,16 +1037,14 @@ CONTAINS
 
 !!....................................................................................................................!
 !
-    
-SUBROUTINE spec_resraman(sys, md, rams)
 
+    SUBROUTINE spec_resraman(sys, md, rams)
 
-
-    TYPE(systems)         :: sys
-    TYPE(molecular_dynamics)   :: md
-    TYPE(raman)   :: rams
-!    
-!    
+        TYPE(systems)         :: sys
+        TYPE(molecular_dynamics)   :: md
+        TYPE(raman)   :: rams
+!
+!
 !    CHARACTER(LEN=40), INTENT(INOUT)                          :: rtp_dipole_x, rtp_dipole_y, rtp_dipole_z
 !COMPLEX(kind=dp), DIMENSION(:), ALLOCATABLE, INTENT(INOUT)   :: y_out
 !COMPLEX(kind=dp), DIMENSION(:, :), ALLOCATABLE, INTENT(INOUT) :: z_iso_resraman, z_aniso_resraman
@@ -1197,7 +1213,7 @@ SUBROUTINE spec_resraman(sys, md, rams)
 !    END DO
 !END DO
 !
-!OPEN (FILE='absorption_spectra.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
+!OPEN (FILE='absorption_spectra.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit)
 !CALL check_file_open(stat, msg, 'absorption_spectra.txt')
 !DO i = 1, natom
 !    WRITE (runit, *) i*rtp_freq_res*1.23984198e-4, abs_intens(i)*i*rtp_freq_res
@@ -1211,7 +1227,7 @@ SUBROUTINE spec_resraman(sys, md, rams)
 !    END DO
 !END DO
 !
-!OPEN (FILE='absorption_spectra_pade.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
+!OPEN (FILE='absorption_spectra_pade.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit)
 !CALL check_file_open(stat, msg, 'absorption_spectra_pade.txt')
 !DO i = 1, 10000
 !WRITE (runit, *) i*pade_freq_res*1.23984198e-4, abs_intens_pade(i)*i*pade_freq_res
@@ -1257,7 +1273,7 @@ SUBROUTINE spec_resraman(sys, md, rams)
 !!CLOSE(30)
 !
 !f = freq_res*md%dt*1.883652d-4
-!OPEN (FILE='o-NP_resraman.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit) 
+!OPEN (FILE='o-NP_resraman.txt', STATUS='unknown', ACTION='write',IOSTAT=stat, IOMSG=msg,NEWUNIT=runit)
 !CALL check_file_open(stat, msg, 'o-NP_resraman.txt')
 !    DO i = 0, 2*md%t_cor - 2
 !        ! j=22
@@ -1277,5 +1293,5 @@ SUBROUTINE spec_resraman(sys, md, rams)
 !    END DO
 !CLOSE (runit)
 
-END SUBROUTINE spec_resraman
+    END SUBROUTINE spec_resraman
 END MODULE calc_spectra
