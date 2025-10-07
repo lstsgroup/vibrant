@@ -19,27 +19,17 @@ MODULE read_traj
     USE kinds, ONLY: dp, str_len
     USE ISO_FORTRAN_ENV, ONLY: output_unit, error_unit
     USE vib_types, ONLY: global_settings, systems, static, dipoles, raman, molecular_dynamics, static_property
+    USE output_io, ONLY: check_file_open
 
     IMPLICIT NONE
 
     PRIVATE
 
-    PUBLIC :: read_coord, read_coord_frame, read_normal_modes, read_static, read_static_resraman, check_file_open
+    PUBLIC :: read_coord, read_coord_frame, read_normal_modes, read_static, read_static_resraman
 
 CONTAINS
 
-    SUBROUTINE check_file_open(stat, msg, filename)
-        INTEGER, INTENT(IN) :: stat
-        CHARACTER(*), INTENT(IN) :: msg
-        CHARACTER(*), INTENT(IN) :: filename
-
-        IF (stat/=0) THEN
-            WRITE (error_unit, '(4X,"[ERROR] could not open file ",A)') TRIM(filename)
-            WRITE (error_unit, '(4X,"I/O error message: ",A)') TRIM(msg)
-            STOP
-        END IF
-    END SUBROUTINE check_file_open
-
+  
     SUBROUTINE read_coord(filename, gs, sys, dips, rams)
 
         TYPE(global_settings), INTENT(INOUT)   :: gs
@@ -48,7 +38,7 @@ CONTAINS
         TYPE(raman), OPTIONAL        :: rams
         CHARACTER(LEN=40), INTENT(IN)                               :: filename
 
-        CHARACTER(len=str_len)                                     :: msg  ! store error message
+        CHARACTER(len=str_len)                                     :: msg  !store error message
         INTEGER                                                   :: i, j, stat, runit
 
         sys%framecount = 0

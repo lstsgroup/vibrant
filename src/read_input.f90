@@ -18,7 +18,7 @@ MODULE read_input
 
     USE kinds, ONLY: dp, str_len
     USE vib_types, ONLY: global_settings, systems, static, dipoles, raman, molecular_dynamics
-    USE read_traj, ONLY: check_file_open
+    USE output_io, ONLY: check_file_open
     USE ISO_FORTRAN_ENV, ONLY: output_unit, error_unit
 
     IMPLICIT NONE
@@ -258,49 +258,49 @@ CONTAINS
                 ELSEIF (in_cell) THEN
                     IF (INDEX(to_lower(line), 'cell_type')>0) THEN !! orthorombic, hexagonal or triclinic
                         READ (line, *) dummy, sys%cell%cell_type
-                        WRITE (*, *) "cell type: ", sys%cell%cell_type
+                        WRITE (*, '(4X,A, T60, A)') "cell type: ", sys%cell%cell_type
                     END IF
                     IF (INDEX(to_lower(line), 'box_x')>0) THEN
                         READ (line, *) dummy, sys%cell%box_x
-                        WRITE (*, *) "cell vector x: ", sys%cell%box_x
+                        WRITE (*, '(4X,A, T60, F0.6)') "cell vector x: ", sys%cell%box_x
                     END IF
                     IF (INDEX(to_lower(line), 'box_y')>0) THEN
                         READ (line, *) dummy, sys%cell%box_y
-                        WRITE (*, *) "cell vector y: ", sys%cell%box_y
+                        WRITE (*, '(4X,A, T60, F0.6)') "cell vector y: ", sys%cell%box_y
                     END IF
                     IF (INDEX(to_lower(line), 'box_z')>0) THEN
                         READ (line, *) dummy, sys%cell%box_z
-                        WRITE (*, *) "cell vector z: ", sys%cell%box_z
+                        WRITE (*, '(4X,A, T60, F0.6)') "cell vector z: ", sys%cell%box_z
                     END IF
                   !  IF (sys%cell%cell_type=='triclinic') THEN
                         IF (INDEX(to_lower(line), 'angle_alpha')>0) THEN
                             READ (line, *) dummy, sys%cell%angle_alpha
-                            WRITE (*, *) "Angle alpha: ", sys%cell%angle_alpha
+                            WRITE (*, '(4X,A, T60, F0.6)') "Angle alpha: ", sys%cell%angle_alpha
                         END IF
                         IF (INDEX(to_lower(line), 'angle_beta')>0) THEN
                             READ (line, *) dummy, sys%cell%angle_beta
-                            WRITE (*, *) "Angle beta: ", sys%cell%angle_beta
+                            WRITE (*, '(4X,A, T60, F0.6)') "Angle beta: ", sys%cell%angle_beta
                         END IF
                         IF (INDEX(to_lower(line), 'angle_gamma')>0) THEN
                             READ (line, *) dummy, sys%cell%angle_gamma
-                            WRITE (*, *) "Angle gamma: ", sys%cell%angle_gamma
+                            WRITE (*, '(4X,A, T60, F0.6)') "Angle gamma: ", sys%cell%angle_gamma
                         END IF
                   !  ELSEIF (sys%cell%cell_type=='hexagonal' .AND. .NOT. angles_set) THEN
                  !       sys%cell%angle_alpha = 90
                  !       sys%cell%angle_beta = 90
                  !       sys%cell%angle_gamma = 120
-                 !       WRITE (*, *) "Angle alpha: ", sys%cell%angle_alpha
-                 !       WRITE (*, *) "Angle beta: ", sys%cell%angle_beta
-                 !       WRITE (*, *) "Angle gamma: ", sys%cell%angle_gamma
+                 !       WRITE (*, '(4X,A, T60, F0.6)') "Angle alpha: ", sys%cell%angle_alpha
+                 !       WRITE (*, '(4X,A, T60, F0.6)') "Angle beta: ", sys%cell%angle_beta
+                 !       WRITE (*, '(4X,A, T60, F0.6)') "Angle gamma: ", sys%cell%angle_gamma
                  !       angles_set = .TRUE.
 
                !     ELSEIF (sys%cell%cell_type=='orthorombic' .AND. .NOT. angles_set) THEN
                 !        sys%cell%angle_alpha = 90
                  !       sys%cell%angle_beta = 90
                   !      sys%cell%angle_gamma = 90
-                  !      WRITE (*, *) "Angle alpha: ", sys%cell%angle_alpha
-                  !      WRITE (*, *) "Angle beta: ", sys%cell%angle_beta
-                  !      WRITE (*, *) "Angle gamma: ", sys%cell%angle_gamma
+                  !      WRITE (*, '(4X,A, T60, F0.6)') "Angle alpha: ", sys%cell%angle_alpha
+                  !      WRITE (*, '(4X,A, T60, F0.6)') "Angle beta: ", sys%cell%angle_beta
+                  !      WRITE (*, '(4X,A, T60, F0.6)') "Angle gamma: ", sys%cell%angle_gamma
                   !      angles_set = .TRUE.
                   !  END IF
                 ELSEIF (INDEX(to_lower(line), 'frag_type ')>0) THEN !'Does the system contain more than one molecule? (y/n)'

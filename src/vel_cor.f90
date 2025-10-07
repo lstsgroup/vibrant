@@ -20,7 +20,7 @@ MODULE vel_cor
     USE ISO_FORTRAN_ENV, ONLY: output_unit, error_unit
     USE constants, ONLY: pi, ang, fs2s, at_u, bohr2ang
     USE vib_types, ONLY: global_settings, systems, molecular_dynamics, static, dipoles, raman
-    USE read_traj, ONLY: check_file_open
+    USE output_io, ONLY: check_file_open
 
     IMPLICIT NONE
     PUBLIC :: cvv, cvv_iso, cvv_aniso, cvv_only_x, cvv_resraman

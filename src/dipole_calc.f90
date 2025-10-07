@@ -21,7 +21,7 @@ MODULE dipole_calc
     USE ISO_FORTRAN_ENV, ONLY: output_unit, error_unit
     USE vib_types, ONLY: global_settings, systems, molecular_dynamics, static, dipoles
     USE cell_types, ONLY: build_hmat, pbc, invert3x3, determinant3x3
-    USE read_traj, ONLY: check_file_open
+    USE output_io, ONLY: check_file_open
 
     IMPLICIT NONE
 
