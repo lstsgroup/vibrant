@@ -106,7 +106,7 @@ CONTAINS
 
         INTEGER                                                  :: stat, i, runit
         INTEGER(kind=dp)                                          :: plan
-        CHARACTER(LEN=str_len)                                          :: msg
+        CHARACTER(LEN=str_len)                                          :: msg, spectra_file_name, c_label
         REAL(kind=dp)                                          :: freq_range, freq_res, sinc_const, ir_const
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE               :: ir_int, freq
 
@@ -141,17 +141,22 @@ CONTAINS
         !!conversion of IR units to K*cm*km*mol^-1
         ir_const = avo_num*md%dt*fs2s*2.0_dp*10.0d0/(12.0_dp*const_permit*speed_light*const_boltz)
 
-        OPEN (FILE='IR_spectrum.txt', STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
-        !Check if file exists
-        CALL check_file_open(stat, msg, 'IR_spectrum.txt')
+        !OPEN (FILE='IR_spectrum.txt', STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
+        !!Check if file exists
+        !CALL check_file_open(stat, msg, 'IR_spectrum.txt')
         DO i = 0, 2*md%t_cor - 1
             freq(i) = i*freq_res
             ir_int(i) = md%zhat(i)*ir_const*(sinc_const*(i)/SIN(sinc_const*(i)))**2._dp
             IF (freq(i).GE.5000_dp) CYCLE
             ir_int(0) = 0.00_dp
-            WRITE (runit, *) freq(i), -1.0_dp*REAL(ir_int(i), kind=dp)
+            ir_int(i) = -1.0_dp*REAL(ir_int(i))
+        !    WRITE (runit, *) freq(i), -1.0_dp*REAL(ir_int(i), kind=dp)
         END DO
-        CLOSE (runit)
+        !CLOSE (runit)
+
+        c_label = "INT"
+        spectra_file_name = "IR_spectrum.txt"
+        CALL write_spectra_data(spectra_file_name, c_label, freq, ir_int, 5000.0_dp)
 
         DEALLOCATE (ir_int, freq)
 
@@ -632,10 +637,10 @@ CONTAINS
         TYPE(dipoles), INTENT(INOUT)        :: dips
 
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE        :: ir_int
-        CHARACTER(len=str_len)                                         :: msg
+        CHARACTER(len=str_len)                                         :: msg, c_label, spectra_file_name
         INTEGER                                                  :: stat, i, k, x, freq_res, runit
         INTEGER                                                  :: start_freq, end_freq
-        REAL(kind=dp), DIMENSION(:), ALLOCATABLE                    :: gamma_sq, data2!,broad
+        REAL(kind=dp), DIMENSION(:), ALLOCATABLE                    :: gamma_sq, data2, freq!,broad
         REAL(kind=dp)                                             :: broad, ir_factor
 
         ALLOCATE (gamma_sq(stats%nmodes), ir_int(stats%nmodes))
@@ -649,6 +654,7 @@ CONTAINS
         WRITE (*, '(4X, "freq_res: ", T60, I0)') freq_res
 
         ALLOCATE (data2(freq_res + 1))
+        ALLOCATE (freq(freq_res + 1))
         data2 = 0.0_dp
 
         DO k = 1, stats%nmodes
@@ -661,21 +667,26 @@ CONTAINS
         ir_int(:) = (gamma_sq(:)**2.0_dp)*ir_factor
 
     !!!Broadening the spectrum!!
+        freq(:) = 0.0_dp
         DO i = start_freq, end_freq
             broad = 0.0_dp
             DO x = 1, stats%nmodes
                 broad = broad + (ir_int(x)*(1.0_dp/(gs%fwhm*SQRT(2.0_dp*pi)))*EXP(-0.50_dp*((i - stats%freq(x))/gs%fwhm)**2.0_dp))
             END DO
             data2(i) = data2(i) + broad
+            freq(:) = i
         END DO
 
-        OPEN (FILE='result_static_ir.txt', STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
-        !Check if file exists
-        CALL check_file_open(stat, msg, 'result_static_ir.txt')
-        DO i = start_freq, end_freq
-            WRITE (runit, *) i, data2(i)
-        END DO
-        CLOSE (runit)
+        !OPEN (FILE='result_static_ir.txt', STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
+        !!Check if file exists
+        !CALL check_file_open(stat, msg, 'result_static_ir.txt')
+        !DO i = start_freq, end_freq
+        !    WRITE (runit, *) i, data2(i)
+        !END DO
+        !CLOSE (runit)
+        c_label = "INT"
+        spectra_file_name = "result_static_ir.txt"
+        CALL write_spectra_data(spectra_file_name, c_label, freq, data2(:))
 
         DEALLOCATE (gamma_sq, data2, ir_int, dips%dip_dq, stats%freq, stats%disp)
 
