@@ -30,9 +30,9 @@ def parse_normal_displ_from_file(fname:str):
     z = data[:, 2]
     return x, y, z
 
-def parse_spectrum_from_file(fname:str):
+def parse_spectrum_from_file(fname:str, hdr:int=0):
     """ parse the generated spectrum """
-    data = np.loadtxt(fname)
+    data = np.loadtxt(fname, skiprows=hdr)
     x = data[:, 0]
     y = data[:, 1]
     return x, y
@@ -61,7 +61,8 @@ def test_Raman_Static_DFPT_NMA(vibrant_binary_path):
     x_test2, y_test2, z_test2 = parse_normal_displ_from_file(test2)
     
     x_ref3, y_ref3 = parse_spectrum_from_file(reference3)
-    x_test3, y_test3 = parse_spectrum_from_file(test3)
+    x_test3, y_test3 = parse_spectrum_from_file(test3,hdr=1)
+
 
     # compare test against reference
     assert np.allclose(x_ref1, x_test1, atol=1e-8)

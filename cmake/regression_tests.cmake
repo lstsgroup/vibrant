@@ -132,3 +132,23 @@ add_test(
     COMMAND pytest test_RR_Static_Pade_NMA.py
     WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test/Resonance_Raman_Static_NMA/Pade
 )
+add_test(
+    NAME Abs_MD
+    COMMAND pytest test_RR_Abs_normal.py
+    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test/Absorption_MD/normal
+)
+add_test(
+    NAME Abs_MD_Pade
+    COMMAND pytest test_RR_Abs_Pade.py
+    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test/Absorption_MD/Pade
+)
+add_test(
+    NAME RR_MD
+    COMMAND pytest test_RR_MD_normal.py
+    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test/Resonance_Raman_MD/normal
+)
+add_test(
+    NAME RR_MD_Pade
+    COMMAND pytest test_RR_MD_Pade.py
+    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/test/Resonance_Raman_MD/Pade
+)

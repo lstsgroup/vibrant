@@ -32,12 +32,13 @@ def parse_normal_displ_from_file(fname:str):
     z = data[:, 2]
     return x, y, z
 
-def parse_spectrum_from_file(fname:str):
+def parse_spectrum_from_file(fname:str, hdr:int=0):
     """ parse the generated spectrum """
-    data = np.loadtxt(fname)
+    data = np.loadtxt(fname, skiprows=hdr)
     x = data[:, 0]
     y = data[:, 1]
     return x, y
+
     
 def test_RR_Static_normal_NMA(vibrant_binary_path):
     """ run test case """
@@ -60,10 +61,10 @@ def test_RR_Static_normal_NMA(vibrant_binary_path):
     
     # parse filenames
     x_ref1, y_ref1 = parse_spectrum_from_file(reference1)
-    x_test1, y_test1 = parse_spectrum_from_file(test1)
+    x_test1, y_test1 = parse_spectrum_from_file(test1, hdr=1)
 
     x_ref2, y_ref2 = parse_spectrum_from_file(reference2)
-    x_test2, y_test2 = parse_spectrum_from_file(test2)
+    x_test2, y_test2 = parse_spectrum_from_file(test2, hdr=1)
     
     x_ref3 = parse_normal_freq_from_file(reference3)
     x_test3 = parse_normal_freq_from_file(test3)

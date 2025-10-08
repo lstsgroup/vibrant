@@ -17,29 +17,19 @@
 MODULE read_traj
 
     USE kinds, ONLY: dp, str_len
-    USE iso_fortran_env, ONLY: output_unit, error_unit
+    USE ISO_FORTRAN_ENV, ONLY: output_unit, error_unit
     USE vib_types, ONLY: global_settings, systems, static, dipoles, raman, molecular_dynamics, static_property
+    USE output_io, ONLY: check_file_open
 
     IMPLICIT NONE
 
     PRIVATE
 
-    PUBLIC :: read_coord, read_coord_frame, read_normal_modes, read_static, read_static_resraman, check_file_open
+    PUBLIC :: read_coord, read_coord_frame, read_normal_modes, read_static, read_static_resraman
 
 CONTAINS
 
-    SUBROUTINE check_file_open(stat, msg, filename)
-        INTEGER,      INTENT(IN) :: stat
-        CHARACTER(*), INTENT(IN) :: msg
-        CHARACTER(*), INTENT(IN) :: filename
-
-        IF (stat /= 0) THEN
-            WRITE(error_unit,'(4X,"[ERROR] could not open file ",A)') TRIM(filename)
-            WRITE(error_unit,'(4X,"I/O error message: ",A)')         TRIM(msg)
-        STOP 
-        END IF
-    END SUBROUTINE check_file_open
-
+  
     SUBROUTINE read_coord(filename, gs, sys, dips, rams)
 
         TYPE(global_settings), INTENT(INOUT)   :: gs
@@ -48,16 +38,19 @@ CONTAINS
         TYPE(raman), OPTIONAL        :: rams
         CHARACTER(LEN=40), INTENT(IN)                               :: filename
 
-        CHARACTER(len=str_len)                                     :: msg  ! store error message
+        CHARACTER(len=str_len)                                     :: msg  !store error message
         INTEGER                                                   :: i, j, stat, runit
 
         sys%framecount = 0
 
-        IF (gs%spectral_type%read_function/='MD-RR') THEN
+        IF (gs%spectral_type%read_function/='MD-RR' .AND. gs%spectral_type%read_function/='MD-ABS') THEN
             OPEN (FILE=filename, STATUS='old', ACTION='read', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
+            !Check if file exists
+            CALL check_file_open(stat, msg, filename)
             READ (runit, *) sys%natom
             CLOSE (runit)
-        ELSEIF (gs%spectral_type%read_function=='MD-RR') THEN
+        ELSEIF (gs%spectral_type%read_function=='MD-RR' .OR. gs%spectral_type%read_function=='MD-ABS') THEN
+            rams%RR%framecount_rtp = rams%RR%framecount_rtp + 1
             sys%natom = rams%RR%framecount_rtp
         END IF
 
@@ -80,13 +73,8 @@ CONTAINS
         IF (gs%spectral_type%read_function/='P') THEN
             IF (dips%type_dipole=='berry' .OR. dips%type_dipole=='dfpt' .OR. dips%type_dipole=='wannier') THEN !!gas phase
                 sys%mol_num = 1
-                ! ELSEIF ((sys%periodic=='n' .AND. sys%system=='1') .OR. dips%type_dipole=='wannier') THEN !!fragment approach
-                !     sys%mol_num = 44 !20 !! fix later to 20
             END IF
         END IF
-       
-        WRITE (*, '(4X,"Number of mols", T60, I0)') sys%mol_num
-        WRITE (*, '(4X,"Number of frames", T60, I0)')   sys%framecount
 
     END SUBROUTINE read_coord
 
@@ -100,7 +88,7 @@ CONTAINS
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(OUT)      :: coord_v
 
         CHARACTER(len=str_len)                                     :: msg  ! store error message
-        INTEGER                                                    :: i, j, stat, runit
+        INTEGER                                                    :: i, j, stat, runit, buff
 
         ALLOCATE (coord_v(sys%framecount, natom, 3))
         OPEN (FILE=filename, STATUS='old', ACTION='read', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
@@ -112,8 +100,13 @@ CONTAINS
                 READ (runit, *, END=999)
                 READ (runit, *)
                 DO i = 1, natom
-                    READ (runit, *) sys%element(i), coord_v(j, i, 1), coord_v(j, i, 2), coord_v(j, i, 3)
+                    IF (ALLOCATED(sys%element)) THEN
+                        READ (runit, *) sys%element(i), coord_v(j, i, 1), coord_v(j, i, 2), coord_v(j, i, 3)
+                    ELSE
+                        READ (runit, *) buff, coord_v(j, i, 1), coord_v(j, i, 2), coord_v(j, i, 3)
+                    END IF
                 END DO
+
             END DO
         END DO
 999     CONTINUE
