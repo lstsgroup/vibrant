@@ -61,7 +61,7 @@ def test_RR_Static_Pade_NMA(vibrant_binary_path):
     
     # parse filenames
     x_ref1, y_ref1 = parse_spectrum_from_file(reference1)
-    x_test1, y_test1 = parse_spectrum_from_file(test1)
+    x_test1, y_test1 = parse_spectrum_from_file(test1, hdr=1)
 
     x_ref2, y_ref2 = parse_spectrum_from_file(reference2)
     x_test2, y_test2 = parse_spectrum_from_file(test2, hdr=1)

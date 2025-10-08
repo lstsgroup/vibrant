@@ -49,7 +49,7 @@ CONTAINS
 
         INTEGER                                                  :: stat, i, runit
         INTEGER(kind=dp)                                          :: plan
-        CHARACTER(LEN=str_len)                                          :: msg
+        CHARACTER(LEN=str_len)                                          :: msg, spectra_file_name, c_label
         REAL(kind=dp)                               :: freq_range, freq_res, power_const
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE      :: power_int, freq
 
@@ -81,17 +81,22 @@ CONTAINS
       !!Unit conversion to K.cm
         power_const = (md%dt*fs2s*am_u*speed_light/const_boltz)*2.0_dp/(sys%natom*3.0_dp)
 
-        OPEN (FILE='power_spec.txt', STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
-        !Check if file exists
-        CALL check_file_open(stat, msg, 'power_spec.txt')
+        !OPEN (FILE='power_spec.txt', STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
+        !!Check if file exists
+        !CALL check_file_open(stat, msg, 'power_spec.txt')
         DO i = 0, 2*md%t_cor - 1
             freq(i) = i*freq_res
             power_int(i) = md%zhat(i)*power_const
             IF (freq(i).GE.5000_dp) CYCLE
-            WRITE (runit, *) freq(i), power_int(i)
+            !WRITE (runit, *) freq(i), power_int(i)
         END DO
 
-        CLOSE (runit)
+        !CLOSE (runit)
+
+        c_label = "INT"
+        spectra_file_name = "power_spec.txt"
+        CALL write_spectra_data(spectra_file_name, c_label, freq, power_int, 5000.0_dp)
+
         DEALLOCATE (power_int, freq)
 
     END SUBROUTINE spec_power
@@ -106,7 +111,7 @@ CONTAINS
 
         INTEGER                                                  :: stat, i, runit
         INTEGER(kind=dp)                                          :: plan
-        CHARACTER(LEN=str_len)                                          :: msg
+        CHARACTER(LEN=str_len)                                          :: msg, spectra_file_name, c_label
         REAL(kind=dp)                                          :: freq_range, freq_res, sinc_const, ir_const
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE               :: ir_int, freq
 
@@ -141,17 +146,22 @@ CONTAINS
         !!conversion of IR units to K*cm*km*mol^-1
         ir_const = avo_num*md%dt*fs2s*2.0_dp*10.0d0/(12.0_dp*const_permit*speed_light*const_boltz)
 
-        OPEN (FILE='IR_spectrum.txt', STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
-        !Check if file exists
-        CALL check_file_open(stat, msg, 'IR_spectrum.txt')
+        !OPEN (FILE='IR_spectrum.txt', STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
+        !!Check if file exists
+        !CALL check_file_open(stat, msg, 'IR_spectrum.txt')
         DO i = 0, 2*md%t_cor - 1
             freq(i) = i*freq_res
             ir_int(i) = md%zhat(i)*ir_const*(sinc_const*(i)/SIN(sinc_const*(i)))**2._dp
             IF (freq(i).GE.5000_dp) CYCLE
             ir_int(0) = 0.00_dp
-            WRITE (runit, *) freq(i), -1.0_dp*REAL(ir_int(i), kind=dp)
+            ir_int(i) = -1.0_dp*REAL(ir_int(i))
+        !    WRITE (runit, *) freq(i), -1.0_dp*REAL(ir_int(i), kind=dp)
         END DO
-        CLOSE (runit)
+        !CLOSE (runit)
+
+        c_label = "INT"
+        spectra_file_name = "IR_spectrum.txt"
+        CALL write_spectra_data(spectra_file_name, c_label, freq, ir_int, 5000.0_dp)
 
         DEALLOCATE (ir_int, freq)
 
@@ -632,10 +642,10 @@ CONTAINS
         TYPE(dipoles), INTENT(INOUT)        :: dips
 
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE        :: ir_int
-        CHARACTER(len=str_len)                                         :: msg
+        CHARACTER(len=str_len)                                         :: msg, c_label, spectra_file_name
         INTEGER                                                  :: stat, i, k, x, freq_res, runit
         INTEGER                                                  :: start_freq, end_freq
-        REAL(kind=dp), DIMENSION(:), ALLOCATABLE                    :: gamma_sq, data2!,broad
+        REAL(kind=dp), DIMENSION(:), ALLOCATABLE                    :: gamma_sq, data2, freq!,broad
         REAL(kind=dp)                                             :: broad, ir_factor
 
         ALLOCATE (gamma_sq(stats%nmodes), ir_int(stats%nmodes))
@@ -649,6 +659,7 @@ CONTAINS
         WRITE (*, '(4X, "freq_res: ", T60, I0)') freq_res
 
         ALLOCATE (data2(freq_res + 1))
+        ALLOCATE (freq(freq_res + 1))
         data2 = 0.0_dp
 
         DO k = 1, stats%nmodes
@@ -661,21 +672,26 @@ CONTAINS
         ir_int(:) = (gamma_sq(:)**2.0_dp)*ir_factor
 
     !!!Broadening the spectrum!!
+        freq(:) = 0.0_dp
         DO i = start_freq, end_freq
             broad = 0.0_dp
             DO x = 1, stats%nmodes
                 broad = broad + (ir_int(x)*(1.0_dp/(gs%fwhm*SQRT(2.0_dp*pi)))*EXP(-0.50_dp*((i - stats%freq(x))/gs%fwhm)**2.0_dp))
             END DO
             data2(i) = data2(i) + broad
+            freq(:) = i
         END DO
 
-        OPEN (FILE='result_static_ir.txt', STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
-        !Check if file exists
-        CALL check_file_open(stat, msg, 'result_static_ir.txt')
-        DO i = start_freq, end_freq
-            WRITE (runit, *) i, data2(i)
-        END DO
-        CLOSE (runit)
+        !OPEN (FILE='result_static_ir.txt', STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
+        !!Check if file exists
+        !CALL check_file_open(stat, msg, 'result_static_ir.txt')
+        !DO i = start_freq, end_freq
+        !    WRITE (runit, *) i, data2(i)
+        !END DO
+        !CLOSE (runit)
+        c_label = "INT"
+        spectra_file_name = "result_static_ir.txt"
+        CALL write_spectra_data(spectra_file_name, c_label, freq, data2(:))
 
         DEALLOCATE (gamma_sq, data2, ir_int, dips%dip_dq, stats%freq, stats%disp)
 
@@ -808,12 +824,13 @@ CONTAINS
         TYPE(systems), INTENT(INOUT)        :: sys
         TYPE(dipoles), INTENT(INOUT)        :: dips
         TYPE(raman), INTENT(INOUT)        :: rams
-        CHARACTER(len=256) :: filename, msg
+        CHARACTER(len=256) :: filename, msg, c_label, spectra_file_name
         INTEGER                                                       :: stat, i, j, k, m, x, o, dims, dir, runit
         INTEGER(kind=dp)                                               :: plan
         REAL(kind=dp)                                                  :: rtp_freq_res, freq_au
         REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE                   :: trace, abs_intens
         COMPLEX(kind=dp), DIMENSION(:, :, :, :, :, :), ALLOCATABLE            :: y_out
+        REAL(kind=dp), DIMENSION(:), ALLOCATABLE                            :: freq, abs_int
 
         IF (gs%spectral_type%read_function=='RR') THEN
             dims = 3
@@ -913,19 +930,25 @@ CONTAINS
       !! Conversion from cm-1 to a.u.
         freq_au = rtp_freq_res*(-1.0_dp)*reccm2au
 
-        OPEN (FILE='absorption_spectrum.txt', STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
-        !Check if file exists
-        CALL check_file_open(stat, msg, 'absorption_spectrum.txt')
-        DO j = 1, 1 !!atom_num: 1st atom
-            DO i = 1, 1 !!dims: x dimension
-                DO k = 1, 1 !! + direction
-                    DO o = 1, rams%RR%framecount_rtp
-                        WRITE (runit, *) o*rtp_freq_res*reccm2ev, abs_intens(j, i, k, o)*o*freq_au
-                    END DO
-                END DO
-            END DO
+        !OPEN (FILE='absorption_spectrum.txt', STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
+        !!Check if file exists
+        !CALL check_file_open(stat, msg, 'absorption_spectrum.txt')
+        ALLOCATE(freq(rams%RR%framecount_rtp))
+        ALLOCATE(abs_int(rams%RR%framecount_rtp))
+        freq = 0.0_dp
+        abs_int = 0.0_dp
+        DO o = 1, rams%RR%framecount_rtp
+            freq(o) = o*rtp_freq_res*reccm2ev
+            PRINT *, freq(o)
+            abs_int(o) = abs_intens(1, 1, 1, o)*o*freq_au
+            !WRITE (runit, *) o*rtp_freq_res*reccm2ev, abs_intens(j, i, k, o)*o*freq_au
         END DO
-        CLOSE (runit)
+
+        c_label = "INT"
+        spectra_file_name = "absorption_spectrum.txt"
+        CALL write_spectra_data(spectra_file_name, c_label, freq, abs_int, maxval(freq)+1)
+
+        !CLOSE (runit)
         DEALLOCATE (trace, abs_intens)
 
     END SUBROUTINE spec_abs
@@ -1076,7 +1099,7 @@ CONTAINS
         TYPE(dipoles)   :: dips
         TYPE(raman)   :: rams
 
-        CHARACTER(LEN=str_len)                                        :: chara, msg
+        CHARACTER(LEN=str_len)                                        :: chara, msg, c_label, spectra_file_name
         INTEGER                                                  :: stat, i, j, k, m, t0, t1, runit
         INTEGER                                                  :: Nw, Nmd
         INTEGER(kind=dp)                                          :: plan, rtp_point
@@ -1217,13 +1240,21 @@ CONTAINS
 
         rtp_freq_res = REAL(rams%RR%freq_range_rtp/Nw, kind=dp)
 
-        OPEN (FILE='absorption_spectrum_md.txt', STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
-        !Check if file exists
-        CALL check_file_open(stat, msg, 'absorption_spectrum_md.txt')
+        !OPEN (FILE='absorption_spectrum_md.txt', STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
+        !!Check if file exists
+        !CALL check_file_open(stat, msg, 'absorption_spectrum_md.txt')
+
+        ALLOCATE(freq(Nw))
         DO i = 1, Nw
-            WRITE (runit, *) i*rtp_freq_res*reccm2ev, abs_intens(i)*i*freq_au
+            abs_intens(i) =  abs_intens(i)*i*freq_au
+            freq(i) = i*rtp_freq_res*reccm2ev 
+            !WRITE (runit, *) i*rtp_freq_res*reccm2ev, abs_intens(i)*i*freq_au
         END DO
-        CLOSE (runit)
+        !CLOSE (runit)
+        c_label = "INT"
+        spectra_file_name = "absorption_spectrum_md.txt"
+        CALL write_spectra_data(spectra_file_name, c_label, freq, abs_intens, maxval(freq)+1)
+
 
         DEALLOCATE (zhat_resraman_x, zhat_resraman_y, zhat_resraman_z)
         DEALLOCATE (alpha_x, alpha_y, alpha_z)

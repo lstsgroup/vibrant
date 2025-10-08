@@ -26,9 +26,9 @@ def run_vibrant(binary_path:str, input_file:str, omp_threads:int=1):
 
     
 
-def parse_ir_spectrum_from_file(fname:str):
-    """ parse the generated IR spectrum """
-    data = np.loadtxt(fname)
+def parse_spectrum_from_file(fname:str, hdr:int=0):
+    """ parse the generated spectrum """
+    data = np.loadtxt(fname, skiprows=hdr)
     x = data[:, 0]
     y = data[:, 1]
     return x, y
@@ -45,8 +45,8 @@ def test_IR_Wannier_Ph(vibrant_binary_path):
     test = "IR_spectrum.txt"
     
     # parse filenames
-    x_ref, y_ref = parse_ir_spectrum_from_file(reference)
-    x_test, y_test = parse_ir_spectrum_from_file(test)
+    x_ref, y_ref = parse_spectrum_from_file(reference)
+    x_test, y_test = parse_spectrum_from_file(test, hdr=1)
 
     # compare test against reference
     assert np.allclose(x_ref, x_test, atol=1e-8)
