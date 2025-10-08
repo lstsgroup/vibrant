@@ -17,7 +17,7 @@
 MODULE read_input
 
     USE kinds, ONLY: dp, str_len
-    USE vib_types, ONLY: global_settings, systems, static, dipoles, raman, molecular_dynamics
+    USE vib_types!, ONLY: global_settings, systems, static, dipoles, raman, molecular_dynamics
     USE output_io, ONLY: check_file_open
     USE ISO_FORTRAN_ENV, ONLY: output_unit, error_unit
 
@@ -80,17 +80,21 @@ CONTAINS
         CHARACTER(LEN=str_len), INTENT(IN) :: input_file_name
         INTEGER :: ios, i, n, m
         REAL(dp) :: buf(10), sentinel
-       
-        character(len=:), allocatable :: rest
-        character(len=:), allocatable :: s
-        character(len=str_len) :: tmp(10)
+
+        CHARACTER(len=:), ALLOCATABLE :: rest
+        CHARACTER(len=:), ALLOCATABLE :: s
+        CHARACTER(len=str_len) :: tmp(10)
         CHARACTER(len=256) :: iomsg
+        TYPE(fragment_group), ALLOCATABLE :: tmp_group(:)
+        TYPE(fragment_type), ALLOCATABLE  :: tmp_frag(:)
         !** intermal variables
         INTEGER :: runit, stat
+        INTEGER :: arr(200), nfound, group_id, frag_id
         CHARACTER(len=str_len) :: dummy, line, msg
         LOGICAL :: in_global = .FALSE.
         LOGICAL :: in_system = .FALSE.
         LOGICAL :: in_cell = .FALSE.
+        LOGICAL :: in_fragment_group = .FALSE.
         LOGICAL :: in_coordinates = .FALSE.
         LOGICAL :: in_fragments = .FALSE.
         LOGICAL :: in_md = .FALSE.
@@ -100,6 +104,9 @@ CONTAINS
         LOGICAL :: in_raman = .FALSE.
         LOGICAL :: in_rtp = .FALSE.
         LOGICAL :: angles_set = .FALSE.
+
+        sys%fragments%frag = .FALSE.
+        sys%fragments%ngroup = 0                        ! initialize
 
         WRITE (*, '(2X, A)') "Input Data:"
         OPEN (FILE=TRIM(input_file_name), STATUS='old', ACTION='read', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
@@ -141,6 +148,42 @@ CONTAINS
                 CYCLE
             END IF
 
+            IF (INDEX(line, '&fragment')>0) THEN
+                in_fragment_group = .TRUE.
+                sys%fragments%frag = .TRUE.
+                sys%fragments%ngroup = sys%fragments%ngroup + 1
+                group_id = sys%fragments%ngroup
+
+                ! allocate/expand type_frag
+                IF (.NOT. ALLOCATED(sys%fragments%type_frag)) THEN
+                    ALLOCATE (sys%fragments%type_frag(1))
+                ELSE
+                    CALL MOVE_ALLOC(sys%fragments%type_frag, tmp_group)
+                    ALLOCATE (sys%fragments%type_frag(SIZE(tmp_group) + 1))
+                    sys%fragments%type_frag(1:SIZE(tmp_group)) = tmp_group
+                    DEALLOCATE (tmp_group)
+                END IF
+
+                sys%fragments%type_frag(group_id)%nfrag = 0
+                CYCLE
+            END IF
+
+            IF (INDEX(line, '&end fragment')>0) THEN
+                in_fragment_group = .FALSE.
+                CYCLE
+            END IF
+
+            !      IF (INDEX(line, '&fragment')>0) THEN
+            !         in_fragment = .TRUE.
+            !         sys%fragments%frag = .TRUE.
+            !         CYCLE
+            !     END IF
+
+            !      IF (INDEX(line, '&end fragment')>0) THEN
+            !         in_fragment = .FALSE.
+            !        CYCLE
+            !    END IF
+
             IF (INDEX(line, '&coordinates')>0) THEN
                 in_coordinates = .TRUE.
                 CYCLE
@@ -151,15 +194,15 @@ CONTAINS
                 CYCLE
             END IF
 
-            IF (INDEX(line, '&fragments')>0) THEN
-                in_fragments = .TRUE.
-                CYCLE
-            END IF
+            ! IF (INDEX(line, '&fragments')>0) THEN
+            !   in_fragments = .TRUE.
+            !    CYCLE
+            ! END IF
 
-            IF (INDEX(line, '&end fragments')>0) THEN
-                in_fragments = .FALSE.
-                CYCLE
-            END IF
+            ! IF (INDEX(line, '&end fragments')>0) THEN
+            !     in_fragments = .FALSE.
+            !      CYCLE
+            !   END IF
 
             IF (INDEX(line, '&md')>0) THEN
                 in_md = .TRUE.
@@ -230,9 +273,9 @@ CONTAINS
                 ELSEIF (INDEX(to_lower(line), 'fwhm')>0) THEN
                     READ (line, *) dummy, gs%fwhm
                     WRITE (*, '(4X,A, T60, F0.4)') 'FWHM for Gaussian broadening (cm^-1):', gs%fwhm
-                ELSEIF (INDEX(to_lower(line), 'spectra_verbosity')>0) THEN 
+                ELSEIF (INDEX(to_lower(line), 'spectra_verbosity')>0) THEN
                     READ (line, *) dummy, gs%spectra_verbosity
-                    IF (TRIM(gs%spectra_verbosity)/= 'normal' .AND. TRIM(gs%spectra_verbosity)/= 'high' ) THEN
+                    IF (TRIM(gs%spectra_verbosity)/='normal' .AND. TRIM(gs%spectra_verbosity)/='high') THEN
                         WRITE (error_unit, '(4X,"[WARN] ",A)') 'spectra verbosity incorrectly defined in the input.'
                         WRITE (error_unit, '(4X,"[WARN] ",A)') 'Please use keyword "normal" or "high".'
                         gs%spectra_verbosity = 'normal'
@@ -272,40 +315,44 @@ CONTAINS
                         READ (line, *) dummy, sys%cell%box_z
                         WRITE (*, '(4X,A, T60, F0.6)') "cell vector z: ", sys%cell%box_z
                     END IF
-                  !  IF (sys%cell%cell_type=='triclinic') THEN
-                        IF (INDEX(to_lower(line), 'angle_alpha')>0) THEN
-                            READ (line, *) dummy, sys%cell%angle_alpha
-                            WRITE (*, '(4X,A, T60, F0.6)') "Angle alpha: ", sys%cell%angle_alpha
-                        END IF
-                        IF (INDEX(to_lower(line), 'angle_beta')>0) THEN
-                            READ (line, *) dummy, sys%cell%angle_beta
-                            WRITE (*, '(4X,A, T60, F0.6)') "Angle beta: ", sys%cell%angle_beta
-                        END IF
-                        IF (INDEX(to_lower(line), 'angle_gamma')>0) THEN
-                            READ (line, *) dummy, sys%cell%angle_gamma
-                            WRITE (*, '(4X,A, T60, F0.6)') "Angle gamma: ", sys%cell%angle_gamma
-                        END IF
-                  !  ELSEIF (sys%cell%cell_type=='hexagonal' .AND. .NOT. angles_set) THEN
-                 !       sys%cell%angle_alpha = 90
-                 !       sys%cell%angle_beta = 90
-                 !       sys%cell%angle_gamma = 120
-                 !       WRITE (*, '(4X,A, T60, F0.6)') "Angle alpha: ", sys%cell%angle_alpha
-                 !       WRITE (*, '(4X,A, T60, F0.6)') "Angle beta: ", sys%cell%angle_beta
-                 !       WRITE (*, '(4X,A, T60, F0.6)') "Angle gamma: ", sys%cell%angle_gamma
-                 !       angles_set = .TRUE.
+                    IF (INDEX(to_lower(line), 'angle_alpha')>0) THEN
+                        READ (line, *) dummy, sys%cell%angle_alpha
+                        WRITE (*, '(4X,A, T60, F0.6)') "Angle alpha: ", sys%cell%angle_alpha
+                    END IF
+                    IF (INDEX(to_lower(line), 'angle_beta')>0) THEN
+                        READ (line, *) dummy, sys%cell%angle_beta
+                        WRITE (*, '(4X,A, T60, F0.6)') "Angle beta: ", sys%cell%angle_beta
+                    END IF
+                    IF (INDEX(to_lower(line), 'angle_gamma')>0) THEN
+                        READ (line, *) dummy, sys%cell%angle_gamma
+                        WRITE (*, '(4X,A, T60, F0.6)') "Angle gamma: ", sys%cell%angle_gamma
+                    END IF
+                END IF
 
-               !     ELSEIF (sys%cell%cell_type=='orthorombic' .AND. .NOT. angles_set) THEN
-                !        sys%cell%angle_alpha = 90
-                 !       sys%cell%angle_beta = 90
-                  !      sys%cell%angle_gamma = 90
-                  !      WRITE (*, '(4X,A, T60, F0.6)') "Angle alpha: ", sys%cell%angle_alpha
-                  !      WRITE (*, '(4X,A, T60, F0.6)') "Angle beta: ", sys%cell%angle_beta
-                  !      WRITE (*, '(4X,A, T60, F0.6)') "Angle gamma: ", sys%cell%angle_gamma
-                  !      angles_set = .TRUE.
-                  !  END IF
-                ELSEIF (INDEX(to_lower(line), 'frag_type ')>0) THEN !'Does the system contain more than one molecule? (y/n)'
-                    READ (line, *) dummy, sys%frag_type
-                    WRITE (*, '(4X,A, T60, A)') 'frag_type:', TRIM(sys%frag_type)
+                IF (in_fragment_group) THEN
+                    IF (INDEX(to_lower(line), 'atom_list')>0) THEN
+                        arr = 0
+                        READ (line, *, IOSTAT=ios) dummy, (arr(i), i=1, 200)
+                        nfound = COUNT(arr/=0)
+
+                        sys%fragments%type_frag(group_id)%nfrag = &
+                            sys%fragments%type_frag(group_id)%nfrag + 1
+                        frag_id = sys%fragments%type_frag(group_id)%nfrag
+
+                        ! extend fragment array inside this group
+                        IF (.NOT. ALLOCATED(sys%fragments%type_frag(group_id)%fragment)) THEN
+                            ALLOCATE (sys%fragments%type_frag(group_id)%fragment(1))
+                        ELSE
+                            CALL MOVE_ALLOC(sys%fragments%type_frag(group_id)%fragment, tmp_frag)
+                            ALLOCATE (sys%fragments%type_frag(group_id)%fragment(SIZE(tmp_frag) + 1))
+                            sys%fragments%type_frag(group_id)%fragment(1:SIZE(tmp_frag)) = tmp_frag
+                            DEALLOCATE (tmp_frag)
+                        END IF
+
+                        ! assign atoms
+                        ALLOCATE (sys%fragments%type_frag(group_id)%fragment(frag_id)%frag_atoms(nfound))
+                        sys%fragments%type_frag(group_id)%fragment(frag_id)%frag_atoms = arr(1:nfound)
+                    END IF
                 END IF
             END IF
 
@@ -369,27 +416,27 @@ CONTAINS
 
             IF (in_raman) THEN
                 IF (INDEX(to_lower(line), 'laser_in')>0) THEN !Type of the dipole moment
-                    sentinel = huge(1.0_dp)
+                    sentinel = HUGE(1.0_dp)
                     buf = sentinel
 
-                    READ(line,*, iostat=ios) dummy, (buf(i), i=1,10)
-                    m = count(buf /= sentinel)
-                    
-                    IF (m == 0) THEN
-                        WRITE(error_unit,'(4X,"[Error]  ",A)') 'No laser frequencies provided after laser_in'
+                    READ (line, *, iostat=ios) dummy, (buf(i), i=1, 10)
+                    m = COUNT(buf/=sentinel)
+
+                    IF (m==0) THEN
+                        WRITE (error_unit, '(4X,"[Error]  ",A)') 'No laser frequencies provided after laser_in'
                         STOP
                     ELSE
-                        ALLOCATE(rams%laser_in(m))
-                        rams%laser_in = buf(:m) 
+                        ALLOCATE (rams%laser_in(m))
+                        rams%laser_in = buf(:m)
                     END IF
 
-                    IF (m == 1) THEN
+                    IF (m==1) THEN
                         WRITE (*, '(4X,A, T60, F0.6)') 'Incident laser frequency (eV):', rams%laser_in
                     ELSE
                         WRITE (*, '(4X,A)') 'Found incident laser frequencies:'
                         DO i = 1, m
                             WRITE (*, '(6X,I0, A, T60, F0.6)') i, " Incident laser frequency (eV)", rams%laser_in(i)
-                        END DO 
+                        END DO
                     END IF
                 END IF
             END IF
@@ -422,7 +469,6 @@ CONTAINS
                 ! END IF
             END IF
             !IF (in_coordinates) THEN
-            !IF (in_coordinates) THEN
             !    IF (INDEX(line, 'xyz_filename')>0) THEN
             !        READ (line, *) dummy, input%system%coordinates%xyz_filename
             !        input%system%coordinates%present = .TRUE.
@@ -454,6 +500,8 @@ CONTAINS
 
     END SUBROUTINE parse_input
 
+!*********************************************************************************************************!
+!*********************************************************************************************************!
     SUBROUTINE check_input(gs, sys, md, stats, dips, rams)
 
         TYPE(global_settings)       :: gs
@@ -757,215 +805,220 @@ CONTAINS
             IF (.NOT. ALLOCATED(rams%laser_in)) THEN
                 WRITE (error_unit, '(4X,"[WARN]  ",A)') 'Incident laser frequency not defined, setting it to 1 0.5 cm⁻1'
                 ALLOCATE (rams%laser_in(1))
-                rams%laser_in(1) = 0.5
+                IF (.NOT. ALLOCATED(rams%laser_in)) THEN
+                    WRITE (error_unit, '(4X,"[WARN]  ",A)') 'Incident laser frequency not defined, setting it to 1 0.5 cm⁻1'
+                    ALLOCATE (rams%laser_in(1))
+                    rams%laser_in(1) = 0.5
+                END IF
+                !check for the temperature
+                IF (gs%temp<0) THEN
+                    WRITE (error_unit, '(4X,"[WARN]  ",A)') 'Temperature is not defined, setting it to 300 K'
+                    gs%temp = 300
+                END IF
+                IF (gs%fwhm<0) THEN
+                    WRITE (error_unit, '(4X,"[WARN]  ",A)') 'Full width at half-maximum is not defined, setting it to 10 cm^{-1}'
+                    gs%fwhm = 10
+                END IF
             END IF
-            !check for the temperature
-            IF (gs%temp<0) THEN
-                WRITE (error_unit, '(4X,"[WARN]  ",A)') 'Temperature is not defined, setting it to 300 K'
-                gs%temp = 300
-            END IF
-            IF (gs%fwhm<0) THEN
-                WRITE (error_unit, '(4X,"[WARN]  ",A)') 'Full width at half-maximum is not defined, setting it to 10 cm^{-1}'
-                gs%fwhm = 10
-            END IF
-            !****************************************************************************************************!
-            !****************************************************************************************************!
-            !check for MD-IR
-        ELSEIF (gs%spectral_type%read_function=='MD-IR') THEN
-            !check for dipole file
-            IF (TRIM(dips%dip_file)=='') THEN
-                WRITE (error_unit, '(4X,"[ERROR] ",A)') 'Dipole filename not defined in the input'
-                STOP
-            END IF
-            !check for type_dipole
-            IF (TRIM(dips%type_dipole)=='') THEN
-                WRITE (error_unit, '(4X,"[WARN]  ",A)') 'type_dipole not defined in the input setting it to 1'
-                dips%type_dipole = 'berry'
-            END IF
-            !check for dipole file
-            IF (TRIM(dips%dip_file)=='') THEN
-                WRITE (error_unit, '(4X,"[ERROR] ",A)') 'Dipole filename not defined in the input'
-                STOP
-            END IF
-            !check time step
-            IF (md%dt<0) THEN
-                WRITE (error_unit, '(4X,"[ERROR] ",A)') 'time_step not defined in the input'
-                STOP
-            END IF
-            !check t_cor
-            IF (md%t_cor<0) THEN
-                WRITE (error_unit, '(4X,"[ERROR] ",A)') 'correlation depth not defined in the input, we will continue with an estimate' !can be worded differently
-                STOP
-            END IF
-            !check for the temperature
-            IF (gs%temp<0) THEN
-                WRITE (error_unit, '(4X,"[WARN]  ",A)') 'Temperature is not defined, setting it to 300 K'
-                gs%temp = 300
-            END IF
-            !****************************************************************************************************!
-            !****************************************************************************************************!
-            !check for MD-Raman
-        ELSEIF (gs%spectral_type%read_function=='MD-R') THEN
-            !check for dipole file
-            IF (TRIM(dips%dip_file)=='') THEN
-                WRITE (error_unit, '(4X,"[ERROR] ",A)') 'Dipole filename not defined in the input'
-                STOP
-            END IF
-            !check for type_dipole
-            IF (TRIM(dips%type_dipole)=='') THEN
-                WRITE (error_unit, '(4X,"[WARN]  ",A)') 'type_dipole not defined in the input setting it to berry'
-                dips%type_dipole = 'berry'
-            END IF
-            !check for electric field strength
-            IF (dips%type_dipole.NE.'dfpt' .AND. dips%e_field<0) THEN
-                WRITE (error_unit, '(4X,"[ERROR] ",A)') 'Electric field strength not defined!'
-                STOP
-            END IF
-            !check for dipole file
-            IF (TRIM(dips%dip_file)=='') THEN
-                WRITE (error_unit, '(4X,"[ERROR] ",A)') 'Dipole filename not defined in the input'
-                STOP
-            END IF
-            IF (TRIM(dips%dip_x_file)=='') THEN
-                WRITE (error_unit, '(4X,"[ERROR] ",A)') 'X-field dipole file name not defined in the input'
-                STOP
-            END IF
-            IF (TRIM(dips%dip_y_file)=='') THEN
-                WRITE (error_unit, '(4X,"[ERROR] ",A)') 'Y-field dipole file name not defined in the input'
-                STOP
-            END IF
-            IF (TRIM(dips%dip_z_file)=='') THEN
-                WRITE (error_unit, '(4X,"[ERROR] ",A)') 'Z-field dipole file name not defined in the input'
-                STOP
-            END IF
-            !check time step
-            IF (md%dt<0) THEN
-                WRITE (error_unit, '(4X,"[ERROR] ",A)') 'time_step not defined in the input'
-                STOP
-            END IF
-            !check t_cor
-            IF (md%t_cor<0) THEN
-                WRITE (error_unit, '(4X,"[ERROR] ",A)') 'correlation depth not defined in the input, we will continue with an estimate' !can be worded differently
-                STOP
-            END IF
-            !check for the temperature
-            IF (gs%temp<0) THEN
-                WRITE (error_unit, '(4X,"[WARN]  ",A)') 'Temperature is not defined, setting it to 300 K'
-                gs%temp = 300
-            END IF
-            !check for incident laser wavelength
-            IF (.NOT. ALLOCATED(rams%laser_in)) THEN
-                WRITE (error_unit, '(4X,"[WARN]  ",A)') 'Incident laser frequency not defined, setting it to 1 0.5 cm⁻1'
-                ALLOCATE (rams%laser_in(1))
-                rams%laser_in(1) = 0.5
-            END IF
-            !****************************************************************************************************!
-            !****************************************************************************************************!
-            !check for MD-ABS
-        ELSEIF (gs%spectral_type%read_function=='MD-ABS') THEN
-            !check for type_dipole
-            IF (TRIM(dips%type_dipole)=='') THEN
-                WRITE (error_unit, '(4X,"[WARN]  ",A)') 'type_dipole not defined in the input setting it to berry'
-                dips%type_dipole = 'berry'
-            END IF
-            !check for electric field strength
-            IF (dips%type_dipole.NE.'dfpt' .AND. dips%e_field<0) THEN
-                WRITE (error_unit, '(4X,"[ERROR] ",A)') 'Electric field strength not defined!'
-                STOP
-            END IF
-            IF (TRIM(dips%dip_x_file)=='') THEN
-                WRITE (error_unit, '(4X,"[ERROR] ",A)') 'X-field dipole file name not defined in the input'
-                STOP
-            END IF
-            IF (TRIM(dips%dip_y_file)=='') THEN
-                WRITE (error_unit, '(4X,"[ERROR] ",A)') 'Y-field dipole file name not defined in the input'
-                STOP
-            END IF
-            IF (TRIM(dips%dip_z_file)=='') THEN
-                WRITE (error_unit, '(4X,"[ERROR] ",A)') 'Z-field dipole file name not defined in the input'
-                STOP
-            END IF
-            IF (rams%RR%framecount_rtp<0) THEN
-                WRITE (error_unit, '(4X,"[ERROR] ",A)') 'RTP framecount not defined!'
-                STOP
-            END IF
-            IF (rams%RR%damping_constant<0) THEN
-                WRITE (error_unit, '(4X,"[WARN]  ",A)') 'Damping constant not defined, setting it to 0.1 eV!'
-                rams%RR%damping_constant = 0.1_dp
-            END IF
-            IF (TRIM(rams%RR%check_pade)=='') THEN
-                WRITE (error_unit, '(4X,"[WARN]  ",A)') 'The calculation will continue without Pade approximants!'
-                rams%RR%check_pade = 'n'
-            END IF
-            IF (TRIM(rams%RR%check_pade)=='y' .AND. rams%RR%framecount_rtp_pade<0) THEN !this can also be adjusted
-                WRITE (error_unit, '(4X,"[WARN]  ",A)') 'Pade framecount is set to 80000!'
-                rams%RR%framecount_rtp_pade = 20000
-            END IF
+                !****************************************************************************************************!
+                !****************************************************************************************************!
+                !check for MD-IR
+            ELSEIF (gs%spectral_type%read_function=='MD-IR') THEN
+                !check for dipole file
+                IF (TRIM(dips%dip_file)=='') THEN
+                    WRITE (error_unit, '(4X,"[ERROR] ",A)') 'Dipole filename not defined in the input'
+                    STOP
+                END IF
+                !check for type_dipole
+                IF (TRIM(dips%type_dipole)=='') THEN
+                    WRITE (error_unit, '(4X,"[WARN]  ",A)') 'type_dipole not defined in the input setting it to 1'
+                    dips%type_dipole = 'berry'
+                END IF
+                !check for dipole file
+                IF (TRIM(dips%dip_file)=='') THEN
+                    WRITE (error_unit, '(4X,"[ERROR] ",A)') 'Dipole filename not defined in the input'
+                    STOP
+                END IF
+                !check time step
+                IF (md%dt<0) THEN
+                    WRITE (error_unit, '(4X,"[ERROR] ",A)') 'time_step not defined in the input'
+                    STOP
+                END IF
+                !check t_cor
+                IF (md%t_cor<0) THEN
+                    WRITE (error_unit, '(4X,"[ERROR] ",A)') 'correlation depth not defined in the input, we will continue with an estimate' !can be worded differently
+                    STOP
+                END IF
+                !check for the temperature
+                IF (gs%temp<0) THEN
+                    WRITE (error_unit, '(4X,"[WARN]  ",A)') 'Temperature is not defined, setting it to 300 K'
+                    gs%temp = 300
+                END IF
+                !****************************************************************************************************!
+                !****************************************************************************************************!
+                !check for MD-Raman
+            ELSEIF (gs%spectral_type%read_function=='MD-R') THEN
+                !check for dipole file
+                IF (TRIM(dips%dip_file)=='') THEN
+                    WRITE (error_unit, '(4X,"[ERROR] ",A)') 'Dipole filename not defined in the input'
+                    STOP
+                END IF
+                !check for type_dipole
+                IF (TRIM(dips%type_dipole)=='') THEN
+                    WRITE (error_unit, '(4X,"[WARN]  ",A)') 'type_dipole not defined in the input setting it to berry'
+                    dips%type_dipole = 'berry'
+                END IF
+                !check for electric field strength
+                IF (dips%type_dipole.NE.'dfpt' .AND. dips%e_field<0) THEN
+                    WRITE (error_unit, '(4X,"[ERROR] ",A)') 'Electric field strength not defined!'
+                    STOP
+                END IF
+                !check for dipole file
+                IF (TRIM(dips%dip_file)=='') THEN
+                    WRITE (error_unit, '(4X,"[ERROR] ",A)') 'Dipole filename not defined in the input'
+                    STOP
+                END IF
+                IF (TRIM(dips%dip_x_file)=='') THEN
+                    WRITE (error_unit, '(4X,"[ERROR] ",A)') 'X-field dipole file name not defined in the input'
+                    STOP
+                END IF
+                IF (TRIM(dips%dip_y_file)=='') THEN
+                    WRITE (error_unit, '(4X,"[ERROR] ",A)') 'Y-field dipole file name not defined in the input'
+                    STOP
+                END IF
+                IF (TRIM(dips%dip_z_file)=='') THEN
+                    WRITE (error_unit, '(4X,"[ERROR] ",A)') 'Z-field dipole file name not defined in the input'
+                    STOP
+                END IF
+                !check time step
+                IF (md%dt<0) THEN
+                    WRITE (error_unit, '(4X,"[ERROR] ",A)') 'time_step not defined in the input'
+                    STOP
+                END IF
+                !check t_cor
+                IF (md%t_cor<0) THEN
+                    WRITE (error_unit, '(4X,"[ERROR] ",A)') 'correlation depth not defined in the input, we will continue with an estimate' !can be worded differently
+                    STOP
+                END IF
+                !check for the temperature
+                IF (gs%temp<0) THEN
+                    WRITE (error_unit, '(4X,"[WARN]  ",A)') 'Temperature is not defined, setting it to 300 K'
+                    gs%temp = 300
+                END IF
+                !check for incident laser wavelength
+                IF (.NOT. ALLOCATED(rams%laser_in)) THEN
+                    WRITE (error_unit, '(4X,"[WARN]  ",A)') 'Incident laser frequency not defined, setting it to 1 0.5 cm⁻1'
+                    ALLOCATE (rams%laser_in(1))
+                    rams%laser_in(1) = 0.5
+                END IF
+                !****************************************************************************************************!
+                !****************************************************************************************************!
+                !check for MD-ABS
+            ELSEIF (gs%spectral_type%read_function=='MD-ABS') THEN
+                !check for type_dipole
+                IF (TRIM(dips%type_dipole)=='') THEN
+                    WRITE (error_unit, '(4X,"[WARN]  ",A)') 'type_dipole not defined in the input setting it to berry'
+                    dips%type_dipole = 'berry'
+                END IF
+                !check for electric field strength
+                IF (dips%type_dipole.NE.'dfpt' .AND. dips%e_field<0) THEN
+                    WRITE (error_unit, '(4X,"[ERROR] ",A)') 'Electric field strength not defined!'
+                    STOP
+                END IF
+                IF (TRIM(dips%dip_x_file)=='') THEN
+                    WRITE (error_unit, '(4X,"[ERROR] ",A)') 'X-field dipole file name not defined in the input'
+                    STOP
+                END IF
+                IF (TRIM(dips%dip_y_file)=='') THEN
+                    WRITE (error_unit, '(4X,"[ERROR] ",A)') 'Y-field dipole file name not defined in the input'
+                    STOP
+                END IF
+                IF (TRIM(dips%dip_z_file)=='') THEN
+                    WRITE (error_unit, '(4X,"[ERROR] ",A)') 'Z-field dipole file name not defined in the input'
+                    STOP
+                END IF
+                IF (rams%RR%framecount_rtp<0) THEN
+                    WRITE (error_unit, '(4X,"[ERROR] ",A)') 'RTP framecount not defined!'
+                    STOP
+                END IF
+                IF (rams%RR%damping_constant<0) THEN
+                    WRITE (error_unit, '(4X,"[WARN]  ",A)') 'Damping constant not defined, setting it to 0.1 eV!'
+                    rams%RR%damping_constant = 0.1_dp
+                END IF
+                IF (TRIM(rams%RR%check_pade)=='') THEN
+                    WRITE (error_unit, '(4X,"[WARN]  ",A)') 'The calculation will continue without Pade approximants!'
+                    rams%RR%check_pade = 'n'
+                END IF
+                IF (TRIM(rams%RR%check_pade)=='y' .AND. rams%RR%framecount_rtp_pade<0) THEN !this can also be adjusted
+                    WRITE (error_unit, '(4X,"[WARN]  ",A)') 'Pade framecount is set to 80000!'
+                    rams%RR%framecount_rtp_pade = 20000
+                END IF
         !!Check for MD-RR
-            !****************************************************************************************************!
-            !****************************************************************************************************!
-        ELSEIF (gs%spectral_type%read_function=='MD-RR') THEN
-            !check for type_dipole
-            IF (TRIM(dips%type_dipole)=='') THEN
-                WRITE (error_unit, '(4X,"[WARN]  ",A)') 'type_dipole not defined in the input setting it to berry'
-                dips%type_dipole = 'berry'
+                !****************************************************************************************************!
+                !****************************************************************************************************!
+            ELSEIF (gs%spectral_type%read_function=='MD-RR') THEN
+                !check for type_dipole
+                IF (TRIM(dips%type_dipole)=='') THEN
+                    WRITE (error_unit, '(4X,"[WARN]  ",A)') 'type_dipole not defined in the input setting it to berry'
+                    dips%type_dipole = 'berry'
+                END IF
+                !check for electric field strength
+                IF (dips%type_dipole.NE.'dfpt' .AND. dips%e_field<0) THEN
+                    WRITE (error_unit, '(4X,"[ERROR] ",A)') 'Electric field strength not defined!'
+                    STOP
+                END IF
+                !check for dipole file
+                IF (TRIM(dips%dip_x_file)=='') THEN
+                    WRITE (error_unit, '(4X,"[ERROR] ",A)') 'X-field dipole file name not defined in the input'
+                    STOP
+                END IF
+                IF (TRIM(dips%dip_y_file)=='') THEN
+                    WRITE (error_unit, '(4X,"[ERROR] ",A)') 'Y-field dipole file name not defined in the input'
+                    STOP
+                END IF
+                IF (TRIM(dips%dip_z_file)=='') THEN
+                    WRITE (error_unit, '(4X,"[ERROR] ",A)') 'Z-field dipole file name not defined in the input'
+                    STOP
+                END IF
+                !check time step
+                IF (md%dt<0) THEN
+                    WRITE (error_unit, '(4X,"[ERROR] ",A)') 'time_step not defined in the input'
+                    STOP
+                END IF
+                !check t_cor
+                IF (md%t_cor<0) THEN
+                    WRITE (error_unit, '(4X,"[ERROR] ",A)') 'correlation depth not defined in the input, we will continue with an estimate' !can be worded differently
+                    STOP
+                END IF
+                !check for the temperature
+                IF (gs%temp<0) THEN
+                    WRITE (error_unit, '(4X,"[WARN]  ",A)') 'Temperature is not defined, setting it to 300 K'
+                    gs%temp = 300
+                END IF
+                !check for incident laser wavelength
+                IF (.NOT. ALLOCATED(rams%laser_in)) THEN
+                    WRITE (error_unit, '(4X,"[WARN]  ",A)') 'Incident laser frequency not defined, setting it to 1 0.5 cm⁻1'
+                    ALLOCATE (rams%laser_in(1))
+                    rams%laser_in(1) = 0.5
+                END IF
+                IF (rams%RR%framecount_rtp<0) THEN
+                    WRITE (error_unit, '(4X,"[ERROR] ",A)') 'RTP framecount not defined!'
+                    STOP
+                END IF
+                IF (rams%RR%damping_constant<0) THEN
+                    WRITE (error_unit, '(4X,"[WARN]  ",A)') 'Damping constant not defined, setting it to 0.1 eV!'
+                    rams%RR%damping_constant = 0.1_dp
+                END IF
+                IF (TRIM(rams%RR%check_pade)=='') THEN
+                    WRITE (error_unit, '(4X,"[WARN]  ",A)') 'The calculation will continue without Pade approximants!'
+                    rams%RR%check_pade = 'n'
+                END IF
+                IF (TRIM(rams%RR%check_pade)=='y' .AND. rams%RR%framecount_rtp_pade<0) THEN !this can also be adjusted
+                    WRITE (error_unit, '(4X,"[WARN]  ",A)') 'Pade framecount is set to 80000!'
+                    rams%RR%framecount_rtp_pade = 20000
+                END IF
             END IF
-            !check for electric field strength
-            IF (dips%type_dipole.NE.'dfpt' .AND. dips%e_field<0) THEN
-                WRITE (error_unit, '(4X,"[ERROR] ",A)') 'Electric field strength not defined!'
-                STOP
-            END IF
-            !check for dipole file
-            IF (TRIM(dips%dip_x_file)=='') THEN
-                WRITE (error_unit, '(4X,"[ERROR] ",A)') 'X-field dipole file name not defined in the input'
-                STOP
-            END IF
-            IF (TRIM(dips%dip_y_file)=='') THEN
-                WRITE (error_unit, '(4X,"[ERROR] ",A)') 'Y-field dipole file name not defined in the input'
-                STOP
-            END IF
-            IF (TRIM(dips%dip_z_file)=='') THEN
-                WRITE (error_unit, '(4X,"[ERROR] ",A)') 'Z-field dipole file name not defined in the input'
-                STOP
-            END IF
-            !check time step
-            IF (md%dt<0) THEN
-                WRITE (error_unit, '(4X,"[ERROR] ",A)') 'time_step not defined in the input'
-                STOP
-            END IF
-            !check t_cor
-            IF (md%t_cor<0) THEN
-                WRITE (error_unit, '(4X,"[ERROR] ",A)') 'correlation depth not defined in the input, we will continue with an estimate' !can be worded differently
-                STOP
-            END IF
-            !check for the temperature
-            IF (gs%temp<0) THEN
-                WRITE (error_unit, '(4X,"[WARN]  ",A)') 'Temperature is not defined, setting it to 300 K'
-                gs%temp = 300
-            END IF
-            !check for incident laser wavelength
-            IF (.NOT. ALLOCATED(rams%laser_in)) THEN
-                WRITE (error_unit, '(4X,"[WARN]  ",A)') 'Incident laser frequency not defined, setting it to 1 0.5 cm⁻1'
-                ALLOCATE (rams%laser_in(1))
-                rams%laser_in(1) = 0.5
-            END IF
-            IF (rams%RR%framecount_rtp<0) THEN
-                WRITE (error_unit, '(4X,"[ERROR] ",A)') 'RTP framecount not defined!'
-                STOP
-            END IF
-            IF (rams%RR%damping_constant<0) THEN
-                WRITE (error_unit, '(4X,"[WARN]  ",A)') 'Damping constant not defined, setting it to 0.1 eV!'
-                rams%RR%damping_constant = 0.1_dp
-            END IF
-            IF (TRIM(rams%RR%check_pade)=='') THEN
-                WRITE (error_unit, '(4X,"[WARN]  ",A)') 'The calculation will continue without Pade approximants!'
-                rams%RR%check_pade = 'n'
-            END IF
-            IF (TRIM(rams%RR%check_pade)=='y' .AND. rams%RR%framecount_rtp_pade<0) THEN !this can also be adjusted
-                WRITE (error_unit, '(4X,"[WARN]  ",A)') 'Pade framecount is set to 80000!'
-                rams%RR%framecount_rtp_pade = 20000
-            END IF
-        END IF
 
-    END SUBROUTINE check_input
-END MODULE read_input
+            END SUBROUTINE check_input
+
+            END MODULE read_input

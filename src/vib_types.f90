@@ -23,7 +23,7 @@ MODULE vib_types
     PRIVATE
 
     PUBLIC :: global_settings, systems, molecular_dynamics, static, dipoles, raman, static_property, init_global_settings, &
-              init_systems, init_molecular_dynamics, init_static, init_dipoles, init_raman, deallocate_types
+              init_systems, init_molecular_dynamics, init_static, init_dipoles, init_raman, deallocate_types, fragment_type, fragment_group
 
     !***************************************************************************
     TYPE spectral_type
@@ -31,10 +31,26 @@ MODULE vib_types
     END TYPE spectral_type
 
     !***************************************************************************
+    TYPE fragment_frame_type
+        INTEGER, ALLOCATABLE :: frag_atoms(:)   ! per-frame augmented list (atoms + Wannier)
+    END TYPE fragment_frame_type
+
+    !***************************************************************************
+    TYPE fragment_type
+        INTEGER, ALLOCATABLE :: frag_atoms(:)
+    END TYPE fragment_type
+    !***************************************************************************
     TYPE fragments
-        INTEGER                                             :: nfrag
-        INTEGER, DIMENSION(:), ALLOCATABLE                  :: natom_frag
-        INTEGER, DIMENSION(:, :, :), ALLOCATABLE            :: fragment
+        LOGICAL                                          ::  frag !yes/no
+        INTEGER :: ngroup 
+        INTEGER                                             :: max_frag, nfrag, natom_frag
+        INTEGER, DIMENSION(:), ALLOCATABLE               :: frag_atoms
+        TYPE(fragment_type), ALLOCATABLE                  :: fragment(:)
+         TYPE(fragment_group), ALLOCATABLE :: type_frag(:)
+        TYPE(fragment_frame_type), ALLOCATABLE           :: fragment_frame(:, :) ! (frame, frag)
+        ! TYPE(fragment_type), ALLOCATABLE                  :: natom_frag(:)
+        !    INTEGER, DIMENSION(:, :), ALLOCATABLE            :: fragment
+        !INTEGER, DIMENSION(:, :, :), ALLOCATABLE            :: fragment
         REAL(kind=dp)                                       :: mass_tot_cell
         REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE         :: mass_tot_frag
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE      :: refpoint
@@ -139,7 +155,7 @@ MODULE vib_types
         REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE         :: coord                ! ALLOCATE sys%coord(sys%natom, 3)
         REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE         :: mass_mat             ! ALLOCATE sys%mass_mat(sys%natom, sys%natom)
         TYPE(CELL)                                          :: cell
-        TYPE(fragments)                                     :: fragments! <--- NEEDED?
+        TYPE(fragments)                                     :: fragments!
     END TYPE systems
 
     !***************************************************************************
@@ -157,6 +173,8 @@ MODULE vib_types
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE      :: v ! coordinates vector
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE      :: coord_v ! coordinates vector ALLOCATE coord_v(sys%framecount, natom, 3)
         COMPLEX(kind=dp), DIMENSION(:), ALLOCATABLE         :: zhat ! correlations vector hat ?
+        TYPE(fragment_group), ALLOCATABLE :: type_frag(:)
+    CONTAINS
     END TYPE molecular_dynamics
     !***************************************************************************
     TYPE static
@@ -184,12 +202,19 @@ MODULE vib_types
         REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE         :: dip_dq               !
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE      :: dipole               ! ALLOCATE static_dip(sys%natom, 3, 2, 3) is this neeeded?
         TYPE(static_property), DIMENSION(3)  ::  static_dip
+        TYPE(fragment_group), ALLOCATABLE :: type_frag(:)
     CONTAINS
         PROCEDURE :: init_dip
         PROCEDURE :: dealloc_dip
         !  REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE      :: dip
         !LOGICAL                                            ::  fragment !<yes/no>
     END TYPE dipoles
+    !***************************************************************************
+TYPE fragment_group
+    INTEGER :: nfrag = 0
+    TYPE(fragment_type), ALLOCATABLE :: fragment(:)
+    TYPE(fragment_frame_type), ALLOCATABLE :: fragment_frame(:, :)
+END TYPE fragment_group
     !***************************************************************************
 
     TYPE displacement_type
@@ -527,7 +552,7 @@ CONTAINS
         !IF (ALLOCATED(sys%cell%vec_pbc(3))) DEALLOCATE(sys%cell%vec_pbc(3))
 
         !IF (ALLOCATED(sys%fragments%nfrag)) DEALLOCATE(sys%fragments%nfrag)
-        IF (ALLOCATED(sys%fragments%natom_frag)) DEALLOCATE (sys%fragments%natom_frag)
+        ! IF (ALLOCATED(sys%fragments%natom_frag)) DEALLOCATE (sys%fragments%natom_frag)
         IF (ALLOCATED(sys%fragments%fragment)) DEALLOCATE (sys%fragments%fragment)
         !IF (ALLOCATED(sys%fragments%mass_tot_cell)) DEALLOCATE(sys%fragments%mass_tot_cell)
         IF (ALLOCATED(sys%fragments%mass_tot_frag)) DEALLOCATE (sys%fragments%mass_tot_frag)

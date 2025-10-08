@@ -28,13 +28,16 @@ CONTAINS
         TYPE(systems), INTENT(INOUT)        :: sys
         TYPE(molecular_dynamics), INTENT(INOUT)        :: md
         INTEGER, INTENT(INOUT)                                    :: natom
-        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(INOUT)  ::  shifts
-        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(OUT)    ::  diff
+!        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(INOUT)  ::  shifts
+        REAL(kind=dp), DIMENSION(:, :, :), INTENT(INOUT)  ::  shifts
+        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE,  INTENT(OUT)    ::  diff
 
         INTEGER                                                  :: stat, i, j, k, m
 
-        ALLOCATE (diff(sys%framecount, natom, 3))
-        !ALLOCATE( md%v(sys%sys%sys%framecount,1:44,3)) !change for fragments
+IF (.NOT. ALLOCATED(diff)) THEN
+    ALLOCATE(diff(sys%framecount, natom, 3))
+END IF
+diff = 0.0_dp
 
         DO j = 1, sys%framecount - 2
             DO i = 1, natom
@@ -54,7 +57,7 @@ CONTAINS
         TYPE(dipoles), INTENT(INOUT)        :: dips
         TYPE(raman), OPTIONAL         :: rams
         INTEGER, INTENT(INOUT)                                    :: mol_num
-        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(INOUT)  :: dip_free, dip_x
+        REAL(kind=dp), DIMENSION(:, :, :),  INTENT(IN)  :: dip_free, dip_x
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(OUT)    :: alpha
         REAL(kind=dp)  :: pol_quantum(3), diff, hmat(3, 3)
 

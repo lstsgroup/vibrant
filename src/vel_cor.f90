@@ -32,7 +32,8 @@ CONTAINS
         TYPE(global_settings), INTENT(INOUT)                :: gs
         TYPE(molecular_dynamics), INTENT(INOUT)     :: md
         INTEGER, INTENT(INOUT)                                    :: natom
-        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(INOUT)  :: coord_v
+        REAL(kind=dp), DIMENSION(:, :, :),  INTENT(INOUT)  :: coord_v
+        !REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(INOUT)  :: coord_v
 
         CHARACTER(LEN=40)                                        :: chara, msg
         INTEGER                                                  :: stat, i, j, k, m, t0, t1, l, runit
