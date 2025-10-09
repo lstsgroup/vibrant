@@ -14,8 +14,9 @@
 !   limitations under the License.
 !
 
+    !> @brief Module containing all procedures related to Padé interpolation 
 MODULE pade
-
+    
     USE gx_ac, ONLY: create_thiele_pade, evaluate_thiele_pade_at, params, free_params
     USE kinds, ONLY: dp
     USE iso_fortran_env, ONLY: output_unit, error_unit
@@ -23,15 +24,18 @@ MODULE pade
 
 CONTAINS
 
-    !> @brief interpolate n_parameter function values on a evenly
-        !!        spaced grid of n_points using the thiele pade model
-        !!        (only half of the given y values are used, zeros
-        !!        in other half)
-        !!
-        !! @parameter[in]  n_parameter -- number of points y is tabulated
-        !! @parameter[in]  y_ref       -- tabulated y values of a complex function
-        !! @parameter[in]  n_points    -- number of interpolated points
-        !! @parameter[out] y_out       -- tabulated interpolated values using pade
+!****************************************************************************!
+!****************************************************************************!
+
+    !> @brief Interpolates complex function values on an evenly spaced grid
+    !>        using the Thiele–Padé model.
+    !>
+    !> Only half of the given y values are used; zeros are used in the other half.
+    !>
+    !> @param[in]  n_parameter -- number of points y is tabulated
+    !> @param[in]  y_ref       -- tabulated y values of a complex function
+    !> @param[in]  n_points    -- number of interpolated points
+    !> @param[out] y_out       -- tabulated interpolated values using pade
     SUBROUTINE interpolate(n_parameter, y_ref, n_points, y_out)
         INTEGER, INTENT(in)  :: n_parameter
         COMPLEX(kind=dp), DIMENSION(:), INTENT(in)  :: y_ref
@@ -90,12 +94,18 @@ CONTAINS
         DEALLOCATE (x_ref_complx)
         DEALLOCATE (x_out_complx)
     END SUBROUTINE interpolate
-!> @brief Selects evenly spaced points from `points` according to percentage p
-!> @param[in] points Input array of points (real numbers)
-!> @param[in] N Total number of points in the input array
-!> @param[in] p Percentage of points to select (0 < p <= 100)
-!> @param[out] selected Output array of selected points (must be allocated outside)
-!> @param[out] M Number of selected points (output)
+
+!****************************************************************************!
+!****************************************************************************!
+
+    !> @brief Selects evenly spaced points from `points` according to a given percentage `p`.
+    !>
+    !> @param[in]  points   -- Input array of points (real numbers).
+    !> @param[in]  N        -- Total number of points in the input array.
+    !> @param[in]  p        -- Percentage of points to select (0 < p <= 100).
+    !> @param[out] selected -- Output array of selected points (must be pre-allocated).
+    !> @param[out] M        -- Number of selected points returned.
+
     SUBROUTINE select_points_evenly(points, N, p, selected, M)
         INTEGER, INTENT(in) :: N
         COMPLEX(kind=8), DIMENSION(N), INTENT(in) :: points

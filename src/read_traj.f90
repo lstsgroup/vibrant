@@ -14,6 +14,7 @@
 !   limitations under the License.
 !
 
+!> @brief Module containing routines that are for reading of different types of trajectories.
 MODULE read_traj
 
     USE kinds, ONLY: dp, str_len
@@ -28,8 +29,24 @@ MODULE read_traj
     PUBLIC :: read_coord, read_coord_frame, read_normal_modes, read_static, read_static_resraman
 
 CONTAINS
-
   
+!****************************************************************************!
+!****************************************************************************!
+
+    !> @brief Reads atomic coordinates or the dipole moment files
+    !>        and determines the number of atoms and frames.
+    !>
+    !> This subroutine reads atomic coordinate data from a given file (typically an `.xyz`
+    !> trajectory or static geometry file) and initializes the corresponding system arrays.
+    !> It can also read dipole moment files given in the format of .xyz files to determine 
+    !> the number of MD frames.
+    !>
+    !> @param[in]     filename  -- Path to the coordinate file (e.g., `.xyz` format).  
+    !> @param[in,out] gs        --  Global settings (provides `spectral_type%read_function`).  
+    !> @param[in,out] sys       --  System information (allocates `element` and `coord` arrays).  
+    !> @param[in,out] dips      -- Dipole data structure (optional; unused here).  
+    !> @param[in,out] rams      -- Raman data structure (optional; provides frame count for RTP modes).  
+    !>
     SUBROUTINE read_coord(filename, gs, sys, dips, rams)
 
         TYPE(global_settings), INTENT(INOUT)   :: gs
@@ -41,21 +58,26 @@ CONTAINS
         CHARACTER(len=str_len)                                     :: msg  !store error message
         INTEGER                                                   :: i, j, stat, runit
 
+        !Initialize 
         sys%framecount = 0
 
+        !!If the file contains cartesian coordinates or static dipole moments
         IF (gs%spectral_type%read_function/='MD-RR' .AND. gs%spectral_type%read_function/='MD-ABS') THEN
             OPEN (FILE=filename, STATUS='old', ACTION='read', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
             !Check if file exists
             CALL check_file_open(stat, msg, filename)
             READ (runit, *) sys%natom
             CLOSE (runit)
+        !!If the file contains dynamic time-dependent dipole moments
         ELSEIF (gs%spectral_type%read_function=='MD-RR' .OR. gs%spectral_type%read_function=='MD-ABS') THEN
             rams%RR%framecount_rtp = rams%RR%framecount_rtp + 1
             sys%natom = rams%RR%framecount_rtp
         END IF
-
+        
+        !!Allocate
         ALLOCATE (sys%element(sys%natom), sys%coord(sys%natom, 3))
-
+ 
+        !!Read the file to assign the coordinates and elements, determine the MD frame count
         OPEN (FILE=filename, STATUS='old', ACTION='read', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
         !Check if file exists
         CALL check_file_open(stat, msg, filename)
@@ -70,6 +92,7 @@ CONTAINS
 998     CONTINUE
         CLOSE (runit)
 
+        !!If dipole moment of the whole system is considered (no fragment approach or molecules defined)
         IF (gs%spectral_type%read_function/='P') THEN
             IF (dips%type_dipole=='berry' .OR. dips%type_dipole=='dfpt' .OR. dips%type_dipole=='wannier') THEN !!gas phase
                 sys%mol_num = 1
@@ -80,6 +103,20 @@ CONTAINS
 
 !********************************************************************************************
 !********************************************************************************************
+    !> @brief Reads all coordinate frames from a trajectory containing coordinates, dipole moments
+    !>        or polarizability tensors
+    !>
+    !> This subroutine reads the full set of Cartesian coordinates or dipole moment 
+    !> vectors polarizability tensors for each MD frame in a trajectory file 
+    !> (typically in XYZ format) and stores them in a 3D array `coord_v(framecount, natom, 3)`.
+    !>
+    !> @param[in,out] sys       -- System information (provides `framecount` and optional element labels).  
+    !> @param[in]     filename  -- Path to the coordinate file (e.g., `.xyz` trajectory).  
+    !> @param[in,out] natom     -- Number of atoms for cartesian coordinates, or just `1`
+    !>                             if the quantity (e.g. dipole or polarizability) refers
+    !>                             to the entire system.
+    !> @param[out]    coord_v   -- 3D array of coordinates with dimensions `(framecount, natom, 3)`.  
+    !>
     SUBROUTINE read_coord_frame(natom, filename, coord_v, sys)
 
         TYPE(systems), INTENT(INOUT)        :: sys
@@ -90,11 +127,13 @@ CONTAINS
         CHARACTER(len=str_len)                                     :: msg  ! store error message
         INTEGER                                                    :: i, j, stat, runit, buff
 
+        !!Allocate
         ALLOCATE (coord_v(sys%framecount, natom, 3))
+        
         OPEN (FILE=filename, STATUS='old', ACTION='read', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
         !Check if file exists
         CALL check_file_open(stat, msg, filename)
-        !Start reading if file found
+        !Start reading until the end of the file is reached
         DO
             DO j = 1, sys%framecount
                 READ (runit, *, END=999)
@@ -115,7 +154,19 @@ CONTAINS
     END SUBROUTINE read_coord_frame
 !********************************************************************************************
 !********************************************************************************************
-
+    !> @brief Reads normal mode information from forces or external files that contain
+    !>        normal mode data.
+    !> This subroutine initializes and reads the normal mode data required for
+    !> static vibrational spectrum calculations. Depending on the calculation
+    !> setup, it either:
+    !> - Reads raw force data for Hessian diagonalization, or  
+    !> - Reads precomputed normal mode frequencies and displacement vectors.  
+    !>
+    !> @param[in,out] gs    --  Global settings (provides spectral type selection).  
+    !> @param[in,out] sys   --  System information (provides natom).  
+    !> @param[in,out] stats --  Static data structure (provides normal mode, Hessian, and
+    !>                          finite displacement information).  
+    !>
     SUBROUTINE read_normal_modes(gs, sys, stats)
 
         ! Variables of your derived types:
@@ -127,13 +178,15 @@ CONTAINS
         INTEGER                                                    :: i, j, k, m, n, d, xyz
         INTEGER                                                    :: stat, runit
 
+        !!If the user requested a normal mode analysis based on diagonalizing the hessian
         IF (gs%spectral_type%read_function=='NMA' .OR. stats%diag_hessian=='y') THEN
 
             CALL stats%init_force(sys%natom, 1)
-
+            
             OPEN (FILE=stats%force_file, STATUS='old', ACTION='read', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
             !Check if file exists
             CALL check_file_open(stat, msg, stats%force_file)
+            !Read forces
             DO i = 1, 2
                 DO j = 1, sys%natom
                     DO m = 1, 3
@@ -147,20 +200,23 @@ CONTAINS
             END DO
             CLOSE (runit)
 
+        !!If the user already provided the files containing the normal mode frequencies and displacements
         ELSEIF (stats%diag_hessian=='n') THEN
             stats%nmodes = 0
             OPEN (FILE=stats%normal_freq_file, STATUS='old', ACTION='read', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit) !Reading normal freqs/coords
             !Check if file exists
             CALL check_file_open(stat, msg, stats%normal_freq_file)
+            !First determine the number of modes from the provided frequency file
             DO
                 READ (runit, *, END=998) chara
                 stats%nmodes = stats%nmodes + 1
             END DO
 998         CONTINUE
             CLOSE (runit)
-
+            !Allocate
             ALLOCATE (stats%freq(stats%nmodes), stats%disp(stats%nmodes, sys%natom, 3))
 
+            !!Read frequencies
             OPEN (FILE=stats%normal_freq_file, STATUS='old', ACTION='read', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit) !Reading normal freqs/coords
             !Check if file exists
             CALL check_file_open(stat, msg, stats%normal_freq_file)
@@ -170,6 +226,7 @@ CONTAINS
 997         CONTINUE
             CLOSE (runit)
 
+            !!Read normal mode coordinates
             OPEN (FILE=stats%normal_displ_file, STATUS='old', ACTION='read', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit) !Reading normal freqs/coords
             !Check if file exists
             CALL check_file_open(stat, msg, stats%normal_displ_file)
@@ -186,7 +243,14 @@ CONTAINS
 
 !********************************************************************************************
 !********************************************************************************************
-
+    !> @brief Reads static dipole moments or polarizabilities to be used in IR and Raman
+    !>        calculations.
+    !>
+    !> @param[in,out] gs   -- Global settings structure (provides spectral context).  
+    !> @param[in,out] sys  -- System information (provides natom).  
+    !> @param[in,out] dips -- Dipole-related quantities (optional).  
+    !> @param[in,out] rams -- Raman-related quantities (optional).  
+    !>
     SUBROUTINE read_static(gs, sys, dips, rams)
         TYPE(global_settings), INTENT(INOUT)   :: gs
         TYPE(systems), INTENT(INOUT)        :: sys
@@ -202,14 +266,15 @@ CONTAINS
         IF (PRESENT(dips)) CALL dips%init_dip(sys%natom, 1)
         IF (PRESENT(rams)) CALL rams%init_pol(sys%natom, 1)
 
+        !!If the user provided DFPT polarizabilities given in a specific CP2K style:
         IF (dips%type_dipole=='dfpt') THEN
-            OPEN (FILE=rams%static_pol_file, STATUS='old', ACTION='read', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit) !Reading polarizabilties
+            OPEN (FILE=rams%static_pol_file, STATUS='old', ACTION='read', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
             !Check if file exists
             CALL check_file_open(stat, msg, rams%static_pol_file)
             DO
-                DO k = 1, 2
+                DO k = 1, 2 !+/-
                     DO i = 1, sys%natom
-                        DO j = 1, 3
+                        DO j = 1, 3 !x,y,z
                             READ (runit, *, END=995)
                             READ (runit, *)
                             READ (runit, *)
@@ -229,14 +294,15 @@ CONTAINS
 995         CONTINUE
             CLOSE (runit)
 
+        !!If the user provided berry phase dipole moments:
         ELSEIF (dips%type_dipole=='berry') THEN
-            OPEN (FILE=dips%dip_file, STATUS='old', ACTION='read', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)!Reading dipoles
+            OPEN (FILE=dips%dip_file, STATUS='old', ACTION='read', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
             !Check if file exists
             CALL check_file_open(stat, msg, dips%dip_file)
             DO
-                DO k = 1, 2
+                DO k = 1, 2 !+/-
                     DO i = 1, sys%natom
-                        DO j = 1, 3
+                        DO j = 1, 3 !x,y,z
                             READ (runit, *, END=994)
                             READ (runit, *)
                             READ (runit, *) chara, dips%static_dip(1)%atom(i)%displacement(k)%XYZ(j)%frame(1), &
@@ -256,6 +322,18 @@ CONTAINS
 !********************************************************************************************
 !********************************************************************************************
 
+    !> @brief Reads time-dependent dipole data for resonance Raman calculations.
+    !>
+    !> This subroutine reads static dipole trajectories from an RT-TDDFT calculation, 
+    !> for each atomic displacement and polarization direction.
+    !> The data are stored in the `static_dip_rtp` array, which is used for
+    !> computing resonance Raman response functions.
+    !>
+    !> @param[in]  static_dip_file -- Path to the file containing time-dependent dipole data.  
+    !> @param[out] static_dip_rtp  -- Array of static dipole data for x, y, and z polarizations.  
+    !> @param[in,out] sys          -- System information (provides natom).  
+    !> @param[in,out] rams         -- Raman calculation data (provides framecount and structure definitions).  
+    !>
     SUBROUTINE read_static_resraman(static_dip_file, static_dip_rtp, sys, rams)
 
         TYPE(systems), INTENT(INOUT)        :: sys
@@ -269,13 +347,14 @@ CONTAINS
         !! Allocate
         CALL rams%RR%init_rr_static_dip(static_dip_rtp, sys%natom, rams%RR%framecount_rtp + 1)
 
+        !! Read the time-dependent dipoles for each displaced structure
         OPEN (FILE=static_dip_file, STATUS='old', ACTION='read', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit) !Reading polarizabilties
         !Check if file exists
         CALL check_file_open(stat, msg, static_dip_file)
         DO
-            DO k = 1, 2
+            DO k = 1, 2 !!+/- 
                 DO i = 1, sys%natom
-                    DO j = 1, 3
+                    DO j = 1, 3 !!x, y, z
                         READ (runit, *, END=994)
                         READ (runit, *)
                         DO m = 1, rams%RR%framecount_rtp + 1

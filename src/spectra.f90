@@ -158,23 +158,13 @@ CONTAINS
 
             md%zhat = REAL(md%zhat*debye2cm*debye2cm, dp)
 
-            ! Output
-            !  IF (.NOT. sys%fragments%frag) THEN
-            !      WRITE (output_fname, '("IR_spectrum.txt")')
-            !  ELSE
-            !      WRITE (output_fname, '("IR_spectrum_fragment_",I0,".txt")') i_group
-            !   END IF
-            !   OPEN (FILE=output_fname, STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
-            !   CALL check_file_open(stat, msg, output_fname)
             DO i = 0, 2*md%t_cor - 1
                 freq(i) = i*freq_res
                 ir_int(i) = md%zhat(i)*ir_const*(sinc_const*i/SIN(sinc_const*i))**2._dp
                 IF (freq(i)>=5000._dp) CYCLE
                 ir_int(0) = 0._dp
                 ir_int(i) = -1.0_dp*REAL(ir_int(i))
-                !  WRITE (runit, *) freq(i), -REAL(ir_int(i), dp)
             END DO
-            !  CLOSE (runit)
             c_label = "INT"
 
             IF (.NOT. sys%fragments%frag) THEN
@@ -544,27 +534,27 @@ CONTAINS
 
         INTEGER                                                     :: stat, i, j, m, n, p, k, info, lwork, lwmax, lda, runit
         CHARACTER(len=str_len)                                         :: msg
-        REAL(kind=dp)                                                :: factor
+        REAL(kind=dp)                                               :: fin_diff_factor
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE                       :: w, work, w_new
         REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE                     :: hessian, atomic_displacements
         LOGICAL, DIMENSION(9)                                        :: mk = .TRUE.
+
         lwmax = MAX(1, 3*sys%natom*64)  ! conservative guess; LAPACK recommends this for DSYEV
         lda = sys%natom*3
         stats%nmodes = 3*sys%natom - 6 !only for non-linear atoms
 
         ALLOCATE (work(lwmax), w(sys%natom*3), w_new(sys%natom*3))
 
-        factor = REAL(1.0_dp/(2.0_dp*stats%dx), kind=dp)
-
         ALLOCATE (hessian(0:sys%natom*3 - 1, 0:sys%natom*3 - 1))
-
+        fin_diff_factor = 1.0_dp/(2.0_dp*stats%dx)
+       
         p = 0
         DO i = 0, sys%natom - 1
             DO m = 0, 2
                 k = 0
                 DO j = 0, sys%natom - 1
                     DO n = 0, 2
-                        hessian(i + m + p, j + n + k) = sys%mass_mat(i + 1, j + 1)*hartreebohr2evang*factor*hessian_factor* &
+                        hessian(i + m + p, j + n + k) = sys%mass_mat(i + 1, j + 1)*hartreebohr2evang*fin_diff_factor*hessian_factor* &
                                                         (stats%force(j + 1, n + 1)%atom(i + 1)%displacement(2)%XYZ(m + 1)%frame(1) - stats%force(j + 1, n + 1)%atom(i + 1)%displacement(1)%XYZ(m + 1)%frame(1))
                     END DO
                     k = k + 2
@@ -961,15 +951,13 @@ CONTAINS
         INTEGER                                                       :: start_freq, end_freq, rtp_point
         INTEGER(kind=dp)                                               :: plan
         CHARACTER(len=str_len)                                         :: msg, fname, outfile, c_label
-        REAL(kind=dp)                                                  :: broad, factor
-        REAL(kind=dp)                                                  :: rtp_freq_res, pade_freq_res
+        REAL(kind=dp)                                                  :: rtp_freq_res, pade_freq_res, fin_diff_factor, broad
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE                         :: data2, ram_const, freq
         REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE                       :: iso_sq, aniso_sq, raman_int
         COMPLEX(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE                   :: zhat_pol_dq_rtp
         COMPLEX(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE                 :: zhat_pol_dxyz_rtp
 
         broad = 0.0_dp
-        factor = 1._dp/(2.0_dp*stats%dx)
         start_freq = 1.0_dp
         end_freq = INT(MAXVAL(stats%freq) + 1000.0_dp)
         freq_res = INT(end_freq - start_freq)
@@ -982,6 +970,7 @@ CONTAINS
         ALLOCATE (raman_int(stats%nmodes, rams%RR%framecount_rtp), ram_const(stats%nmodes))
         outfile = 'result_static_resraman.txt'
 
+        fin_diff_factor = 1.0_dp/(2.0_dp*stats%dx)
         zhat_pol_dq_rtp = (0.0_dp, 0.0_dp)
         data2 = 0.0_dp
         freq = 0.0_dp
@@ -992,7 +981,7 @@ CONTAINS
 
 !!!Finite differences
         zhat_pol_dxyz_rtp(:, :, :, :, :) = (rams%RR%zhat_pol_rtp(:, :, 2, :, :, :) &
-                                            - rams%RR%zhat_pol_rtp(:, :, 1, :, :, :))*factor
+                                            - rams%RR%zhat_pol_rtp(:, :, 1, :, :, :))*fin_diff_factor
 
 !!!Derivatives w.r.t. mass weighted normal coordinates
         DO i = 1, stats%nmodes

@@ -88,9 +88,7 @@ PROGRAM vib2d
         CALL timings%register("reading coordinates")
         CALL read_coord(dips%dip_file, gs, sys, dips)
         IF (dips%type_dipole=='wannier') THEN !!fragment approach or whole supercell
-            !      IF (sys%cell%cell_type=='1' .OR. sys%cell%cell_type=='2') THEN !!KP or SC
             CALL masses_charges(gs, sys)
-            !      END IF
         END IF
 
         CALL timings%register("calculating IR spectrum")
