@@ -15,7 +15,7 @@
 !
 
 ! **************************************************************************************************
-!> \brief Definition of physical constants:
+!> @brief Definition of physical constants and conversion factors 
 !>
 !>      speed_light : Speed of light in vacuum [cm/s]
 !>      const_planck : Planck constant [m^2*kg/s] or [J.s]
@@ -66,7 +66,7 @@ MODULE constants
     ! Planck constant [m^2*kg/s] or [J.s]
     REAL(kind=dp), PARAMETER                            :: const_planck = 6.62607015e-34_dp
 
-    !Permittivity of vacuum [F/m]?
+    !Permittivity of vacuum [F/m]
     REAL(kind=dp), PARAMETER                            :: const_permit = 8.8541878128e-12_dp
 
     ! Pi
@@ -135,25 +135,8 @@ MODULE constants
     REAL(kind=dp), PARAMETER                            :: hessian_factor = REAL(const_charge/(am_u*ang*ang), kind=dp)
 
     !! MAGIC NUMBERS
-    ! spec_ir
-    REAL(kind=dp), PARAMETER                            :: ir_factor = 42.256_dp
-
-    ! raman
-    REAL(kind=dp), PARAMETER                            :: r_factor = -1.438777_dp
-
-    ! refquencey
-    REAL(kind=dp), PARAMETER                            :: frq_factor = 1.883652d-4
-
-    ! refquencey
-    REAL(kind=dp), PARAMETER                            :: power_factor = 7.211349d-9
-
-    ! refquencey
-    REAL(kind=dp), PARAMETER                            :: rtp_factor = 1.23984198e-4
-
-    ! refquencey
-    REAL(kind=dp), PARAMETER                            :: int_rman_factor = 1d-29*0.421_dp
-
-    ! refquencey
-    REAL(kind=dp), PARAMETER                            :: int_ir_factor = 3047.2310_dp
+    
+    ! sinc_const
+    REAL(kind=dp), PARAMETER                            :: freq_factor = 1.883652d-4
 
 END MODULE constants
