@@ -20,7 +20,7 @@ MODULE dipole_calc
     USE constants, ONLY: debye, bohr2ang
     USE ISO_FORTRAN_ENV, ONLY: output_unit, error_unit
     USE vib_types, ONLY: global_settings, systems, molecular_dynamics, static, dipoles, fragment_group
-    USE cell_types, ONLY: build_hmat, pbc, invert3x3, determinant3x3
+    USE cell_types, ONLY: build_hmat, pbc, pbc_vec, invert3x3, determinant3x3
     USE output_io, ONLY: check_file_open
     USE OMP_LIB
 
@@ -68,67 +68,144 @@ CONTAINS
         INTEGER :: i, j, m, i_group, l, i_atom, frag_count, natom_frag
         REAL(dp) :: hmat(3, 3), h_inv(3, 3), dr(3), dr2(3)
         INTEGER, ALLOCATABLE :: frag_atoms_frame(:)
+        REAL(kind=8), allocatable :: coords(:, :), distances(:)
+        INTEGER, allocatable :: n_new_wanniers(:, :)
+        INTEGER, ALLOCATABLE :: new_wannier_centers(:, :, :)
+        INTEGER :: n_wannier_tot, n_frag_atoms_tot, n_other_tot
+        INTEGER, ALLOCATABLE :: idx_wannier_centers(:), idx_fragment_atoms(:), idx_other_atoms(:)
+        INTEGER, ALLOCATABLE :: map_idx_frag_to_group(:), map_idx_frag_to_frag(:)
+        INTEGER :: i_wannier, max_nfrag, my_group, my_fragment
+        LOGICAL :: belongs_to_exactly_one
 
         ! --- lattice
         CALL build_hmat(sys, hmat)
         CALL invert3x3(hmat, h_inv)
-        
+
+        ! get the indices of wannier centers 
+        ALLOCATE(idx_wannier_centers(sys%natom))
+        n_wannier_tot = 0
+        DO i_atom = 1, sys%natom
+            IF (sys%element(i_atom) == 'X') THEN
+                ! count number of wannier centers
+                n_wannier_tot = n_wannier_tot + 1
+                idx_wannier_centers(n_wannier_tot) = i_atom
+            END IF
+        END DO
+
+        ! get the indices of fragment atoms
+        ALLOCATE (idx_fragment_atoms(sys%natom))
+        ALLOCATE (map_idx_frag_to_group(sys%natom))
+        ALLOCATE (map_idx_frag_to_frag(sys%natom))
+        n_frag_atoms_tot = 0
+        DO i_group = 1, sys%fragments%ngroup
+            frag_count = sys%fragments%type_frag(i_group)%nfrag
+            DO j = 1, frag_count
+                natom_frag = SIZE(sys%fragments%type_frag(i_group)%fragment(j)%frag_atoms)
+                DO i = 1, natom_frag
+                    n_frag_atoms_tot = n_frag_atoms_tot + 1
+                    idx_fragment_atoms(n_frag_atoms_tot) = sys%fragments%type_frag(i_group)%fragment(j)%frag_atoms(i)
+                    map_idx_frag_to_group(n_frag_atoms_tot) = i_group
+                    map_idx_frag_to_frag(n_frag_atoms_tot) = j
+                END DO
+            END DO
+        END DO
+
+        ! get the indices of other atoms
+        ALLOCATE(idx_other_atoms(sys%natom))
+        n_other_tot = 0
+        DO i_atom = 1, sys%natom
+            IF (sys%element(i_atom) /= 'X') THEN
+                IF (.NOT. ANY(i_atom==idx_fragment_atoms(1:n_frag_atoms_tot))) THEN
+                    n_other_tot = n_other_tot + 1
+                    idx_other_atoms(n_other_tot) = i_atom
+                END IF
+            END IF
+        END DO
+
+       max_nfrag = 0
        DO i_group = 1, sys%fragments%ngroup
             frag_count = sys%fragments%type_frag(i_group)%nfrag
+            max_nfrag = MAX(max_nfrag, frag_count)
             ! --- allocate storage for augmented fragment lists
             IF (.NOT. ALLOCATED(sys%fragments%type_frag(i_group)%fragment_frame)) THEN
                 ALLOCATE (sys%fragments%type_frag(i_group)%fragment_frame(sys%framecount, frag_count))
             END IF
         END DO
 
+        ALLOCATE (coords(3, n_frag_atoms_tot + n_other_tot))
+        ALLOCATE (new_wannier_centers(sys%natom, max_nfrag, sys%fragments%ngroup))
+        ALLOCATE (n_new_wanniers(max_nfrag, sys%fragments%ngroup))
+        ALLOCATE (distances(max(n_frag_atoms_tot, n_other_tot)))
+
         ! --- loop over frames
         DO i = 1, sys%framecount
-            ! --- loop over number of fragment sections
+            ! fist tabulate fragment atoms 
+            DO l = 1, n_frag_atoms_tot
+                coords(:, l) = md%coord_v(i, idx_fragment_atoms(l), :)
+            END DO
+            ! next the other atoms
+            DO l = 1, n_other_tot
+                coords(:, n_frag_atoms_tot + l) = md%coord_v(i, idx_other_atoms(l), :)
+            END DO
+
+            ! now go over every wannier center and look to which fragment it belongs
+            n_new_wanniers(:, :) = 0
+            DO i_wannier = 1, n_wannier_tot
+                i_atom = idx_wannier_centers(i_wannier)
+                
+                ! sort out wannier centers that are too close to other atoms
+                CALL pbc_vec(n_other_tot, coords(:, n_frag_atoms_tot+1:), &
+                     md%coord_v(i, i_atom, :), sys, distances)
+                IF (ANY(distances(1:n_other_tot)<1.1_dp)) CYCLE
+
+                ! now check to which fragment it belongs
+                CALL pbc_vec(n_frag_atoms_tot, coords(:, 1:n_frag_atoms_tot), &
+                     md%coord_v(i, i_atom, :), sys, distances)
+                
+                belongs_to_exactly_one = .false.
+                my_fragment = -1
+                my_group = -1
+                DO l = 1, n_frag_atoms_tot
+                    IF (distances(l)<1.1_dp) THEN
+                        IF (my_fragment == -1) THEN
+                            my_fragment = map_idx_frag_to_frag(l)
+                            my_group = map_idx_frag_to_group(l)
+                            belongs_to_exactly_one = .true.
+                        ELSEIF (my_fragment /= map_idx_frag_to_frag(l) .OR. my_group /= map_idx_frag_to_group(l)) THEN
+                            ! belongs to more than one fragment, skip
+                            belongs_to_exactly_one = .false.
+                            EXIT
+                        END IF
+                    END IF
+                END DO
+
+                ! now store the new wannier center if it belongs to exactly one fragment
+                IF (belongs_to_exactly_one) THEN
+                    n_new_wanniers(my_fragment, my_group) = n_new_wanniers(my_fragment, my_group) + 1
+                    new_wannier_centers(n_new_wanniers(my_fragment, my_group), my_fragment, my_group) = i_atom
+                END IF
+            END DO
+
+            ! now store it into the type
+             ! --- loop over number of fragment sections
             DO i_group = 1, sys%fragments%ngroup
                 frag_count = sys%fragments%type_frag(i_group)%nfrag
                 ! --- loop over the number of atom lists in each fragment section
                 DO j = 1, frag_count
                     natom_frag = SIZE(sys%fragments%type_frag(i_group)%fragment(j)%frag_atoms)
 
-                    ! start from static fragment definition
-                    frag_atoms_frame = sys%fragments%type_frag(i_group)%fragment(j)%frag_atoms
-                    ! --- loop over the number of atoms in each atom_list
-                    DO m = 1, natom_frag
-                        outer: DO i_atom = 1, sys%natom
-                            IF (sys%element(i_atom)/='X') CYCLE   ! only Wannier centers
-
-                            CALL pbc(md%coord_v(i, i_atom, :), &
-                                     md%coord_v(i, sys%fragments%type_frag(i_group)%fragment(j)%frag_atoms(m), :), &
-                                     sys, dr)
-
-                            IF (SQRT(DOT_PRODUCT(dr, dr))<1.1_dp) THEN
-                                ! skip if this Wannier is already in the fragment
-                                IF (ANY(i_atom==frag_atoms_frame)) CYCLE outer
-
-                                ! check if Wannier is too close to any atom outside the fragment
-                                inner: DO l = 1, sys%natom
-                                    IF (sys%element(l)=='X') CYCLE inner         ! skip other Wanniers
-                                    IF (ANY(l==sys%fragments%type_frag(i_group)%fragment(j)%frag_atoms)) CYCLE inner  ! skip current fragment atoms
-
-                                    CALL pbc(md%coord_v(i, l, :), md%coord_v(i, i_atom, :), sys, dr2)
-                                    IF (SQRT(DOT_PRODUCT(dr2, dr2))<1.1_dp) CYCLE outer
-                                END DO inner
-
-                                ! append if it survived the filters
-                                frag_atoms_frame = [frag_atoms_frame, i_atom]
-                            END IF
-                        END DO outer
-                    END DO
-
                     ! store augmented list into sys
                     IF (ALLOCATED(sys%fragments%type_frag(i_group)%fragment_frame(i, j)%frag_atoms)) &
                         DEALLOCATE (sys%fragments%type_frag(i_group)%fragment_frame(i, j)%frag_atoms)
-                    ALLOCATE (sys%fragments%type_frag(i_group)%fragment_frame(i, j)%frag_atoms(SIZE(frag_atoms_frame)))
-                    sys%fragments%type_frag(i_group)%fragment_frame(i, j)%frag_atoms = frag_atoms_frame
-
+                    ALLOCATE (sys%fragments%type_frag(i_group)%fragment_frame(i, j)%frag_atoms(natom_frag + n_new_wanniers(j, i_group)))
+                    sys%fragments%type_frag(i_group)%fragment_frame(i, j)%frag_atoms(1:natom_frag) = &
+                        sys%fragments%type_frag(i_group)%fragment(j)%frag_atoms(:)
+                    sys%fragments%type_frag(i_group)%fragment_frame(i, j)%frag_atoms(natom_frag+1:) = &
+                        new_wannier_centers(1:n_new_wanniers(j, i_group), j, i_group)
                 END DO
             END DO
         END DO
+
     END SUBROUTINE assign_wannier
 
 !******************************************************************************************************************!
