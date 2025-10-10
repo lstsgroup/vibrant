@@ -8,7 +8,7 @@ MODULE cell_types
 
     PRIVATE
 
-    PUBLIC :: pbc, invert3x3, build_hmat, determinant3x3
+    PUBLIC :: pbc, pbc_vec, invert3x3, build_hmat, determinant3x3
 
 CONTAINS
 
@@ -108,5 +108,43 @@ CONTAINS
         dr = MATMUL(hmat, s)
 
     END SUBROUTINE pbc
+
+
+    SUBROUTINE pbc_vec(n_points, coord_vec, coord1, sys, distances)
+        USE kinds, ONLY: dp
+        TYPE(systems), INTENT(INOUT) :: sys
+        INTEGER, INTENT(in) :: n_points
+        REAL(dp), DIMENSION(3, n_points), INTENT(IN)  :: coord_vec
+        REAL(dp), DIMENSION(3), INTENT(IN)  :: coord1
+        REAL(dp), DIMENSION(n_points), INTENT(OUT) :: distances
+
+        REAL(dp), DIMENSION(3, n_points) :: dr_list
+        REAL(dp) :: hmat(3, 3), h_inv(3, 3)
+        REAL(dp) :: s(3), vec(3)
+        INTEGER :: i_point
+        
+
+        CALL build_hmat(sys, hmat)
+        CALL invert3x3(hmat, h_inv)
+
+        DO i_point = 1, n_points
+
+            vec = coord_vec(:, i_point) - coord1
+
+            s(1) = h_inv(1,1)*vec(1) + h_inv(1,2)*vec(2) + h_inv(1,3)*vec(3)
+            s(2) = h_inv(2,1)*vec(1) + h_inv(2,2)*vec(2) + h_inv(2,3)*vec(3)
+            s(3) = h_inv(3,1)*vec(1) + h_inv(3,2)*vec(2) + h_inv(3,3)*vec(3)
+
+            s = s - ANINT(s)
+
+            dr_list(1, i_point) = hmat(1,1)*s(1) + hmat(1,2)*s(2) + hmat(1,3)*s(3)
+            dr_list(2, i_point) = hmat(2,1)*s(1) + hmat(2,2)*s(2) + hmat(2,3)*s(3)
+            dr_list(3, i_point) = hmat(3,1)*s(1) + hmat(3,2)*s(2) + hmat(3,3)*s(3)
+
+            distances(i_point) = SQRT(dr_list(1, i_point)**2 + dr_list(2, i_point)**2&
+                                      + dr_list(3, i_point)**2)
+        END DO
+
+    END SUBROUTINE pbc_vec
 
 END MODULE cell_types
