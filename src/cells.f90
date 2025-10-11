@@ -156,9 +156,6 @@ CONTAINS
         dr = MATMUL(hmat, s)
 
     END SUBROUTINE pbc
-
-
-    SUBROUTINE pbc_vec(n_points, coord_vec, coord1, sys, distances)
 !*********************************************************************************************
 !*********************************************************************************************
 
@@ -175,7 +172,7 @@ CONTAINS
     !> @param[in]    coord1     -- Reference Cartesian coordinate
     !> @param[out]   distances  -- Minimum-image scalar distances from `coord1` to each point
     !>
-    SUBROUTINE pbc_vec
+    SUBROUTINE pbc_vec(n_points, coord_vec, coord1, sys, distances)
 
         TYPE(systems), INTENT(INOUT) :: sys
         INTEGER, INTENT(in) :: n_points
