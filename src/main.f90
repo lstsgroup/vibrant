@@ -113,7 +113,7 @@ PROGRAM vib2d
         !***************************************************************************
     ELSEIF (gs%spectral_type%read_function=='NMA') THEN
         CALL timings%register("reading coordinates")
-        CALL read_coord(sys%filename, gs, sys)
+        CALL read_coord(sys%filename, gs, sys, dips)
         CALL timings%register("calculating charges")
         CALL masses_charges(sys)
         CALL timings%register("reading normal modes")
