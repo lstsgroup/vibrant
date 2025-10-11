@@ -25,7 +25,7 @@ MODULE cell_types
 
     PRIVATE
 
-    PUBLIC :: pbc, invert3x3, build_hmat, determinant3x3
+    PUBLIC :: pbc, pbc_vec, invert3x3, build_hmat, determinant3x3
 
 CONTAINS
 
@@ -123,19 +123,17 @@ CONTAINS
 !*********************************************************************************************
 !*********************************************************************************************
 
-    !> @brief Applies periodic boundary conditions (PBC) to compute the minimum-image
-    !> displacement vector between two coordinates.
+    !> @brief Computes the minimum-image displacement vector between two points under
+    !>        periodic boundary conditions (PBC).
     !>
-    !> This subroutine calculates the shortest displacement vector `dr`
-    !> between two atomic positions `coord1` and `coord2` under periodic boundary
-    !> conditions. It constructs the cell matrix and its inverse to transform between
-    !> Cartesian and fractional coordinates, applies the minimum-image convention
-    !> in fractional space, and then transforms back to Cartesian coordinates.
+    !>   Applies the minimum image convention by mapping the Cartesian displacement
+    !>   between `coord2` and `coord1` into fractional coordinates, wrapping it into
+    !>   the primary simulation cell, and converting back to Cartesian space.
     !>
-    !> @param[inout] sys     System structure (provides the cell parameters)
-    !> @param[in]    coord2  Cartesian coordinates of atom 2
-    !> @param[in]    coord1  Cartesian coordinates of atom 1
-    !> @param[out]   dr      Minimum-image displacement vector (coord2 - coord1) under PBC
+    !> @param[inout] sys     -- System structure (provides the cell parameters)
+    !> @param[in]    coord2  -- Cartesian coordinates of atom 2
+    !> @param[in]    coord1  -- Cartesian coordinates of atom 1
+    !> @param[out]   dr      -- Minimum-image displacement vector (coord2 - coord1) under PBC
     !> 
     SUBROUTINE pbc(coord2, coord1, sys, dr)
 
@@ -158,5 +156,59 @@ CONTAINS
         dr = MATMUL(hmat, s)
 
     END SUBROUTINE pbc
+
+
+    SUBROUTINE pbc_vec(n_points, coord_vec, coord1, sys, distances)
+!*********************************************************************************************
+!*********************************************************************************************
+
+    !> @brief Computes distances between a reference coordinate and multiple points
+    !>        under periodic boundary conditions (PBC).
+    !>
+    !> Applies the minimum image convention for each point in `coord_vec` relative to
+    !> `coord1`, ensuring that distances are measured within the simulation
+    !> cell. Returns the scalar distances for all input points.
+    !>
+    !> @param[inout] sys        -- System structure (provides the cell parameters)
+    !> @param[in]    n_points   -- Number of points to evaluate
+    !> @param[in]    coord_vec  -- Cartesian coordinates of target points (3 × n_points)
+    !> @param[in]    coord1     -- Reference Cartesian coordinate
+    !> @param[out]   distances  -- Minimum-image scalar distances from `coord1` to each point
+    !>
+    SUBROUTINE pbc_vec
+
+        TYPE(systems), INTENT(INOUT) :: sys
+        INTEGER, INTENT(in) :: n_points
+        REAL(dp), DIMENSION(3, n_points), INTENT(IN)  :: coord_vec
+        REAL(dp), DIMENSION(3), INTENT(IN)  :: coord1
+        REAL(dp), DIMENSION(n_points), INTENT(OUT) :: distances
+
+        INTEGER :: i_point
+        REAL(dp) :: hmat(3, 3), h_inv(3, 3)
+        REAL(dp) :: s(3), vec(3)
+        REAL(dp), DIMENSION(3, n_points) :: dr_list
+        
+        CALL build_hmat(sys, hmat)
+        CALL invert3x3(hmat, h_inv)
+
+        DO i_point = 1, n_points
+
+            vec = coord_vec(:, i_point) - coord1
+
+            s(1) = h_inv(1,1)*vec(1) + h_inv(1,2)*vec(2) + h_inv(1,3)*vec(3)
+            s(2) = h_inv(2,1)*vec(1) + h_inv(2,2)*vec(2) + h_inv(2,3)*vec(3)
+            s(3) = h_inv(3,1)*vec(1) + h_inv(3,2)*vec(2) + h_inv(3,3)*vec(3)
+
+            s = s - ANINT(s)
+
+            dr_list(1, i_point) = hmat(1,1)*s(1) + hmat(1,2)*s(2) + hmat(1,3)*s(3)
+            dr_list(2, i_point) = hmat(2,1)*s(1) + hmat(2,2)*s(2) + hmat(2,3)*s(3)
+            dr_list(3, i_point) = hmat(3,1)*s(1) + hmat(3,2)*s(2) + hmat(3,3)*s(3)
+
+            distances(i_point) = SQRT(dr_list(1, i_point)**2 + dr_list(2, i_point)**2&
+                                      + dr_list(3, i_point)**2)
+        END DO
+
+    END SUBROUTINE pbc_vec
 
 END MODULE cell_types
