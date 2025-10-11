@@ -25,7 +25,7 @@ PROGRAM vib2d
     USE read_input, ONLY: parse_command_line, parse_input, check_input
     USE vib_types, ONLY: global_settings, systems, molecular_dynamics, static, dipoles, &
                          raman, init_global_settings, init_systems, init_molecular_dynamics, init_static, init_raman, deallocate_types
-    USE setup, ONLY: masses_charges, conversion
+    USE setup, ONLY: masses_charges
     USE cell_types, ONLY: build_hmat, pbc, invert3x3, determinant3x3
     USE read_traj, ONLY: read_coord, read_coord_frame, read_normal_modes, read_static, read_static_resraman
     USE dipole_calc, ONLY: compute_dipole
@@ -72,14 +72,12 @@ PROGRAM vib2d
     CALL check_input(gs, sys, md, stats, dips, rams)
     WRITE (*, '(90A)') REPEAT("-", 90)
 
-    CALL conversion(md%dt, md%freq_range, rams%RR%dt_rtp, rams%RR%freq_range_rtp, md%freq_res, md%sinc_const)
-
 !!    !***************************************************************************
     IF (gs%spectral_type%read_function=='P') THEN
         CALL timings%register("reading coordinates")
-        CALL read_coord(sys%filename, gs, sys)
+        CALL read_coord(sys%filename, gs, sys, dips)
         CALL timings%register("calculating charges")
-        CALL masses_charges(gs, sys)
+        CALL masses_charges(sys)
         CALL timings%register("calculating power spectrum")
         CALL spec_power(gs, sys, md)
 !        !***************************************************************************
@@ -88,7 +86,7 @@ PROGRAM vib2d
         CALL timings%register("reading coordinates")
         CALL read_coord(dips%dip_file, gs, sys, dips)
         IF (dips%type_dipole=='wannier') THEN !!fragment approach or whole supercell
-            CALL masses_charges(gs, sys)
+            CALL masses_charges(sys)
         END IF
 
         CALL timings%register("calculating IR spectrum")
@@ -106,7 +104,7 @@ PROGRAM vib2d
             CALL read_coord(dips%dip_x_file, gs, sys, dips)
         END IF
         CALL timings%register("calculating charges")
-        CALL masses_charges(gs, sys) !THIS FUNCTION IS NOT NEEDED HERE ?!
+        CALL masses_charges(sys) !THIS FUNCTION IS NOT NEEDED HERE ?!
 
         CALL timings%register("calculating raman spectrum")
         CALL spec_raman(gs, sys, md, dips, rams)
@@ -115,9 +113,9 @@ PROGRAM vib2d
         !***************************************************************************
     ELSEIF (gs%spectral_type%read_function=='NMA') THEN
         CALL timings%register("reading coordinates")
-        CALL read_coord(sys%filename, gs, sys, dips)
+        CALL read_coord(sys%filename, gs, sys)
         CALL timings%register("calculating charges")
-        CALL masses_charges(gs, sys)
+        CALL masses_charges(sys)
         CALL timings%register("reading normal modes")
         CALL read_normal_modes(gs, sys, stats)
         CALL timings%register("normal mode analysis")
@@ -129,7 +127,7 @@ PROGRAM vib2d
         CALL timings%register("reading coordinates")
         CALL read_coord(sys%filename, gs, sys, dips)
         CALL timings%register("calculating charges")
-        CALL masses_charges(gs, sys)
+        CALL masses_charges(sys)
         CALL timings%register("reading normal modes")
         CALL read_normal_modes(gs, sys, stats)
         CALL timings%register("reading static dipoles")
@@ -150,16 +148,11 @@ PROGRAM vib2d
         CALL timings%register("reading coordinates")
         CALL read_coord(sys%filename, gs, sys, dips)
         CALL timings%register("calculating charges")
-        CALL masses_charges(gs, sys)
+        CALL masses_charges(sys)
         CALL timings%register("reading normal modes")
         CALL read_normal_modes(gs, sys, stats)
         CALL timings%register("reading static dipoles")
         CALL read_static(gs, sys, dips, rams)
-        !  IF (type_dipole=='2') THEN
-        !     CALL read_static(static_dip_x_file, static_dip_x, gs, sys, rams)
-        !    CALL read_static(static_dip_y_file, static_dip_y, gs, sys, rams)
-        !   CALL read_static(static_dip_z_file, static_dip_z, gs, sys, rams)
-        ! END IF
         IF (stats%diag_hessian=='y') THEN
             CALL timings%register("normal mode analysis")
             CALL normal_mode_analysis(sys, stats)
@@ -190,7 +183,7 @@ PROGRAM vib2d
         CALL timings%register("reading coordinates")
         CALL read_coord(sys%filename, gs, sys, dips)
         CALL timings%register("calculating charges")
-        CALL masses_charges(gs, sys)
+        CALL masses_charges(sys)
         CALL timings%register("reading normal modes")
         CALL read_normal_modes(gs, sys, stats)
         CALL timings%register("reading dipoles")

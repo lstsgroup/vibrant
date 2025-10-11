@@ -14,7 +14,7 @@
 !   limitations under the License.
 !
 
-!> @brief Module containing all procedures involving autocorrelation functions
+!> @brief Module containing all procedures involving autocorrelation functions.
 MODULE vel_cor
 
     USE kinds, ONLY: dp, str_len

@@ -1,3 +1,20 @@
+!
+!   Copyright 2025 Ekin E. Winogradow, Johannes Scheffler, Moritz Leucke, Dorothea Golze
+!
+!   Licensed under the Apache License, Version 2.0 (the "License");
+!   you may not use this file except in compliance with the License.
+!   You may obtain a copy of the License at
+!
+!       http://www.apache.org/licenses/LICENSE-2.0
+!
+!   Unless required by applicable law or agreed to in writing, software
+!   distributed under the License is distributed on an "AS IS" BASIS,
+!   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+!   See the License for the specific language governing permissions and
+!   limitations under the License.
+!
+
+!> @brief Module containing all procedures involving periodic boundary conditions
 MODULE cell_types
 
     USE kinds, ONLY: dp
@@ -15,6 +32,15 @@ CONTAINS
 !*********************************************************************************************
 !*********************************************************************************************
 
+    !> @brief Constructs the 3×3 cell matrix (h-matrix) from lattice parameters.
+    !>
+    !> This subroutine builds the transformation matrix `hmat` that defines the
+    !> simulation cell vectors in Cartesian coordinates, based on the lattice
+    !> constants (a, b, c) and angles (alpha, beta, gamma) provided in `sys%cell`.
+    !>
+    !> @param[in]  sys  -- System data structure (provides cell parameters)
+    !> @param[out] hmat -- 3×3 matrix of cell vectors in Cartesian coordinates
+    !>
     SUBROUTINE build_hmat(sys, hmat)
 
         TYPE(systems), INTENT(IN) :: sys
@@ -43,6 +69,11 @@ CONTAINS
 !*********************************************************************************************
 !*********************************************************************************************
 
+    !> @brief Computes the determinant of a 3×3 matrix.
+    !>
+    !> @param[in]  a   -- 3×3 real matrix
+    !> @return     det -- Determinant of the input matrix
+    !>
     FUNCTION determinant3x3(a) RESULT(det)
 
         USE kinds, ONLY: dp
@@ -58,6 +89,11 @@ CONTAINS
 !*********************************************************************************************
 !*********************************************************************************************
 
+    !> @brief Computes the inverse of a 3×3 matrix.
+    !>
+    !> @param[in]  a    -- 3×3 real input matrix
+    !> @param[out] ainv -- 3×3 real inverse of the input matrix
+    !>
     SUBROUTINE invert3x3(a, ainv)
 
         USE kinds, ONLY: dp
@@ -87,6 +123,20 @@ CONTAINS
 !*********************************************************************************************
 !*********************************************************************************************
 
+    !> @brief Applies periodic boundary conditions (PBC) to compute the minimum-image
+    !> displacement vector between two coordinates.
+    !>
+    !> This subroutine calculates the shortest displacement vector `dr`
+    !> between two atomic positions `coord1` and `coord2` under periodic boundary
+    !> conditions. It constructs the cell matrix and its inverse to transform between
+    !> Cartesian and fractional coordinates, applies the minimum-image convention
+    !> in fractional space, and then transforms back to Cartesian coordinates.
+    !>
+    !> @param[inout] sys     System structure (provides the cell parameters)
+    !> @param[in]    coord2  Cartesian coordinates of atom 2
+    !> @param[in]    coord1  Cartesian coordinates of atom 1
+    !> @param[out]   dr      Minimum-image displacement vector (coord2 - coord1) under PBC
+    !> 
     SUBROUTINE pbc(coord2, coord1, sys, dr)
 
         USE kinds, ONLY: dp

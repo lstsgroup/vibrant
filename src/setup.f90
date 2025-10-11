@@ -14,6 +14,7 @@
 !   limitations under the License.
 !
 
+!> @brief Module that contains a routine which initializes the atomic data.
 MODULE setup
 
     USE kinds, ONLY: dp
@@ -25,16 +26,28 @@ MODULE setup
 
     PRIVATE
 
-    PUBLIC ::  masses_charges, conversion
+    PUBLIC ::  masses_charges
 
 CONTAINS
 
 
 !*********************************************************************************************
 !*********************************************************************************************
-    SUBROUTINE masses_charges(gs, sys)
 
-        TYPE(global_settings), INTENT(INOUT) :: gs
+    !> @brief Assigns atomic masses and approximate valence charges to all atoms 
+    !>   based on their element symbols. 
+    !>
+    !>  This routine reads each atom’s element symbol and assigns their atomic mass
+    !>  and approximate valence charge. It also computes the total mass of the system,
+    !>  inverse square-root masses and the full mass matrix. 
+    !>
+    !> @param[inout] gs   -- Global settings structure (currently unused but included for
+    !>                       consistency with other setup routines).
+    !> @param[inout] sys  -- Systems data structure containing atom count, element symbols, and
+    !>                       allocated fields for atomic masses, charges, and related quantities.
+    !>
+    SUBROUTINE masses_charges(sys)
+
         TYPE(systems), INTENT(INOUT) :: sys
 
         INTEGER :: i
@@ -278,23 +291,4 @@ CONTAINS
 
         DEALLOCATE (mat1, mat2)
     END SUBROUTINE masses_charges
-
-!!*********************************************************************************************
-!!*********************************************************************************************
-
-    SUBROUTINE conversion(dt, freq_range, dt_rtp, freq_range_rtp, freq_res, sinc_const)
-
-        REAL(kind=dp), INTENT(OUT)              :: freq_range, freq_range_rtp, freq_res, sinc_const
-        REAL(kind=dp), INTENT(IN)               ::  dt, dt_rtp
-
-        INTEGER                               :: stat   ! error status of OPEN statements
-        INTEGER                               :: i, j, k
-
-        freq_range = REAL((1.0_dp/(dt*1e-15))/speed_light, kind=dp)
-        freq_range_rtp = REAL((1.0_dp/(dt_rtp*1e-15))/speed_light, kind=dp)
-print*, freq_range_rtp, "freq range check"
-        ! freq_res = REAL(freq_range/(2.0_dp*md%t_cor), kind=dp)
-        !sinc_const = freq_res*dt*1.883652d-4 !!for sinc function
-
-    END SUBROUTINE conversion
 END MODULE setup
