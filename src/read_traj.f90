@@ -42,9 +42,9 @@ CONTAINS
     !> the number of MD frames.
     !>
     !> @param[in]     filename  -- Path to the coordinate file (e.g., `.xyz` format).  
-    !> @param[in,out] gs        --  Global settings (provides `spectral_type%read_function`).  
-    !> @param[in,out] sys       --  System information (allocates `element` and `coord` arrays).  
-    !> @param[in,out] dips      -- Dipole data structure (optional; unused here).  
+    !> @param[in,out] gs        -- Global settings (provides `spectral_type%read_function`).  
+    !> @param[in,out] sys       -- System information (allocates `element` and `coord` arrays).  
+    !> @param[in,out] dips      -- Dipole data structure (optional; provides `type_dipole`). 
     !> @param[in,out] rams      -- Raman data structure (optional; provides frame count for RTP modes).  
     !>
     SUBROUTINE read_coord(filename, gs, sys, dips, rams)

@@ -53,7 +53,7 @@ MODULE constants
 
     PUBLIC ::   speed_light, const_planck, const_permit, pi, const_charge, const_boltz, joule_unit, debye, &
               debye2cm, ev_unit, action_unit, bohr2ang, hartreebohr2evang, am_u, at_u, ang, fs2s, reccm2ev, &
-              hessian_factor, avo_num, au2vm, cm2m, a3_to_debye_per_e, speed_light_au, reccm2au
+              hessian_factor, avo_num, au2vm, cm2m, a3_to_debye_per_e, speed_light_au, reccm2au, sinc_factor
 
     ! Constants
 
@@ -137,6 +137,6 @@ MODULE constants
     !! MAGIC NUMBERS
     
     ! sinc_const
-    REAL(kind=dp), PARAMETER                            :: freq_factor = 1.883652d-4
+    REAL(kind=dp), PARAMETER                            :: sinc_factor = 1.883652d-4
 
 END MODULE constants

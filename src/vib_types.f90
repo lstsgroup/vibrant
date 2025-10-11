@@ -46,11 +46,8 @@ MODULE vib_types
         INTEGER                                             :: max_frag, nfrag, natom_frag
         INTEGER, DIMENSION(:), ALLOCATABLE               :: frag_atoms
         TYPE(fragment_type), ALLOCATABLE                  :: fragment(:)
-         TYPE(fragment_group), ALLOCATABLE :: type_frag(:)
+        TYPE(fragment_group), ALLOCATABLE :: type_frag(:)
         TYPE(fragment_frame_type), ALLOCATABLE           :: fragment_frame(:, :) ! (frame, frag)
-        ! TYPE(fragment_type), ALLOCATABLE                  :: natom_frag(:)
-        !    INTEGER, DIMENSION(:, :), ALLOCATABLE            :: fragment
-        !INTEGER, DIMENSION(:, :, :), ALLOCATABLE            :: fragment
         REAL(kind=dp)                                       :: mass_tot_cell
         REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE         :: mass_tot_frag
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE      :: refpoint
@@ -73,7 +70,6 @@ MODULE vib_types
 
         INTEGER, DIMENSION(:), ALLOCATABLE                         :: natom_frag_xyz
         INTEGER, DIMENSION(:, :, :), ALLOCATABLE                     :: fragment_xyz
-        !REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE   :: static_dip_xyz
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                :: alpha_xyz
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                :: dip_xyz
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                :: alpha_diff_xyz
@@ -118,8 +114,6 @@ MODULE vib_types
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE      :: alpha_resraman_y_diff_im
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE      :: alpha_resraman_z_diff_re
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE      :: alpha_resraman_z_diff_im
-        !CHARACTER(LEN=40)                                   :: rtp_dipole_x, rtp_dipole_y, rtp_dipole_z
-        !COMPLEX(kind=dp), DIMENSION(:, :), ALLOCATABLE      :: z_iso_resraman, z_aniso_resraman
     CONTAINS
         PROCEDURE :: init_rr
         PROCEDURE :: init_rr_static_dip   ! initializes static_dip*_rtp

@@ -1,5 +1,22 @@
-!> @brief proviede information on compilation / system setting
-!!        used in a run
+!
+!   Copyright 2025 Ekin E. Winogradow, Johannes Scheffler, Moritz Leucke, Dorothea Golze
+!
+!   Licensed under the Apache License, Version 2.0 (the "License");
+!   you may not use this file except in compliance with the License.
+!   You may obtain a copy of the License at
+!
+!       http://www.apache.org/licenses/LICENSE-2.0
+!
+!   Unless required by applicable law or agreed to in writing, software
+!   distributed under the License is distributed on an "AS IS" BASIS,
+!   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+!   See the License for the specific language governing permissions and
+!   limitations under the License.
+!
+
+!> @brief Module that provides information on compilation and system settings
+!>        used in a run.
+!>
 MODULE config_info
 
     USE omp_lib, ONLY: omp_get_max_threads
@@ -13,19 +30,28 @@ MODULE config_info
     INCLUDE "cmake_info.f90"
 
 CONTAINS
+!***********************************************************************************!
+!***********************************************************************************!
 
-    !> @brief report system/compilation configuration
+    !> @brief Reports the system/compilation configuration.
+    !>
     SUBROUTINE output_config_info()
+
         CALL output_vibrant_header()
         WRITE(*,'(90A)') REPEAT("-",90)
         CALL output_datetime()
         CALL output_used_threads()
         CALL output_compiler_settings()
         WRITE(*,'(90A)') REPEAT("-",90)
+
     END SUBROUTINE output_config_info
 
-    !> @brief print the program name
+!***********************************************************************************!
+!***********************************************************************************!
+    !> @brief Prints the program name.
+    !>
     SUBROUTINE output_vibrant_header()
+
         WRITE(*,'(A90)') ""
         WRITE(*,'(A90)') " .--..--..--..--..--..--..--..--..--..--..--..--..--..--..--..--..--..--..--..--..--..--. "
         WRITE(*,'(A90)') "/ .. \.. \.. \.. \.. \.. \.. \.. \.. \.. \.. \.. \.. \.. \.. \.. \.. \.. \.. \.. \.. \.. \"
@@ -44,16 +70,25 @@ CONTAINS
         WRITE(*,'(A90)') "\ `'\ `'\ `'\ `'\ `'\ `'\ `'\ `'\ `'\ `'\ `'\ `'\ `'\ `'\ `'\ `'\ `'\ `'\ `'\ `'\ `'\ `' /"
         WRITE(*,'(A90)') " `--'`--'`--'`--'`--'`--'`--'`--'`--'`--'`--'`--'`--'`--'`--'`--'`--'`--'`--'`--'`--'`--' "
         WRITE(*,'(A90)') ""
+
     END SUBROUTINE output_vibrant_header
 
-    !> @brief report how many OMP threads are available
+!***********************************************************************************!
+!***********************************************************************************!
+
+    !> @brief Reports how many OMP threads are available.
+    !>
     SUBROUTINE output_used_threads()
         INTEGER :: num_threads
         num_threads = omp_get_max_threads()
         WRITE(*,'(2X,A,A)') "Number of OMP threads used: ", num_threads
     END SUBROUTINE output_used_threads
 
-    !> @brief report current date and time
+!***********************************************************************************!
+!***********************************************************************************!
+
+    !> @brief Reports current date and time.
+    !> 
     SUBROUTINE output_datetime()
         INTEGER, DIMENSION(8) :: values
         CALL DATE_AND_TIME(values=values)
@@ -62,7 +97,11 @@ CONTAINS
             ', Time: ', values(5), ':', values(6), ':', values(7)
     END SUBROUTINE output_datetime
 
-    !> @brief report compilation info
+!***********************************************************************************!
+!***********************************************************************************!
+ 
+    !> @brief Reports compilation info.
+    !>
     SUBROUTINE output_compiler_settings()
         WRITE(*,'(2X,A,A)') "Fortran compiler: ", compiler
         WRITE(*,'(2X,A,A)') "Compiler flags: ", compiler_flags

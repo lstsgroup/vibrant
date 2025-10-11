@@ -1,3 +1,21 @@
+!
+!   Copyright 2025 Ekin E. Winogradow, Johannes Scheffler, Moritz Leucke, Dorothea Golze
+!
+!   Licensed under the Apache License, Version 2.0 (the "License");
+!   you may not use this file except in compliance with the License.
+!   You may obtain a copy of the License at
+!
+!       http://www.apache.org/licenses/LICENSE-2.0
+!
+!   Unless required by applicable law or agreed to in writing, software
+!   distributed under the License is distributed on an "AS IS" BASIS,
+!   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+!   See the License for the specific language governing permissions and
+!   limitations under the License.
+!
+
+!> @brief Module containing procedures involving the formatting and outputting the results.
+!>
 MODULE output_io
 
     USE kinds, ONLY: dp, str_len
@@ -10,8 +28,14 @@ MODULE output_io
     PUBLIC :: write_spectra_data, append_column, check_file_open
     CONTAINS
 
-
+    !> @brief Checks the status of a file open operation and aborts on failure.
+    !>
+    !> @param[in] stat      -- I/O status flag returned by an OPEN statement
+    !> @param[in] msg       -- Custom error message or context description
+    !> @param[in] filename  -- Name of the file that failed to open
+    !>
     SUBROUTINE check_file_open(stat, msg, filename)
+
         INTEGER, INTENT(IN) :: stat
         CHARACTER(*), INTENT(IN) :: msg
         CHARACTER(*), INTENT(IN) :: filename
@@ -21,12 +45,24 @@ MODULE output_io
             WRITE (error_unit, '(4X,"I/O error message: ",A)') TRIM(msg)
             STOP
         END IF
+
     END SUBROUTINE check_file_open
 
+!***************************************************************************************!
+!***************************************************************************************!
+
+    !> @brief Writes spectral data (frequency and intensity) to a text file.
+    !>
+    !> @param[in] outfile               --  Name of the output file
+    !> @param[in] header                --  Header label for the intensity column
+    !> @param[in] freq                  --  Array of frequencies
+    !> @param[in] intensities           --  Array of intensities corresponding to each 
+    !>                                      frequency
+    !> @param[in, optional] freq_cutoff --  Optional upper frequency limit for output
+    !>
     SUBROUTINE write_spectra_data(outfile, header, freq, intensities, freq_cutoff)
         CHARACTER(*), INTENT(in) :: outfile
         CHARACTER(*), INTENT(in) :: header
-        !INTEGER, INTENT(in) :: start_freq, end_freq
         REAL(dp), INTENT(in) :: freq(:)
         REAL(dp), INTENT(in) :: intensities(:)
         REAL(dp),     INTENT(in), OPTIONAL :: freq_cutoff
@@ -55,9 +91,24 @@ MODULE output_io
         CLOSE (runit)
     END SUBROUTINE write_spectra_data
 
+!***************************************************************************************!
+!***************************************************************************************!
+
+    !> @brief Appends a new data column to an existing spectra file.
+    !>
+    !> This subroutine adds a column of intensity data to an existing text file
+    !> containing frequency values and previously written data columns.
+    !> If the file is newly created, the provided `header` is written as the
+    !> column label on the first line.
+    !>
+    !> @param[in] filename         -- Name of the target file to append to
+    !> @param[in] header           -- Header label for the new column
+    !> @param[in] intensities      -- Array of intensity values to append
+    !> @param[in] freq             -- Array of frequencies corresponding to the intensity values
+    !> @param[in, optional] cutoff -- Optional upper frequency limit for writing
+    !>
     SUBROUTINE append_column(filename, header, intensities, freq, cutoff)
-        !! Fügt eine Spalte `data` in die Datei `filename` hinzu.
-        !! Falls die Datei neu ist, wird `header` als Kopfzeile geschrieben.
+       
         CHARACTER(len=*), INTENT(in) :: filename
         CHARACTER(len=*), INTENT(in) :: header
         REAL(kind=dp), INTENT(in) :: intensities(:)

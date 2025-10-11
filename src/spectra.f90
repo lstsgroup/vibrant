@@ -14,9 +14,10 @@
 !   limitations under the License.
 !
 
+!> @brief Module containing all procedures involving the calculation of the final
+!> spectrum requested by the user.
 MODULE calc_spectra
 
-    USE setup, ONLY: conversion
     USE kinds, ONLY: dp, str_len
     USE output_io, ONLY: write_spectra_data, append_column, check_file_open
     USE ISO_FORTRAN_ENV, ONLY: output_unit, error_unit
@@ -24,7 +25,7 @@ MODULE calc_spectra
 
     USE constants, ONLY: pi, fs2s, debye, speed_light, const_planck, const_boltz, const_permit, cm2m, a3_to_debye_per_e, &
                          hartreebohr2evang, hessian_factor, bohr2ang, reccm2ev, am_u, debye2cm, avo_num, au2vm, ang, at_u, &
-                         speed_light_au, debye, reccm2au
+                         speed_light_au, debye, reccm2au, sinc_factor
     USE read_traj, ONLY: read_coord_frame!, check_file_open
     USE fin_diff, ONLY: central_diff, forward_diff
     USE vel_cor, ONLY: cvv, cvv_iso, cvv_aniso, cvv_only_x, cvv_resraman
@@ -41,6 +42,18 @@ MODULE calc_spectra
     PUBLIC :: spec_power, normal_mode_analysis, spec_static_ir, spec_static_raman, spec_ir, spec_raman, spec_abs, spec_static_resraman, spec_abs_md, spec_resraman
 
 CONTAINS
+
+    !> @brief Computes the vibrational power spectrum from an MD trajectory.
+    !>
+    !> This subroutine evaluates the velocity autocorrelation function (VACF) and
+    !> its Fourier transform to obtain the vibrational power spectrum (or power
+    !> spectral density). It supports trajectories defined either by positions or
+    !> velocities.
+    !>
+    !> @param[inout] gs  -- Global settings structure (FFT, constants, control parameters)
+    !> @param[inout] sys -- System data structure (provides trajectory and atomic data)
+    !> @param[inout] md  -- MD structure with coordinates, velocities, and correlation data.
+    !>
     SUBROUTINE spec_power(gs, sys, md)
 
         TYPE(global_settings), INTENT(INOUT)        :: gs
@@ -53,46 +66,47 @@ CONTAINS
         REAL(kind=dp)                               :: freq_range, freq_res, power_const
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE      :: power_int, freq
 
+        !Allocate
         ALLOCATE (md%zhat(0:md%t_cor*2 - 1), power_int(0:md%t_cor*2 - 1), freq(0:md%t_cor*2 - 1))
-
+        !Initialize
         md%zhat = COMPLEX(0._dp, 0.0_dp)
 
         CALL read_coord_frame(sys%natom, sys%filename, md%coord_v, sys)
-
-        IF (sys%type_traj=='pos') THEN   !!If it is from positions, do finite differences first
+  
+        !!If it is from positions, do finite differences first
+        IF (sys%type_traj=='pos') THEN   
             CALL central_diff(sys%natom, md%coord_v, md%v, sys, md)
 
             CALL cvv(sys%natom, md%v, sys, gs, md)
-
-        ELSEIF (sys%type_traj=='vel') THEN   !!If it is from velocities, compute autocorrelation directly
+        
+        !!If it is from velocities, compute autocorrelation directly
+        ELSEIF (sys%type_traj=='vel') THEN   
 
             CALL cvv(sys%natom, md%coord_v, sys, gs, md)
 
         END IF
-
+ 
+        !Determine the maximum frequency range in cm^{-1} based on `md%dt`
         freq_range = REAL((1.0_dp/(md%dt*fs2s))/speed_light, kind=dp)
+        !Determine the frequency resolution
         freq_res = REAL(freq_range/(2.0_dp*md%t_cor), kind=dp)
-
+  
+        !!Call FFT
         CALL dfftw_plan_dft_r2c_1d(plan, 2*md%t_cor, md%z, md%zhat, FFTW_ESTIMATE) !!!FFT
         CALL dfftw_execute_dft_r2c(plan, md%z, md%zhat)
         CALL dfftw_destroy_plan(plan)
 
-        md%zhat = REAL(md%zhat, kind=dp)
-      !!Unit conversion to K.cm
+        !!Unit conversion to K.cm
         power_const = (md%dt*fs2s*am_u*speed_light/const_boltz)*2.0_dp/(sys%natom*3.0_dp)
 
-        !OPEN (FILE='power_spec.txt', STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
-        !!Check if file exists
-        !CALL check_file_open(stat, msg, 'power_spec.txt')
+        !Generate power spectrum
         DO i = 0, 2*md%t_cor - 1
             freq(i) = i*freq_res
-            power_int(i) = md%zhat(i)*power_const
+            power_int(i) = REAL(md%zhat(i), KIND=dp)*power_const
             IF (freq(i).GE.5000_dp) CYCLE
-            !WRITE (runit, *) freq(i), power_int(i)
         END DO
-
-        !CLOSE (runit)
-
+       
+        !!Write the results to a file
         c_label = "INT"
         spectra_file_name = "power_spec.txt"
         CALL write_spectra_data(spectra_file_name, c_label, freq, power_int, 5000.0_dp)
@@ -102,33 +116,53 @@ CONTAINS
     END SUBROUTINE spec_power
 !***********************************************************************************************!
 !***********************************************************************************************!
+
+    !> @brief Computes the infrared (IR) absorption spectrum from dipole trajectories.
+    !>
+    !> This subroutine calculates the IR spectrum using time-correlation functions of
+    !> dipole moment derivatives (dipole velocities) obtained from molecular dynamics
+    !> simulations. It supports both total-system and fragment-based spectra, and
+    !> two dipole types: **Wannier** (from localized orbitals) and **Berry-phase** (from
+    !> polarization).
+    !>
+    !> @param[inout] gs   -- Global settings (constants, FFT parameters, etc.)
+    !> @param[inout] sys  -- System data structure (provides atomic, cell, and fragment information)
+    !> @param[inout] md   -- MD structure (coordinates, velocities, correlation arrays)
+    !> @param[inout] dips -- Dipole trajectory data structure (dipole type, dipole arrays, filenames)
+    !>
     SUBROUTINE spec_ir(gs, sys, md, dips)
         TYPE(global_settings), INTENT(INOUT) :: gs
         TYPE(systems), INTENT(INOUT) :: sys
         TYPE(molecular_dynamics), INTENT(INOUT) :: md
         TYPE(dipoles), INTENT(INOUT) :: dips
 
-        INTEGER :: stat, i, i_group, runit
-        INTEGER(KIND=dp) :: plan
         CHARACTER(LEN=str_len) :: msg
         CHARACTER(LEN=40) :: output_fname, f_name, idx, spectra_file_name, c_label
+        INTEGER :: stat, i, i_group, runit
+        INTEGER(KIND=dp) :: plan
         REAL(KIND=dp) :: freq_range, freq_res, sinc_const, ir_const
         REAL(KIND=dp), ALLOCATABLE :: ir_int(:), freq(:), z_frag(:, :)
-        COMPLEX(KIND=dp), ALLOCATABLE :: zhat_frag(:, :)
         REAL(KIND=dp), ALLOCATABLE :: v_frag(:, :, :, :), dipole_frag(:, :, :, :)
+        COMPLEX(KIND=dp), ALLOCATABLE :: zhat_frag(:, :)
 
+        !!Allocate and initialize
         ALLOCATE (md%zhat(0:2*md%t_cor - 1), ir_int(0:2*md%t_cor - 1), freq(0:2*md%t_cor - 1))
         md%zhat = CMPLX(0._dp, 0.0_dp)
+        !!If there are no fragments
         IF (.NOT. sys%fragments%frag) THEN
             sys%fragments%ngroup = 1
         END IF
 
-        ! Frequencies and constants
+        !Determine the maximum frequency range in cm^{-1} based on `md%dt`
         freq_range = REAL((1._dp/(md%dt*fs2s))/speed_light, dp)
+        !Determine the frequency resolution
         freq_res = REAL(freq_range/(2._dp*md%t_cor), dp)
+        !Apply sinc function
         sinc_const = freq_res*md%dt*fs2s*2._dp*pi*speed_light
+        !!final IR units in K*cm*km*mol^-1
         ir_const = avo_num*md%dt*fs2s*2._dp*10._dp/(12._dp*const_permit*speed_light*const_boltz)
 
+        !!Start with looping over fragments if there are any
         DO i_group = 1, sys%fragments%ngroup
             ! Dipole handling
             IF (dips%type_dipole=='wannier') THEN
@@ -137,6 +171,7 @@ CONTAINS
                     CALL compute_dipole(dips%dipole, sys, md)
                     ALLOCATE (md%v(sys%framecount, sys%natom, 3))
                     CALL central_diff(sys%mol_num, dips%dipole, md%v, sys, md)
+                !!If there are fragments, assign their wannier centers first
                 ELSE
                     CALL assign_wannier(sys, md)
                     CALL compute_dipole_frag(dipole_frag, sys, md)
@@ -145,19 +180,23 @@ CONTAINS
                 END IF
             ELSEIF (dips%type_dipole=='berry') THEN
                 CALL read_coord_frame(sys%mol_num, dips%dip_file, md%coord_v, sys)
-                CALL check_jumps(md%coord_v, sys, md)
+                !!Correct discontinuities due to polarization quantum, if there are any
+                CALL check_jumps(md%coord_v, sys%mol_num, sys)
                 ALLOCATE (md%v(sys%framecount, sys%natom, 3))
                 CALL central_diff(sys%mol_num, md%coord_v, md%v, sys, md)
             END IF
+            !!Call dipole autocorrelation function
             CALL cvv(sys%mol_num, md%v, sys, gs, md)
 
-            ! FFT
+            !Call FFT
             CALL dfftw_plan_dft_r2c_1d(plan, 2*md%t_cor, md%z, md%zhat, FFTW_ESTIMATE)
             CALL dfftw_execute_dft_r2c(plan, md%z, md%zhat)
             CALL dfftw_destroy_plan(plan)
 
+            !! Convert from debye to cm^{-1}
             md%zhat = REAL(md%zhat*debye2cm*debye2cm, dp)
-
+  
+            !! Generate the IR spectrum
             DO i = 0, 2*md%t_cor - 1
                 freq(i) = i*freq_res
                 ir_int(i) = md%zhat(i)*ir_const*(sinc_const*i/SIN(sinc_const*i))**2._dp
@@ -165,11 +204,14 @@ CONTAINS
                 ir_int(0) = 0._dp
                 ir_int(i) = -1.0_dp*REAL(ir_int(i))
             END DO
+           
+            !!Write the results to a file
             c_label = "INT"
-
-            IF (.NOT. sys%fragments%frag) THEN
+            !!If there are no fragments
+            IF (.NOT. sys%fragments%frag) THEN 
                 spectra_file_name = "IR_spectrum.txt"
-            ELSE
+            !!If there are fragments, generate separate output files for each of them
+            ELSE 
                 WRITE (spectra_file_name, '(A,I0,A)') "IR_spectrum_fragment_", i_group, ".txt"
             END IF
             CALL write_spectra_data(spectra_file_name, c_label, freq, ir_int, 5000.0_dp)
@@ -180,6 +222,20 @@ CONTAINS
 
 !****************************************************************************************!
 !****************************************************************************************!
+    !> @brief Computes Raman spectra from time-dependent polarizability derivatives.
+    !>
+    !> This subroutine calculates  Raman spectra from MD trajectories, using the autocorrelation
+    !> functions of polarizability tensor derivatives obtained via finite electric field perturbations.
+    !> It supports both **Wannier** and **Berry-phase** dipole formulations, direct DFPT 
+    !> polarizabilities, and fragment-based analysis. The resulting Raman intensities are 
+    !> computed for multiple incident laser frequencies and written to output files.
+    !>
+    !> @param[inout] gs   --  Global settings (temperature, constants, and FFT control)
+    !> @param[inout] sys  --  System information (atomic, cell, and fragment data)
+    !> @param[inout] md   --  MD trajectory data
+    !> @param[inout] dips --  Dipole data (dipole type, dipole files, etc.)
+    !> @param[inout] rams --  Raman data structure (provides polarizability and field information)
+    !>
     SUBROUTINE spec_raman(gs, sys, md, dips, rams)
         TYPE(global_settings), INTENT(INOUT)        :: gs
         TYPE(systems), INTENT(INOUT)        :: sys
@@ -187,26 +243,21 @@ CONTAINS
         TYPE(dipoles), INTENT(INOUT)        :: dips
         TYPE(raman), INTENT(INOUT)        :: rams
 
-        CHARACTER(LEN=str_len)                                          :: msg, fname
+        CHARACTER(LEN=str_len)                               :: output_fname, f_name, idx, outfile, c_label
+        CHARACTER(LEN=str_len)                               :: msg, fname
         INTEGER                                                  :: stat, i, j, xyz, runit, i_laser, i_group
         INTEGER(kind=dp)                                          :: plan
         INTEGER, DIMENSION(:), ALLOCATABLE                         :: natom_frag_free
-        !INTEGER, DIMENSION(:), ALLOCATABLE                         :: natom_frag_y, natom_frag_z
         INTEGER, DIMENSION(:, :, :), ALLOCATABLE                     :: fragment_free
-        !INTEGER, DIMENSION(:,:, :, :), ALLOCATABLE                     :: fragment_xyz
-        COMPLEX(kind=dp), DIMENSION(:), ALLOCATABLE                 :: zhat_iso, zhat_aniso
+        REAL(kind=dp)                                             :: f, freq_res, freq_range
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE                    :: zhat_unpol_x, zhat_depol_x, zhat_para_all, zhat_depol
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE                    :: raman_ortho, raman_para, raman_depol, raman_unpol
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE                    :: raman_const, sinc_func, freq
-        REAL(kind=dp)                                             :: f, freq_res
-        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                :: dip_free!,rams%e_field(1)%dip_xyz,rams%e_field(2)%dip_xyz,rams%e_field(3)%dip_xyz
-        REAL(KIND=dp), ALLOCATABLE :: v_frag(:, :, :, :), dipole_frag(:, :, :, :)
-        REAL(KIND=dp), ALLOCATABLE :: dip_frag_free(:, :, :, :)
-        CHARACTER(len=40)                                         :: output_fname, f_name, idx, outfile, c_label
-        !REAL(kind=dp), DIMENSION(:,:, :, :), ALLOCATABLE                :: alpha_xyz, dip_xyz, alpha_diff_xyz
-        !REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                ::rams%e_field(1)%alpha_diff_xyz,rams%e_field(2)%alpha_diff_xyz,rams%e_field(3)%alpha_diff_xyz
+        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                :: dip_free
+        REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE                :: v_frag, dipole_frag, dip_frag_free
+        COMPLEX(kind=dp), DIMENSION(:), ALLOCATABLE                 :: zhat_iso, zhat_aniso
 
-!!!!ALLOCATION!!!
+        !Allocate
         ALLOCATE (rams%e_field(1)%alpha_xyz(sys%framecount, sys%mol_num, 3))
         ALLOCATE (rams%e_field(2)%alpha_xyz(sys%framecount, sys%mol_num, 3))
         ALLOCATE (rams%e_field(3)%alpha_xyz(sys%framecount, sys%mol_num, 3))
@@ -214,30 +265,37 @@ CONTAINS
 
 !    IF (rams%averaging=='1') THEN
 
+        !!If there are no fragments
         IF (.NOT. sys%fragments%frag) THEN
             sys%fragments%ngroup = 1
         END IF
 
-      !!!Find the frequency resolution in cm^-1
-        freq_res = REAL(md%freq_range/(2.0_dp*md%t_cor), kind=dp)
-        f = freq_res*md%dt*1.883652d-4
+        !Determine the maximum frequency range in cm^{-1} based on `md%dt`
+        freq_range = REAL((1._dp/(md%dt*fs2s))/speed_light, dp)
+        !Determine the frequency resolution
+        freq_res = REAL(freq_range/(2.0_dp*md%t_cor), kind=dp)
+        !Apply sinc function
+        f = freq_res*md%dt*sinc_factor
 
+        !!Start with looping over fragments if there are any
         DO i_group = 1, sys%fragments%ngroup
-!!FIELD_FREE!!!
+        !!First field-free (unperturbed dipole moments)
             IF (dips%type_dipole=='wannier') THEN
                 CALL read_coord_frame(sys%natom, dips%dip_file, md%coord_v, sys)
                 IF (.NOT. sys%fragments%frag) THEN
                     CALL compute_dipole(dip_free, sys, md)
+                !!If there are fragments, assign their wannier centers first
                 ELSE
                     CALL assign_wannier(sys, md)
                     CALL compute_dipole_frag(dip_frag_free, sys, md)
                 END IF
             ELSEIF (dips%type_dipole=='berry') THEN
                 CALL read_coord_frame(sys%natom, dips%dip_file, dip_free, sys)
-                CALL check_jumps(dip_free, sys, md)
+                !!Correct discontinuities due to polarization quantum, if there are any
+                CALL check_jumps(dip_free, sys%mol_num, sys)
             END IF
 
-    !!!!ELECTRIC FIELD!!!
+        !!Then electric field (perturbed dipole moments)
             DO xyz = 1, 3 !X-FIELD Y-FIELD Z-FIELD
                 IF (xyz==1) THEN
                     f_name = dips%dip_x_file
@@ -250,53 +308,59 @@ CONTAINS
                 IF (dips%type_dipole=='wannier') THEN
                     IF (.NOT. sys%fragments%frag) THEN
                         CALL compute_dipole(dips%dipole, sys, md)
+                        !!Calculate polarizabilities
                         CALL forward_diff(sys%mol_num, rams%e_field(xyz)%alpha_xyz, dip_free, dips%dipole, gs, sys, dips)
                         DEALLOCATE (dips%dipole)
+                    !!If there are fragments, assign their wannier centers first
                     ELSE
                         CALL assign_wannier(sys, md)
                         CALL compute_dipole_frag(dipole_frag, sys, md)
                         sys%mol_num = sys%fragments%type_frag(i_group)%nfrag
-                        CALL forward_diff(sys%mol_num, rams%e_field(xyz)%alpha_xyz, dip_frag_free(i_group, :, 1:sys%mol_num, :), dipole_frag(i_group, :, 1:sys%mol_num, :), gs, sys, dips)
+                        !!Calculate polarizabilities
+                        CALL forward_diff(sys%mol_num, rams%e_field(xyz)%alpha_xyz, &
+                             dip_frag_free(i_group, :, 1:sys%mol_num, :), dipole_frag(i_group, :, 1:sys%mol_num, :), gs, sys, dips)
                     END IF
                 ELSEIF (dips%type_dipole=='berry') THEN
-                    CALL check_jumps(md%coord_v, sys, md)
+                    CALL check_jumps(md%coord_v, sys%mol_num, sys) 
+                    !!Calculate polarizabilities
                     CALL forward_diff(sys%mol_num, rams%e_field(xyz)%alpha_xyz, dip_free, md%coord_v, gs, sys, dips)
                 ELSEIF (dips%type_dipole=='dfpt') THEN
                     rams%e_field(xyz)%alpha_xyz = REAL(md%coord_v*a3_to_debye_per_e, kind=dp)
                 END IF
+                !!Time derivatives of the polarizabilities
                 CALL central_diff(sys%mol_num, rams%e_field(xyz)%alpha_xyz, rams%e_field(xyz)%alpha_diff_xyz, sys, md)
             END DO
 
-!!!ACF AND FFT CALC!!!
+            !!Allocate
             ALLOCATE (zhat_iso(0:md%t_cor*2), zhat_aniso(0:md%t_cor*2))
             ALLOCATE (raman_ortho(0:md%t_cor*2), raman_para(0:md%t_cor*2), raman_depol(0:md%t_cor*2), raman_unpol(0:md%t_cor*2))
 
+            !!Initialize
             zhat_iso = COMPLEX(0._dp, 0.0_dp)
             zhat_aniso = COMPLEX(0._dp, 0.0_dp)
-
-            CALL cvv_iso(sys%mol_num, rams%z_iso, rams%e_field(1)%alpha_diff_xyz, rams%e_field(2)%alpha_diff_xyz, rams%e_field(3)%alpha_diff_xyz, sys, md)
-
-            CALL dfftw_plan_dft_r2c_1d(plan, 2*md%t_cor, rams%z_iso, zhat_iso, FFTW_ESTIMATE)
-            CALL dfftw_execute_dft_r2c(plan, rams%z_iso, zhat_iso)
-            CALL dfftw_destroy_plan(plan)
-
-            CALL cvv_aniso(sys%mol_num, rams%z_aniso, rams%e_field(1)%alpha_diff_xyz, rams%e_field(2)%alpha_diff_xyz, rams%e_field(3)%alpha_diff_xyz, sys, md)
-
-            CALL dfftw_plan_dft_r2c_1d(plan, 2*md%t_cor, rams%z_aniso, zhat_aniso, FFTW_ESTIMATE)
-            CALL dfftw_execute_dft_r2c(plan, rams%z_aniso, zhat_aniso)
-            CALL dfftw_destroy_plan(plan)
-
-            zhat_iso = REAL(zhat_iso, kind=dp)
-            zhat_aniso = REAL(zhat_aniso, kind=dp)
             raman_ortho = 0.0d0
             raman_para = 0.0d0
             raman_unpol = 0.0d0
             raman_depol = 0.0d0
+            !!Isotropic polarizability autocorrelation function
+            CALL cvv_iso(sys%mol_num, rams%z_iso, rams%e_field(1)%alpha_diff_xyz, rams%e_field(2)%alpha_diff_xyz, rams%e_field(3)%alpha_diff_xyz, sys, md)
+            !!Call FFT
+            CALL dfftw_plan_dft_r2c_1d(plan, 2*md%t_cor, rams%z_iso, zhat_iso, FFTW_ESTIMATE)
+            CALL dfftw_execute_dft_r2c(plan, rams%z_iso, zhat_iso)
+            CALL dfftw_destroy_plan(plan)
 
-      !!Unit conversion of Debye^2/(E^2*s^2) into C^4*s^2/kg^2
-            zhat_iso(:) = zhat_iso(:)*debye2cm*debye2cm/(au2vm*au2vm)
-            zhat_aniso(:) = zhat_aniso(:)*debye2cm*debye2cm/(au2vm*au2vm)
+            !!Anisotropic polarizability autocorrelation function
+            CALL cvv_aniso(sys%mol_num, rams%z_aniso, rams%e_field(1)%alpha_diff_xyz, rams%e_field(2)%alpha_diff_xyz, rams%e_field(3)%alpha_diff_xyz, sys, md)
+            !!Call FFT
+            CALL dfftw_plan_dft_r2c_1d(plan, 2*md%t_cor, rams%z_aniso, zhat_aniso, FFTW_ESTIMATE)
+            CALL dfftw_execute_dft_r2c(plan, rams%z_aniso, zhat_aniso)
+            CALL dfftw_destroy_plan(plan)
+            
+            !!Unit conversion of Debye^2/(E^2*s^2) into C^4*s^2/kg^2
+            zhat_iso(:) = REAL(zhat_iso(:), KIND=dp)*debye2cm*debye2cm/(au2vm*au2vm)
+            zhat_aniso(:) = REAL(zhat_aniso(:), KIND=dp)*debye2cm*debye2cm/(au2vm*au2vm)
 
+            !!Calculate the Raman constants for a range of laser wavelengths requested by user
             DO i_laser = 1, SIZE(rams%laser_in)
                 DO i = 0, 2*md%t_cor - 2
                     freq(i) = i*freq_res
@@ -307,7 +371,7 @@ CONTAINS
                                                            (const_boltz*gs%temp))))*2.0_dp
                 END DO
 
-    !!!ORTHOGONAL!!!
+                !!!Orthogonal Raman intensities, written out only if the user requested!!!
 
                 DO i = 0, 2*md%t_cor - 2
                     IF (i_laser==1) THEN
@@ -323,7 +387,7 @@ CONTAINS
                     ELSE
                         WRITE (outfile, '(A,I0,A)') "raman_orthogonal_fragment_", i_group, ".txt"
                     END IF
-
+                  
                     WRITE (c_label, '("INT ",F10.6, " eV")') rams%laser_in(i_laser)
                     IF (i_laser==1) THEN
                         CALL write_spectra_data(outfile, c_label, freq, raman_ortho(:), 5000.0_dp)
@@ -332,7 +396,7 @@ CONTAINS
                     END IF
                 END IF
 
-    !!!PARALLEL!!!
+                !!!Parallel Raman intensities, written out only if the user requested!!!
 
                 DO i = 0, 2*md%t_cor - 2
                     IF (i_laser==1) THEN
@@ -357,7 +421,7 @@ CONTAINS
                     END IF
                 END IF
 
-    !!!UNPOL!!!
+                !!Unpolarized Raman intensities, printed out by default
                 DO i = 0, 2*md%t_cor - 2
                     raman_unpol(i) = raman_ortho(i) + raman_para(i)
                     raman_unpol(0) = 0.00_dp
@@ -378,8 +442,8 @@ CONTAINS
                     END IF
                 END IF
 
-    !!!DEPOL RATIO!!!
 
+                !!!Depolarization ratios, written out only if the user requested!!!
                 DO i = 0, 2*md%t_cor - 2
                     raman_depol(i) = REAL(raman_ortho(i), kind=dp)/REAL(raman_para(i), kind=dp)
                     raman_depol(0) = 0.00_dp
@@ -528,26 +592,41 @@ CONTAINS
 
 !***********************************************************************************************!
 !***********************************************************************************************!
+    !> @brief Performs normal mode analysis via finite-difference evaluation of the Hessian.
+    !>
+    !> This subroutine constructs the mass-weighted Hessian matrix using finite differences
+    !> of atomic forces, diagonalizes it via LAPACK’s `DSYEV` routine, and extracts
+    !> the vibrational frequencies and normal mode displacement vectors.
+    !>
+    !> @param[inout] sys   -- System structure (provides atomic and mass information).
+    !> @param[inout] stats -- Static calculation structure (provides force data, step size,
+    !>                         and arrays for frequencies and displacements).
+    !>
     SUBROUTINE normal_mode_analysis(sys, stats)
         TYPE(systems), INTENT(INOUT)        :: sys
         TYPE(static), INTENT(INOUT)        :: stats
 
-        INTEGER                                                     :: stat, i, j, m, n, p, k, info, lwork, lwmax, lda, runit
         CHARACTER(len=str_len)                                         :: msg
+        LOGICAL, DIMENSION(9)                                        :: mk = .TRUE.
+        INTEGER                                                     :: stat, i, j, m, n, p, k, info, lwork, lwmax, lda, runit
         REAL(kind=dp)                                               :: fin_diff_factor
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE                       :: w, work, w_new
         REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE                     :: hessian, atomic_displacements
-        LOGICAL, DIMENSION(9)                                        :: mk = .TRUE.
 
-        lwmax = MAX(1, 3*sys%natom*64)  ! conservative guess; LAPACK recommends this for DSYEV
+        ! Conservative guess; LAPACK recommends this for DSYEV
+        lwmax = MAX(1, 3*sys%natom*64)
         lda = sys%natom*3
-        stats%nmodes = 3*sys%natom - 6 !only for non-linear atoms
+        ! Currently only for non-linear atoms!!!!
+        stats%nmodes = 3*sys%natom - 6 
 
+        !Allocate
         ALLOCATE (work(lwmax), w(sys%natom*3), w_new(sys%natom*3))
-
         ALLOCATE (hessian(0:sys%natom*3 - 1, 0:sys%natom*3 - 1))
+        
+        !!Finite difference factor
         fin_diff_factor = 1.0_dp/(2.0_dp*stats%dx)
-       
+
+        !!Construct hessian
         p = 0
         DO i = 0, sys%natom - 1
             DO m = 0, 2
@@ -562,27 +641,28 @@ CONTAINS
             END DO
             p = p + 2
         END DO
-
+        !!Symmetrize
         hessian(:, :) = REAL((hessian(:, :) + TRANSPOSE(hessian(:, :)))/2.0_dp, kind=dp)
         n = SIZE(hessian, 1)
 
-        !PRINT *, hessian(1, 1), "hess"
-        WRITE (*, '(4X, "hess", T60, G0)') hessian(1, 1)
-! work size query
+        ! work size query
         lwork = -1
         CALL DSYEV('V', 'U', n, hessian, lda, w, work, lwork, info)
         lwork = MIN(lwmax, INT(work(1)))
 
-! get eigenvalues and eigenvectors
+        ! get eigenvalues and eigenvectors
         CALL dsyev('V', 'U', n, hessian, lda, w, work, lwork, info)
 
         hessian = TRANSPOSE(hessian)
-
+        
         w = REAL(w*SQRT(ABS(w))/ABS(w), kind=dp)
+        !!Unit conversion for the frequencies
         w = REAL(w/(2.0_dp*pi*speed_light), kind=dp)
 
+        !!Allocate
         ALLOCATE (stats%freq(stats%nmodes), atomic_displacements(stats%nmodes, sys%natom*3), stats%disp(stats%nmodes, sys%natom, 3))
 
+        !!Discard first 6 elements of the array (rotational + translational modes)
         DO i = 7, sys%natom*3
             stats%freq(i - 6) = w(i)
         END DO
@@ -597,8 +677,7 @@ CONTAINS
             m = m + 2
         END DO
 
-        WRITE (*, '(4X, "stats%freq(1:3)", T60, G0)') stats%freq(1:3)
-
+        !!Write the normal mode frequencies to a file
         OPEN (FILE='normal_mode_freq.txt', STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
         !Check if file exists
         CALL check_file_open(stat, msg, 'normal_mode_freq.txt')
@@ -607,6 +686,7 @@ CONTAINS
         END DO
         CLOSE (runit)
 
+        !!Write the normal mode displacements to a file
         OPEN (FILE='normal_mode_displ.txt', STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
         !Check if file exists
         CALL check_file_open(stat, msg, 'normal_mode_displ.txt')
@@ -621,6 +701,19 @@ CONTAINS
 
 !***********************************************************************************************!
 !***********************************************************************************************!
+
+    !> @brief Computes the static infrared (IR) spectrum.
+    !>
+    !> This subroutine calculates the IR spectrum using precomputed normal mode
+    !> frequencies and dipole derivatives (∂μ/∂Q) obtained from finite-difference
+    !> static calculations. It converts dipole derivatives to intensities, applies
+    !> Gaussian broadening, and writes the resulting continuous IR spectrum to file.
+    !>
+    !> @param[inout] gs    -- Global settings (contains FWHM and constants)
+    !> @param[inout] sys   -- System data (atomic and molecular information)
+    !> @param[inout] stats -- Static calculation results (frequencies, displacements)
+    !> @param[inout] dips  -- Dipole derivatives along normal modes (∂μ/∂Q)
+    !>
     SUBROUTINE spec_static_ir(gs, sys, stats, dips)
 
         TYPE(global_settings), INTENT(INOUT)        :: gs
@@ -635,30 +728,29 @@ CONTAINS
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE                    :: gamma_sq, data2, freq!,broad
         REAL(kind=dp)                                             :: broad, ir_factor
 
+        !!Allocate
         ALLOCATE (gamma_sq(stats%nmodes), ir_int(stats%nmodes))
-
+        !!Estimate frequency range
         start_freq = 1
         end_freq = INT(MAXVAL(stats%freq) + 1000.0_dp)
         freq_res = INT(end_freq - start_freq)
 
-        WRITE (*, '(4X, "Max freq: ", T60, G0)') MAXVAL(stats%freq)
-        WRITE (*, '(4X, "end_freq: ", T60, I0)') end_freq
-        WRITE (*, '(4X, "freq_res: ", T60, I0)') freq_res
-
+        !!Allcate based on the freq range
         ALLOCATE (data2(freq_res + 1))
         ALLOCATE (freq(freq_res + 1))
+
         data2 = 0.0_dp
 
+        !!Dipole derivatives 
         DO k = 1, stats%nmodes
             gamma_sq(k) = SQRT(DOT_PRODUCT(dips%dip_dq(k, :), dips%dip_dq(k, :)))
         END DO
 
-        !IR factor used in cp2k which is equal to 42.256
-      !! first convert debye²angstrom⁻²amu⁻¹ to C^2/kg then to km/mol
+        ! first convert debye²angstrom⁻²amu⁻¹ to C^2/kg then to km/mol
         ir_factor = (debye2cm/ang)**2.0_dp*avo_num*1.0e-3_dp/(12.0_dp*const_permit*(speed_light*cm2m)**2.0_dp)/am_u
         ir_int(:) = (gamma_sq(:)**2.0_dp)*ir_factor
 
-    !!!Broadening the spectrum!!
+        !Broadening the spectrum
         freq(:) = 0.0_dp
         DO i = start_freq, end_freq
             broad = 0.0_dp
@@ -668,14 +760,8 @@ CONTAINS
             data2(i) = data2(i) + broad
             freq(:) = i
         END DO
-
-        !OPEN (FILE='result_static_ir.txt', STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
-        !!Check if file exists
-        !CALL check_file_open(stat, msg, 'result_static_ir.txt')
-        !DO i = start_freq, end_freq
-        !    WRITE (runit, *) i, data2(i)
-        !END DO
-        !CLOSE (runit)
+        
+        !!Write the results to a file
         c_label = "INT"
         spectra_file_name = "result_static_ir.txt"
         CALL write_spectra_data(spectra_file_name, c_label, freq, data2(:))
@@ -686,6 +772,20 @@ CONTAINS
 
 !***********************************************************************************************!
 !***********************************************************************************************!
+
+    !> @brief Computes the static Raman spectrum from polarizability derivatives.
+    !>
+    !> This subroutine calculates the Raman intensities for each normal mode using the
+    !> isotropic and anisotropic components of the polarizability derivative tensor
+    !> (∂α/∂Q), applies Gaussian broadening, and writes the resulting Raman spectra
+    !> to file. 
+    !>
+    !> @param[inout] gs    -- Global settings (constants, temperature, FWHM)
+    !> @param[inout] sys   -- System structure (atomic data, coordinates)
+    !> @param[inout] stats -- Static calculation results (normal mode frequencies and displacements)
+    !> @param[inout] dips  -- Dipole structure (included for interface consistency)
+    !> @param[inout] rams  -- Raman structure (polarizability derivatives and laser frequencies)
+    !>
     SUBROUTINE spec_static_raman(gs, sys, stats, dips, rams)
 
         TYPE(global_settings), INTENT(INOUT)        :: gs
@@ -694,27 +794,30 @@ CONTAINS
         TYPE(dipoles), INTENT(INOUT)        :: dips
         TYPE(raman), INTENT(INOUT)        :: rams
 
-        INTEGER                                                  :: stat, i, j, x, freq_res, runit, i_laser
-        INTEGER                                                  :: start_freq, end_freq, recl
-        LOGICAL                                                   :: first_column
         CHARACTER(len=str_len)                                      :: msg, fname, outfile, c_label
-        REAL(kind=dp), DIMENSION(:), ALLOCATABLE                    :: iso_sq, aniso_sq, ram_const, data2, freq!,broad
+        LOGICAL                                                   :: first_column
+        INTEGER                                                  :: stat, i, j, x, freq_res, runit, i_laser
+        INTEGER                                                  :: start_freq, end_freq!, recl
         REAL(kind=dp)                                             :: broad
-
+        REAL(kind=dp), DIMENSION(:), ALLOCATABLE                    :: iso_sq, aniso_sq, ram_const, data2, freq!,broad
+ 
+        !!Allocate
         ALLOCATE (iso_sq(stats%nmodes), aniso_sq(stats%nmodes))
         ALLOCATE (rams%raman_int(stats%nmodes), ram_const(stats%nmodes))
 
+        !!Estimate frequency range
         start_freq = 1
         end_freq = INT(MAXVAL(stats%freq) + 1000.0_dp)
         freq_res = INT(end_freq - start_freq)
+        !!Allcate based on the freq range
         ALLOCATE (data2(freq_res + 1))
         ALLOCATE (freq(freq_res + 1))
         data2 = 0.0_dp
-        recl = 4096
+       ! recl = 4096
 
         outfile = 'result_static_raman.txt'
 
-    !!!Isotropic and anisotropic contributions!!
+        !!!Isotropic and anisotropic contributions!!
         iso_sq(:) = REAL((rams%pol_dq(:, 1, 1) + rams%pol_dq(:, 2, 2) + rams%pol_dq(:, 3, 3))/3.0_dp, kind=dp)**2.0_dp
 
         aniso_sq(:) = (0.50_dp*(((rams%pol_dq(:, 1, 1) - rams%pol_dq(:, 2, 2))**2.0_dp) + &
@@ -723,9 +826,10 @@ CONTAINS
                       + (3.0_dp*((rams%pol_dq(:, 1, 2)**2.0_dp) + (rams%pol_dq(:, 2, 3)**2.0_dp) &
                                  + (rams%pol_dq(:, 3, 1)**2.0_dp)))
 
-    !!!Conversion from angstrom^4 amu⁻¹ to m^4 kg -1
+        !!!Conversion from angstrom^4 amu⁻¹ to m^4 kg -1
         iso_sq = iso_sq*(ang**4._dp)/am_u
         aniso_sq = aniso_sq*(ang**4._dp)/am_u
+        !!Different laser wavelengths
         DO i_laser = 1, SIZE(rams%laser_in)
 
             !!! Conversion of static Raman units into 10^{-30}*cm^2/sr
@@ -739,7 +843,7 @@ CONTAINS
 
             data2(:) = 0.0_dp
             freq(:) = 0.0_dp
-            !!! Broadening
+            !!! Apply Gaussian broadening
             DO i = start_freq, end_freq
                 broad = 0.0_dp
                 DO x = 1, stats%nmodes
@@ -750,8 +854,7 @@ CONTAINS
                 data2(i) = broad
             END DO
 
-            ! Label z. B. "laser_1", "laser_2", ...
-
+            !!Write the results to a file
             WRITE (c_label, '("INT ",F10.6, " eV")') rams%laser_in(i_laser)
             IF (i_laser==1) THEN
                 !CALL write_spectra_data(outfile, c_label, start_freq, end_freq, data2(:))
@@ -804,19 +907,36 @@ CONTAINS
 
 !***********************************************************************************************!
 !***********************************************************************************************!
+
+    !> @brief Computes the absorption spectrum from RT-TDDFT polarizabilities.
+    !>
+    !> This subroutine processes time-dependent polarizability data obtained from
+    !> real-time TDDFT (RT-TDDFT) simulations to produce absorption spectra.
+    !> It performs FFTs on the polarizability tensor components, and optionally
+    !> applies Padé interpolation to enhance the spectral resolution.
+    !>
+    !> @param[inout] gs    -- Global settings structure (defines simulation mode and constants)
+    !> @param[inout] sys   -- System data structure (contains atomic information)
+    !> @param[inout] dips  -- Dipole data (provides applied electric field)
+    !> @param[inout] rams  -- Raman/RT-TDDFT data (contains polarizabilities and FFT settings)
+    !>
     SUBROUTINE spec_abs(gs, sys, dips, rams)
+
         TYPE(global_settings), INTENT(INOUT)        :: gs
         TYPE(systems), INTENT(INOUT)        :: sys
         TYPE(dipoles), INTENT(INOUT)        :: dips
         TYPE(raman), INTENT(INOUT)        :: rams
-        CHARACTER(len=256) :: filename, msg, c_label, spectra_file_name
+     
+        CHARACTER(LEN=256)                                     :: filename, msg, c_label, spectra_file_name
         INTEGER                                                       :: stat, i, j, k, m, x, o, dims, dir, runit
-        INTEGER(kind=dp)                                               :: plan
-        REAL(kind=dp)                                                  :: rtp_freq_res, freq_au
-        REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE                   :: trace, abs_intens
-        COMPLEX(kind=dp), DIMENSION(:, :, :, :, :, :), ALLOCATABLE            :: y_out
-        REAL(kind=dp), DIMENSION(:), ALLOCATABLE                            :: freq, abs_int
+        INTEGER(KIND=dp)                                               :: plan
+        REAL(KIND=dp)                                                  :: rtp_freq_res, freq_au
+        REAL(KIND=dp), DIMENSION(:), ALLOCATABLE                            :: freq, abs_int
+        REAL(KIND=dp), DIMENSION(:, :, :, :), ALLOCATABLE                   :: trace, abs_intens
+        COMPLEX(KIND=dp), DIMENSION(:, :, :, :, :, :), ALLOCATABLE            :: y_out
 
+        !! Assign dimensions and displacement directions, if absorption spectrum is requested
+        !! do not perform Pade or FFT for the all shifted structures.
         IF (gs%spectral_type%read_function=='RR') THEN
             dims = 3
             dir = 2
@@ -826,8 +946,9 @@ CONTAINS
             sys%natom = 1
         END IF
 
+        !Allocate
         ALLOCATE (rams%RR%zhat_pol_rtp(sys%natom, dims, dir, 3, 3, rams%RR%framecount_rtp))
-
+        !Initialize
         rams%RR%zhat_pol_rtp = COMPLEX(0._dp, 0.0_dp)
 
         !!!FFT of the RTP polarizabilities
@@ -849,6 +970,7 @@ CONTAINS
             END DO
         END DO
 
+        !!If Pade interpolation is requested
         IF (rams%RR%check_pade=='y') THEN
 
             ALLOCATE (y_out(sys%natom, dims, dir, 3, 3, rams%RR%framecount_rtp_pade))
@@ -867,22 +989,24 @@ CONTAINS
                 END DO
             END DO
 !$OMP END PARALLEL DO
+            !!Reassign the polarizability arrays
             rams%RR%framecount_rtp = rams%RR%framecount_rtp_pade
             rams%RR%zhat_pol_rtp = y_out
             DEALLOCATE (y_out)
         END IF
 
 !!!Dividing by electric field and multiplying by rams%RR%dt_rtp which is coming from FFT
-        !rams%RR%zhat_pol_rtp = rams%RR%zhat_pol_rtp/dips%e_field
         rams%RR%zhat_pol_rtp = rams%RR%zhat_pol_rtp*(rams%RR%dt_rtp*fs2s)/dips%e_field
 
+        !!Find the maximum frequency range in cm^{-1} based on rams%RR%dt_rtp
+        rams%RR%freq_range_rtp = REAL((1.0_dp/(rams%RR%dt_rtp*fs2s))/speed_light, kind=dp)
 !!!Finding frequency range
         rtp_freq_res = REAL(rams%RR%freq_range_rtp/rams%RR%framecount_rtp, kind=dp)
 
 !!!Calculate absorption spectra
+
         ALLOCATE (trace(sys%natom, dims, dir, rams%RR%framecount_rtp))
         ALLOCATE (abs_intens(sys%natom, dims, dir, rams%RR%framecount_rtp))
-
         trace = 0.0_dp
         trace(:, :, :, :) = DIMAG(rams%RR%zhat_pol_rtp(:, :, :, 1, 1, :)) + DIMAG(rams%RR%zhat_pol_rtp(:, :, :, 2, 2, :)) &
                             + DIMAG(rams%RR%zhat_pol_rtp(:, :, :, 3, 3, :))
@@ -890,45 +1014,19 @@ CONTAINS
       !!Conversion of absorption spectrum units into a.u.
         abs_intens(:, :, :, :) = (4.0_dp*pi*debye*trace(:, :, :, :))/(3.0_dp*speed_light_au*at_u)
 
-        ! DO j = 1, sys%natom      !! shifted atom index
-        ! DO i = 1, dims          !! displacement direction
-        ! DO k = 1, dir      !! + / - shift
-        !    Create a unique file name for this shifted structure
-        !  WRITE (filename, '("absorption_spectrum_",I0,"_",I0,"_",I0,".txt")') j, i, k
-        !  OPEN (UNIT=13, FILE=filename, STATUS='unknown', IOSTAT=stat)
-        !  IF (stat /= 0) THEN
-        !     PRINT *, "Error opening file: ", TRIM(filename)
-        !      STOP
-        !    END IF
-
-        !   Loop over time steps to write the full spectrum
-        !     DO o = 1, rams%RR%framecount_rtp
-        !         WRITE (13, *) o*rtp_freq_res*reccm2ev, &
-        !             abs_intens(j, i, k, o)*o*rtp_freq_res*(-1.0_dp)
-        !        END DO
-
-        !         CLOSE (13)  ! close after finishing one structure
-        !       END DO
-        !        END DO
-!      END DO
-
       !! Conversion from cm-1 to a.u.
         freq_au = rtp_freq_res*(-1.0_dp)*reccm2au
-
-        !OPEN (FILE='absorption_spectrum.txt', STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
-        !!Check if file exists
-        !CALL check_file_open(stat, msg, 'absorption_spectrum.txt')
+        
         ALLOCATE (freq(rams%RR%framecount_rtp))
         ALLOCATE (abs_int(rams%RR%framecount_rtp))
-        freq = 0.0_dp
-        abs_int = 0.0_dp
+
+        freq = 0.0_dp; abs_int = 0.0_dp 
+        !!Generate the absorption spectrum
         DO o = 1, rams%RR%framecount_rtp
             freq(o) = o*rtp_freq_res*reccm2ev
-            PRINT *, freq(o)
             abs_int(o) = abs_intens(1, 1, 1, o)*o*freq_au
-            !WRITE (runit, *) o*rtp_freq_res*reccm2ev, abs_intens(j, i, k, o)*o*freq_au
         END DO
-
+        !!Write the results to a file
         c_label = "INT"
         spectra_file_name = "absorption_spectrum.txt"
         CALL write_spectra_data(spectra_file_name, c_label, freq, abs_int, MAXVAL(freq) + 1)
@@ -940,6 +1038,20 @@ CONTAINS
 
 !***********************************************************************************************!
 !***********************************************************************************************!
+
+    !> @brief Computes the static resonance Raman spectrum from frequency-dependent polarizabilities.
+    !>
+    !> This subroutine calculates the resonance Raman (RR) spectrum by evaluating
+    !> frequency-dependent polarizability derivatives with respect to mass-weighted
+    !> normal coordinates. The derivatives are obtained via finite differences of
+    !> RT-TDDFT polarizabilities, projected along each vibrational normal mode, and
+    !> used to compute isotropic and anisotropic contributions.
+    !>
+    !> @param[inout] gs    -- Global settings (temperature, broadening width, constants)
+    !> @param[inout] sys   -- System structure (atoms, masses)
+    !> @param[inout] stats -- Static results (normal mode frequencies, displacements)
+    !> @param[inout] rams  -- Raman/RT-TDDFT data (polarizabilities, laser frequencies, time grids)
+    !>
     SUBROUTINE spec_static_resraman(gs, sys, stats, rams)
 
         TYPE(global_settings), INTENT(INOUT)        :: gs
@@ -957,27 +1069,31 @@ CONTAINS
         COMPLEX(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE                   :: zhat_pol_dq_rtp
         COMPLEX(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE                 :: zhat_pol_dxyz_rtp
 
-        broad = 0.0_dp
+        !!Estimate frequency range
         start_freq = 1.0_dp
         end_freq = INT(MAXVAL(stats%freq) + 1000.0_dp)
         freq_res = INT(end_freq - start_freq)
 
+        !!Allocate
         ALLOCATE (data2(freq_res*stats%nmodes))
         ALLOCATE (freq(freq_res + 1))
         ALLOCATE (zhat_pol_dxyz_rtp(sys%natom, 3, 3, 3, rams%RR%framecount_rtp))
         ALLOCATE (zhat_pol_dq_rtp(stats%nmodes, 3, 3, rams%RR%framecount_rtp))
         ALLOCATE (iso_sq(stats%nmodes, rams%RR%framecount_rtp), aniso_sq(stats%nmodes, rams%RR%framecount_rtp))
         ALLOCATE (raman_int(stats%nmodes, rams%RR%framecount_rtp), ram_const(stats%nmodes))
+
         outfile = 'result_static_resraman.txt'
 
+        !!Finite difference factor
         fin_diff_factor = 1.0_dp/(2.0_dp*stats%dx)
+        !Initialize
         zhat_pol_dq_rtp = (0.0_dp, 0.0_dp)
-        data2 = 0.0_dp
-        freq = 0.0_dp
+        data2 = 0.0_dp ; freq = 0.0_dp ; broad = 0.0_dp
 
+        !!Find the maximum frequency range in cm^{-1} based on rams%RR%dt_rtp
+        rams%RR%freq_range_rtp = REAL((1.0_dp/(rams%RR%dt_rtp*fs2s))/speed_light, kind=dp)
 !!!Finding laser frequency
         rtp_freq_res = REAL(rams%RR%freq_range_rtp/rams%RR%framecount_rtp, kind=dp)
-        !rtp_point = ANINT(rams%laser_in/(rtp_freq_res*reccm2ev), kind=dp)
 
 !!!Finite differences
         zhat_pol_dxyz_rtp(:, :, :, :, :) = (rams%RR%zhat_pol_rtp(:, :, 2, :, :, :) &
@@ -1043,7 +1159,7 @@ CONTAINS
                 freq(x) = x
             END DO
 
-            ! Label z. B. "laser_1", "laser_2", ...
+            !!Writing out the results
             WRITE (c_label, '("INT ",F10.6, " eV")') rams%laser_in(i_laser)
             IF (i_laser==1) THEN
                 !CALL write_spectra_data(outfile, c_label, start_freq, end_freq, data2(:))
@@ -1052,19 +1168,7 @@ CONTAINS
                 !WRITE(c_label,'("INT ",F10.6, " eV")') rams%laser_in(i_laser)
                 CALL append_column(outfile, c_label, data2(:), freq)
             END IF
-
-            !IF (i_laser==1) THEN
-            !    fname = "result_static_resraman.txt"
-            !ELSE
-            !    WRITE (fname, '("result_static_resraman_",I0,".txt")') i_laser
-            !END IF
-            !OPEN (FILE=fname, STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
-            !!Check if file exists
-            !CALL check_file_open(stat, msg, fname)
-            !DO i = start_freq, end_freq
-            !    WRITE (runit, *) i, data2(i)
-            !END DO
-            !CLOSE (runit)
+      
         END DO
         DEALLOCATE (iso_sq, aniso_sq, data2, ram_const, raman_int, stats%disp, stats%freq)
         DEALLOCATE (rams%RR%zhat_pol_rtp, zhat_pol_dxyz_rtp, zhat_pol_dq_rtp)
@@ -1073,6 +1177,21 @@ CONTAINS
 
 !***********************************************************************************************!
 !***********************************************************************************************!
+
+    !> @brief Computes the MD-averaged absorption spectrum from time-dependent dipole data.
+    !>
+    !> This subroutine evaluates the absorption spectrum by performing Fourier transforms
+    !> of time-domain dipole responses along MD trajectories.
+    !> The routine computes polarizabilities under X, Y, and Z electric fields, applies
+    !> FFT (and optional Padé interpolation), averages over MD snapshots, and converts
+    !> the resulting spectra into absorption cross sections.
+    !>
+    !> @param[inout] gs   --  Global settings (defines FFT and Padé parameters)
+    !> @param[inout] sys  --  System structure (MD snapshot data, atom count)
+    !> @param[inout] md   --  Molecular dynamics control structure (trajectory information)
+    !> @param[inout] rams --  Raman/RT-TDDFT data (time-dependent dipoles and polarizabilities)
+    !> @param[inout] dips --  Dipole data (electric field amplitudes and orientation)
+    !>
     SUBROUTINE spec_abs_md(gs, sys, md, rams, dips)
 
         TYPE(global_settings) :: gs
@@ -1086,29 +1205,33 @@ CONTAINS
         INTEGER                                                  :: Nw, Nmd
         INTEGER(kind=dp)                                          :: plan, rtp_point
         REAL(kind=dp)                                             :: f, freq_res, rtp_freq_res, pade_freq_res, laser_in, freq_au
+        REAL(kind=dp), DIMENSION(:), ALLOCATABLE                     :: raman_const, sinc_func, freq
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE                    :: abs_intens, trace_pade, abs_intens_pade
         REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE                  :: trace
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                :: alpha_x, alpha_y, alpha_z
-        REAL(kind=dp), DIMENSION(:), ALLOCATABLE                     :: raman_const, sinc_func, freq
         COMPLEX(kind=dp), DIMENSION(:, :, :), ALLOCATABLE             :: zhat_resraman_x, zhat_resraman_y, zhat_resraman_z
         COMPLEX(kind=dp), DIMENSION(:, :, :), ALLOCATABLE             :: y_out
 
+        !!Remove the unperturbed dipole moment from the array
         Nw = rams%RR%framecount_rtp - 1
         Nmd = sys%framecount
 
+        !!Allocate
         ALLOCATE (zhat_resraman_x(sys%framecount, Nw, 3), zhat_resraman_y(sys%framecount, Nw, 3), zhat_resraman_z(sys%framecount, Nw, 3))
         ALLOCATE (rams%RR%alpha_resraman_x_re(sys%framecount, rams%RR%framecount_rtp, 3), rams%RR%alpha_resraman_y_re(sys%framecount, rams%RR%framecount_rtp, 3), rams%RR%alpha_resraman_z_re(sys%framecount, rams%RR%framecount_rtp, 3))
         ALLOCATE (rams%RR%alpha_resraman_x_im(sys%framecount, rams%RR%framecount_rtp, 3), rams%RR%alpha_resraman_y_im(sys%framecount, rams%RR%framecount_rtp, 3), rams%RR%alpha_resraman_z_im(sys%framecount, rams%RR%framecount_rtp, 3))
 
         ALLOCATE (alpha_x(Nmd, Nw, 3), alpha_y(Nmd, Nw, 3), alpha_z(Nmd, Nw, 3))
 
+        !!Initialize
         zhat_resraman_x = COMPLEX(0._dp, 0.0_dp)
         zhat_resraman_y = COMPLEX(0._dp, 0.0_dp)
         zhat_resraman_z = COMPLEX(0._dp, 0.0_dp)
 
 !!!X-Field!!
+        !!Calculate polarizabilities
         CALL forward_diff(rams%RR%framecount_rtp, alpha_x, rams%RR%dip_x_rtp, rams%RR%dip_x_rtp, gs, sys, dips, rams)
-
+        !!Call FFT 
         DO i = 1, sys%framecount
             DO j = 1, 3
                 CALL dfftw_plan_dft_r2c_1d(plan, Nw, alpha_x(i, 1:Nw, j), zhat_resraman_x(i, 1:Nw, j), FFTW_ESTIMATE)
@@ -1116,7 +1239,7 @@ CONTAINS
                 CALL dfftw_destroy_plan(plan)
             END DO
         END DO
-
+        !!If Pade interpolation is requested
         IF (rams%RR%check_pade=='y') THEN
             ALLOCATE (y_out(Nmd, rams%RR%framecount_rtp_pade, 3))
         !!Call Pade
@@ -1134,7 +1257,7 @@ CONTAINS
 
         !!Multiply by dt_rtp coming from the FFT
         zhat_resraman_x = zhat_resraman_x*rams%RR%dt_rtp*fs2s
-
+        !!Define real and imaginary components of the freq-dependent polarizabilities
         rams%RR%alpha_resraman_x_re = REAL(zhat_resraman_x, kind=dp)
         rams%RR%alpha_resraman_x_im = DIMAG(zhat_resraman_x)
 
@@ -1163,9 +1286,6 @@ CONTAINS
             zhat_resraman_y = y_out
             DEALLOCATE (y_out)
         END IF
-
-!!!Finding laser frequency
-        rtp_freq_res = REAL(rams%RR%freq_range_rtp/Nw, kind=dp)
 
         !!Multiply by dt_rtp coming from the FFT
         zhat_resraman_y = zhat_resraman_y*rams%RR%dt_rtp*fs2s
@@ -1200,6 +1320,7 @@ CONTAINS
             DEALLOCATE (y_out)
         END IF
 
+
         !!Multiply by dt_rtp coming from the FFT
         zhat_resraman_z = zhat_resraman_z*rams%RR%dt_rtp*fs2s
 
@@ -1217,22 +1338,18 @@ CONTAINS
         !!Conversion of absorption spectrum units into a.u.
         abs_intens(:) = abs_intens(:)*(4.0_dp*pi*debye)/(3.0_dp*speed_light_au*at_u)
 
+        !!Find the maximum frequency range in cm^{-1} based on rams%RR%dt_rtp
+        rams%RR%freq_range_rtp = REAL((1.0_dp/(rams%RR%dt_rtp*fs2s))/speed_light, kind=dp)
+        !! Find the frequency resolution
+        rtp_freq_res = REAL(rams%RR%freq_range_rtp/Nw, kind=dp)
         !! Conversion from cm-1 to a.u.
         freq_au = rtp_freq_res*reccm2au
-
-        rtp_freq_res = REAL(rams%RR%freq_range_rtp/Nw, kind=dp)
-
-        !OPEN (FILE='absorption_spectrum_md.txt', STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
-        !!Check if file exists
-        !CALL check_file_open(stat, msg, 'absorption_spectrum_md.txt')
 
         ALLOCATE (freq(Nw))
         DO i = 1, Nw
             abs_intens(i) = abs_intens(i)*i*freq_au
             freq(i) = i*rtp_freq_res*reccm2ev
-            !WRITE (runit, *) i*rtp_freq_res*reccm2ev, abs_intens(i)*i*freq_au
         END DO
-        !CLOSE (runit)
         c_label = "INT"
         spectra_file_name = "absorption_spectrum_md.txt"
         CALL write_spectra_data(spectra_file_name, c_label, freq, abs_intens, MAXVAL(freq) + 1)
@@ -1245,6 +1362,22 @@ CONTAINS
 
 !***********************************************************************************************!
 !***********************************************************************************************!
+
+    !> @brief Computes the resonance Raman spectrum from time-dependent polarizabilities.
+    !>
+    !> This subroutine calculates resonance Raman (RR) spectra using time-dependent
+    !> polarizability tensors obtained from real-time TDDFT (RT-TDDFT) simulations,
+    !> averaged over molecular dynamics (MD) trajectories. It performs central
+    !> differentiation of polarizabilities, constructs isotropic and anisotropic
+    !> autocorrelation functions, and evaluates the resulting Raman intensities for
+    !> multiple laser excitation energies.
+    !>
+    !> @param[inout] gs    -- Global settings (temperature, FFT/sinc parameters, constants)
+    !> @param[inout] sys   -- System structure (atoms, MD frame count)
+    !> @param[inout] md    -- Molecular dynamics data (time step, correlation length)
+    !> @param[inout] rams  -- Raman/RT-TDDFT data (polarizabilities, correlation arrays, laser energies)
+    !> @param[inout] dips  -- Dipole/electric field information
+    !>
     SUBROUTINE spec_resraman(gs, sys, md, rams, dips)
 
         TYPE(global_settings) :: gs
@@ -1257,7 +1390,7 @@ CONTAINS
         INTEGER                                                  :: stat, i, j, k, m, runit, i_laser
         INTEGER                                                  :: Nw, Nmd
         INTEGER(kind=dp)                                          :: plan, rtp_point
-        REAL(kind=dp)                                             :: f, freq_res, rtp_freq_res, pade_freq_res, laser_in
+        REAL(kind=dp)                                             :: f, freq_res, freq_range, rtp_freq_res, pade_freq_res, laser_in
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE                    :: trace, abs_intens, trace_pade, abs_intens_pade
         REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE                  :: zhat_unpol_resraman
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE                     :: raman_const, sinc_func, freq
@@ -1271,35 +1404,39 @@ CONTAINS
 
         Nmd = sys%framecount - 2
 
+        !!Allocate
         ALLOCATE (rams%RR%alpha_resraman_x_diff_re(Nmd, Nw, 3), rams%RR%alpha_resraman_y_diff_re(Nmd, Nw, 3), rams%RR%alpha_resraman_z_diff_re(Nmd, Nw, 3))
         ALLOCATE (rams%RR%alpha_resraman_x_diff_im(Nmd, Nw, 3), rams%RR%alpha_resraman_y_diff_im(Nmd, Nw, 3), rams%RR%alpha_resraman_z_diff_im(Nmd, Nw, 3))
-
         ALLOCATE (freq(0:2*md%t_cor), raman_const(0:2*md%t_cor))
 
-!!!X-Field!!
+!!Time derivatives of polarizabilities under electric field in the X-direction
         CALL central_diff(Nw, rams%RR%alpha_resraman_x_re, rams%RR%alpha_resraman_x_diff_re, sys, md)
         CALL central_diff(Nw, rams%RR%alpha_resraman_x_im, rams%RR%alpha_resraman_x_diff_im, sys, md)
 
-!!!Y-Field!!
+!!Time derivatives of polarizabilities under electric field in the Y-direction
         CALL central_diff(Nw, rams%RR%alpha_resraman_y_re, rams%RR%alpha_resraman_y_diff_re, sys, md)
         CALL central_diff(Nw, rams%RR%alpha_resraman_y_im, rams%RR%alpha_resraman_y_diff_im, sys, md)
-!
-!!!Z-Field!!
+
+!!Time derivatives of polarizabilities under electric field in the Z-direction
         CALL central_diff(Nw, rams%RR%alpha_resraman_z_re, rams%RR%alpha_resraman_z_diff_re, sys, md)
         CALL central_diff(Nw, rams%RR%alpha_resraman_z_im, rams%RR%alpha_resraman_z_diff_im, sys, md)
 
-!!!Generate the spectrum!!
+        !!Complex auto-correlation functions
         CALL cvv_resraman(sys, md, rams)
 
+        !! Allocate
         ALLOCATE (zhat_iso_resraman(0:md%t_cor*2, Nw), zhat_aniso_resraman(0:md%t_cor*2, Nw))
         ALLOCATE (zhat_unpol_resraman(0:md%t_cor*2, Nw))
-
+        !!Initialize
         zhat_iso_resraman = COMPLEX(0._dp, 0.0_dp)
         zhat_aniso_resraman = COMPLEX(0._dp, 0.0_dp)
 
-!!!Finding laser frequency
+        !!Find the maximum frequency range in cm^{-1} based on rams%RR%dt_rtp
+        rams%RR%freq_range_rtp = REAL((1.0_dp/(rams%RR%dt_rtp*fs2s))/speed_light, kind=dp)
+        !! Find the frequency resolution
         rtp_freq_res = REAL(rams%RR%freq_range_rtp/Nw, kind=dp)
 
+        !!Loop over laser frequencies        
         DO i_laser = 1, SIZE(rams%laser_in)
             rtp_point = ANINT(rams%laser_in(i_laser)/(rtp_freq_res*reccm2ev), kind=dp)
             CALL dfftw_plan_dft_1d(plan, 2*md%t_cor, rams%RR%z_iso_resraman(0:2*md%t_cor, rtp_point), zhat_iso_resraman(0:2*md%t_cor, rtp_point), &
@@ -1313,18 +1450,21 @@ CONTAINS
             CALL dfftw_destroy_plan(plan)
 
         END DO
-!!!Finding frequency range
-        freq_res = REAL(md%freq_range/(2*md%t_cor), kind=dp)
-        f = freq_res*md%dt*1.883652d-4
 
-!!!!!UNPOLARIZED!!!!
+        !Determine the maximum frequency range in cm^{-1} based on `md%dt`
+        freq_range = REAL((1.0_dp/(md%dt*fs2s))/speed_light, kind=dp)
+        !Determine the frequency resolution
+        freq_res = REAL(freq_range/(2.0_dp*md%t_cor), kind=dp)
+        !!Sinc factor
+        f = freq_res*md%dt*sinc_factor
+
+!!!!!Unpolarized Raman intensities 
 !Unit conversion of Debye^2/(E^2*s^2) into C^4*s^2/kg^2
         zhat_iso_resraman(:, :) = zhat_iso_resraman(:, :)*debye2cm*debye2cm/(au2vm*au2vm)
         zhat_aniso_resraman(:, :) = zhat_aniso_resraman(:, :)*debye2cm*debye2cm/(au2vm*au2vm)
-
-        !OPEN (FILE='resonance_raman_unpol.txt', STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
-        !CALL check_file_open(stat, msg, 'resonance_raman_unpol.txt')
+        !!Loop over different laser frequencies
         DO i_laser = 1, SIZE(rams%laser_in)
+            !!calculate RTP point for each laser wavelength
             rtp_point = ANINT(rams%laser_in(i_laser)/(rtp_freq_res*reccm2ev), kind=dp)
             DO i = 0, 2*md%t_cor - 1
                 freq(i) = i*freq_res
@@ -1337,27 +1477,25 @@ CONTAINS
                                      (1.0_dp/(1.0_dp - EXP(-1._dp*const_planck*speed_light*cm2m*freq(i)/ &
                                                            (const_boltz*gs%temp))))*2.0_dp
                 END IF
+                !!Apply sinc functions
                 zhat_iso_resraman(i + 1, rtp_point) = (zhat_iso_resraman(i + 1, rtp_point))*(f*(i + 1)/SIN(f*(i + 1)))**2._dp
                 zhat_aniso_resraman(i + 1, rtp_point) = (zhat_aniso_resraman(i + 1, rtp_point))*(f*(i + 1)/SIN(f*(i + 1)))**2._dp
-
+                !!Generate the spectrum
                 zhat_unpol_resraman(i, rtp_point) = REAL(zhat_iso_resraman(i, rtp_point) + (zhat_aniso_resraman(i, rtp_point)*7.0_dp/45.0_dp), KIND=dp)*raman_const(i)
 
                 zhat_unpol_resraman(0, rtp_point) = 0.0_dp
 
-                !IF ((i*freq_res).GE.5000.0_dp) CYCLE
-                !WRITE (runit, *) i*freq_res, zhat_unpol_resraman(i, rtp_point)
             END DO
 
+            !!Writing out the files
             outfile = "resonance_raman_unpol.txt"
             WRITE (c_label, '("INT ",F10.6, " eV")') rams%laser_in(i_laser)
             IF (i_laser==1) THEN
                 CALL write_spectra_data(outfile, c_label, freq, zhat_unpol_resraman(:, rtp_point), 5000.0_dp)
             ELSE
-                !WRITE(c_label,'("INT ",F10.6, " eV")') rams%laser_in(i_laser)
                 CALL append_column(outfile, c_label, zhat_unpol_resraman(:, rtp_point), freq, 5000.0_dp)
             END IF
         END DO
-        !CLOSE (runit)
 
         DEALLOCATE (zhat_iso_resraman, zhat_aniso_resraman, zhat_unpol_resraman, freq, raman_const)
 
