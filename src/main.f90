@@ -14,6 +14,26 @@
 !   limitations under the License.
 !
 
+
+!> @brief Main driver program for Vibrant.
+!>
+!> Controls the execution of all Vibrant workflows for vibrational and electronic
+!> spectroscopy simulations, including IR, Raman, resonance Raman, and absorption
+!> spectra based on static or molecular dynamics data.
+!>
+!> Initializes all data structures, parses input files and user options,
+!> determines the calculation type from `read_function`, and gives
+!> tasks to specialized routines for reading data, performing finite-difference
+!> calculations, and generating spectra.
+!>
+!> After a completed process, all allocated arrays are deallocated and timing statistics are reported.
+!>
+!> @authors
+!>   Ekin E. Winogradow, Johannes Scheffler, Moritz Leucke, Dorothea Golze
+!>
+!> @license
+!>   Apache License 2.0
+!>
 PROGRAM vib2d
 
     USE, INTRINSIC           :: ISO_C_BINDING
@@ -42,7 +62,7 @@ PROGRAM vib2d
     INCLUDE 'fftw3.f03'
 
     INTEGER                                         :: num_threads
-    CHARACTER(LEN=str_len)          :: input_file_name
+    CHARACTER(LEN=str_len)                          :: input_file_name
 
     ! Variables of your derived types:
     TYPE(global_settings) :: gs
@@ -59,6 +79,7 @@ PROGRAM vib2d
     num_threads = omp_get_num_threads()
 !$omp end parallel
 
+    !!Initialize
     CALL init_global_settings(gs)
     CALL init_systems(sys)
     CALL init_molecular_dynamics(md)
@@ -66,13 +87,17 @@ PROGRAM vib2d
     CALL init_raman(rams)
     CALL output_config_info()
 
+    !Parsing of the input
     CALL parse_command_line(input_file_name)
     CALL parse_input(gs, sys, md, stats, dips, rams, input_file_name)
     WRITE (*, '(90A, /)') REPEAT("-", 90)
     CALL check_input(gs, sys, md, stats, dips, rams)
     WRITE (*, '(90A)') REPEAT("-", 90)
 
-!!    !***************************************************************************
+    !***************************************************************************!
+    !***************************************************************************!
+
+    !!Power spectrum
     IF (gs%spectral_type%read_function=='P') THEN
         CALL timings%register("reading coordinates")
         CALL read_coord(sys%filename, gs, sys, dips)
@@ -80,8 +105,10 @@ PROGRAM vib2d
         CALL masses_charges(sys)
         CALL timings%register("calculating power spectrum")
         CALL spec_power(gs, sys, md)
-!        !***************************************************************************
-!        !***************************************************************************
+    !***************************************************************************!
+    !***************************************************************************!
+
+    !!MD-based IR spectrum
     ELSEIF (gs%spectral_type%read_function=='MD-IR') THEN
         CALL timings%register("reading coordinates")
         CALL read_coord(dips%dip_file, gs, sys, dips)
@@ -91,9 +118,10 @@ PROGRAM vib2d
 
         CALL timings%register("calculating IR spectrum")
         CALL spec_ir(gs, sys, md, dips)
-!        !***************************************************************************
-!
-!        !***************************************************************************
+    !***************************************************************************!
+    !***************************************************************************!
+
+    !!MD-based Raman spectrum
     ELSEIF (gs%spectral_type%read_function=='MD-R') THEN
         !   sys%filename = wannier_free! <----  MUST BE ADJUSTED
         IF (dips%type_dipole=='berry' .OR. dips%type_dipole=='wannier') THEN
@@ -108,9 +136,11 @@ PROGRAM vib2d
 
         CALL timings%register("calculating raman spectrum")
         CALL spec_raman(gs, sys, md, dips, rams)
-        !***************************************************************************
 
-        !***************************************************************************
+    !***************************************************************************!
+    !***************************************************************************!
+
+    !!Normal mode analysis
     ELSEIF (gs%spectral_type%read_function=='NMA') THEN
         CALL timings%register("reading coordinates")
         CALL read_coord(sys%filename, gs, sys, dips)
@@ -120,9 +150,10 @@ PROGRAM vib2d
         CALL read_normal_modes(gs, sys, stats)
         CALL timings%register("normal mode analysis")
         CALL normal_mode_analysis(sys, stats)
-!        !***************************************************************************
-!
-!        !***************************************************************************
+    !***************************************************************************!
+    !***************************************************************************!
+
+    !!Static IR spectrum
     ELSEIF (gs%spectral_type%read_function=='IR') THEN
         CALL timings%register("reading coordinates")
         CALL read_coord(sys%filename, gs, sys, dips)
@@ -141,9 +172,10 @@ PROGRAM vib2d
 
         CALL timings%register("calculating IR spectrum")
         CALL spec_static_ir(gs, sys, stats, dips)
-!        !***************************************************************************
-!
-!        !***************************************************************************
+    !***************************************************************************!
+    !***************************************************************************!
+
+    !!Static Raman spectrum
     ELSEIF (gs%spectral_type%read_function=='R') THEN
         CALL timings%register("reading coordinates")
         CALL read_coord(sys%filename, gs, sys, dips)
@@ -162,9 +194,11 @@ PROGRAM vib2d
 
         CALL timings%register("calculate Raman spectrum")
         CALL spec_static_raman(gs, sys, stats, dips, rams)
-!        !***************************************************************************
-!
-!        !***************************************************************************
+    
+    !***************************************************************************!
+    !***************************************************************************!
+
+    !!Absorption spectrum
     ELSEIF (gs%spectral_type%read_function=='ABS') THEN
         CALL timings%register("reading coordinates")
         CALL read_coord(sys%filename, gs, sys, dips)
@@ -177,8 +211,10 @@ PROGRAM vib2d
 
         CALL timings%register("calculate absorption spectrum")
         CALL spec_abs(gs, sys, dips, rams)
-        !***************************************************************************
-        !***************************************************************************
+    !***************************************************************************!
+    !***************************************************************************!
+
+    !!Static resonance Raman spectrum
     ELSEIF (gs%spectral_type%read_function=='RR') THEN
         CALL timings%register("reading coordinates")
         CALL read_coord(sys%filename, gs, sys, dips)
@@ -203,8 +239,10 @@ PROGRAM vib2d
 
         CALL timings%register("calculate resonance Raman spectrum")
         CALL spec_static_resraman(gs, sys, stats, rams)
-        !***************************************************************************
-        !***************************************************************************
+    !***************************************************************************!
+    !***************************************************************************!
+
+    !!MD-averaged absorption spectrum
     ELSEIF (gs%spectral_type%read_function=='MD-ABS') THEN
         CALL timings%register("reading initial coordinates")
         CALL read_coord(dips%dip_x_file, gs, sys, dips, rams)
@@ -214,8 +252,10 @@ PROGRAM vib2d
         CALL read_coord_frame(rams%RR%framecount_rtp, dips%dip_z_file, rams%RR%dip_z_rtp, sys)
         CALL timings%register("calculate MD-based absorption spectrum")
         CALL spec_abs_md(gs, sys, md, rams, dips)
-        !***************************************************************************
-        !***************************************************************************
+    !***************************************************************************!
+    !***************************************************************************!
+
+    !!MD-based resonance Raman spectrum
     ELSEIF (gs%spectral_type%read_function=='MD-RR') THEN
         CALL timings%register("reading initial coordinates")
         CALL read_coord(dips%dip_x_file, gs, sys, dips, rams)
@@ -229,8 +269,9 @@ PROGRAM vib2d
         CALL spec_resraman(gs, sys, md, rams, dips)
     END IF
 
+    !!Report all timings
     CALL timings%report_all()
-
+    !!Deallocate arrays
     CALL deallocate_types(gs, sys, md, stats, rams, dips)
 
 END PROGRAM vib2d
