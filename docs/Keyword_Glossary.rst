@@ -2,6 +2,10 @@
 Keyword Glossary
 ================
 
+All Keywords and sections are listed here:
+:math:`\omega = 2\pi f`
+
+
 .. code::
 
     &global
@@ -32,21 +36,32 @@ Keyword Glossary
 
 
 
-Block: system
+
+Block: global
 -------------
 
+.. keyword:: spectra
+   :section: global
+   :type: string
+   :default: None
+
+   This is the spectra type. Possible values are: MD-RR, MD-RT, RR, RT, FT....
+
 .. keyword:: temperature
-   :section: system
+   :section: global
    :type: float
    :default: 300.0
-   :unit: Kelvin
+   :unit: K
 
-   Temperature in Kelvin used for sampling.
+   This is the Temperature. with formula :math:`\omega = 2\pi f`.
 
-.. keyword:: pressure
-   :section: system
+Block: raman
+-------------
+
+.. keyword:: laser_in
+   :section: raman
    :type: float
-   :default: 23.2
-   :unit: kPa
+   :default: 1.17
+   :unit: eV
 
-   This is the Pressure. with formula $pV=nRT$.
+   This is some number for the laser, dont know the unit...
