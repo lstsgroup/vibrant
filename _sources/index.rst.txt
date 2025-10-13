@@ -22,6 +22,7 @@ Documentation of Ekin's very cool code.
 
    Installation
    Usage
+   Keyword_Glossary
    Cite
    Contribute
 
