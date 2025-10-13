@@ -1,0 +1,19 @@
+.keyword-entry {
+    background-color: #f9fafc;
+    border-left: 4px solid #4caf50;
+    padding: 10px 16px;
+    margin: 12px 0;
+    border-radius: 6px;
+}
+
+.keyword-entry p {
+    margin: 2px 0;
+}
+
+.keyword-entry strong {
+    color: #222;
+}
+
+.keyword-entry em {
+    color: #555;
+}
