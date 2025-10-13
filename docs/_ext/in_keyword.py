@@ -39,15 +39,14 @@ class KeywordDirective(Directive):
 
         # Build text block for nested parsing
         text = [
-            f"**{section} :: {keyword}**",
+            f"{section} :: **{keyword}**",
             "",
-            f"   **Type**: {type_}",
-            f"   **Default**: {default}",
+            f"   **Type**: {type_}\n",
+            f"   **Default**: {default}\n",
         ]
         if unit:
-            text.append(f"   **Unit**: {unit}")
-        text.append("")
-        text.append(f"   {description}")
+            text.append(f"   **Unit**: {unit}\n")
+        text.append(f"\n   {description}")
 
         content = StringList(text)
 
