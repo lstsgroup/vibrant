@@ -43,6 +43,7 @@ class KeywordDirective(Directive):
         target_name = f'keyword-{keyword.lower()}'
         target_node = nodes.target('', '', ids=[target_name])
         self.state.document.note_explicit_target(target_node)
+        self.state.document.note_target(target_node)
 
         # Store info in the node (for HTML visitor)
         node = KeywordNode()
