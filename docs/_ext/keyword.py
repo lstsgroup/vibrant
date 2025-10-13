@@ -1,7 +1,10 @@
 from docutils import nodes
 from docutils.parsers.rst import Directive, directives
+from docutils.statemachine import StringList
 
-class KeywordNode(nodes.General, nodes.Element): pass
+class KeywordNode(nodes.General, nodes.Element):
+    """Custom node for input keyword entries."""
+    pass
 
 def visit_keyword_node_html(self, node):
     self.body.append(self.starttag(node, 'div', CLASS='keyword-entry'))
@@ -18,15 +21,23 @@ class KeywordDirective(Directive):
         keyword = self.arguments[0]
         type_ = self.options.get('type', '')
         description = '\n'.join(self.content)
+
+        # Build the reST content block that will be parsed into nodes
+        text = [
+            f"**{keyword}**",
+            "",
+            f"   *Type:* {type_}",
+            f"   {description}",
+        ]
+        content = StringList(text)
+
         node = KeywordNode()
-        text = f"**{keyword}**\n\n   *Type:* {type_}\n   {description}"
-        self.state.nested_parse(
-            self.state.input_lines.__class__([text]),
-            self.content_offset,
-            node
-        )
+        self.state.nested_parse(content, self.content_offset, node)
         return [node]
 
 def setup(app):
-    app.add_node(KeywordNode, html=(visit_keyword_node_html, depart_keyword_node_html))
+    app.add_node(
+        KeywordNode,
+        html=(visit_keyword_node_html, depart_keyword_node_html)
+    )
     app.add_directive("keyword", KeywordDirective)
