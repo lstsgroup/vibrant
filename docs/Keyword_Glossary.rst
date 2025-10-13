@@ -2,8 +2,8 @@
 Keyword Glossary
 ================
 
-All Keywords and sections are listed here:
-:math:`\omega = 2\pi f`
+All Keywords and sections are listed here :ref:`the temperature keyword <keyword-temperature>`:
+
 
 
 .. code::

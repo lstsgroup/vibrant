@@ -12,7 +12,7 @@ def visit_keyword_node_html(self, node):
     section = node.get('section', '')
     keyword = node.get('keyword', '')
     self.body.append(
-        f"<div class='keyword-entry'>"
+        f"<div class='keyword-entry' id='{node['target_id']}'>"
         f"<div class='keyword-header'>{section} :: <strong>{keyword}</strong></div>"
     )
 
@@ -40,13 +40,15 @@ class KeywordDirective(Directive):
         description = '\n'.join(self.content)
 
         # Create a target for cross-referencing
-        target_id = f'keyword-{keyword.lower()}'
-        target_node = nodes.target('', '', ids=[target_id])
+        target_name = f'keyword-{keyword.lower()}'
+        target_node = nodes.target('', '', ids=[target_name])
+        self.state.document.note_explicit_target(target_node)
 
         # Store info in the node (for HTML visitor)
         node = KeywordNode()
         node['section'] = section
         node['keyword'] = keyword
+        node['target_id'] = target_name
 
         # Build reST for type/default/unit/description
         text = [
