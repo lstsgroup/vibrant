@@ -21,6 +21,7 @@ Documentation of Ekin's very cool code.
    :caption: Contents:
 
    Installation
+   IR_spec
    Usage
    Cite
    Contribute
