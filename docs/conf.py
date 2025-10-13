@@ -1,3 +1,9 @@
+import os
+import sys
+
+# Path to your Sphinx extensions
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '_ext')))
+
 # Configuration file for the Sphinx documentation builder.
 #
 # For the full list of built-in configuration values, see the documentation:
