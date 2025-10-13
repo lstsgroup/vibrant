@@ -59,4 +59,3 @@ html_theme_options = dict(
     dark_mode = False,
 )
 html_static_path = ['_static']
-extensions = ['_ext.keyword']
