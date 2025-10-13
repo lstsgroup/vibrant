@@ -3,6 +3,9 @@ import sys
 
 # Path to your Sphinx extensions
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '_ext')))
+print(">>> CONF FILE DIR:", os.path.dirname(__file__))
+print(">>> CURRENT WORKING DIR:", os.getcwd())
+print(">>> sys.path:", sys.path[:3])
 
 # Configuration file for the Sphinx documentation builder.
 #
