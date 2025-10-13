@@ -41,12 +41,12 @@ class KeywordDirective(Directive):
         text = [
             f"{section} :: **{keyword}**",
             "",
-            f"   **Type**: {type_}\n",
-            f"   **Default**: {default}\n",
+            f"   **Type**: {type_}<br>",
+            f"   **Default**: {default}<br>",
         ]
         if unit:
-            text.append(f"   **Unit**: {unit}\n")
-        text.append(f"\n   {description}")
+            text.append(f"   **Unit**: {unit}<br>")
+        text.append(f"<br>   {description}")
 
         content = StringList(text)
 
