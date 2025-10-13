@@ -2,17 +2,23 @@ from docutils import nodes
 from docutils.parsers.rst import Directive, directives
 from docutils.statemachine import StringList
 
+
 class KeywordNode(nodes.General, nodes.Element):
     """Custom node for input keyword entries."""
     pass
 
 
 def visit_keyword_node_html(self, node):
-    self.body.append(self.starttag(node, 'div', CLASS='keyword-entry'))
+    section = node.get('section', '')
+    keyword = node.get('keyword', '')
+    self.body.append(
+        f"<div class='keyword-entry'>"
+        f"<div class='keyword-header'>{section} :: <strong>{keyword}</strong></div>"
+    )
 
 
 def depart_keyword_node_html(self, node):
-    self.body.append('</div>')
+    self.body.append("</div>")  # closes .keyword-entry
 
 
 class KeywordDirective(Directive):
@@ -33,27 +39,27 @@ class KeywordDirective(Directive):
         unit = self.options.get('unit', None)
         description = '\n'.join(self.content)
 
-        # Build a unique ID for referencing
+        # Create a target for cross-referencing
         target_id = f'keyword-{keyword.lower()}'
         target_node = nodes.target('', '', ids=[target_id])
 
-        # Build text block for nested parsing
+        # Store info in the node (for HTML visitor)
+        node = KeywordNode()
+        node['section'] = section
+        node['keyword'] = keyword
+
+        # Build reST for type/default/unit/description
         text = [
-            f"{section} :: **{keyword}**",
-            "",
-            f"   **Type**: {type_}<br>",
-            f"   **Default**: {default}<br>",
+            f"- **Type**: {type_}",
+            f"- **Default**: {default}",
         ]
         if unit:
-            text.append(f"   **Unit**: {unit}<br>")
-        text.append(f"<br>   {description}")
+            text.append(f"- **Unit**: {unit}")
+        text += ["", description]
 
         content = StringList(text)
-
-        node = KeywordNode()
         self.state.nested_parse(content, self.content_offset, node)
 
-        # Return both target and node to allow :ref: linking
         return [target_node, node]
 
 
