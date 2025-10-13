@@ -6,16 +6,17 @@
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
-        <title>IR Spectra &mdash; vibrant  documentation</title>
+        <title>Keyword Glossary &mdash; vibrant  documentation</title>
     
     <link rel="stylesheet" type="text/css" href="_static/dist/fontawesome.css" />
       <link rel="stylesheet" type="text/css" href="_static/dist/theme.css?v=310cf088" />
       <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="_static/keyword.css?v=8400b90f" />
             <link rel="index" title="Index" href="genindex.html" />
             <link rel="search" title="Search" href="search.html" />
             <link rel="top" title="vibrant  documentation" href="#" />
-            <link rel="next" title="Usage" href="Usage.html" />
-            <link rel="prev" title="Installation" href="Installation.html" />
+            <link rel="next" title="Cite" href="Cite.html" />
+            <link rel="prev" title="Usage" href="Usage.html" />
     </head>
 <body>
     <script type="text/javascript" src="_static/dist/blocking.js"></script>
@@ -61,8 +62,8 @@
         <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="Installation.html">Installation</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">IR Spectra</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Usage.html">Usage</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Keyword Glossary</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Cite.html">Cite</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Contribute.html">Contribute</a></li>
 </ul>
@@ -85,7 +86,7 @@
                         <nav aria-label="breadcrumb">
     <ol class="breadcrumb m-0 p-0 bg-transparent">
         <li class="breadcrumb-item"><a href="index.html">Docs</a></li>
-        <li class="breadcrumb-item active" aria-current="page">IR Spectra</li>
+        <li class="breadcrumb-item active" aria-current="page">Keyword Glossary</li>
     </ol>
 </nav>
                     </div>
@@ -97,11 +98,11 @@
                             <span class="dark-only"><i class="fas fa-sun"></i> Light mode</span>
                             <span class="light-only"><i class="fas fa-moon"></i> Dark mode</span>
                         </button>
-    <a class="btn btn-sm btn-light text-decoration-none" href="https://github.com/lstsgroup/vibrant/tree/main/srcIR_spec.md" rel="nofollow">
+    <a class="btn btn-sm btn-light text-decoration-none" href="https://github.com/lstsgroup/vibrant/tree/main/srcKeyword_Glossary.rst" rel="nofollow">
         <span class="btn-icon"><span class="fab fa-github"></span></span>
         <span class="btn-text">Edit on GitHub</span>
     </a>
-    <a class="btn btn-sm btn-light text-decoration-none" href="_sources/IR_spec.md.txt" rel="nofollow">
+    <a class="btn btn-sm btn-light text-decoration-none" href="_sources/Keyword_Glossary.rst.txt" rel="nofollow">
         <span class="btn-icon"><span class="fas fa-code"></span></span>
         <span class="btn-text">View source</span>
     </a>
@@ -116,94 +117,29 @@
                 <div class="row">
                     <div class="col-12 col-lg-9 order-last order-lg-first rst-content">
                         <main role="main" id="main">
-    <section id="ir-spectra">
-<h1>IR Spectra<a class="headerlink" href="#ir-spectra" title="Link to this heading">¶</a></h1>
-<p>The infrared (IR) spectrum calculation in Vibrant is based on the post-processing of the dipole moments or Wannier centers. The IR intensities are computed using the following equation:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mkdir<span class="w"> </span>build<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>build<span class="w"> </span>
-cmake<span class="w"> </span>..
-make<span class="w"> </span>-j<span class="w"> </span><span class="m">5</span>
-</pre></div>
-</div>
-<p>Optional: Test if the installation is working as expected by typing</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>ctest<span class="w"> </span>
-</pre></div>
-</div>
-<p>in the build directory to run the regression tests.</p>
-<section id="install-options">
-<h2>Install options<a class="headerlink" href="#install-options" title="Link to this heading">¶</a></h2>
-<p>Options can be passed to cmake via an <code class="docutils literal notranslate"><span class="pre">initial_cache.cmake</span></code> file:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake<span class="w"> </span>-C<span class="w"> </span>../initial_cache.cmake<span class="w"> </span>..
-</pre></div>
-</div>
-<p>e.g to specify a dependency path (for more options see <code class="docutils literal notranslate"><span class="pre">initial_cache.example.cmake</span></code>):</p>
-<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nb">set</span><span class="p">(</span><span class="s">BLAS_LIBRARY_DIR</span><span class="w"> </span><span class="s2">&quot;/path/to/BLAS&quot;</span><span class="w"> </span><span class="s">CACHE</span><span class="w"> </span><span class="s">PATH</span><span class="w"> </span><span class="s2">&quot;Path to BLAS library directory&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>Within this file the dependency paths, the compiler, the compiler flags etc. can be specified. For more options see <code class="docutils literal notranslate"><span class="pre">initial_cache.example.cmake</span></code>.</p>
-</section>
-<section id="dependencies">
-<h2>Dependencies<a class="headerlink" href="#dependencies" title="Link to this heading">¶</a></h2>
-<table class="docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"><p>Dependency</p></th>
-<th class="head"><p>Version</p></th>
-<th class="head"><p>Comment</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>LAPACK (e.g. OpenBLAS)</p></td>
-<td><p>(&gt;0.3)</p></td>
-<td><p>Required, if no path provided then cmake tries to find the library</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference external" href="https://www.fftw.org/">FFTW</a></p></td>
-<td><p>&gt;3.3</p></td>
-<td><p>Required, if no path provided then installed together with vibrant</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference external" href="https://github.com/nomad-coe/greenX">GreenX</a></p></td>
-<td><p>v2.0</p></td>
-<td><p>Required, if no path provided then installed together with vibrant</p></td>
-</tr>
-<tr class="row-odd"><td><p>Python</p></td>
-<td><p>&gt;3.10</p></td>
-<td><p>Required, only if <code class="docutils literal notranslate"><span class="pre">ENABLE_REGRESSION_TESTS</span></code> is <code class="docutils literal notranslate"><span class="pre">ON</span></code></p></td>
-</tr>
-</tbody>
-</table>
-</section>
-<section id="regression-test">
-<h2>Regression test<a class="headerlink" href="#regression-test" title="Link to this heading">¶</a></h2>
-<p>The regression tests can be run by running the following in the build directory after <code class="docutils literal notranslate"><span class="pre">vibrant</span></code> was build:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ctest</span> 
-</pre></div>
-</div>
-</section>
-</section>
+    <section id="keyword-glossary">
+<h1>Keyword Glossary<a class="headerlink" href="#keyword-glossary" title="Link to this heading">¶</a></h1>
+<p>See also <span class="xref std std-ref">keyword-temperature</span>.</p>
+<div class="keyword-entry" id="keyword-temperature">
+<p><strong>system :: temperature</strong></p>
+<blockquote>
+<div><p><strong>Type</strong>: float
+<strong>Default</strong>: 300.0
+<strong>Unit</strong>: Kelvin</p>
+<p>Temperature in Kelvin used for sampling.</p>
+</div></blockquote>
+</div></section>
 
 </main>
                         <nav aria-label="Page navigation" class="py-4 my-5 clearfix font-weight-bold border-top">
-    <a class="float-left" href="Installation.html" title="Previous">
-        <span aria-hidden="true">←&nbsp;</span>Installation
+    <a class="float-left" href="Usage.html" title="Previous">
+        <span aria-hidden="true">←&nbsp;</span>Usage
     </a>
-    <a class="float-right" href="Usage.html" title="Next">
-        Usage <span aria-hidden="true">&nbsp;→</span>
+    <a class="float-right" href="Cite.html" title="Next">
+        Cite <span aria-hidden="true">&nbsp;→</span>
     </a>
 </nav>
                     </div>
-                    
-                    <nav class="col-12 col-lg-3 pb-4">
-                        <div class="sticky-top toc page-toc" aria-labelledby="page-toc-heading">
-                            <p class="font-weight-bold" id="page-toc-heading">Page contents</p>
-                            <ul>
-<li><a class="reference internal" href="#">IR Spectra</a><ul>
-<li><a class="reference internal" href="#install-options">Install options</a></li>
-<li><a class="reference internal" href="#dependencies">Dependencies</a></li>
-<li><a class="reference internal" href="#regression-test">Regression test</a></li>
-</ul>
-</li>
-</ul>
-
-                        </div>
-                    </nav>
                     
                 </div>
             </div>
