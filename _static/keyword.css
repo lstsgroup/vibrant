@@ -6,14 +6,20 @@
     border-radius: 6px;
 }
 
-.keyword-entry p {
-    margin: 2px 0;
+.keyword-header {
+    background-color: #73c1e5;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 4px;
+    margin-bottom: 6px;
+    font-family: monospace;
 }
 
-.keyword-entry strong {
-    color: #222;
+.keyword-entry ul {
+    margin: 0;
+    padding-left: 18px;
 }
 
-.keyword-entry em {
-    color: #555;
+.keyword-entry li {
+    list-style-type: none;
 }
