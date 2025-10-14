@@ -48,6 +48,7 @@ Block: global
    This is the spectra type. Possible values are: MD-RR, MD-RT, RR, RT, FT....
 
 .. _kw-temperature:
+
 .. keyword:: temperature
    :section: global
    :type: float
