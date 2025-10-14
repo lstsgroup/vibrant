@@ -38,7 +38,7 @@ source_suffix = {
 }
 
 myst_enable_extensions = [
-    "restructuredtext_environments"
+    "dollarmath"
 ]
 
 
