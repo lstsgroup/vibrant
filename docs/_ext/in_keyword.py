@@ -46,6 +46,15 @@ class KeywordDirective(Directive):
 
         #label_node = nodes.section(ids=[target_name])
         #self.state.document.note_explicit_target(label_node)
+            # Register the label for :ref: role
+        env = self.state.document.settings.env
+        if not hasattr(env, 'labels'):
+            env.labels = {}
+        env.labels[target_name] = (
+            env.docname,  # current document name
+            target_name,  # anchor id
+            keyword       # display name
+        )
 
         # Store info in the node (for HTML visitor)
         node = KeywordNode()
