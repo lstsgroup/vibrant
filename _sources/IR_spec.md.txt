@@ -6,9 +6,10 @@ The infrared (IR) spectrum calculation in Vibrant is based on the post-processin
 
 The static IR calculation in Vibrant relies on the normal mode analysis within the harmonic approximation. The static IR intensities are computed from the derivatives of the dipole moments $\boldsymbol{\mu}$ with respect to the mass-weighted normal coordinates $Q_{p}$. The following equation is used to generate the final static IR spectrum [static IR spectrum](https://onlinelibrary.wiley.com/doi/full/10.1002/jcc.10089):
 
-```math 
+$$ 
 I_{\textnormal{IR}}(\tilde{\nu}_p) = \frac{N_{A} }{12\varepsilon _{0}c^{2}}\left ( \frac{\partial \boldsymbol{\mu} }{\partial Q_{p}} \right )^{2}
-```
+$$
+
 where $\varepsilon_{0}$ is the vacuum permittivity, $N_{A}$ is the Avogadro constant and $c$ is the speed of light. $\tilde{\nu_{p}}$ is the wavenumber defined as $\tilde{\nu_{p}}=\nu_{p}/c$. The final static IR intensities are reported in km/mol. 
 
 
@@ -29,9 +30,10 @@ For each displaced structure (see Section [Frequencies](frequency.md) for detail
 
 In the MD-based IR calculation, the dipole moment derivatives along the normal mode coordinates $Q_{p}$ are replaced with the [time derivatives of the dipole moment autocorrelation functions](https://pubs.rsc.org/en/content/articlehtml/2013/cp/c3cp44302g). We applied fast Fourier transformations to the time-domain dipole autocorrelations using the [FFTW](https://www.fftw.org/) library to convert them into the frequency-domain. The following equation is used to generate the final MD-based IR spectrum:
 
-```math
+$$
 I_{\textnormal{IR}} (\tilde{\nu}) = \frac{2N_{A}}{12\varepsilon _{0}ck_{B}T}\int_{-\infty }^{\infty }\left \langle \dot{\boldsymbol{\mu} }(\tau )\cdot \dot{\boldsymbol{\mu} }(\tau+t ) \right \rangle_{\tau}\exp(-2\pi c\tilde{\nu}t)dt 
-```
+$$
+
 where $\varepsilon_{0}$ is the vacuum permittivity, $N_{A}$ is the Avogadro constant, $c$ is the speed of light, $k_{B}$ is the Boltzmann constant, $T$ is the temperature and $\tilde{\nu}$ is the wavenumber. The final MD-based IR intensities are reported in K.cm.km/mol.
 
 The MD-based IR intensities can be computed either from the Berry phase dipole moments or Wannier centers. The latter can also be used to extract spectra of user-specified molecular blocks or fragments.
