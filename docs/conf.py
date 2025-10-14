@@ -13,7 +13,15 @@ author = 'Ekin Esme Bas'
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-extensions = ["sphinx_wagtail_theme", 'myst_parser']
+extensions = [
+    "sphinx_wagtail_theme",
+    "myst_parser",
+    "sphinx.ext.mathjax",
+]
+
+myst_enable_extensions = [
+    "dollarmath",
+]
 
 exclude_patterns = []
 
