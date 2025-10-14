@@ -42,10 +42,10 @@ class KeywordDirective(Directive):
         # Create a target for cross-referencing
         target_name = f'keyword-{keyword.lower()}'
         target_node = nodes.target('', '', ids=[target_name])
-        #self.state.document.note_explicit_target(target_node)
+        self.state.document.note_explicit_target(target_node)
 
-        label_node = nodes.section(ids=[target_name])
-        self.state.document.note_explicit_target(label_node)
+        #label_node = nodes.section(ids=[target_name])
+        #self.state.document.note_explicit_target(label_node)
 
         # Store info in the node (for HTML visitor)
         node = KeywordNode()
