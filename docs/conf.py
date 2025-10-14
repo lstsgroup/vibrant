@@ -37,6 +37,11 @@ source_suffix = {
     '.md': 'markdown',
 }
 
+myst_enable_extensions = [
+    "restructuredtext_environments"
+]
+
+
 
 
 # -- Options for HTML output -------------------------------------------------
