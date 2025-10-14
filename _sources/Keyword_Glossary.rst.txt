@@ -69,4 +69,4 @@ Block: raman
    This is some number for the laser, dont know the unit...
 
 
-is the link working? :ref:`the temperature keyword <kw-temperature>`
+is the link working? :keyword:`temperature` :ref:`the temperature keyword <kw-temperature>`
