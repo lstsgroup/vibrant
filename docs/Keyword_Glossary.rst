@@ -47,6 +47,7 @@ Block: global
 
    This is the spectra type. Possible values are: MD-RR, MD-RT, RR, RT, FT....
 
+.. _kw-temperature:
 .. keyword:: temperature
    :section: global
    :type: float
@@ -67,4 +68,4 @@ Block: raman
    This is some number for the laser, dont know the unit...
 
 
-is the link working? :ref:`the temperature keyword <keyword-temperature>`
+is the link working? :ref:`the temperature keyword <kw-temperature>`
