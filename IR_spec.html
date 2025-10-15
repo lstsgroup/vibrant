@@ -64,6 +64,7 @@
 <li class="toctree-l1"><a class="reference internal" href="frequency.html">Frequencies</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">IR spectra</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Raman_spec.html">Raman spectra</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fragments.html">Subspectra for MD-based calculations</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Usage.html">Usage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Cite.html">Cite</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Contribute.html">Contribute</a></li>
@@ -204,7 +205,12 @@ I_{\textnormal{IR}} (\tilde{\nu}) = \frac{2N_{A}}{12\varepsilon _{0}ck_{B}T}\int
 <section id="c-dipole-moment-types">
 <h2>c) Dipole moment types<a class="headerlink" href="#c-dipole-moment-types" title="Link to this heading">¶</a></h2>
 <p>As stated above, the MD-based IR intensities can be computed either from the Berry phase dipole moments (for the whole supercell) or Wannier centers. The <a class="reference external" href="https://journals.aps.org/prb/abstract/10.1103/PhysRevB.47.1651">Berry phase dipole moment</a> describes the overall polarization of a periodic system by tracking how the electronic wavefunctions change across the supercell, giving a consistent way to define dipoles in materials with periodic boundaries.</p>
-<p>Wannier functions are localized orbitals obtained from a unitary transformation of Bloch states; <a class="reference external" href="https://journals.aps.org/prb/abstract/10.1103/PhysRevB.56.12847">maximally localized Wannier functions</a> (MLWFs) apply an optimization procedure to achieve the most localized and unique representation. Wannier centers are the cartesian coordinates of the MLWFs in real-space.</p>
+<p>Wannier functions are localized orbitals obtained from a unitary transformation of Bloch states; <a class="reference external" href="https://journals.aps.org/prb/abstract/10.1103/PhysRevB.56.12847">maximally localized Wannier functions</a> (MLWFs) apply an optimization procedure to achieve the most localized and unique representation. Wannier centers are the cartesian coordinates of the MLWFs in real-space. The dipole moments can be computed through Wannier centers employing:</p>
+<div class="math notranslate nohighlight">
+\[
+\boldsymbol{\mu}^{\text{MLWF}}=-2e\sum_{i}^{}\mathbf{\tilde{r}}_{i}^{\mathrm{WC}} + e\sum_{i}Z_{i}\mathbf{\tilde{R}}_{i}
+\]</div>
+<p>where the distance vectors <span class="math notranslate nohighlight">\(\mathbf{\tilde{r}}_{i}^{\mathrm{WC}} = \mathbf{r}_i^{\mathrm{WC}}-\mathbf{r}_0\)</span> and <span class="math notranslate nohighlight">\(\mathbf{\tilde{R}}_{i} =  \mathbf{R}_i-\mathbf{r}_0\)</span> are implemented with periodic boundary conditions (PBCs) and <span class="math notranslate nohighlight">\(\mathbf{r}_0\)</span> is a reference point, which is the center of mass in Vibrant. <span class="math notranslate nohighlight">\(\mathbf{R}_{i}\)</span> and <span class="math notranslate nohighlight">\(Z_{i}\)</span> denote the atomic positions and charges, respectively.</p>
 <blockquote>
 <div><p>💡 <strong>Note:</strong> The static IR intensities currently can only be computed from the Berry phase dipole moments provided for the whole system.</p>
 </div></blockquote>
@@ -222,7 +228,7 @@ I_{\textnormal{IR}} (\tilde{\nu}) = \frac{2N_{A}}{12\varepsilon _{0}ck_{B}T}\int
 <span class="p">&amp;</span>end<span class="w"> </span>dipoles
 </pre></div>
 </div>
-<p>The Wannier centers can be used to compute the dipole moment of the whole supercell, however they can also be used to extract spectra of user-specified molecular blocks or fragments, which is discussed in the section (….)</p>
+<p>The Wannier centers can be used to compute the dipole moment of the whole supercell, however they can also be used to extract spectra of user-specified molecular blocks or fragments, which is discussed in Section <a class="reference internal" href="fragments.html"><span class="std std-doc">Subspectra for MD-based calculations</span></a>.</p>
 <p>More information on the all available keywords can be found on Section .. and all complete example input files are available on ….</p>
 </section>
 </section>

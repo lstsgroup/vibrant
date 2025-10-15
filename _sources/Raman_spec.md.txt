@@ -202,6 +202,6 @@ More details on the format of the dipole moment files can be found at ...
 
 > ⚠️ **Warning:** Similar to the MD-based IR spectra, the MD-based spectrum should contain the `cell` subsection alongside the `md` section if the induced dipole method is selected. For more details, please Section [IR Spectra](IR_spec.md).
 
-> 💡 **Note:** The Wannier centers can be used to compute the dipole moment and consequently the polarizability of the whole supercell, however they can also be used to extract the spectra of user-specified molecular blocks or fragments, which is discussed in the section (....)
+> 💡 **Note:** The Wannier centers can be used to compute the dipole moment and consequently the polarizability of the whole supercell, however they can also be used to extract the spectra of user-specified molecular blocks or fragments, which is discussed in Section [Subspectra for MD-based calculations](fragments.md).
 
 More information on the all available keywords can be found on Section .. and all complete example input files are available on ....
