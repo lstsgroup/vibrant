@@ -23,6 +23,7 @@ Documentation of Ekin's very cool code.
    Installation
    frequency 
    IR_spec
+   Raman_spec
    Usage
    Cite
    Contribute

@@ -63,6 +63,7 @@
 <li class="toctree-l1"><a class="reference internal" href="Installation.html">Installation</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Frequencies</a></li>
 <li class="toctree-l1"><a class="reference internal" href="IR_spec.html">IR spectra</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Raman_spec.html">Raman spectra</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Usage.html">Usage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Cite.html">Cite</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Contribute.html">Contribute</a></li>
@@ -147,7 +148,7 @@ V = V_0 + \sum_i^{3N} \left(\frac{\partial V}{\partial u_i}\right)_0 u_i + \frac
 <span class="w">  </span><span class="p">&amp;</span>hessian
 <span class="w">   </span>force_file<span class="w"> </span><span class="o">{</span><span class="nv">$force_file_name</span><span class="o">}</span>
 <span class="w">  </span><span class="p">&amp;</span>end<span class="w"> </span>hessian
-<span class="w">  </span>displacement<span class="w"> </span><span class="m">0</span>.001
+<span class="w">  </span>displacement<span class="w"> </span><span class="o">{</span><span class="nv">$amount_of_displacement</span><span class="o">}</span>
 <span class="p">&amp;</span>end<span class="w"> </span>static
 </pre></div>
 </div>
@@ -155,12 +156,25 @@ V = V_0 + \sum_i^{3N} \left(\frac{\partial V}{\partial u_i}\right)_0 u_i + \frac
 </section>
 <section id="b-power-spectrum">
 <h2>b) Power spectrum<a class="headerlink" href="#b-power-spectrum" title="Link to this heading">¶</a></h2>
-<p>The MD-based equivalent of obtaining all frequencies irrespective of IR or Raman selection rules is to compute the power spectrum. The power spectrum can be computed from the autocorrelation functions of the time derivatives of particle velocities, which are usually available in an MD simulation. Alternatively, particle velocities can also be obtained from the derivatives of the position vectors with respect to the time step. This means that simply providing an MD position trajectory would be enough to generate a Power spectrum. Applying fast Fourier transformation using the <a class="reference external" href="https://www.fftw.org/">FFTW</a> library to the sum of velocity autocorrelation functions in a system gives the power spectrum for that system, as shown below with the <a class="reference external" href="https://link.springer.com/book/10.1007/978-3-319-49628-3">equation</a>:</p>
+<p>The MD-based equivalent of obtaining all frequencies irrespective of IR or Raman selection rules is to compute the power spectrum. The power spectrum can be computed from the autocorrelation functions of the time derivatives of particle velocities, which are usually available in an MD simulation. The general equation for an <a class="reference external" href="https://books.google.de/books?hl=tr&amp;amp;lr=&amp;amp;id=WFExDwAAQBAJ&amp;amp;oi=fnd&amp;amp;pg=PP1&amp;amp;dq=Allen,+M.+P.%3B+Tildesley,+D.+J.+Computer+Simulation+of+Liquids%3B+Oxford+University+Press,+2017&amp;amp;ots=VHTE8WLE4Q&amp;amp;sig=RLNU7BubcNGC06Bihq6BcmwR2K0&amp;amp;redir_esc=y#v=onepage&amp;amp;q=Allen%2C%20M.%20P.%3B%20Tildesley%2C%20D.%20J.%20Computer%20Simulation%20of%20Liquids%3B%20Oxford%20University%20Press%2C%202017&amp;amp;f=false">autocorrelation function</a> is as follows:</p>
+<div class="math notranslate nohighlight">
+\[
+\left\langle A(\tau) A(\tau + t) \right\rangle_{\tau}
+= \int A(\tau) A(\tau + t)\, d\tau
+\approx \frac{1}{\tau_{\textnormal{max}}} \sum_{\tau=1}^{\tau_{\textnormal{max}}} A(\tau) A(\tau + t)
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(\tau\)</span> and <span class="math notranslate nohighlight">\(t\)</span> refer to the times for two different snapshots and <span class="math notranslate nohighlight">\(\tau_{\textnormal{max}}\)</span> is the correlation depth, which is an input parameter (specified with the <code class="docutils literal notranslate"><span class="pre">correlation_depth</span></code> keyword in the Vibrant input file).</p>
+<p>Alternatively, particle velocities can also be obtained from the derivatives of the position vectors with respect to the time step. This means that simply providing an MD position trajectory would be enough to generate a Power spectrum. Applying fast Fourier transformation using the <a class="reference external" href="https://www.fftw.org/">FFTW</a> library to the sum of velocity autocorrelation functions in a system gives the power spectrum for that system, as shown below with the <a class="reference external" href="https://link.springer.com/book/10.1007/978-3-319-49628-3">equation</a>:</p>
 <div class="math notranslate nohighlight">
 \[
 P(\omega ) =  \frac{2c}{3k_{B}}\int_{-\infty }^{\infty } \left&lt; \dot{r}(\tau )\dot{r}(t+\tau )\right&gt;_{\tau }e^{-i\omega t}dt
 \]</div>
-<p>where <span class="math notranslate nohighlight">\(\omega\)</span> is the angular frequency, <span class="math notranslate nohighlight">\(c\)</span> is the speed of light, <span class="math notranslate nohighlight">\(\dot{r}\)</span> is the time derivative of the position and <span class="math notranslate nohighlight">\(\tau\)</span> and <span class="math notranslate nohighlight">\(t\)</span> stand for the times for two different snapshots. The final power intensities are given in K.cm.</p>
+<p>where <span class="math notranslate nohighlight">\(\omega\)</span> is the angular frequency, <span class="math notranslate nohighlight">\(c\)</span> is the speed of light, <span class="math notranslate nohighlight">\(\dot{r}\)</span> is the time derivative of the position and <span class="math notranslate nohighlight">\(\tau\)</span> and <span class="math notranslate nohighlight">\(t\)</span> stand for the times for two different snapshots. The time-derivative of any property is evaluated through central finite differences:</p>
+<div class="math notranslate nohighlight">
+\[
+\dot{x} = \frac{\delta x(t)}{\delta t} \approx \frac{x(t+\Delta t)-x(t-\Delta t)}{2\Delta t}
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(\Delta t\)</span> refers to the time step between the selected equidistant MD snapshots and <span class="math notranslate nohighlight">\(x\)</span> is a component of <span class="math notranslate nohighlight">\(\boldsymbol{\alpha}\)</span>.</p>
 <p>Power spectrum calculation in Vibrant can be revoked by adding the section:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>...
 <span class="p">&amp;</span>global
@@ -178,6 +192,7 @@ P(\omega ) =  \frac{2c}{3k_{B}}\int_{-\infty }^{\infty } \left&lt; \dot{r}(\tau 
 </pre></div>
 </div>
 <p>where <code class="docutils literal notranslate"><span class="pre">$type_traj</span></code> can be specified by user as <code class="docutils literal notranslate"><span class="pre">pos</span></code> or <code class="docutils literal notranslate"><span class="pre">vel</span></code> standing for “positions” or “velocities”. Upon request, Vibrant can compute the mass-weighted power spectrum as well, which is controlled by the keyword <code class="docutils literal notranslate"><span class="pre">mass_weighting</span></code>. <code class="docutils literal notranslate"><span class="pre">$mass_weighting_flag</span></code> can be specified as <code class="docutils literal notranslate"><span class="pre">y</span></code> or <code class="docutils literal notranslate"><span class="pre">n</span></code> standing for “yes” or “no”.</p>
+<p>The final power intensities are given in K.cm.</p>
 </section>
 </section>
 

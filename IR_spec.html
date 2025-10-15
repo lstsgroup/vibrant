@@ -14,7 +14,7 @@
             <link rel="index" title="Index" href="genindex.html" />
             <link rel="search" title="Search" href="search.html" />
             <link rel="top" title="vibrant  documentation" href="#" />
-            <link rel="next" title="Usage" href="Usage.html" />
+            <link rel="next" title="Raman spectra" href="Raman_spec.html" />
             <link rel="prev" title="Frequencies" href="frequency.html" />
     </head>
 <body>
@@ -63,6 +63,7 @@
 <li class="toctree-l1"><a class="reference internal" href="Installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="frequency.html">Frequencies</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">IR spectra</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Raman_spec.html">Raman spectra</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Usage.html">Usage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Cite.html">Cite</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Contribute.html">Contribute</a></li>
@@ -127,18 +128,41 @@
 \[ 
 I_{\textnormal{IR}}(\tilde{\nu}_p) = \frac{N_{A} }{12\varepsilon _{0}c^{2}}\left ( \frac{\partial \boldsymbol{\mu} }{\partial Q_{p}} \right )^{2}
 \]</div>
-<p>where <span class="math notranslate nohighlight">\(\varepsilon_{0}\)</span> is the vacuum permittivity, <span class="math notranslate nohighlight">\(N_{A}\)</span> is the Avogadro constant and <span class="math notranslate nohighlight">\(c\)</span> is the speed of light. <span class="math notranslate nohighlight">\(\tilde{\nu_{p}}\)</span> is the wavenumber defined as <span class="math notranslate nohighlight">\(\tilde{\nu_{p}}=\nu_{p}/c\)</span>. The final static IR intensities are reported in km/mol.</p>
+<p>where <span class="math notranslate nohighlight">\(\varepsilon_{0}\)</span> is the vacuum permittivity, <span class="math notranslate nohighlight">\(N_{A}\)</span> is the Avogadro constant and <span class="math notranslate nohighlight">\(c\)</span> is the speed of light. <span class="math notranslate nohighlight">\(\tilde{\nu_{p}}\)</span> is the wavenumber defined as <span class="math notranslate nohighlight">\(\tilde{\nu_{p}}=\nu_{p}/c\)</span>.</p>
 <p>For each displaced structure (see Section <a class="reference internal" href="frequency.html"><span class="std std-doc">Frequencies</span></a> for details) the user must provide the dipole moments appended in a single file (see File Formats for more details.) For the derivatives along the normal modes, the user can either provide the normal mode coordinates or alternatively the forces for each displaced structure, together with the cartesian coordinates of the optimized geometry. An example input section for the static section may look like:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>...
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="p">&amp;</span>global
+<span class="w"> </span>spectra<span class="w"> </span>IR
+<span class="w"> </span>fwhm<span class="w"> </span><span class="o">{</span><span class="nv">$full_width_at_half_maximum</span><span class="o">}</span>
+<span class="p">&amp;</span>end<span class="w"> </span>global
+<span class="p">&amp;</span>system
+<span class="w"> </span>filename<span class="w"> </span><span class="o">{</span><span class="nv">$optimized_geometry_file_name</span><span class="o">}</span>
+<span class="p">&amp;</span>end<span class="w"> </span>system
 <span class="p">&amp;</span>static
 <span class="w"> </span>diag_hessian<span class="w"> </span>y
 <span class="w"> </span><span class="p">&amp;</span>hessian
 <span class="w">  </span>force_file<span class="w"> </span><span class="o">{</span><span class="nv">$FORCE_FILE_NAME</span><span class="o">}</span>
 <span class="w"> </span><span class="p">&amp;</span>end<span class="w"> </span>hessian
-<span class="w"> </span>displacement<span class="w"> </span><span class="m">0</span>.001
+<span class="w"> </span>displacement<span class="w"> </span><span class="o">{</span><span class="nv">$amount_of_displacement</span><span class="o">}</span>
 <span class="p">&amp;</span>end<span class="w"> </span>static
 </pre></div>
 </div>
+<p>or if the user want to skip the Hessian diagonalization and give the normal mode frequencies and eigenvectors externally, the input section becomes:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="p">&amp;</span>global
+<span class="w"> </span>spectra<span class="w"> </span>IR
+<span class="w"> </span>fwhm<span class="w"> </span><span class="o">{</span><span class="nv">$full_width_at_half_maximum</span><span class="o">}</span>
+<span class="p">&amp;</span>end<span class="w"> </span>global
+<span class="p">&amp;</span>system
+<span class="w"> </span>filename<span class="w"> </span><span class="o">{</span><span class="nv">$optimized_geometry_file_name</span><span class="o">}</span>
+<span class="p">&amp;</span>end<span class="w"> </span>system
+<span class="p">&amp;</span>static
+<span class="w"> </span>diag_hessian<span class="w"> </span>n
+<span class="w"> </span>normal_freq_file<span class="w"> </span><span class="o">{</span><span class="nv">$normal_mode_frequency_file</span><span class="o">}</span>
+<span class="w"> </span>normal_displ_file<span class="w"> </span><span class="o">{</span><span class="nv">$normal_mode_displacement_file</span><span class="o">}</span>
+<span class="w"> </span>displacement<span class="w"> </span><span class="o">{</span><span class="nv">$amount_of_displacement</span><span class="o">}</span>
+<span class="p">&amp;</span>end<span class="w"> </span>static
+</pre></div>
+</div>
+<p>Vibrant applies Gaussian broadening to the final discrete set of frequencies and intensities. The <code class="docutils literal notranslate"><span class="pre">fwhm</span></code> keyword controls the full width at half maximum (FWHM) value in cm <span class="math notranslate nohighlight">\({^{-1}}\)</span> and if not specified, it is set to 5 cm <span class="math notranslate nohighlight">\({^{-1}}\)</span>. The final static IR intensities are reported in km/mol.</p>
 </section>
 <section id="b-md-based-ir-intensities">
 <h2>b) MD-based IR intensities<a class="headerlink" href="#b-md-based-ir-intensities" title="Link to this heading">¶</a></h2>
@@ -152,23 +176,30 @@ I_{\textnormal{IR}} (\tilde{\nu}) = \frac{2N_{A}}{12\varepsilon _{0}ck_{B}T}\int
 <blockquote>
 <div><p>⚠️ <strong>Warning:</strong> The MD-based spectrum should contain the <code class="docutils literal notranslate"><span class="pre">cell</span></code> subsection alongside the <code class="docutils literal notranslate"><span class="pre">md</span></code> section. Because the dipole moment in periodic systems is <a class="reference external" href="https://www.cambridge.org/de/universitypress/subjects/physics/condensed-matter-physics-nanoscience-and-mesoscopic-physics/berry-phases-electronic-structure-theory-electric-polarization-orbital-magnetization-and-topological-insulators?format=HB&amp;amp;isbn=9781107157651">ill-defined</a> (i.e. only defined modulo a polarization quantum), it may exhibit discontinuous jumps. Vibrant automatically detects and corrects these jumps by subtracting the integer multiples of polarization quantum, ensuring continuous dipole trajectories. <code class="docutils literal notranslate"><span class="pre">cell</span></code> subsection provides the cell parameters which are necessary to calculate the polarization quantum.</p>
 </div></blockquote>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>...
+<p>An example input section may look like:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="p">&amp;</span>global
+<span class="w"> </span>spectra<span class="w"> </span>MD-IR
+<span class="p">&amp;</span>end<span class="w"> </span>global
 <span class="p">&amp;</span>system
 <span class="w"> </span><span class="p">&amp;</span>cell
-<span class="w">  </span>box_x<span class="w"> </span><span class="m">15</span>.100
-<span class="w">  </span>box_y<span class="w"> </span><span class="m">15</span>.100
-<span class="w">  </span>box_z<span class="w"> </span><span class="m">20</span>.172
-<span class="w">  </span>angle_alpha<span class="w"> </span><span class="m">90</span>
-<span class="w">  </span>angle_beta<span class="w"> </span><span class="m">90</span>
-<span class="w">  </span>angle_gamma<span class="w"> </span><span class="m">120</span><span class="w"> </span>
+<span class="w">  </span>box_x<span class="w"> </span><span class="o">{</span><span class="nv">$x_vector_of_cell</span><span class="o">}</span>
+<span class="w">  </span>box_y<span class="w"> </span><span class="o">{</span><span class="nv">$y_vector_of_cell</span><span class="o">}</span>
+<span class="w">  </span>box_z<span class="w"> </span><span class="o">{</span><span class="nv">$z_vector_of_cell</span><span class="o">}</span>
+<span class="w">  </span>angle_alpha<span class="w"> </span><span class="o">{</span><span class="nv">$angle_between_x_and_z</span><span class="o">}</span>
+<span class="w">  </span>angle_beta<span class="w"> </span><span class="o">{</span><span class="nv">$angle_between_y_and_z</span><span class="o">}</span>
+<span class="w">  </span>angle_gamma<span class="w"> </span><span class="o">{</span><span class="nv">$angle_between_x_and_y</span><span class="o">}</span>
 <span class="w"> </span><span class="p">&amp;</span>end<span class="w"> </span>cell
 <span class="p">&amp;</span>end<span class="w"> </span>system
 <span class="p">&amp;</span>md
-<span class="w"> </span>time_step<span class="w"> </span><span class="m">2</span>.5
-<span class="w"> </span>correlation_depth<span class="w"> </span><span class="m">64</span>
+<span class="w"> </span>time_step<span class="w"> </span><span class="o">{</span><span class="nv">$MD_time_step</span><span class="o">}</span>
+<span class="w"> </span>correlation_depth<span class="w"> </span><span class="o">{</span><span class="nv">$correlation_depth</span><span class="o">}</span>
 <span class="p">&amp;</span>end<span class="w"> </span>md
 </pre></div>
 </div>
+<section id="processing-of-the-final-spectra">
+<h3>Processing of the final spectra<a class="headerlink" href="#processing-of-the-final-spectra" title="Link to this heading">¶</a></h3>
+<p>Vibrant applies several procedures to improve the spectral resolution. It applies <a class="reference external" href="https://www.sciencedirect.com/science/article/pii/S0377042700003484">finite difference correction</a> via dividing the intensities by the sinc function <span class="math notranslate nohighlight">\(\left(\frac{\sin(\tilde{\nu} \Delta t)}{\tilde{\nu} t} \right )^{2}\)</span>. Additionally, in order to increase the spectral resolution, Vibrant applies <a class="reference external" href="https://link.springer.com/book/10.1007/978-3-319-49628-3?utm_medium=referral&amp;amp;utm_source=google_books&amp;amp;utm_campaign=3_pier05_buy_print&amp;amp;utm_content=en_08082017">“data mirroring”</a> to the autocorrelation functions. This done by appending the data set in reverse order to the original data set. Vibrant also employs <a class="reference external" href="https://link.springer.com/book/10.1007/978-3-319-49628-3?utm_medium=referral&amp;amp;utm_source=google_books&amp;amp;utm_campaign=3_pier05_buy_print&amp;amp;utm_content=en_08082017">Hann Window</a> function to further improve the resolution. This is achieved by multiplying the autocorrelation data with <span class="math notranslate nohighlight">\(\displaystyle\cos^{2}[\pi/(2\tau_{\textnormal{max}}-2)]\)</span> before performing the Fourier transformations. <span class="math notranslate nohighlight">\(\tau_{\text{max}}\)</span> corresponds to the correlation depth.</p>
+</section>
 </section>
 <section id="c-dipole-moment-types">
 <h2>c) Dipole moment types<a class="headerlink" href="#c-dipole-moment-types" title="Link to this heading">¶</a></h2>
@@ -201,8 +232,8 @@ I_{\textnormal{IR}} (\tilde{\nu}) = \frac{2N_{A}}{12\varepsilon _{0}ck_{B}T}\int
     <a class="float-left" href="frequency.html" title="Previous">
         <span aria-hidden="true">←&nbsp;</span>Frequencies
     </a>
-    <a class="float-right" href="Usage.html" title="Next">
-        Usage <span aria-hidden="true">&nbsp;→</span>
+    <a class="float-right" href="Raman_spec.html" title="Next">
+        Raman spectra <span aria-hidden="true">&nbsp;→</span>
     </a>
 </nav>
                     </div>
@@ -213,7 +244,10 @@ I_{\textnormal{IR}} (\tilde{\nu}) = \frac{2N_{A}}{12\varepsilon _{0}ck_{B}T}\int
                             <ul>
 <li><a class="reference internal" href="#">IR spectra</a><ul>
 <li><a class="reference internal" href="#a-static-ir-intensities">a) Static IR intensities</a></li>
-<li><a class="reference internal" href="#b-md-based-ir-intensities">b) MD-based IR intensities</a></li>
+<li><a class="reference internal" href="#b-md-based-ir-intensities">b) MD-based IR intensities</a><ul>
+<li><a class="reference internal" href="#processing-of-the-final-spectra">Processing of the final spectra</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#c-dipole-moment-types">c) Dipole moment types</a></li>
 </ul>
 </li>
