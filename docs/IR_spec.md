@@ -10,8 +10,7 @@ $$
 I_{\textnormal{IR}}(\tilde{\nu}_p) = \frac{N_{A} }{12\varepsilon _{0}c^{2}}\left ( \frac{\partial \boldsymbol{\mu} }{\partial Q_{p}} \right )^{2}
 $$
 
-where $\varepsilon_{0}$ is the vacuum permittivity, $N_{A}$ is the Avogadro constant and $c$ is the speed of light. $\tilde{\nu_{p}}$ is the wavenumber defined as $\tilde{\nu_{p}}=\nu_{p}/c$. 
-
+where $\varepsilon_{0}$ is the vacuum permittivity, $N_{A}$ is the Avogadro constant and $c$ is the speed of light. $\tilde{\nu_{p}}$ is the wavenumber defined as $\tilde{\nu_{p}}=\nu_{p}/c$.
 
 For each displaced structure (see Section [Frequencies](frequency.md) for details) the user must provide the dipole moments appended in a single file (see File Formats for more details.) For the derivatives along the normal modes, the user can either provide the normal mode coordinates or alternatively the forces for each displaced structure, together with the cartesian coordinates of the optimized geometry. An example input section for the static section may look like:
 
@@ -31,6 +30,7 @@ For each displaced structure (see Section [Frequencies](frequency.md) for detail
  displacement {$amount_of_displacement}
 &end static
 ``` 
+
 or if the user want to skip the Hessian diagonalization and give the normal mode frequencies and eigenvectors externally, the input section becomes:
 
 ```bash
@@ -48,6 +48,7 @@ or if the user want to skip the Hessian diagonalization and give the normal mode
  displacement {$amount_of_displacement}
 &end static
 ``` 
+
 Vibrant applies Gaussian broadening to the final discrete set of frequencies and intensities. The `fwhm` keyword controls the full width at half maximum (FWHM) value in cm ${^{-1}}$ and if not specified, it is set to 5 cm ${^{-1}}$. The final static IR intensities are reported in km/mol. 
 
 ## b) MD-based IR intensities
@@ -94,7 +95,13 @@ Vibrant applies several procedures to improve the spectral resolution. It applie
 
 As stated above, the MD-based IR intensities can be computed either from the Berry phase dipole moments (for the whole supercell) or Wannier centers. The [Berry phase dipole moment](https://journals.aps.org/prb/abstract/10.1103/PhysRevB.47.1651) describes the overall polarization of a periodic system by tracking how the electronic wavefunctions change across the supercell, giving a consistent way to define dipoles in materials with periodic boundaries.
 
-Wannier functions are localized orbitals obtained from a unitary transformation of Bloch states; [maximally localized Wannier functions](https://journals.aps.org/prb/abstract/10.1103/PhysRevB.56.12847) (MLWFs) apply an optimization procedure to achieve the most localized and unique representation. Wannier centers are the cartesian coordinates of the MLWFs in real-space.
+Wannier functions are localized orbitals obtained from a unitary transformation of Bloch states; [maximally localized Wannier functions](https://journals.aps.org/prb/abstract/10.1103/PhysRevB.56.12847) (MLWFs) apply an optimization procedure to achieve the most localized and unique representation. Wannier centers are the cartesian coordinates of the MLWFs in real-space. The dipole moments can be computed through Wannier centers employing:
+
+$$
+\boldsymbol{\mu}^{\text{MLWF}}=-2e\sum_{i}^{}\mathbf{\tilde{r}}_{i}^{\mathrm{WC}} + e\sum_{i}Z_{i}\mathbf{\tilde{R}}_{i}
+$$
+
+where the distance vectors $\mathbf{\tilde{r}}_{i}^{\mathrm{WC}} = \mathbf{r}_i^{\mathrm{WC}}-\mathbf{r}_0$ and $\mathbf{\tilde{R}}_{i} =  \mathbf{R}_i-\mathbf{r}_0$ are implemented with periodic boundary conditions (PBCs) and $\mathbf{r}_0$ is a reference point, which is the center of mass in Vibrant. $\mathbf{R}_{i}$ and $Z_{i}$ denote the atomic positions and charges, respectively.
 
  > 💡 **Note:** The static IR intensities currently can only be computed from the Berry phase dipole moments provided for the whole system. 
  
@@ -115,7 +122,7 @@ And for the Wannier centers, it would be:
 &end dipoles
 ```
 
-The Wannier centers can be used to compute the dipole moment of the whole supercell, however they can also be used to extract spectra of user-specified molecular blocks or fragments, which is discussed in the section (....)
+The Wannier centers can be used to compute the dipole moment of the whole supercell, however they can also be used to extract spectra of user-specified molecular blocks or fragments, which is discussed in Section [Subspectra for MD-based calculations](fragments.md).
 
 More information on the all available keywords can be found on Section .. and all complete example input files are available on ....
 

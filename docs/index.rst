@@ -24,6 +24,7 @@ Documentation of Ekin's very cool code.
    frequency 
    IR_spec
    Raman_spec
+   fragments
    Usage
    Cite
    Contribute
