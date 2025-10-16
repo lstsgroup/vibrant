@@ -25,7 +25,7 @@ Documentation of Ekin's very cool code.
    IR_spec
    Raman_spec
    fragments
-   Usage
+   Resonance_Raman_spec
    Cite
    Contribute
 
