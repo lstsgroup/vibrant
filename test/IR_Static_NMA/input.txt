@@ -12,6 +12,7 @@
   force_file o-NP-force.data3
  &end hessian
  displacement 0.001
+ write_mol_file
 &end static
 &dipoles
  type_dipole berry

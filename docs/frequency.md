@@ -37,7 +37,7 @@ An example input section for performing the normal mode analysis is shown below:
   &hessian
    force_file {$force_file_name}
   &end hessian
-  displacement 0.001
+  displacement {$amount_of_displacement}
 &end static
 ```
 
@@ -45,13 +45,29 @@ where the `hessian` section revokes the hessian diagonalization, and the `displa
 
 ## b) Power spectrum
 
-The MD-based equivalent of obtaining all frequencies irrespective of IR or Raman selection rules is to compute the power spectrum. The power spectrum can be computed from the autocorrelation functions of the time derivatives of particle velocities, which are usually available in an MD simulation. Alternatively, particle velocities can also be obtained from the derivatives of the position vectors with respect to the time step. This means that simply providing an MD position trajectory would be enough to generate a Power spectrum. Applying fast Fourier transformation using the [FFTW](https://www.fftw.org/) library to the sum of velocity autocorrelation functions in a system gives the power spectrum for that system, as shown below with the [equation](https://link.springer.com/book/10.1007/978-3-319-49628-3):
+The MD-based equivalent of obtaining all frequencies irrespective of IR or Raman selection rules is to compute the power spectrum. The power spectrum can be computed from the autocorrelation functions of the time derivatives of particle velocities, which are usually available in an MD simulation. The general equation for an [autocorrelation function](https://books.google.de/books?hl=tr&lr=&id=WFExDwAAQBAJ&oi=fnd&pg=PP1&dq=Allen,+M.+P.%3B+Tildesley,+D.+J.+Computer+Simulation+of+Liquids%3B+Oxford+University+Press,+2017&ots=VHTE8WLE4Q&sig=RLNU7BubcNGC06Bihq6BcmwR2K0&redir_esc=y#v=onepage&q=Allen%2C%20M.%20P.%3B%20Tildesley%2C%20D.%20J.%20Computer%20Simulation%20of%20Liquids%3B%20Oxford%20University%20Press%2C%202017&f=false) is as follows:
+
+$$
+\left\langle A(\tau) A(\tau + t) \right\rangle_{\tau}
+= \int A(\tau) A(\tau + t)\, d\tau
+\approx \frac{1}{\tau_{\textnormal{max}}} \sum_{\tau=1}^{\tau_{\textnormal{max}}} A(\tau) A(\tau + t)
+$$
+
+where $\tau$ and $t$ refer to the times for two different snapshots and $\tau_{\textnormal{max}}$ is the correlation depth, which is an input parameter (specified with the `correlation_depth` keyword in the Vibrant input file).
+
+Alternatively, particle velocities can also be obtained from the derivatives of the position vectors with respect to the time step. This means that simply providing an MD position trajectory would be enough to generate a Power spectrum. Applying fast Fourier transformation using the [FFTW](https://www.fftw.org/) library to the sum of velocity autocorrelation functions in a system gives the power spectrum for that system, as shown below with the [equation](https://link.springer.com/book/10.1007/978-3-319-49628-3):
 
 $$
 P(\omega ) =  \frac{2c}{3k_{B}}\int_{-\infty }^{\infty } \left< \dot{r}(\tau )\dot{r}(t+\tau )\right>_{\tau }e^{-i\omega t}dt
 $$
 
-where $\omega$ is the angular frequency, $c$ is the speed of light, $\dot{r}$ is the time derivative of the position and $\tau$ and $t$ stand for the times for two different snapshots. The final power intensities are given in K.cm.
+where $\omega$ is the angular frequency, $c$ is the speed of light, $\dot{r}$ is the time derivative of the position and $\tau$ and $t$ stand for the times for two different snapshots. The time-derivative of any property is evaluated through central finite differences:
+
+$$
+\dot{x} = \frac{\delta x(t)}{\delta t} \approx \frac{x(t+\Delta t)-x(t-\Delta t)}{2\Delta t}
+$$
+
+where $\Delta t$ refers to the time step between the selected equidistant MD snapshots and $x$ is a component of $\boldsymbol{\alpha}$.
 
 Power spectrum calculation in Vibrant can be revoked by adding the section:
 
@@ -72,3 +88,5 @@ Power spectrum calculation in Vibrant can be revoked by adding the section:
 ``` 
 
 where `$type_traj` can be specified by user as `pos` or `vel` standing for "positions" or "velocities". Upon request, Vibrant can compute the mass-weighted power spectrum as well, which is controlled by the keyword `mass_weighting`. `$mass_weighting_flag` can be specified as `y` or `n` standing for "yes" or "no".
+
+The final power intensities are given in K.cm.

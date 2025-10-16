@@ -23,6 +23,8 @@ Documentation of Ekin's very cool code.
    Installation
    frequency 
    IR_spec
+   Raman_spec
+   fragments
    Usage
    Cite
    Contribute
