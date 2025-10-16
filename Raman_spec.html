@@ -65,7 +65,7 @@
 <li class="toctree-l1"><a class="reference internal" href="IR_spec.html">IR spectra</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Raman spectra</a></li>
 <li class="toctree-l1"><a class="reference internal" href="fragments.html">Subspectra for MD-based calculations</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Resonance_Raman_spec.html">Resonance Raman (RR) and absorption spectra</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Cite.html">Cite</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Contribute.html">Contribute</a></li>
 </ul>
@@ -200,10 +200,15 @@ I_{\textnormal{Raman}}(\tilde{\nu}_p)=\frac{h}{8\epsilon_{0}^{2}c} \frac{(\tilde
 <span class="w"> </span>normal_freq_file<span class="w"> </span><span class="o">{</span><span class="nv">$normal_mode_frequency_file</span><span class="o">}</span>
 <span class="w"> </span>normal_displ_file<span class="w"> </span><span class="o">{</span><span class="nv">$normal_mode_displacement_file</span><span class="o">}</span>
 <span class="w"> </span>displacement<span class="w"> </span><span class="o">{</span><span class="nv">$amount_of_displacement</span><span class="o">}</span>
+<span class="w"> </span>write_mol_file
 <span class="p">&amp;</span>end<span class="w"> </span>static
 </pre></div>
 </div>
-<p>Vibrant applies Gaussian broadening to the final discrete set of frequencies and intensities. The <code class="docutils literal notranslate"><span class="pre">fwhm</span></code> keyword controls the full width at half maximum (FWHM) value in cm <span class="math notranslate nohighlight">\({^{-1}}\)</span> and if not specified, it is set to 5 cm <span class="math notranslate nohighlight">\({^{-1}}\)</span>. The final static Raman intensities are reported in 10 <span class="math notranslate nohighlight">\(^{-30}\)</span> cm <span class="math notranslate nohighlight">\(^2\)</span> /sr.</p>
+<p>Vibrant applies Gaussian broadening to the final discrete set of frequencies and intensities. The <code class="docutils literal notranslate"><span class="pre">fwhm</span></code> keyword controls the full width at half maximum (FWHM) value in cm <span class="math notranslate nohighlight">\({^{-1}}\)</span> and if not specified, it is set to 5 cm <span class="math notranslate nohighlight">\({^{-1}}\)</span>.</p>
+<blockquote>
+<div><p>💡 <strong>Note:</strong> The keyword <code class="docutils literal notranslate"><span class="pre">write_mol_file</span></code> is optional and it executes the printing of a <code class="docutils literal notranslate"><span class="pre">{$filename}.mol</span></code> file, which includes the optimized geometry, normal mode frequencies, normal mode coordinates and the non-broadened Raman intensities. The <code class="docutils literal notranslate"><span class="pre">{$filename}.mol</span></code> file can be opened with <a class="reference external" href="https://www.theochem.ru.nl/molden/">MOLDEN</a> to visualize the normal modes alongside the Raman spectrum. If multiple incident laser frequencies are requested, Vibrant generates a separate <code class="docutils literal notranslate"><span class="pre">{$filename}.mol</span></code> file for each frequency.</p>
+</div></blockquote>
+<p>The final static Raman intensities are reported in 10 <span class="math notranslate nohighlight">\(^{-30}\)</span> cm <span class="math notranslate nohighlight">\(^2\)</span> /sr.</p>
 <blockquote>
 <div><p>⚠️ <strong>Warning:</strong> Currently, Vibrant does not support the use of induced dipoles for calculating static Raman spectra, as the finite-difference error can be significant when using the limited number of structures available in a static calculation compared to an MD trajectory. Therefore, static Raman spectra can only be computed from the provided polarizabilities.</p>
 </div></blockquote>
@@ -227,7 +232,7 @@ I_{\textnormal{Raman}} (\tilde{\nu}) = \frac{2h}{8\epsilon_{0}^{2}k_{B}T} \frac{
 \right\rangle_{\tau}
 \, \exp(-2\pi i c \tilde{\nu} t)\, dt
 \]</div>
-<p>where <span class="math notranslate nohighlight">\(\dot{\boldsymbol{\alpha}}\)</span> denotes the time derivative of the polarizability tensor <span class="math notranslate nohighlight">\(\boldsymbol{\alpha}\)</span>. The anisotropic contribution <span class="math notranslate nohighlight">\(\epsilon^{2} (\tilde{\nu})\)</span> is given by:</p>
+<p>where <span class="math notranslate nohighlight">\(\tau\)</span> and <span class="math notranslate nohighlight">\(t\)</span> refer to the times for two different snapshots, <span class="math notranslate nohighlight">\(\dot{\boldsymbol{\alpha}}\)</span> denotes the time derivative of the polarizability tensor <span class="math notranslate nohighlight">\(\boldsymbol{\alpha}\)</span>. The anisotropic contribution <span class="math notranslate nohighlight">\(\epsilon^{2} (\tilde{\nu})\)</span> is given by:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}
 \begin{aligned}

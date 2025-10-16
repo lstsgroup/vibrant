@@ -38,10 +38,13 @@ An example input section for performing the normal mode analysis is shown below:
    force_file {$force_file_name}
   &end hessian
   displacement {$amount_of_displacement}
+  write_mol_file
 &end static
 ```
 
 where the `hessian` section revokes the hessian diagonalization, and the `displacement` refers to the displacement between the shifted geometries (given in Angstrom).
+
+ > 💡 **Note:** The `write_mol_file` keyword is optional and it executes the printing of a `{$filename}.mol` file, which includes the optimized geometry, normal mode frequencies and normal mode coordinates. The `{$filename}.mol` file can be opened with [MOLDEN](https://www.theochem.ru.nl/molden/) to visualize the normal modes.  
 
 ## b) Power spectrum
 

@@ -65,7 +65,7 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">IR spectra</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Raman_spec.html">Raman spectra</a></li>
 <li class="toctree-l1"><a class="reference internal" href="fragments.html">Subspectra for MD-based calculations</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Resonance_Raman_spec.html">Resonance Raman (RR) and absorption spectra</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Cite.html">Cite</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Contribute.html">Contribute</a></li>
 </ul>
@@ -160,10 +160,15 @@ I_{\textnormal{IR}}(\tilde{\nu}_p) = \frac{N_{A} }{12\varepsilon _{0}c^{2}}\left
 <span class="w"> </span>normal_freq_file<span class="w"> </span><span class="o">{</span><span class="nv">$normal_mode_frequency_file</span><span class="o">}</span>
 <span class="w"> </span>normal_displ_file<span class="w"> </span><span class="o">{</span><span class="nv">$normal_mode_displacement_file</span><span class="o">}</span>
 <span class="w"> </span>displacement<span class="w"> </span><span class="o">{</span><span class="nv">$amount_of_displacement</span><span class="o">}</span>
+<span class="w"> </span>write_mol_file
 <span class="p">&amp;</span>end<span class="w"> </span>static
 </pre></div>
 </div>
-<p>Vibrant applies Gaussian broadening to the final discrete set of frequencies and intensities. The <code class="docutils literal notranslate"><span class="pre">fwhm</span></code> keyword controls the full width at half maximum (FWHM) value in cm <span class="math notranslate nohighlight">\({^{-1}}\)</span> and if not specified, it is set to 5 cm <span class="math notranslate nohighlight">\({^{-1}}\)</span>. The final static IR intensities are reported in km/mol.</p>
+<p>Vibrant applies Gaussian broadening to the final discrete set of frequencies and intensities. The <code class="docutils literal notranslate"><span class="pre">fwhm</span></code> keyword controls the full width at half maximum (FWHM) value in cm <span class="math notranslate nohighlight">\({^{-1}}\)</span> and if not specified, it is set to 5 cm <span class="math notranslate nohighlight">\({^{-1}}\)</span>.</p>
+<blockquote>
+<div><p>💡 <strong>Note:</strong> The keyword <code class="docutils literal notranslate"><span class="pre">write_mol_file</span></code> is optional and it executes the printing of a <code class="docutils literal notranslate"><span class="pre">{$filename}.mol</span></code> file, which includes the optimized geometry, normal mode frequencies, normal mode coordinates and the non-broadened IR intensities. The <code class="docutils literal notranslate"><span class="pre">{$filename}.mol</span></code> file can be opened with <a class="reference external" href="https://www.theochem.ru.nl/molden/">MOLDEN</a> to visualize the normal modes alongside the IR spectrum.</p>
+</div></blockquote>
+<p>The final static IR intensities are reported in km/mol.</p>
 </section>
 <section id="b-md-based-ir-intensities">
 <h2>b) MD-based IR intensities<a class="headerlink" href="#b-md-based-ir-intensities" title="Link to this heading">¶</a></h2>
@@ -172,7 +177,7 @@ I_{\textnormal{IR}}(\tilde{\nu}_p) = \frac{N_{A} }{12\varepsilon _{0}c^{2}}\left
 \[
 I_{\textnormal{IR}} (\tilde{\nu}) = \frac{2N_{A}}{12\varepsilon _{0}ck_{B}T}\int_{-\infty }^{\infty }\left \langle \dot{\boldsymbol{\mu} }(\tau )\cdot \dot{\boldsymbol{\mu} }(\tau+t ) \right \rangle_{\tau}\exp(-2\pi c\tilde{\nu}t)dt 
 \]</div>
-<p>where <span class="math notranslate nohighlight">\(\varepsilon_{0}\)</span> is the vacuum permittivity, <span class="math notranslate nohighlight">\(N_{A}\)</span> is the Avogadro constant, <span class="math notranslate nohighlight">\(c\)</span> is the speed of light, <span class="math notranslate nohighlight">\(k_{B}\)</span> is the Boltzmann constant, <span class="math notranslate nohighlight">\(T\)</span> is the temperature and <span class="math notranslate nohighlight">\(\tilde{\nu}\)</span> is the wavenumber. The final MD-based IR intensities are reported in K.cm.km/mol.</p>
+<p>where <span class="math notranslate nohighlight">\(\tau\)</span> and <span class="math notranslate nohighlight">\(t\)</span> refer to the times for two different snapshots, <span class="math notranslate nohighlight">\(\varepsilon_{0}\)</span> is the vacuum permittivity, <span class="math notranslate nohighlight">\(N_{A}\)</span> is the Avogadro constant, <span class="math notranslate nohighlight">\(c\)</span> is the speed of light, <span class="math notranslate nohighlight">\(k_{B}\)</span> is the Boltzmann constant, <span class="math notranslate nohighlight">\(T\)</span> is the temperature and <span class="math notranslate nohighlight">\(\tilde{\nu}\)</span> is the wavenumber. The final MD-based IR intensities are reported in K.cm.km/mol.</p>
 <p>The MD-based IR intensities can be computed either from the Berry phase dipole moments or Wannier centers. The latter can also be used to extract spectra of user-specified molecular blocks or fragments.</p>
 <blockquote>
 <div><p>⚠️ <strong>Warning:</strong> The MD-based spectrum should contain the <code class="docutils literal notranslate"><span class="pre">cell</span></code> subsection alongside the <code class="docutils literal notranslate"><span class="pre">md</span></code> section. Because the dipole moment in periodic systems is <a class="reference external" href="https://www.cambridge.org/de/universitypress/subjects/physics/condensed-matter-physics-nanoscience-and-mesoscopic-physics/berry-phases-electronic-structure-theory-electric-polarization-orbital-magnetization-and-topological-insulators?format=HB&amp;amp;isbn=9781107157651">ill-defined</a> (i.e. only defined modulo a polarization quantum), it may exhibit discontinuous jumps. Vibrant automatically detects and corrects these jumps by subtracting the integer multiples of polarization quantum, ensuring continuous dipole trajectories. <code class="docutils literal notranslate"><span class="pre">cell</span></code> subsection provides the cell parameters which are necessary to calculate the polarization quantum.</p>
