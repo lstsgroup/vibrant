@@ -175,6 +175,7 @@ MODULE vib_types
     END TYPE molecular_dynamics
     !***************************************************************************
     TYPE static
+        LOGICAL                                             :: write_mol !yes/no
         INTEGER                                             :: nmodes               ! number of normal modes
         CHARACTER(LEN=40)                                   :: diag_hessian         ! for IR/Raman, yes or no
         CHARACTER(LEN=40)                                   :: normal_freq_file     ! file

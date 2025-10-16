@@ -149,7 +149,7 @@ PROGRAM vib2d
         CALL timings%register("reading normal modes")
         CALL read_normal_modes(gs, sys, stats)
         CALL timings%register("normal mode analysis")
-        CALL normal_mode_analysis(sys, stats)
+        CALL normal_mode_analysis(sys, stats, gs)
     !***************************************************************************!
     !***************************************************************************!
 
@@ -165,7 +165,7 @@ PROGRAM vib2d
         CALL read_static(gs, sys, dips, rams)
         IF (stats%diag_hessian=='y') THEN
             CALL timings%register("normal mode analysis")
-            CALL normal_mode_analysis(sys, stats)
+            CALL normal_mode_analysis(sys, stats, gs)
         END IF
         CALL timings%register("finite differences")
         CALL finite_diff_static(gs, sys, stats, dips, rams)
@@ -187,7 +187,7 @@ PROGRAM vib2d
         CALL read_static(gs, sys, dips, rams)
         IF (stats%diag_hessian=='y') THEN
             CALL timings%register("normal mode analysis")
-            CALL normal_mode_analysis(sys, stats)
+            CALL normal_mode_analysis(sys, stats, gs)
         END IF
         CALL timings%register("finite differences")
         CALL finite_diff_static(gs, sys, stats, dips, rams)
@@ -229,7 +229,7 @@ PROGRAM vib2d
 
         IF (stats%diag_hessian=='y') THEN
             CALL timings%register("normal mode analysis")
-            CALL normal_mode_analysis(sys, stats)
+            CALL normal_mode_analysis(sys, stats, gs)
         END IF
 
         CALL timings%register("finite differences")

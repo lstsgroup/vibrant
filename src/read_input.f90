@@ -131,6 +131,8 @@ CONTAINS
         LOGICAL :: in_rtp = .FALSE.
         LOGICAL :: angles_set = .FALSE.
         sys%fragments%frag = .FALSE.
+        stats%write_mol = .FALSE.
+  
         sys%fragments%ngroup = 0    
 
         WRITE (*, '(2X, A)') "Input Data:"
@@ -386,7 +388,10 @@ CONTAINS
                     READ (line, *) dummy, stats%normal_displ_file
                     WRITE (*, '(4X,A, T60, A)') 'Normal mode displacements will be read from:', TRIM(stats%normal_displ_file)
                 END IF
-
+                IF (INDEX(line, 'write_mol_file')>0) THEN 
+                    WRITE (*, '(4X,A, T60, A)') 'A ".mol" file will be generated.'
+                    stats%write_mol = .TRUE.
+                END IF
             END IF
 
             IF (in_dipoles) THEN
