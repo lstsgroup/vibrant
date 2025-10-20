@@ -1,14 +1,14 @@
 # File Formats
 
-Vibrant processes multiple data files, such as dipole moments, polarizabilities, and forces, to compute the desired vibrational spectrum. These files must follow specific formats which we describe in this section.
+Vibrant processes multiple data files, such as the dipole moments, polarizabilities, and forces, in order to compute the desired vibrational spectrum. These files must follow specific formats which we describe in this section.
 
-More information on the all available keywords can be found on Section .. and all complete example input files are available on ....
+More information on all available keywords can be found on Section .. and all complete example input files are available on ....
 
 ## 1) Coordinates of atomic positions (.xyz files)
 
 Static spectral calculations that are based on the normal mode analysis require the cartesian coordinates (in Å) of each atom in the system to be provided in a standard `.xyz` [format](https://en.wikipedia.org/wiki/XYZ_file_format).
 
-Similarly, the power spectrum calculations requires that the user provides the atomic position or velocity vectors for each MD snapshot in the form of an `.xyz` file format, such as:
+Similarly, the power spectrum calculations requires that the user provides the atomic position (in Å) or velocity vectors (in bohr/a.u. of time) for each MD snapshot in the form of an `.xyz` file format, such as:
 
 ```bash
 $total_number_of_atoms #first MD frame
@@ -55,7 +55,7 @@ $force_x $force_y $force_z #first atom
 $force_x $force_y $force_z #last atom
 ```
 
-As an example, [this bash script](_static/force.sh) enters directories of each displaced structure and appends the [CP2K force files](_static/force.xyz) accordingly.
+As an example, [this bash script](_static/force.sh) enters the directories of each displaced structure and appends the [CP2K force files](_static/force.xyz) accordingly.
 
 ### 2.2 Normal mode frequencies and coordinates
 
@@ -141,7 +141,7 @@ The Berry phase dipole moment vectors for a static calculation should be given i
 
 ## 4) Wannier centers
 
-If any MD-based spectrum is being calculated from Wannier centers, then the `wannier.xyz` for whole system (atoms + wannier centers labeled as "X") should be given for each MD frame in the `.xyz` file format. An example could be seen [here](_static/COF-1_solv_wannier_free.xyz).
+If any MD-based spectrum is being calculated from Wannier centers, then the `wannier.xyz` for the whole system (atoms + Wannier centers labeled as "X") should be given for each MD frame in the `.xyz` file format. An example could be seen [here](_static/COF-1_solv_wannier_free.xyz).
 
 ## 5) DFPT polarizabilities
 
@@ -301,4 +301,3 @@ The time-dependent Berry phase dipole moment vectors for a static RR or absorpti
 ```
 
 Similarly to the MD-based spectra, here the unperturbed dipole moments refer to $\mu^{0}_{i}$ described in Section [Resonance Raman (RR) and absorption spectra](Resonance_Raman_spec.md). Three files should be given in total, each containing the unperturbed dipole moments + time-dependent dipole moments perturbed under electric field applied in $x$, $y$ or $z$ direction.
-

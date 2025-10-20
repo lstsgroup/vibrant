@@ -1,6 +1,6 @@
 # Subspectra for MD-based calculations
 
-Vibrant can compute the molecular dynamics (MD)-based IR or Raman subspectra of specified molecular blocks or fragments by processing the Wannier centers. This is especially useful for extracting the solvent contribution in a system consisting of a material + solvent. Additionally, molecular blocks found in framework systems (such as covalent organic frameworks, denoted as COFs) can similarly be specified in a list to extract their subspectra, allowing the analysis of individual contributions on the spectrum. To calculate any subspectra, the user first must provide the list of the indices of all atoms belonging to that fragment. Multiple fragment blocks can be specified by the user, each consisting of several fragments. The following figure demonstrates how the molecular blocks in a framework system may look like:
+Vibrant can compute the molecular dynamics (MD)-based IR or Raman subspectra of specified molecular blocks or fragments by processing the Wannier centers. This is especially useful for extracting the solvent contribution in a system consisting of a material + solvent. Additionally, molecular blocks found in framework systems (such as covalent organic frameworks, denoted as COFs) can similarly be specified in a list to extract their subspectra, allowing the analysis of individual contributions on the spectrum. To calculate any subspectra, the user first must provide the list of the indices of all atoms belonging to that fragment. Multiple fragment blocks can be specified by the user, each consisting of several atom lists. The following figure demonstrates how the molecular blocks in a framework system may look like:
 
 <div style="display:flex; justify-content: center; align-items: center;">
   <div style="width: 500px;">
@@ -35,15 +35,15 @@ An example input section for computing fragment-based spectra is shown below:
 %end system
 ```
 
-For instance, the phenyl and boroxine fragments of COF-1 can be given in different `fragment` sections. However, all fragments in a fragment block (indicated with the keyword `atom_list`) must consist of the same number of atoms. The rest of the input file must include all the other necessary sections in a MD-based Raman (see Section [Raman Spectra](Raman_spec.md)) or MD-based IR calculation (see Section [IR Spectra](IR_spec.md)).
+For instance, the phenyl and boroxine fragments of COF-1 can be given in different `fragment` blocks. However, all fragments in a fragment block (indicated with the keyword `atom_list`) must consist of the same number of atoms. The rest of the input file must include all the other necessary sections in an MD-based Raman (see Section [Raman Spectra](Raman_spec.md)) or MD-based IR calculation (see Section [IR Spectra](IR_spec.md)).
 
-Based on a distance cut-off criteria which relies on periodic boundary conditions (PBC), Vibrant scans through all Wannier centers in the provided file and assigns them to the individiual molecular blocks. Afterwards, center of mass of each fragment is calculated, which serves as the reference point. The dipole moment contribution of the specified molecular block is computed based on the distances and charges of the fragment atoms with respect to the center of mass. More information on the equations is provided in the subsection "Dipole moment types" of Section [IR Spectra](IR_spec.md). For all given `fragment` blocks, Vibrant prints out the requested spectra in separate files, such as in the form:
+Based on a distance cut-off criteria which relies on periodic boundary conditions (PBC), Vibrant scans through all Wannier centers in the provided file and assigns them to the individiual molecular blocks. Afterwards, center of mass of each fragment is calculated, which serves as the reference point. The dipole moment contribution of the specified molecular block is computed based on the distances and charges of the fragment atoms with respect to the defined center of mass. More information on the equations is provided in the subsection "Dipole moment types" of Section [IR Spectra](IR_spec.md). For all given `fragment` blocks, Vibrant prints out the requested spectra in separate files, such as in the form:
 
 - IR_spectrum_fragment_1.txt
 - IR_spectrum_fragment_2.txt
 - ...
 
-An example taken from our [previous publication on the MD-based vibrational spectroscopy of layered materials](https://pubs.acs.org/doi/full/10.1021/acs.jctc.4c01021), shows how this method can be utilized to dissect a spectrum:
+An example taken from our [previous publication on the MD-based vibrational spectra of layered materials](https://pubs.acs.org/doi/full/10.1021/acs.jctc.4c01021), shows how this method can be utilized to dissect a spectrum:
 
 <div style="display:flex; justify-content: center; align-items: center;">
   <div style="width: 500px;">
@@ -51,7 +51,7 @@ An example taken from our [previous publication on the MD-based vibrational spec
   <br>
   <div style="display: block; padding: 20px; color: gray; text-align: justify;">
 
-The AIMD-based Raman spectra for pristine COF-1 calculated from MLWFs. The subspectra of the boroxine/phenyl units and B-C bonds are calculated by defining fragments. The prominent peaks are highlighted. This method helps in dissecting and characterizing the overall MD-based spectrum.
+The AIMD-based Raman spectra for pristine COF-1 calculated from Wannier centers. The subspectra of the boroxine/phenyl units and B-C bonds are calculated by defining fragments. The prominent peaks are highlighted. This method helps in dissecting and characterizing the overall MD-based spectrum.
 
    </div>
    </div>

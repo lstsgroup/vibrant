@@ -43,7 +43,7 @@ Unpolarized ($I(\tilde{\nu}) = I_{\perp }(\tilde{\nu}) + I_{\parallel }(\tilde{\
 
 By default, Vibrant prints only the unpolarized (total) Raman intensities, but the other types of spectra, together with the depolarization ratio ($\rho (\tilde{\nu})=\frac{I_{\perp }(\tilde{\nu})}{I_{\parallel  }(\tilde{\nu})}$), can be printed out by setting the `spectra_verbosity` keyword to `high`.
 
-For each displaced structure (see Section [Frequencies](frequency.md) for details) the user must provide the polarizability tensors appended in a single file (see [File Formats](file_formats.md) for more details.) For the derivatives along the normal modes, the user can either provide the normal mode coordinates or alternatively the forces for each displaced structure, together with the cartesian coordinates of the optimized geometry. An example input section for the static Raman section may look like:
+For each displaced structure (see Section [Frequencies](frequency.md) for details) the user must provide the polarizability tensors appended in a single file (see [File Formats](file_formats.md) for more details.) For the derivatives along the normal modes, the user can either provide the normal mode coordinates or alternatively the forces for each displaced structure, together with the cartesian coordinates of the optimized geometry. An example input section for the static Raman calculation may look like:
 
 ```bash
 &global
@@ -209,10 +209,10 @@ Dipoles can be computed using the Berry-phase or MLWF formalism, enabling consis
 &end dipoles
 ```
 
-More details on the format of the dipole moment files can be found at ...
+More details on the format of the dipole moment files can be found in Section [File Formats](file_formats.md).
 
 ```{warning}
- Similar to the MD-based IR spectra, the MD-based spectrum should contain the `cell` subsection alongside the `md` section if the induced dipole method is selected. For more details, please Section [IR Spectra](IR_spec.md).
+ Similar to the MD-based IR spectra, the MD-based spectrum should contain the `cell` subsection alongside the `md` section if the induced dipole method is selected. For more details, please see Section [IR Spectra](IR_spec.md).
 ```
 
 ```{note}
