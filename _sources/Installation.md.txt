@@ -39,3 +39,12 @@ The regression tests can be run by running the following in the build directory 
 ```
 ctest 
 ```
+
+## Usage 
+
+The compiled binary is now available in the build directory as `build/vibrant` and can be invoked e.g. from the root directory by the command
+```bash
+build/vibrant input.txt
+```
+with `input.txt` as a input file with the vibrant settings.
+
