@@ -94,7 +94,9 @@ To compute a static RR spectrum, the user must provide the time-dependent dipole
 
 Vibrant applies Gaussian broadening to the final discrete set of frequencies and intensities. The `fwhm` keyword controls the full width at half maximum (FWHM) value in cm ${^{-1}}$ and if not specified, it is set to 5 cm ${^{-1}}$.
 
- > 💡 **Note:** The keyword `write_mol_file` is optional and it executes the printing of a `{$filename}.mol` file, which includes the optimized geometry, normal mode frequencies, normal mode coordinates and the non-broadened Raman intensities. The `{$filename}.mol` file can be opened with [MOLDEN](https://www.theochem.ru.nl/molden/) to visualize the normal modes alongside the Raman spectrum. If multiple incident laser frequencies are requested, Vibrant generates a separate `{$filename}.mol` file for each frequency.
+```{note}
+  The keyword `write_mol_file` is optional and it executes the printing of a `{$filename}.mol` file, which includes the optimized geometry, normal mode frequencies, normal mode coordinates and the non-broadened Raman intensities. The `{$filename}.mol` file can be opened with [MOLDEN](https://www.theochem.ru.nl/molden/) to visualize the normal modes alongside the Raman spectrum. If multiple incident laser frequencies are requested, Vibrant generates a separate `{$filename}.mol` file for each frequency.
+```
 
 The absorption spectrum calculation does not require the `static` section. An example input section is given below:
 
@@ -241,7 +243,9 @@ The MD-based RR calculation in Vibrant is not fully tested yet, and more tests a
 
 The MD-based absorption spectrum is computed in the same manner as the static absorption spectrum described above, except that the absorption intensities are averaged over all MD snapshots. The MD-based absorption spectrum does not require the specification of the `md` section.
 
- > 💡 **Note:** Vibrant applies the same processing to the final MD-based RR intensities as given in the Section [IR Spectra](IR_spec.md), including the application of data mirroring and Hann Window function to the autocorrelation data and the application of the sinc function to the final intensities.
+```{note}
+  Vibrant applies the same processing to the final MD-based RR intensities as given in the Section [IR Spectra](IR_spec.md), including the application of data mirroring and Hann Window function to the autocorrelation data and the application of the sinc function to the final intensities.
+```
 
  The final MD-based RR intensities are reported in m $^2$ K cm 10 $^{-30}$. 
 
@@ -288,6 +292,8 @@ The user can request the Padé post-processing for the static or MD-based RR or 
 
 The user must also specify the number of the final data points after the Padé fitting using the keyword `pade_framecount`. This parameter controls the resolution of the interpolated data.
 
-The Padé fitting usually takes time, but it is accelarated using .... (Maybe Moritz can give details here?)
+```{tip}
+The Padé fitting usually takes time, but it is accelarated using OpenMP threads. To control the number of parallel threads you can export the environment variable `export OMP_NUM_THREADS=<num_threads>` before calling the vibrant code. Occasionally for large RTP steps you can run into a "out-of-memory" error. The amout of RAM memory vibrant needs can be computed roughly by $N_{RTP}^2\cdot 16 \cdot 10^{-9} \cdot N_{threads}$ (in GB).
+```
 
 More information on the all available keywords can be found on Section .. and all complete example input files are available on ....

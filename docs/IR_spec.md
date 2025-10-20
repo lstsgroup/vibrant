@@ -52,7 +52,9 @@ or if the user want to skip the Hessian diagonalization and give the normal mode
 
 Vibrant applies Gaussian broadening to the final discrete set of frequencies and intensities. The `fwhm` keyword controls the full width at half maximum (FWHM) value in cm ${^{-1}}$ and if not specified, it is set to 5 cm ${^{-1}}$. 
 
- > 💡 **Note:** The keyword `write_mol_file` is optional and it executes the printing of a `{$filename}.mol` file, which includes the optimized geometry, normal mode frequencies, normal mode coordinates and the non-broadened IR intensities. The `{$filename}.mol` file can be opened with [MOLDEN](https://www.theochem.ru.nl/molden/) to visualize the normal modes alongside the IR spectrum.
+```{note}
+  The keyword `write_mol_file` is optional and it executes the printing of a `{$filename}.mol` file, which includes the optimized geometry, normal mode frequencies, normal mode coordinates and the non-broadened IR intensities. The `{$filename}.mol` file can be opened with [MOLDEN](https://www.theochem.ru.nl/molden/) to visualize the normal modes alongside the IR spectrum.
+```
 
 The final static IR intensities are reported in km/mol. 
 
@@ -68,7 +70,9 @@ where $\tau$ and $t$ refer to the times for two different snapshots, $\varepsilo
 
 The MD-based IR intensities can be computed either from the Berry phase dipole moments or Wannier centers. The latter can also be used to extract spectra of user-specified molecular blocks or fragments.
 
-> ⚠️ **Warning:** The MD-based spectrum should contain the `cell` subsection alongside the `md` section. Because the dipole moment in periodic systems is [ill-defined](https://www.cambridge.org/de/universitypress/subjects/physics/condensed-matter-physics-nanoscience-and-mesoscopic-physics/berry-phases-electronic-structure-theory-electric-polarization-orbital-magnetization-and-topological-insulators?format=HB&isbn=9781107157651) (i.e. only defined modulo a polarization quantum), it may exhibit discontinuous jumps. Vibrant automatically detects and corrects these jumps by subtracting the integer multiples of polarization quantum, ensuring continuous dipole trajectories. `cell` subsection provides the cell parameters which are necessary to calculate the polarization quantum.
+```{warning}
+ The MD-based spectrum should contain the `cell` subsection alongside the `md` section. Because the dipole moment in periodic systems is [ill-defined](https://www.cambridge.org/de/universitypress/subjects/physics/condensed-matter-physics-nanoscience-and-mesoscopic-physics/berry-phases-electronic-structure-theory-electric-polarization-orbital-magnetization-and-topological-insulators?format=HB&isbn=9781107157651) (i.e. only defined modulo a polarization quantum), it may exhibit discontinuous jumps. Vibrant automatically detects and corrects these jumps by subtracting the integer multiples of polarization quantum, ensuring continuous dipole trajectories. `cell` subsection provides the cell parameters which are necessary to calculate the polarization quantum.
+```
 
 An example input section may look like:
 
@@ -108,7 +112,9 @@ $$
 
 where the distance vectors $\mathbf{\tilde{r}}_{i}^{\mathrm{WC}} = \mathbf{r}_i^{\mathrm{WC}}-\mathbf{r}_0$ and $\mathbf{\tilde{R}}_{i} =  \mathbf{R}_i-\mathbf{r}_0$ are implemented with periodic boundary conditions (PBCs) and $\mathbf{r}_0$ is a reference point, which is the center of mass in Vibrant. $\mathbf{R}_{i}$ and $Z_{i}$ denote the atomic positions and charges, respectively.
 
- > 💡 **Note:** The static IR intensities currently can only be computed from the Berry phase dipole moments provided for the whole system. 
+```{note}
+The static IR intensities currently can only be computed from the Berry phase dipole moments provided for the whole system. 
+```
  
  The selection of the dipole moment type is controlled with the keyword `type_dipole`. An example input section for the specification of Berry phase dipole moments may look like:
 
