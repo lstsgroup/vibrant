@@ -81,11 +81,15 @@ or if the user want to skip the Hessian diagonalization and give the normal mode
 
 Vibrant applies Gaussian broadening to the final discrete set of frequencies and intensities. The `fwhm` keyword controls the full width at half maximum (FWHM) value in cm ${^{-1}}$ and if not specified, it is set to 5 cm ${^{-1}}$. 
 
- > 💡 **Note:** The keyword `write_mol_file` is optional and it executes the printing of a `{$filename}.mol` file, which includes the optimized geometry, normal mode frequencies, normal mode coordinates and the non-broadened Raman intensities. The `{$filename}.mol` file can be opened with [MOLDEN](https://www.theochem.ru.nl/molden/) to visualize the normal modes alongside the Raman spectrum. If multiple incident laser frequencies are requested, Vibrant generates a separate `{$filename}.mol` file for each frequency.
+ ```{note}
+  The keyword `write_mol_file` is optional and it executes the printing of a `{$filename}.mol` file, which includes the optimized geometry, normal mode frequencies, normal mode coordinates and the non-broadened Raman intensities. The `{$filename}.mol` file can be opened with [MOLDEN](https://www.theochem.ru.nl/molden/) to visualize the normal modes alongside the Raman spectrum. If multiple incident laser frequencies are requested, Vibrant generates a separate `{$filename}.mol` file for each frequency.
+```
 
 The final static Raman intensities are reported in 10 $^{-30}$ cm $^2$ /sr.
 
-> ⚠️ **Warning:** Currently, Vibrant does not support the use of induced dipoles for calculating static Raman spectra, as the finite-difference error can be significant when using the limited number of structures available in a static calculation compared to an MD trajectory. Therefore, static Raman spectra can only be computed from the provided polarizabilities.
+```{warning}
+ Currently, Vibrant does not support the use of induced dipoles for calculating static Raman spectra, as the finite-difference error can be significant when using the limited number of structures available in a static calculation compared to an MD trajectory. Therefore, static Raman spectra can only be computed from the provided polarizabilities.
+ ```
 
 ## b) MD-based Raman intensities
 

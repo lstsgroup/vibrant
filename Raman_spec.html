@@ -212,13 +212,15 @@ I_{\textnormal{Raman}}(\tilde{\nu}_p)=\frac{h}{8\epsilon_{0}^{2}c} \frac{(\tilde
 </pre></div>
 </div>
 <p>Vibrant applies Gaussian broadening to the final discrete set of frequencies and intensities. The <code class="docutils literal notranslate"><span class="pre">fwhm</span></code> keyword controls the full width at half maximum (FWHM) value in cm <span class="math notranslate nohighlight">\({^{-1}}\)</span> and if not specified, it is set to 5 cm <span class="math notranslate nohighlight">\({^{-1}}\)</span>.</p>
-<blockquote>
-<div><p>💡 <strong>Note:</strong> The keyword <code class="docutils literal notranslate"><span class="pre">write_mol_file</span></code> is optional and it executes the printing of a <code class="docutils literal notranslate"><span class="pre">{$filename}.mol</span></code> file, which includes the optimized geometry, normal mode frequencies, normal mode coordinates and the non-broadened Raman intensities. The <code class="docutils literal notranslate"><span class="pre">{$filename}.mol</span></code> file can be opened with <a class="reference external" href="https://www.theochem.ru.nl/molden/">MOLDEN</a> to visualize the normal modes alongside the Raman spectrum. If multiple incident laser frequencies are requested, Vibrant generates a separate <code class="docutils literal notranslate"><span class="pre">{$filename}.mol</span></code> file for each frequency.</p>
-</div></blockquote>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The keyword <code class="docutils literal notranslate"><span class="pre">write_mol_file</span></code> is optional and it executes the printing of a <code class="docutils literal notranslate"><span class="pre">{$filename}.mol</span></code> file, which includes the optimized geometry, normal mode frequencies, normal mode coordinates and the non-broadened Raman intensities. The <code class="docutils literal notranslate"><span class="pre">{$filename}.mol</span></code> file can be opened with <a class="reference external" href="https://www.theochem.ru.nl/molden/">MOLDEN</a> to visualize the normal modes alongside the Raman spectrum. If multiple incident laser frequencies are requested, Vibrant generates a separate <code class="docutils literal notranslate"><span class="pre">{$filename}.mol</span></code> file for each frequency.</p>
+</div>
 <p>The final static Raman intensities are reported in 10 <span class="math notranslate nohighlight">\(^{-30}\)</span> cm <span class="math notranslate nohighlight">\(^2\)</span> /sr.</p>
-<blockquote>
-<div><p>⚠️ <strong>Warning:</strong> Currently, Vibrant does not support the use of induced dipoles for calculating static Raman spectra, as the finite-difference error can be significant when using the limited number of structures available in a static calculation compared to an MD trajectory. Therefore, static Raman spectra can only be computed from the provided polarizabilities.</p>
-</div></blockquote>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Currently, Vibrant does not support the use of induced dipoles for calculating static Raman spectra, as the finite-difference error can be significant when using the limited number of structures available in a static calculation compared to an MD trajectory. Therefore, static Raman spectra can only be computed from the provided polarizabilities.</p>
+</div>
 </section>
 <section id="b-md-based-raman-intensities">
 <h2>b) MD-based Raman intensities<a class="headerlink" href="#b-md-based-raman-intensities" title="Link to this heading">¶</a></h2>
