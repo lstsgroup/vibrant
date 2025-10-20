@@ -145,7 +145,7 @@ CONTAINS
         DO i = 1, stats%nmodes
             WRITE (runit, *) "vibration", i
             DO j = 1, sys%natom
-                WRITE (runit, *) stats%disp(i, j, 1)/bohr2ang, stats%disp(i, j, 2)/bohr2ang, stats%disp(i, j, 3)/bohr2ang
+                WRITE (runit, *) stats%disp(i, j, 1), stats%disp(i, j, 2), stats%disp(i, j, 3)
             END DO
         END DO
         CLOSE (runit)

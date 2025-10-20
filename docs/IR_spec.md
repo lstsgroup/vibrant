@@ -12,7 +12,7 @@ $$
 
 where $\varepsilon_{0}$ is the vacuum permittivity, $N_{A}$ is the Avogadro constant and $c$ is the speed of light. $\tilde{\nu_{p}}$ is the wavenumber defined as $\tilde{\nu_{p}}=\nu_{p}/c$.
 
-For each displaced structure (see Section [Frequencies](frequency.md) for details) the user must provide the dipole moments appended in a single file (see File Formats for more details.) For the derivatives along the normal modes, the user can either provide the normal mode coordinates or alternatively the forces for each displaced structure, together with the cartesian coordinates of the optimized geometry. An example input section for the static section may look like:
+For each displaced structure (see Section [Frequencies](frequency.md) for details) the user must provide the dipole moments appended in a single file (see [File Formats](file_formats.md) for more details.) For the derivatives along the normal modes, the user can either provide the normal mode coordinates or alternatively the forces for each displaced structure, together with the cartesian coordinates of the optimized geometry. An example input section for the static section may look like:
 
 ```bash
 &global

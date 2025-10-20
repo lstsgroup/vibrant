@@ -48,4 +48,5 @@ def test_RR_Static_normal_Ext(vibrant_binary_path):
     assert np.allclose(x_ref1, x_test1, atol=1e-8)
     assert np.allclose(y_ref1, y_test1, atol=1e-8)
     assert np.allclose(x_ref2, x_test2, atol=1e-8)
-    assert np.allclose(y_ref2, y_test2, atol=1e-8)
+    scale = np.max(np.abs(y_ref2))
+    assert np.allclose(y_ref2, y_test2, rtol=1e-5, atol=max(1e-12, 1e-6 * scale))

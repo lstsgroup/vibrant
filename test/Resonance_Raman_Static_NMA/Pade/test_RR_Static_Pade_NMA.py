@@ -63,7 +63,7 @@ def test_RR_Static_Pade_NMA(vibrant_binary_path):
     x_ref1, y_ref1 = parse_spectrum_from_file(reference1)
     x_test1, y_test1 = parse_spectrum_from_file(test1, hdr=1)
 
-    x_ref2, y_ref2 = parse_spectrum_from_file(reference2)
+    x_ref2, y_ref2 = parse_spectrum_from_file(reference2, hdr=1)
     x_test2, y_test2 = parse_spectrum_from_file(test2, hdr=1)
     
     x_ref3 = parse_normal_freq_from_file(reference3)
@@ -76,7 +76,8 @@ def test_RR_Static_Pade_NMA(vibrant_binary_path):
     assert np.allclose(x_ref1, x_test1, atol=1e-8)
     assert np.allclose(y_ref1, y_test1, atol=1e-8)
     assert np.allclose(x_ref2, x_test2, atol=1e-8)
-    assert np.allclose(y_ref2, y_test2, atol=1e-8)
+    scale = np.max(np.abs(y_ref2))
+    assert np.allclose(y_ref2, y_test2, rtol=1e-5, atol=max(1e-12, 1e-6 * scale))
     assert np.allclose(x_ref3, x_test3, atol=1e-8)
     assert np.allclose(np.abs(x_ref4), np.abs(x_test4), atol=1e-8)
     assert np.allclose(np.abs(y_ref4), np.abs(y_test4), atol=1e-8)

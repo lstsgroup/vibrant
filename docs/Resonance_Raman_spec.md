@@ -61,7 +61,7 @@ $$
 
 where $T$ is the total RT-TDDFT simulation time, $t$ is the RT-TDDFT time step, ${\mu}^{j}_i(t)$ is the time-dependent dipole moment under the electric field applied in the $j$ direction, $\mu^{0}_{i}$ denotes the initial static dipole moment of the unperturbed system, and $\Gamma$ is the [damping factor](https://pubs.aip.org/aip/jcp/article/138/4/044101/193408).
 
-To compute a static RR spectrum, the user must provide the time-dependent dipole moments for each displaced structure, combined into a single file (see File Formats for details). There should be three files in total, each corresponding to calculations performed under electric fields applied along the x-, y-, and z-directions. An example input section for performing a static RR calculation is shown below:
+To compute a static RR spectrum, the user must provide the time-dependent dipole moments for each displaced structure, combined into a single file (see [File Formats](file_formats.md) for details). There should be three files in total, each corresponding to calculations performed under electric fields applied along the x-, y-, and z-directions. An example input section for performing a static RR calculation is shown below:
 
 ```bash
 &global
