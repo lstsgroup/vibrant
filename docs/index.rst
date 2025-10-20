@@ -13,8 +13,6 @@
 
    </div>
 
-Documentation of Ekin's very cool code.
-
 
 .. toctree::
    :maxdepth: 1

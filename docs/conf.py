@@ -13,8 +13,8 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '_ext
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'vibrant'
-copyright = '2024, Ekin Esme Bas'
-author = 'Ekin Esme Bas'
+copyright = '2024, Ekin Esme Winogradow, Golze Group'
+author = 'Ekin Esme Winogradow, Golze Group'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -59,7 +59,7 @@ html_theme_options = dict(
     logo = "all_img/logo_vibrant_dark.svg",
     logo_alt = "vibrant",
     logo_height = 100,
-    logo_url = "/",
+    logo_url = "https://lstsgroup.github.io/vibrant/index.html",
     #logo_width = 45,
     dark_mode_switch = False,
     dark_mode = False,
