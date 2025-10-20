@@ -3,7 +3,7 @@ name: Deploy Documentation Website
 on:
   push:
     branches:
-      - main
+      - keyword_doc
   pull_request:
     branches:
       - main
