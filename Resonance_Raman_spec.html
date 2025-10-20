@@ -61,6 +61,7 @@
         <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="Installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file_formats.html">File Formats</a></li>
 <li class="toctree-l1"><a class="reference internal" href="frequency.html">Frequencies</a></li>
 <li class="toctree-l1"><a class="reference internal" href="IR_spec.html">IR spectra</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Raman_spec.html">Raman spectra</a></li>
@@ -171,7 +172,7 @@ I_{\textnormal{abs}} (\omega) = \frac{1}{3}\textnormal{Tr}\left[ \boldsymbol{\si
 {\mu}^{j}_i(\omega) = \int_{0}^{T} \left( {\mu}^{j}_i(t)  - \mu^{0}_{i} \right) e^{i \omega t} e^{- \Gamma t} \mathrm{d}t
 \]</div>
 <p>where <span class="math notranslate nohighlight">\(T\)</span> is the total RT-TDDFT simulation time, <span class="math notranslate nohighlight">\(t\)</span> is the RT-TDDFT time step, <span class="math notranslate nohighlight">\({\mu}^{j}_i(t)\)</span> is the time-dependent dipole moment under the electric field applied in the <span class="math notranslate nohighlight">\(j\)</span> direction, <span class="math notranslate nohighlight">\(\mu^{0}_{i}\)</span> denotes the initial static dipole moment of the unperturbed system, and <span class="math notranslate nohighlight">\(\Gamma\)</span> is the <a class="reference external" href="https://pubs.aip.org/aip/jcp/article/138/4/044101/193408">damping factor</a>.</p>
-<p>To compute a static RR spectrum, the user must provide the time-dependent dipole moments for each displaced structure, combined into a single file (see File Formats for details). There should be three files in total, each corresponding to calculations performed under electric fields applied along the x-, y-, and z-directions. An example input section for performing a static RR calculation is shown below:</p>
+<p>To compute a static RR spectrum, the user must provide the time-dependent dipole moments for each displaced structure, combined into a single file (see <a class="reference internal" href="file_formats.html"><span class="std std-doc">File Formats</span></a> for details). There should be three files in total, each corresponding to calculations performed under electric fields applied along the x-, y-, and z-directions. An example input section for performing a static RR calculation is shown below:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="p">&amp;</span>global
 <span class="w"> </span>spectra<span class="w"> </span>RR
 <span class="w"> </span>temperature<span class="w"> </span><span class="o">{</span><span class="nv">$temperature_in_K</span><span class="o">}</span>

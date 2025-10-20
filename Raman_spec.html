@@ -61,6 +61,7 @@
         <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="Installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file_formats.html">File Formats</a></li>
 <li class="toctree-l1"><a class="reference internal" href="frequency.html">Frequencies</a></li>
 <li class="toctree-l1"><a class="reference internal" href="IR_spec.html">IR spectra</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Raman spectra</a></li>
@@ -172,7 +173,7 @@ I_{\textnormal{Raman}}(\tilde{\nu}_p)=\frac{h}{8\epsilon_{0}^{2}c} \frac{(\tilde
 </tbody>
 </table>
 <p>By default, Vibrant prints only the unpolarized (total) Raman intensities, but the other types of spectra, together with the depolarization ratio (<span class="math notranslate nohighlight">\(\rho (\tilde{\nu})=\frac{I_{\perp }(\tilde{\nu})}{I_{\parallel  }(\tilde{\nu})}\)</span>), can be printed out by setting the <code class="docutils literal notranslate"><span class="pre">spectra_verbosity</span></code> keyword to <code class="docutils literal notranslate"><span class="pre">high</span></code>.</p>
-<p>For each displaced structure (see Section <a class="reference internal" href="frequency.html"><span class="std std-doc">Frequencies</span></a> for details) the user must provide the polarizability tensors appended in a single file (see File Formats for more details.) For the derivatives along the normal modes, the user can either provide the normal mode coordinates or alternatively the forces for each displaced structure, together with the cartesian coordinates of the optimized geometry. An example input section for the static Raman section may look like:</p>
+<p>For each displaced structure (see Section <a class="reference internal" href="frequency.html"><span class="std std-doc">Frequencies</span></a> for details) the user must provide the polarizability tensors appended in a single file (see <a class="reference internal" href="file_formats.html"><span class="std std-doc">File Formats</span></a> for more details.) For the derivatives along the normal modes, the user can either provide the normal mode coordinates or alternatively the forces for each displaced structure, together with the cartesian coordinates of the optimized geometry. An example input section for the static Raman section may look like:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="p">&amp;</span>global
 <span class="w"> </span>spectra<span class="w"> </span>R
 <span class="w"> </span>temperature<span class="w"> </span><span class="o">{</span><span class="nv">$temperature_in_K</span><span class="o">}</span>

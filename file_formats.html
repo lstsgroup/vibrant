@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en" data-content_root="./">
+<head>
+    <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+        <title>File Formats &mdash; vibrant  documentation</title>
+    
+    <link rel="stylesheet" type="text/css" href="_static/dist/fontawesome.css" />
+      <link rel="stylesheet" type="text/css" href="_static/dist/theme.css?v=310cf088" />
+      <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+            <link rel="index" title="Index" href="genindex.html" />
+            <link rel="search" title="Search" href="search.html" />
+            <link rel="top" title="vibrant  documentation" href="#" />
+            <link rel="next" title="Frequencies" href="frequency.html" />
+            <link rel="prev" title="Installation" href="Installation.html" />
+    </head>
+<body>
+    <script type="text/javascript" src="_static/dist/blocking.js"></script>
+    <header class="container-fluid bg-primary">
+        <a class="btn btn-sm btn-light skip-to-content-link" href="#main">Skip to content</a>
+        <div class="container-fluid">
+            <div class="navbar navbar-expand-lg navbar-dark font-weight-bold">
+                    <a href="/"
+                        title="vibrant"
+                        class="logo navbar-brand"
+                    >
+                        <img src="_static/all_img/logo_vibrant_dark.svg" width="45" height="100" alt="vibrant"
+                            class="logo-img"
+                        />
+                        vibrant
+                    </a>
+                
+                
+                <button class="navbar-toggler btn btn-primary d-lg-none" type="button" data-toggle="collapse" data-target="#collapseSidebar" aria-expanded="false" aria-controls="collapseExample">
+                    <span class="navbar-toggler-icon"></span>
+                    <span class="sr-only">menu</span>
+                </button>
+            </div>
+        </div>
+    </header>
+    <div class="container-fluid">
+        <div class="row">
+            <aside class="col-12 col-lg-3 sidebar-container">
+                <div id="collapseSidebar" class="collapse sticky-top d-lg-block pt-5 pr-lg-4">
+<div id="searchbox" class="searchbox mb-6 px-1" role="search">
+    <form id="search-form" action="search.html" autocomplete="off" method="get" role="search">
+        <div class="input-group">
+            <div class="input-group-prepend">
+                <div class="input-group-text border-right-0 bg-white py-3 pl-3 pr-2"><span class="fas fa-search"></span></div>
+            </div>
+            <input class="form-control py-3 pr-3 pl-1 h-100 border-left-0" type="search" name="q" placeholder="Search documentation" aria-label="Search documentation" id="searchinput" />
+        </div>
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+    </form>
+</div><div class="site-toc">
+    <nav class="toc mt-3" aria-label="Main menu">
+        <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Installation.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">File Formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="frequency.html">Frequencies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="IR_spec.html">IR spectra</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Raman_spec.html">Raman spectra</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fragments.html">Subspectra for MD-based calculations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Resonance_Raman_spec.html">Resonance Raman (RR) and absorption spectra</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Cite.html">Cite</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Contribute.html">Contribute</a></li>
+</ul>
+
+    </nav>
+    <template data-toggle-item-template>
+        <button class="btn btn-sm btn-link toctree-expand" type="button">
+            <span class="sr-only">Toggle menu contents</span>
+        </button>
+    </template>
+</div>
+                    <div class="d-lg-none border-bottom">
+                        
+                    </div>
+                </div>
+            </aside>
+            <div class="col-12 col-lg-9 pt-5">
+                <header class="row align-items-baseline">
+                    <div class="col">
+                        <nav aria-label="breadcrumb">
+    <ol class="breadcrumb m-0 p-0 bg-transparent">
+        <li class="breadcrumb-item"><a href="index.html">Docs</a></li>
+        <li class="breadcrumb-item active" aria-current="page">File Formats</li>
+    </ol>
+</nav>
+                    </div>
+                    <div class="col-sm-12 col-lg-auto mt-3 mt-lg-3">
+                        <noscript>
+                            <p>JavaScript is required to toggle light/dark mode..</p>
+                        </noscript>
+                        <button id="wagtail-theme" class="btn btn-sm btn-light text-decoration-none" type="button">
+                            <span class="dark-only"><i class="fas fa-sun"></i> Light mode</span>
+                            <span class="light-only"><i class="fas fa-moon"></i> Dark mode</span>
+                        </button>
+    <a class="btn btn-sm btn-light text-decoration-none" href="https://github.com/lstsgroup/vibrant/tree/main/srcfile_formats.md" rel="nofollow">
+        <span class="btn-icon"><span class="fab fa-github"></span></span>
+        <span class="btn-text">Edit on GitHub</span>
+    </a>
+    <a class="btn btn-sm btn-light text-decoration-none" href="_sources/file_formats.md.txt" rel="nofollow">
+        <span class="btn-icon"><span class="fas fa-code"></span></span>
+        <span class="btn-text">View source</span>
+    </a>
+                        
+                    </div>
+                </header>
+                <div class="row" >
+                    <div class="col-12">
+                        <hr class="w-100 my-4">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12 col-lg-9 order-last order-lg-first rst-content">
+                        <main role="main" id="main">
+    <section class="tex2jax_ignore mathjax_ignore" id="file-formats">
+<h1>File Formats<a class="headerlink" href="#file-formats" title="Link to this heading">¶</a></h1>
+<p>Vibrant processes multiple data files, such as dipole moments, polarizabilities, and forces, to compute the desired vibrational spectrum. These files must follow specific formats which we describe in this section.</p>
+<p>More information on the all available keywords can be found on Section .. and all complete example input files are available on ….</p>
+<section id="coordinates-of-atomic-positions-xyz-files">
+<h2>1) Coordinates of atomic positions (.xyz files)<a class="headerlink" href="#coordinates-of-atomic-positions-xyz-files" title="Link to this heading">¶</a></h2>
+<p>Static spectral calculations that are based on the normal mode analysis require the cartesian coordinates (in Å) of each atom in the system to be provided in a standard <code class="docutils literal notranslate"><span class="pre">.xyz</span></code> <a class="reference external" href="https://en.wikipedia.org/wiki/XYZ_file_format">format</a>.</p>
+<p>Similarly, the power spectrum calculations requires that the user provides the atomic position or velocity vectors for each MD snapshot in the form of an <code class="docutils literal notranslate"><span class="pre">.xyz</span></code> file format, such as:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">$total_number_of_atoms</span><span class="w"> </span><span class="c1">#first MD frame</span>
+<span class="w">                       </span><span class="c1">#leave 1 blank line</span>
+<span class="nv">$element_symbol</span><span class="w"> </span><span class="nv">$x_coord</span><span class="w"> </span><span class="nv">$y_coord</span><span class="w"> </span><span class="nv">$z_coor</span>
+...
+...
+<span class="nv">$total_number_of_atoms</span><span class="w"> </span><span class="c1">#second MD frame</span>
+<span class="w">                       </span><span class="c1">#leave 1 blank line</span>
+...
+</pre></div>
+</div>
+</section>
+<section id="files-for-normal-mode-analysis">
+<h2>2) Files for normal mode analysis<a class="headerlink" href="#files-for-normal-mode-analysis" title="Link to this heading">¶</a></h2>
+<section id="atomic-forces">
+<h3>2.1 Atomic forces<a class="headerlink" href="#atomic-forces" title="Link to this heading">¶</a></h3>
+<p>To carry out a normal mode analysis, the user must provide the atomic force vectors in a.u. for each <span class="math notranslate nohighlight">\(6N\)</span> displaced structure (for more information, see Section <a class="reference internal" href="frequency.html"><span class="std std-doc">Frequencies</span></a>. The file should have the format (ignoring the comment lines):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1">#start with forces coming from Atom 1 displaced in +x direction</span>
+<span class="nv">$force_x</span><span class="w"> </span><span class="nv">$force_y</span><span class="w"> </span><span class="nv">$force_z</span><span class="w"> </span><span class="c1">#first atom</span>
+<span class="nv">$force_x</span><span class="w"> </span><span class="nv">$force_y</span><span class="w"> </span><span class="nv">$force_z</span><span class="w"> </span><span class="c1">#second atom</span>
+...
+<span class="nv">$force_x</span><span class="w"> </span><span class="nv">$force_y</span><span class="w"> </span><span class="nv">$force_z</span><span class="w"> </span><span class="c1">#last atom</span>
+<span class="c1">#forces coming from Atom 1 displaced in +y direction</span>
+<span class="nv">$force_x</span><span class="w"> </span><span class="nv">$force_y</span><span class="w"> </span><span class="nv">$force_z</span><span class="w"> </span><span class="c1">#first atom</span>
+...
+<span class="c1">#forces coming from Atom 1 displaced in +z direction</span>
+<span class="nv">$force_x</span><span class="w"> </span><span class="nv">$force_y</span><span class="w"> </span><span class="nv">$force_z</span><span class="w"> </span><span class="c1">#first atom</span>
+...
+<span class="c1">#forces coming from Atom 2 displaced in +x direction</span>
+<span class="nv">$force_x</span><span class="w"> </span><span class="nv">$force_y</span><span class="w"> </span><span class="nv">$force_z</span><span class="w"> </span><span class="c1">#first atom</span>
+...
+...<span class="w"> </span>
+<span class="c1">#finish looping over all atoms displaces in +x, +y, +z directions.</span>
+<span class="c1">#continue with forces coming from Atom 1 displaced in -x direction</span>
+<span class="nv">$force_x</span><span class="w"> </span><span class="nv">$force_y</span><span class="w"> </span><span class="nv">$force_z</span><span class="w"> </span><span class="c1">#first atom</span>
+...
+...
+<span class="c1">#finish with the last atom displaced in -z direction</span>
+<span class="nv">$force_x</span><span class="w"> </span><span class="nv">$force_y</span><span class="w"> </span><span class="nv">$force_z</span><span class="w"> </span><span class="c1">#first atom</span>
+...
+<span class="nv">$force_x</span><span class="w"> </span><span class="nv">$force_y</span><span class="w"> </span><span class="nv">$force_z</span><span class="w"> </span><span class="c1">#last atom</span>
+</pre></div>
+</div>
+<p>As an example, <a class="reference download internal" download="" href="_downloads/f106bfe1bda9347625ebe0f8c0aa09c6/force.sh"><span class="xref download myst">this bash script</span></a> enters directories of each displaced structure and appends the <a class="reference download internal" download="" href="_downloads/3287c454638d3f5397d4b7ae1ef57b84/force.xyz"><span class="xref download myst">CP2K force files</span></a> accordingly.</p>
+</section>
+<section id="normal-mode-frequencies-and-coordinates">
+<h3>2.2 Normal mode frequencies and coordinates<a class="headerlink" href="#normal-mode-frequencies-and-coordinates" title="Link to this heading">¶</a></h3>
+<p>The user can provide the normal mode frequencies and coordinates instead of forces. In that case, the normal mode frequencies should be given as:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">$frequency</span><span class="w"> </span><span class="c1">#for the first normal mode</span>
+<span class="nv">$frequency</span><span class="w"> </span><span class="c1">#for the second normal mode</span>
+...
+<span class="nv">$frequency</span><span class="w"> </span><span class="c1">#for the last normal mode</span>
+</pre></div>
+</div>
+<p>And the normal mode coordinates should be given as the atomic cartesian coordinates (in. a.u.) for each vibrational mode, such as:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">$x_coord</span><span class="w"> </span><span class="nv">$y_coord</span><span class="w"> </span><span class="nv">$z_coord</span><span class="w"> </span><span class="c1"># coordinates of Atom 1 for normal mode 1</span>
+<span class="nv">$x_coord</span><span class="w"> </span><span class="nv">$y_coord</span><span class="w"> </span><span class="nv">$z_coord</span><span class="w"> </span><span class="c1"># coordinates of Atom 2 for normal mode 1</span>
+...
+<span class="nv">$x_coord</span><span class="w"> </span><span class="nv">$y_coord</span><span class="w"> </span><span class="nv">$z_coord</span><span class="w"> </span><span class="c1"># coordinates of the last atom for normal mode 1</span>
+<span class="nv">$x_coord</span><span class="w"> </span><span class="nv">$y_coord</span><span class="w"> </span><span class="nv">$z_coord</span><span class="w"> </span><span class="c1"># coordinates of Atom 1 for normal mode 2</span>
+...
+...
+<span class="nv">$x_coord</span><span class="w"> </span><span class="nv">$y_coord</span><span class="w"> </span><span class="nv">$z_coord</span><span class="w"> </span><span class="c1"># coordinates of the last atom for the last normal mode</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="berry-phase-dipole-moments">
+<h2>3) Berry-phase dipole moments<a class="headerlink" href="#berry-phase-dipole-moments" title="Link to this heading">¶</a></h2>
+<section id="md-based-spectra">
+<h3>3.1 MD-based spectra<a class="headerlink" href="#md-based-spectra" title="Link to this heading">¶</a></h3>
+<p>The Berry phase dipole moment vectors for the MD-based spectra should be given in Debye in the <code class="docutils literal notranslate"><span class="pre">.xyz</span></code> format, combined for all MD snapshots in a single file such as:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="m">1</span><span class="w"> </span><span class="c1"># because there is only 1 dipole vector for the whole system</span>
+<span class="w">                       </span><span class="c1">#leave 1 blank line</span>
+<span class="s1">&#39;dummy_value&#39;</span><span class="w"> </span><span class="nv">$dipole_x</span><span class="w"> </span><span class="nv">$dipole_y</span><span class="w"> </span><span class="nv">$dipole_z</span><span class="w"> </span><span class="c1">#first MD frame</span>
+<span class="m">1</span><span class="w"> </span>
+<span class="w">                       </span><span class="c1">#leave 1 blank line</span>
+<span class="s1">&#39;dummy_value&#39;</span><span class="w"> </span><span class="nv">$dipole_x</span><span class="w"> </span><span class="nv">$dipole_y</span><span class="w"> </span><span class="nv">$dipole_z</span><span class="w"> </span><span class="c1">#second MD frame</span>
+...
+<span class="m">1</span><span class="w"> </span>
+<span class="w">                       </span><span class="c1">#leave 1 blank line</span>
+<span class="s1">&#39;dummy_value&#39;</span><span class="w"> </span><span class="nv">$dipole_x</span><span class="w"> </span><span class="nv">$dipole_y</span><span class="w"> </span><span class="nv">$dipole_z</span><span class="w"> </span><span class="c1">#last MD frame</span>
+</pre></div>
+</div>
+</section>
+<section id="static-spectra-based-on-normal-modes">
+<h3>3.2 Static spectra based on normal modes<a class="headerlink" href="#static-spectra-based-on-normal-modes" title="Link to this heading">¶</a></h3>
+<p>The Berry phase dipole moment vectors for a static calculation should be given in Debye for each <span class="math notranslate nohighlight">\(6N\)</span> displaced structure (for more information, see Section <a class="reference internal" href="frequency.html"><span class="std std-doc">Frequencies</span></a> combined in a single file, such as (ignoring the comment lines):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1">#dipoles coming from Atom 1 displaced in +x direction</span>
+<span class="m">1</span><span class="w"> </span><span class="c1"># because there is only 1 dipole vector for the whole system</span>
+<span class="w">                       </span><span class="c1">#leave 1 blank line</span>
+<span class="s1">&#39;dummy_value&#39;</span><span class="w"> </span><span class="nv">$dipole_x</span><span class="w"> </span><span class="nv">$dipole_y</span><span class="w"> </span><span class="nv">$dipole_z</span><span class="w"> </span>
+<span class="c1">#dipoles coming from Atom 1 displaced in +y direction</span>
+<span class="m">1</span><span class="w"> </span>
+<span class="w">                       </span>
+<span class="s1">&#39;dummy_value&#39;</span><span class="w"> </span><span class="nv">$dipole_x</span><span class="w"> </span><span class="nv">$dipole_y</span><span class="w"> </span><span class="nv">$dipole_z</span><span class="w"> </span>
+<span class="c1">#dipoles coming from Atom 1 displaced in +z direction</span>
+<span class="m">1</span><span class="w"> </span>
+<span class="w">                       </span>
+<span class="s1">&#39;dummy_value&#39;</span><span class="w"> </span><span class="nv">$dipole_x</span><span class="w"> </span><span class="nv">$dipole_y</span><span class="w"> </span><span class="nv">$dipole_z</span><span class="w"> </span>
+<span class="c1">#dipoles coming from Atom 2 displaced in +x direction</span>
+<span class="m">1</span><span class="w"> </span>
+<span class="w">                       </span>
+<span class="s1">&#39;dummy_value&#39;</span><span class="w"> </span><span class="nv">$dipole_x</span><span class="w"> </span><span class="nv">$dipole_y</span><span class="w"> </span><span class="nv">$dipole_z</span><span class="w"> </span>
+...
+...
+<span class="c1">#dipoles coming from Atom 2 displaced in +x direction</span>
+<span class="m">1</span><span class="w"> </span>
+<span class="w">                       </span>
+<span class="s1">&#39;dummy_value&#39;</span><span class="w"> </span><span class="nv">$dipole_x</span><span class="w"> </span><span class="nv">$dipole_y</span><span class="w"> </span><span class="nv">$dipole_z</span><span class="w"> </span>
+...
+<span class="c1">#dipoles coming from Atom 1 displaced in -x direction</span>
+<span class="m">1</span><span class="w"> </span>
+<span class="w">                       </span>
+<span class="s1">&#39;dummy_value&#39;</span><span class="w"> </span><span class="nv">$dipole_x</span><span class="w"> </span><span class="nv">$dipole_y</span><span class="w"> </span><span class="nv">$dipole_z</span><span class="w"> </span>
+...
+<span class="c1">#dipoles coming from the last atom displaced in -z direction</span>
+<span class="m">1</span><span class="w"> </span>
+<span class="w">                       </span>
+<span class="s1">&#39;dummy_value&#39;</span><span class="w"> </span><span class="nv">$dipole_x</span><span class="w"> </span><span class="nv">$dipole_y</span><span class="w"> </span><span class="nv">$dipole_z</span><span class="w"> </span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="wannier-centers">
+<h2>4) Wannier centers<a class="headerlink" href="#wannier-centers" title="Link to this heading">¶</a></h2>
+<p>If any MD-based spectrum is being calculated from Wannier centers, then the <code class="docutils literal notranslate"><span class="pre">wannier.xyz</span></code> for whole system (atoms + wannier centers labeled as “X”) should be given for each MD frame in the <code class="docutils literal notranslate"><span class="pre">.xyz</span></code> file format. An example could be seen <a class="reference download internal" download="" href="_downloads/7d4be304ca33cee9f055250963aef337/COF-1_solv_wannier_free.xyz"><span class="xref download myst">here</span></a>.</p>
+</section>
+<section id="dfpt-polarizabilities">
+<h2>5) DFPT polarizabilities<a class="headerlink" href="#dfpt-polarizabilities" title="Link to this heading">¶</a></h2>
+<section id="id1">
+<h3>5.1 MD-based spectra<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h3>
+<p>The DFPT polarizabilities for the MD-based spectra should be given in Å <span class="math notranslate nohighlight">\(^3\)</span> in the <code class="docutils literal notranslate"><span class="pre">.xyz</span></code> format. There should be three separate files in total, such that the first file contains <span class="math notranslate nohighlight">\(\alpha_{xx}\)</span>, <span class="math notranslate nohighlight">\(\alpha_{xy}\)</span>, <span class="math notranslate nohighlight">\(\alpha_{xz}\)</span>; the second file contains <span class="math notranslate nohighlight">\(\alpha_{yx}\)</span>, <span class="math notranslate nohighlight">\(\alpha_{yy}\)</span>, <span class="math notranslate nohighlight">\(\alpha_{yz}\)</span>; and the third file contains <span class="math notranslate nohighlight">\(\alpha_{zx}\)</span>, <span class="math notranslate nohighlight">\(\alpha_{zy}\)</span>, <span class="math notranslate nohighlight">\(\alpha_{zz}\)</span>. Each file should have the format:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="m">1</span><span class="w"> </span><span class="c1"># because there is only 1 polarizability tensor for the whole system</span>
+<span class="w">                       </span><span class="c1">#leave 1 blank line</span>
+<span class="s1">&#39;dummy_value&#39;</span><span class="w"> </span><span class="nv">$alpha_ix</span><span class="w"> </span><span class="nv">$alpha_iy</span><span class="w"> </span><span class="nv">$alpha_iz</span><span class="w"> </span><span class="c1">#first MD frame</span>
+<span class="m">1</span><span class="w"> </span>
+<span class="w">                       </span><span class="c1">#leave 1 blank line</span>
+<span class="s1">&#39;dummy_value&#39;</span><span class="w"> </span><span class="nv">$alpha_ix</span><span class="w"> </span><span class="nv">$alpha_iy</span><span class="w"> </span><span class="nv">$alpha_iz</span><span class="w"> </span><span class="c1">#second MD frame</span>
+...
+<span class="m">1</span><span class="w"> </span>
+<span class="w">                       </span><span class="c1">#leave 1 blank line</span>
+<span class="s1">&#39;dummy_value&#39;</span><span class="w"> </span><span class="nv">$alpha_ix</span><span class="w"> </span><span class="nv">$alpha_iy</span><span class="w"> </span><span class="nv">$alpha_iz</span><span class="w"> </span><span class="c1">#last MD frame</span>
+</pre></div>
+</div>
+<p>where <span class="math notranslate nohighlight">\(i\)</span> is <span class="math notranslate nohighlight">\(x\)</span>, <span class="math notranslate nohighlight">\(y\)</span>, or <span class="math notranslate nohighlight">\(z\)</span>.</p>
+</section>
+<section id="id2">
+<h3>5.2 Static spectra based on normal modes<a class="headerlink" href="#id2" title="Link to this heading">¶</a></h3>
+<p>The DFPT polarizabilities for a static calculation should be given in Å <span class="math notranslate nohighlight">\(^3\)</span> for each <span class="math notranslate nohighlight">\(6N\)</span> displaced structure (for more information, see Section <a class="reference internal" href="frequency.html"><span class="std std-doc">Frequencies</span></a> combined in a single file, such as (ignoring the comment lines):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1">#leave 6 blank lines</span>
+<span class="c1">#Atom 1 displaced in +x direction</span>
+<span class="s1">&#39;dummy_value&#39;</span><span class="w"> </span><span class="nv">$alpha_xx</span><span class="w"> </span><span class="nv">$alpha_yy</span><span class="w"> </span><span class="nv">$alpha_zz</span><span class="w"> </span>
+<span class="s1">&#39;dummy_value&#39;</span><span class="w"> </span><span class="nv">$alpha_xy</span><span class="w"> </span><span class="nv">$alpha_xz</span><span class="w"> </span><span class="nv">$alpha_yz</span><span class="w"> </span>
+<span class="s1">&#39;dummy_value&#39;</span><span class="w"> </span><span class="nv">$alpha_yx</span><span class="w"> </span><span class="nv">$alpha_zx</span><span class="w"> </span><span class="nv">$alpha_zy</span><span class="w"> </span>
+<span class="c1">#Atom 1 displaced in +y direction</span>
+<span class="c1">#leave 6 blank lines</span>
+<span class="s1">&#39;dummy_value&#39;</span><span class="w"> </span><span class="nv">$alpha_xx</span><span class="w"> </span><span class="nv">$alpha_yy</span><span class="w"> </span><span class="nv">$alpha_zz</span><span class="w"> </span>
+<span class="s1">&#39;dummy_value&#39;</span><span class="w"> </span><span class="nv">$alpha_xy</span><span class="w"> </span><span class="nv">$alpha_xz</span><span class="w"> </span><span class="nv">$alpha_yz</span><span class="w"> </span>
+<span class="s1">&#39;dummy_value&#39;</span><span class="w"> </span><span class="nv">$alpha_yx</span><span class="w"> </span><span class="nv">$alpha_zx</span><span class="w"> </span><span class="nv">$alpha_zy</span><span class="w"> </span>
+<span class="c1">#Atom 1 displaced in +z direction</span>
+<span class="c1">#leave 6 blank lines</span>
+<span class="s1">&#39;dummy_value&#39;</span><span class="w"> </span><span class="nv">$alpha_xx</span><span class="w"> </span><span class="nv">$alpha_yy</span><span class="w"> </span><span class="nv">$alpha_zz</span><span class="w"> </span>
+<span class="s1">&#39;dummy_value&#39;</span><span class="w"> </span><span class="nv">$alpha_xy</span><span class="w"> </span><span class="nv">$alpha_xz</span><span class="w"> </span><span class="nv">$alpha_yz</span><span class="w"> </span>
+<span class="s1">&#39;dummy_value&#39;</span><span class="w"> </span><span class="nv">$alpha_yx</span><span class="w"> </span><span class="nv">$alpha_zx</span><span class="w"> </span><span class="nv">$alpha_zy</span><span class="w"> </span>
+...
+<span class="c1">#Atom 2 displaced in +x direction</span>
+<span class="c1">#leave 6 blank lines</span>
+<span class="s1">&#39;dummy_value&#39;</span><span class="w"> </span><span class="nv">$alpha_xx</span><span class="w"> </span><span class="nv">$alpha_yy</span><span class="w"> </span><span class="nv">$alpha_zz</span><span class="w"> </span>
+<span class="s1">&#39;dummy_value&#39;</span><span class="w"> </span><span class="nv">$alpha_xy</span><span class="w"> </span><span class="nv">$alpha_xz</span><span class="w"> </span><span class="nv">$alpha_yz</span><span class="w"> </span>
+<span class="s1">&#39;dummy_value&#39;</span><span class="w"> </span><span class="nv">$alpha_yx</span><span class="w"> </span><span class="nv">$alpha_zx</span><span class="w"> </span><span class="nv">$alpha_zy</span><span class="w"> </span>
+...
+<span class="c1">#Atom 1 displaced in -x direction</span>
+<span class="c1">#leave 6 blank lines</span>
+<span class="s1">&#39;dummy_value&#39;</span><span class="w"> </span><span class="nv">$alpha_xx</span><span class="w"> </span><span class="nv">$alpha_yy</span><span class="w"> </span><span class="nv">$alpha_zz</span><span class="w"> </span>
+<span class="s1">&#39;dummy_value&#39;</span><span class="w"> </span><span class="nv">$alpha_xy</span><span class="w"> </span><span class="nv">$alpha_xz</span><span class="w"> </span><span class="nv">$alpha_yz</span><span class="w"> </span>
+<span class="s1">&#39;dummy_value&#39;</span><span class="w"> </span><span class="nv">$alpha_yx</span><span class="w"> </span><span class="nv">$alpha_zx</span><span class="w"> </span><span class="nv">$alpha_zy</span><span class="w"> </span>
+...
+<span class="c1">#Last atom displaced in -z direction</span>
+<span class="c1">#leave 6 blank lines</span>
+<span class="s1">&#39;dummy_value&#39;</span><span class="w"> </span><span class="nv">$alpha_xx</span><span class="w"> </span><span class="nv">$alpha_yy</span><span class="w"> </span><span class="nv">$alpha_zz</span><span class="w"> </span>
+<span class="s1">&#39;dummy_value&#39;</span><span class="w"> </span><span class="nv">$alpha_xy</span><span class="w"> </span><span class="nv">$alpha_xz</span><span class="w"> </span><span class="nv">$alpha_yz</span><span class="w"> </span>
+<span class="s1">&#39;dummy_value&#39;</span><span class="w"> </span><span class="nv">$alpha_yx</span><span class="w"> </span><span class="nv">$alpha_zx</span><span class="w"> </span><span class="nv">$alpha_zy</span><span class="w"> </span>
+</pre></div>
+</div>
+<p>The reason for leaving six blank spaces is because the user can directly append the CP2K DFPT polarizabilities, an example is shown below:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>POLARIZABILITY<span class="w"> </span>TENSOR<span class="w"> </span><span class="o">(</span>atomic<span class="w"> </span>units<span class="o">)</span>:
+xx,yy,zz<span class="w">        </span><span class="m">8</span>.25528<span class="w">        </span><span class="m">6</span>.66403<span class="w">        </span><span class="m">5</span>.31055
+xy,xz,yz<span class="w">       </span>-0.00001<span class="w">        </span><span class="m">0</span>.00194<span class="w">       </span>-0.00116
+yx,zx,zy<span class="w">       </span>-0.00000<span class="w">        </span><span class="m">0</span>.00174<span class="w">       </span>-0.00112
+POLARIZABILITY<span class="w"> </span>TENSOR<span class="w"> </span><span class="o">(</span>Angstrom^3<span class="o">)</span>:
+xx,yy,zz<span class="w">        </span><span class="m">1</span>.22331<span class="w">        </span><span class="m">0</span>.98751<span class="w">        </span><span class="m">0</span>.78694
+xy,xz,yz<span class="w">       </span>-0.00000<span class="w">        </span><span class="m">0</span>.00029<span class="w">       </span>-0.00017
+yx,zx,zy<span class="w">       </span>-0.00000<span class="w">        </span><span class="m">0</span>.00026<span class="w">       </span>-0.00017
+</pre></div>
+</div>
+<p>Vibrant only reads the polarizabilities in Å <span class="math notranslate nohighlight">\(^3\)</span>, ignoring the a.u. block.</p>
+</section>
+</section>
+<section id="time-dependent-berry-phase-dipole-moments-coming-from-rt-tddft">
+<h2>6) Time-dependent Berry phase dipole moments coming from RT-TDDFT<a class="headerlink" href="#time-dependent-berry-phase-dipole-moments-coming-from-rt-tddft" title="Link to this heading">¶</a></h2>
+<section id="id3">
+<h3>6.1 MD-based spectra<a class="headerlink" href="#id3" title="Link to this heading">¶</a></h3>
+<p>The time-dependent Berry phase dipole moment vectors for the MD-based resonance Raman (RR) or absorption spectra should be given in Debye in the <code class="docutils literal notranslate"><span class="pre">.xyz</span></code> format, combined for all MD snapshots in a single file such as:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="s1">&#39;dummy_value&#39;</span><span class="w"> </span><span class="c1">#first MD frame</span>
+<span class="w">                       </span><span class="c1">#leave 1 blank line</span>
+<span class="s1">&#39;dummy_value&#39;</span><span class="w"> </span><span class="nv">$dipole_x</span><span class="w"> </span><span class="nv">$dipole_y</span><span class="w"> </span><span class="nv">$dipole_z</span><span class="w"> </span><span class="c1">#unperturbed dipoles</span>
+<span class="s1">&#39;dummy_value&#39;</span><span class="w"> </span><span class="nv">$dipole_x</span><span class="w"> </span><span class="nv">$dipole_y</span><span class="w"> </span><span class="nv">$dipole_z</span><span class="w"> </span><span class="c1">#RT-TDDFT step 1</span>
+<span class="s1">&#39;dummy_value&#39;</span><span class="w"> </span><span class="nv">$dipole_x</span><span class="w"> </span><span class="nv">$dipole_y</span><span class="w"> </span><span class="nv">$dipole_z</span><span class="w"> </span><span class="c1">#RT-TDDFT step 2</span>
+...
+<span class="s1">&#39;dummy_value&#39;</span><span class="w"> </span><span class="nv">$dipole_x</span><span class="w"> </span><span class="nv">$dipole_y</span><span class="w"> </span><span class="nv">$dipole_z</span><span class="w"> </span><span class="c1">#last RT-TDDFT step</span>
+<span class="s1">&#39;dummy_value&#39;</span><span class="w"> </span><span class="c1">#second MD frame</span>
+<span class="w">                       </span><span class="c1">#leave 1 blank line</span>
+<span class="s1">&#39;dummy_value&#39;</span><span class="w"> </span><span class="nv">$dipole_x</span><span class="w"> </span><span class="nv">$dipole_y</span><span class="w"> </span><span class="nv">$dipole_z</span><span class="w"> </span><span class="c1">#unperturbed dipoles</span>
+<span class="s1">&#39;dummy_value&#39;</span><span class="w"> </span><span class="nv">$dipole_x</span><span class="w"> </span><span class="nv">$dipole_y</span><span class="w"> </span><span class="nv">$dipole_z</span><span class="w"> </span><span class="c1">#RT-TDDFT step 1</span>
+...
+...
+<span class="s1">&#39;dummy_value&#39;</span><span class="w"> </span><span class="c1">#last MD frame</span>
+<span class="w">                       </span><span class="c1">#leave 1 blank line</span>
+<span class="s1">&#39;dummy_value&#39;</span><span class="w"> </span><span class="nv">$dipole_x</span><span class="w"> </span><span class="nv">$dipole_y</span><span class="w"> </span><span class="nv">$dipole_z</span><span class="w"> </span><span class="c1">#unperturbed dipoles</span>
+<span class="s1">&#39;dummy_value&#39;</span><span class="w"> </span><span class="nv">$dipole_x</span><span class="w"> </span><span class="nv">$dipole_y</span><span class="w"> </span><span class="nv">$dipole_z</span><span class="w"> </span><span class="c1">#RT-TDDFT step 1</span>
+...
+<span class="s1">&#39;dummy_value&#39;</span><span class="w"> </span><span class="nv">$dipole_x</span><span class="w"> </span><span class="nv">$dipole_y</span><span class="w"> </span><span class="nv">$dipole_z</span><span class="w"> </span><span class="c1">#last RT-TDDFT step</span>
+</pre></div>
+</div>
+<p>Here the unperturbed dipole moments refer to <span class="math notranslate nohighlight">\(\mu^{0}_{i}\)</span> described in Section <a class="reference internal" href="Resonance_Raman_spec.html"><span class="std std-doc">Resonance Raman (RR) and absorption spectra</span></a>. Three files should be given in total, each containing the unperturbed dipole moments + time-dependent dipole moments perturbed under electric field applied in <span class="math notranslate nohighlight">\(x\)</span>, <span class="math notranslate nohighlight">\(y\)</span> or <span class="math notranslate nohighlight">\(z\)</span> direction.</p>
+</section>
+<section id="id4">
+<h3>6.2 Static spectra based on normal modes<a class="headerlink" href="#id4" title="Link to this heading">¶</a></h3>
+<p>The time-dependent Berry phase dipole moment vectors for a static RR or absorption spectrum calculation should be given in Debye for each <span class="math notranslate nohighlight">\(6N\)</span> displaced structure (for more information, see Section <a class="reference internal" href="frequency.html"><span class="std std-doc">Frequencies</span></a> combined in a single file, such as (ignoring the comment lines):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1">#dipoles coming from Atom 1 displaced in +x direction</span>
+<span class="s1">&#39;dummy_value&#39;</span>
+<span class="w">                       </span><span class="c1">#leave 1 blank line</span>
+<span class="s1">&#39;dummy_value&#39;</span><span class="w"> </span><span class="nv">$dipole_x</span><span class="w"> </span><span class="nv">$dipole_y</span><span class="w"> </span><span class="nv">$dipole_z</span><span class="w"> </span><span class="c1">#unperturbed dipoles</span>
+<span class="s1">&#39;dummy_value&#39;</span><span class="w"> </span><span class="nv">$dipole_x</span><span class="w"> </span><span class="nv">$dipole_y</span><span class="w"> </span><span class="nv">$dipole_z</span><span class="w"> </span><span class="c1">#RT-TDDFT step 1</span>
+<span class="s1">&#39;dummy_value&#39;</span><span class="w"> </span><span class="nv">$dipole_x</span><span class="w"> </span><span class="nv">$dipole_y</span><span class="w"> </span><span class="nv">$dipole_z</span><span class="w"> </span><span class="c1">#RT-TDDFT step 2</span>
+...
+<span class="s1">&#39;dummy_value&#39;</span><span class="w"> </span><span class="nv">$dipole_x</span><span class="w"> </span><span class="nv">$dipole_y</span><span class="w"> </span><span class="nv">$dipole_z</span><span class="w"> </span><span class="c1">#last RT-TDDFT step</span>
+<span class="c1">#dipoles coming from Atom 1 displaced in +y direction</span>
+<span class="s1">&#39;dummy_value&#39;</span><span class="w"> </span>
+<span class="w">                       </span><span class="c1">#leave 1 blank line</span>
+<span class="s1">&#39;dummy_value&#39;</span><span class="w"> </span><span class="nv">$dipole_x</span><span class="w"> </span><span class="nv">$dipole_y</span><span class="w"> </span><span class="nv">$dipole_z</span><span class="w"> </span><span class="c1">#unperturbed dipoles</span>
+<span class="s1">&#39;dummy_value&#39;</span><span class="w"> </span><span class="nv">$dipole_x</span><span class="w"> </span><span class="nv">$dipole_y</span><span class="w"> </span><span class="nv">$dipole_z</span><span class="w"> </span><span class="c1">#RT-TDDFT step 1</span>
+...
+<span class="c1">#dipoles coming from Atom 1 displaced in +z direction</span>
+<span class="s1">&#39;dummy_value&#39;</span><span class="w"> </span>
+<span class="w">                       </span><span class="c1">#leave 1 blank line</span>
+<span class="s1">&#39;dummy_value&#39;</span><span class="w"> </span><span class="nv">$dipole_x</span><span class="w"> </span><span class="nv">$dipole_y</span><span class="w"> </span><span class="nv">$dipole_z</span><span class="w"> </span><span class="c1">#unperturbed dipoles</span>
+<span class="s1">&#39;dummy_value&#39;</span><span class="w"> </span><span class="nv">$dipole_x</span><span class="w"> </span><span class="nv">$dipole_y</span><span class="w"> </span><span class="nv">$dipole_z</span><span class="w"> </span><span class="c1">#RT-TDDFT step 1</span>
+...
+<span class="c1">#dipoles coming from Atom 2 displaced in +x direction</span>
+<span class="s1">&#39;dummy_value&#39;</span>
+<span class="w">                       </span><span class="c1">#leave 1 blank line</span>
+<span class="s1">&#39;dummy_value&#39;</span><span class="w"> </span><span class="nv">$dipole_x</span><span class="w"> </span><span class="nv">$dipole_y</span><span class="w"> </span><span class="nv">$dipole_z</span><span class="w"> </span><span class="c1">#unperturbed dipoles</span>
+<span class="s1">&#39;dummy_value&#39;</span><span class="w"> </span><span class="nv">$dipole_x</span><span class="w"> </span><span class="nv">$dipole_y</span><span class="w"> </span><span class="nv">$dipole_z</span><span class="w"> </span><span class="c1">#RT-TDDFT step 1</span>
+...
+...
+<span class="c1">#dipoles coming from Atom 1 displaced in -x direction</span>
+<span class="s1">&#39;dummy_value&#39;</span>
+<span class="w">                       </span><span class="c1">#leave 1 blank line</span>
+<span class="s1">&#39;dummy_value&#39;</span><span class="w"> </span><span class="nv">$dipole_x</span><span class="w"> </span><span class="nv">$dipole_y</span><span class="w"> </span><span class="nv">$dipole_z</span><span class="w"> </span><span class="c1">#unperturbed dipoles</span>
+<span class="s1">&#39;dummy_value&#39;</span><span class="w"> </span><span class="nv">$dipole_x</span><span class="w"> </span><span class="nv">$dipole_y</span><span class="w"> </span><span class="nv">$dipole_z</span><span class="w"> </span><span class="c1">#RT-TDDFT step 1</span>
+...
+...
+<span class="c1">#dipoles coming from the last atom displaced in -z direction</span>
+<span class="s1">&#39;dummy_value&#39;</span>
+<span class="w">                       </span><span class="c1">#leave 1 blank line</span>
+<span class="s1">&#39;dummy_value&#39;</span><span class="w"> </span><span class="nv">$dipole_x</span><span class="w"> </span><span class="nv">$dipole_y</span><span class="w"> </span><span class="nv">$dipole_z</span><span class="w"> </span><span class="c1">#unperturbed dipoles</span>
+<span class="s1">&#39;dummy_value&#39;</span><span class="w"> </span><span class="nv">$dipole_x</span><span class="w"> </span><span class="nv">$dipole_y</span><span class="w"> </span><span class="nv">$dipole_z</span><span class="w"> </span><span class="c1">#RT-TDDFT step 1</span>
+...
+<span class="s1">&#39;dummy_value&#39;</span><span class="w"> </span><span class="nv">$dipole_x</span><span class="w"> </span><span class="nv">$dipole_y</span><span class="w"> </span><span class="nv">$dipole_z</span><span class="w"> </span><span class="c1">#last RT-TDDFT step</span>
+</pre></div>
+</div>
+<p>Similarly to the MD-based spectra, here the unperturbed dipole moments refer to <span class="math notranslate nohighlight">\(\mu^{0}_{i}\)</span> described in Section <a class="reference internal" href="Resonance_Raman_spec.html"><span class="std std-doc">Resonance Raman (RR) and absorption spectra</span></a>. Three files should be given in total, each containing the unperturbed dipole moments + time-dependent dipole moments perturbed under electric field applied in <span class="math notranslate nohighlight">\(x\)</span>, <span class="math notranslate nohighlight">\(y\)</span> or <span class="math notranslate nohighlight">\(z\)</span> direction.</p>
+</section>
+</section>
+</section>
+
+</main>
+                        <nav aria-label="Page navigation" class="py-4 my-5 clearfix font-weight-bold border-top">
+    <a class="float-left" href="Installation.html" title="Previous">
+        <span aria-hidden="true">←&nbsp;</span>Installation
+    </a>
+    <a class="float-right" href="frequency.html" title="Next">
+        Frequencies <span aria-hidden="true">&nbsp;→</span>
+    </a>
+</nav>
+                    </div>
+                    
+                    <nav class="col-12 col-lg-3 pb-4">
+                        <div class="sticky-top toc page-toc" aria-labelledby="page-toc-heading">
+                            <p class="font-weight-bold" id="page-toc-heading">Page contents</p>
+                            <ul>
+<li><a class="reference internal" href="#">File Formats</a><ul>
+<li><a class="reference internal" href="#coordinates-of-atomic-positions-xyz-files">1) Coordinates of atomic positions (.xyz files)</a></li>
+<li><a class="reference internal" href="#files-for-normal-mode-analysis">2) Files for normal mode analysis</a><ul>
+<li><a class="reference internal" href="#atomic-forces">2.1 Atomic forces</a></li>
+<li><a class="reference internal" href="#normal-mode-frequencies-and-coordinates">2.2 Normal mode frequencies and coordinates</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#berry-phase-dipole-moments">3) Berry-phase dipole moments</a><ul>
+<li><a class="reference internal" href="#md-based-spectra">3.1 MD-based spectra</a></li>
+<li><a class="reference internal" href="#static-spectra-based-on-normal-modes">3.2 Static spectra based on normal modes</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#wannier-centers">4) Wannier centers</a></li>
+<li><a class="reference internal" href="#dfpt-polarizabilities">5) DFPT polarizabilities</a><ul>
+<li><a class="reference internal" href="#id1">5.1 MD-based spectra</a></li>
+<li><a class="reference internal" href="#id2">5.2 Static spectra based on normal modes</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#time-dependent-berry-phase-dipole-moments-coming-from-rt-tddft">6) Time-dependent Berry phase dipole moments coming from RT-TDDFT</a><ul>
+<li><a class="reference internal" href="#id3">6.1 MD-based spectra</a></li>
+<li><a class="reference internal" href="#id4">6.2 Static spectra based on normal modes</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+                        </div>
+                    </nav>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+    <footer class="container-fluid bg-primary text-light">
+        <div class="container">
+            <div class="row">
+        <div class="col p-4">
+            
+                <nav aria-label="Footer">
+                    <ul class="nav justify-content-center mb-2">
+                        
+                            
+                            
+                            <li class="nav-item"><a class="nav-link text-light"  href="https://golzegroup.org/">Golze Group</a></li>
+                        
+                            
+                            
+                            <li class="nav-item"><a class="nav-link text-light"  href="https://golzegroup.org/contact/">Contact</a></li>
+                        
+                    </ul>
+                </nav>
+            
+            <div class="text-center">
+                    &copy; Copyright 2024, Ekin Esme Bas
+            </div>
+            <div class="text-center text-white-50 font-italic mt-3">
+                <small>
+                    Created using
+                    <a class="text-white" href="https://github.com/wagtail/sphinx_wagtail_theme" rel="nofollow" target="_blank">
+                        Sphinx Wagtail Theme 6.5.0
+                    </a>
+                    and
+                    <a class="text-white" href="https://www.sphinx-doc.org/" rel="nofollow" target="_blank">
+                        Sphinx 8.2.3
+                    </a>
+                </small>
+            </div>
+        </div>
+    </div>
+        </div>
+    </footer>
+        <script src="_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="_static/doctools.js?v=9bcbadda"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+        <script src="_static/copybutton.js?v=f281be69"></script>
+        <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+        <script type="text/javascript" src="_static/dist/theme.js"></script>
+        <script type="text/javascript" src="_static/dist/vendor.js"></script>
+        <script type="text/javascript" src="_static/searchtools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+        <script type="text/javascript">
+            document.addEventListener('DOMContentLoaded', function() { Search.loadIndex("searchindex.js"); });
+        </script>
+        <script type="text/javascript" id="searchindexloader"></script>
+    </body>
+</html>

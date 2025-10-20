@@ -61,6 +61,7 @@
         <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="Installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file_formats.html">File Formats</a></li>
 <li class="toctree-l1"><a class="reference internal" href="frequency.html">Frequencies</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">IR spectra</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Raman_spec.html">Raman spectra</a></li>
@@ -130,7 +131,7 @@
 I_{\textnormal{IR}}(\tilde{\nu}_p) = \frac{N_{A} }{12\varepsilon _{0}c^{2}}\left ( \frac{\partial \boldsymbol{\mu} }{\partial Q_{p}} \right )^{2}
 \]</div>
 <p>where <span class="math notranslate nohighlight">\(\varepsilon_{0}\)</span> is the vacuum permittivity, <span class="math notranslate nohighlight">\(N_{A}\)</span> is the Avogadro constant and <span class="math notranslate nohighlight">\(c\)</span> is the speed of light. <span class="math notranslate nohighlight">\(\tilde{\nu_{p}}\)</span> is the wavenumber defined as <span class="math notranslate nohighlight">\(\tilde{\nu_{p}}=\nu_{p}/c\)</span>.</p>
-<p>For each displaced structure (see Section <a class="reference internal" href="frequency.html"><span class="std std-doc">Frequencies</span></a> for details) the user must provide the dipole moments appended in a single file (see File Formats for more details.) For the derivatives along the normal modes, the user can either provide the normal mode coordinates or alternatively the forces for each displaced structure, together with the cartesian coordinates of the optimized geometry. An example input section for the static section may look like:</p>
+<p>For each displaced structure (see Section <a class="reference internal" href="frequency.html"><span class="std std-doc">Frequencies</span></a> for details) the user must provide the dipole moments appended in a single file (see <a class="reference internal" href="file_formats.html"><span class="std std-doc">File Formats</span></a> for more details.) For the derivatives along the normal modes, the user can either provide the normal mode coordinates or alternatively the forces for each displaced structure, together with the cartesian coordinates of the optimized geometry. An example input section for the static section may look like:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="p">&amp;</span>global
 <span class="w"> </span>spectra<span class="w"> </span>IR
 <span class="w"> </span>fwhm<span class="w"> </span><span class="o">{</span><span class="nv">$full_width_at_half_maximum</span><span class="o">}</span>
