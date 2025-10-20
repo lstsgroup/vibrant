@@ -23,6 +23,7 @@ extensions = [
     "sphinx_wagtail_theme",
     "myst_parser",
     "sphinx.ext.mathjax",
+    "in_keyword"
 ]
 
 myst_enable_extensions = [
