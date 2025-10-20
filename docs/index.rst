@@ -47,3 +47,12 @@ Optional: Test if the installation is working as expected by typing
 in the build directory to run the regression tests.
 
 For more a more fine-grained installation please refer to the `documentation of vibrant <https://lstsgroup.github.io/vibrant/Installation.html>`_.
+
+The compiled binary is now available in the build directory as ``build/vibrant`` and can be invoked e.g. from the root directory by the command
+
+.. code-block:: bash
+   
+   build/vibrant input.txt
+
+with ``input.txt`` as a input file with the vibrant settings.
+
