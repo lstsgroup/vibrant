@@ -207,9 +207,10 @@ I_{\textnormal{abs}} (\omega) = \frac{1}{3}\textnormal{Tr}\left[ \boldsymbol{\si
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">rtp</span></code> subsection provides the necessary information about the RT-TDDFT parameters. The <code class="docutils literal notranslate"><span class="pre">static</span></code> section should be given similar to the <a class="reference internal" href="Raman_spec.html"><span class="std std-doc">static Raman</span></a> input. Complete input files can be found at ….</p>
 <p>Vibrant applies Gaussian broadening to the final discrete set of frequencies and intensities. The <code class="docutils literal notranslate"><span class="pre">fwhm</span></code> keyword controls the full width at half maximum (FWHM) value in cm <span class="math notranslate nohighlight">\({^{-1}}\)</span> and if not specified, it is set to 5 cm <span class="math notranslate nohighlight">\({^{-1}}\)</span>.</p>
-<blockquote>
-<div><p>💡 <strong>Note:</strong> The keyword <code class="docutils literal notranslate"><span class="pre">write_mol_file</span></code> is optional and it executes the printing of a <code class="docutils literal notranslate"><span class="pre">{$filename}.mol</span></code> file, which includes the optimized geometry, normal mode frequencies, normal mode coordinates and the non-broadened Raman intensities. The <code class="docutils literal notranslate"><span class="pre">{$filename}.mol</span></code> file can be opened with <a class="reference external" href="https://www.theochem.ru.nl/molden/">MOLDEN</a> to visualize the normal modes alongside the Raman spectrum. If multiple incident laser frequencies are requested, Vibrant generates a separate <code class="docutils literal notranslate"><span class="pre">{$filename}.mol</span></code> file for each frequency.</p>
-</div></blockquote>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The keyword <code class="docutils literal notranslate"><span class="pre">write_mol_file</span></code> is optional and it executes the printing of a <code class="docutils literal notranslate"><span class="pre">{$filename}.mol</span></code> file, which includes the optimized geometry, normal mode frequencies, normal mode coordinates and the non-broadened Raman intensities. The <code class="docutils literal notranslate"><span class="pre">{$filename}.mol</span></code> file can be opened with <a class="reference external" href="https://www.theochem.ru.nl/molden/">MOLDEN</a> to visualize the normal modes alongside the Raman spectrum. If multiple incident laser frequencies are requested, Vibrant generates a separate <code class="docutils literal notranslate"><span class="pre">{$filename}.mol</span></code> file for each frequency.</p>
+</div>
 <p>The absorption spectrum calculation does not require the <code class="docutils literal notranslate"><span class="pre">static</span></code> section. An example input section is given below:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="p">&amp;</span>global
 <span class="w"> </span>spectra<span class="w"> </span>ABS
@@ -342,9 +343,10 @@ I_{\textnormal{RR}} (\tilde{\nu}, \omega) = \frac{2h}{8\epsilon_{0}^{2}k_{B}T} \
 </pre></div>
 </div>
 <p>The MD-based absorption spectrum is computed in the same manner as the static absorption spectrum described above, except that the absorption intensities are averaged over all MD snapshots. The MD-based absorption spectrum does not require the specification of the <code class="docutils literal notranslate"><span class="pre">md</span></code> section.</p>
-<blockquote>
-<div><p>💡 <strong>Note:</strong> Vibrant applies the same processing to the final MD-based RR intensities as given in the Section <a class="reference internal" href="IR_spec.html"><span class="std std-doc">IR Spectra</span></a>, including the application of data mirroring and Hann Window function to the autocorrelation data and the application of the sinc function to the final intensities.</p>
-</div></blockquote>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Vibrant applies the same processing to the final MD-based RR intensities as given in the Section <a class="reference internal" href="IR_spec.html"><span class="std std-doc">IR Spectra</span></a>, including the application of data mirroring and Hann Window function to the autocorrelation data and the application of the sinc function to the final intensities.</p>
+</div>
 <p>The final MD-based RR intensities are reported in m <span class="math notranslate nohighlight">\(^2\)</span> K cm 10 <span class="math notranslate nohighlight">\(^{-30}\)</span>.</p>
 </section>
 <section id="c-application-of-pade-interpolation">
@@ -380,7 +382,10 @@ The complex-valued <span class="math notranslate nohighlight">\(\alpha(\omega)\)
 </pre></div>
 </div>
 <p>The user must also specify the number of the final data points after the Padé fitting using the keyword <code class="docutils literal notranslate"><span class="pre">pade_framecount</span></code>. This parameter controls the resolution of the interpolated data.</p>
-<p>The Padé fitting usually takes time, but it is accelarated using …. (Maybe Moritz can give details here?)</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>The Padé fitting usually takes time, but it is accelarated using OpenMP threads. To control the number of parallel threads you can export the environment variable <code class="docutils literal notranslate"><span class="pre">export</span> <span class="pre">OMP_NUM_THREADS=&lt;num_threads&gt;</span></code> before calling the vibrant code. Occasionally for large RTP steps you can run into a “out-of-memory” error. The amout of RAM memory vibrant needs can be computed roughly by <span class="math notranslate nohighlight">\(N_{RTP}^2\cdot 16 \cdot 10^{-9} \cdot N_{threads}\)</span> (in GB).</p>
+</div>
 <p>More information on the all available keywords can be found on Section .. and all complete example input files are available on ….</p>
 </section>
 </section>
