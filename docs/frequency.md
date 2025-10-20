@@ -18,11 +18,11 @@ $$
 \omega_k =\sqrt{\lambda_k}  \qquad \nu_k = \frac{\omega_k}{2\pi}
 $$
 
-where $\omega$ is the angular frequency  (measured in radians per second), and $\nu$ is the ordinary frequency measured in hertz. Vibrant per default prints only the vibrational frequencies, eliminating the first 6 (or 5 for linear molecules) frequencies which belong to the rotational and translational modes. The unit of the frequencies are cm $^{-1}$.
+where $\omega$ is the angular frequency  (measured in radians per second), and $\nu$ is the ordinary frequency measured in hertz. Vibrant prints all the normal mode frequencies, meaning that the first 6 (or 5 if the molecule is linear) normal modes belong to the rotational and translational modes, and the rest are the vibrational modes. The unit of the frequencies are cm $^{-1}$.
 
 The eigenvectors $\mathbf{\tilde{u}}_{p}$ provide the amplitude of the normal mode vibrations, and eventually provide the normal mode coordinates $Q_p=\mathbf{\tilde{u}}_p^T\mathbf{u}_p$. The normal mode coordinates are also printed by Vibrant. Their mass-weighted versions can later be used in computing static IR (see Section [IR Spectra](IR_spec.md)) or Raman intensities. 
 
-For each displaced structure, the user must provide the atomic forces appended in a single file (see File Formats for more details). Hessian diagonalization in Vibrant is performed using the [LAPACK](https://www.netlib.org/lapack/) library.
+For each displaced structure, the user must provide the atomic forces appended in a single file (see [File Formats](file_formats.md) for more details). Hessian diagonalization in Vibrant is performed using the [LAPACK](https://www.netlib.org/lapack/) library.
 
 An example input section for performing the normal mode analysis is shown below:
 
@@ -38,10 +38,13 @@ An example input section for performing the normal mode analysis is shown below:
    force_file {$force_file_name}
   &end hessian
   displacement {$amount_of_displacement}
+  write_mol_file
 &end static
 ```
 
 where the `hessian` section revokes the hessian diagonalization, and the `displacement` refers to the displacement between the shifted geometries (given in Angstrom).
+
+ > 💡 **Note:** The `write_mol_file` keyword is optional and it executes the printing of a `{$filename}.mol` file, which includes the optimized geometry, normal mode frequencies and normal mode coordinates. The `{$filename}.mol` file can be opened with [MOLDEN](https://www.theochem.ru.nl/molden/) to visualize the normal modes.  
 
 ## b) Power spectrum
 

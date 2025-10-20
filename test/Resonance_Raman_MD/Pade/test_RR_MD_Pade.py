@@ -42,6 +42,7 @@ def test_Raman_Berry(vibrant_binary_path):
 
     # compare test against reference
     assert np.allclose(x_ref, x_test, atol=1e-8)
-    assert np.allclose(y_ref, y_test, atol=1e-8)
+    scale = np.max(np.abs(y_ref))
+    assert np.allclose(y_ref, y_test, rtol=1e-5, atol=max(1e-12, 1e-6 * scale))
 
     

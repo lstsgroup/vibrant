@@ -21,11 +21,12 @@ Documentation of Ekin's very cool code.
    :caption: Contents:
 
    Installation
+   file_formats
    frequency 
    IR_spec
    Raman_spec
    fragments
-   Usage
+   Resonance_Raman_spec
    Cite
    Contribute
 

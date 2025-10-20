@@ -43,7 +43,7 @@ Unpolarized ($I(\tilde{\nu}) = I_{\perp }(\tilde{\nu}) + I_{\parallel }(\tilde{\
 
 By default, Vibrant prints only the unpolarized (total) Raman intensities, but the other types of spectra, together with the depolarization ratio ($\rho (\tilde{\nu})=\frac{I_{\perp }(\tilde{\nu})}{I_{\parallel  }(\tilde{\nu})}$), can be printed out by setting the `spectra_verbosity` keyword to `high`.
 
-For each displaced structure (see Section [Frequencies](frequency.md) for details) the user must provide the polarizability tensors appended in a single file (see File Formats for more details.) For the derivatives along the normal modes, the user can either provide the normal mode coordinates or alternatively the forces for each displaced structure, together with the cartesian coordinates of the optimized geometry. An example input section for the static Raman section may look like:
+For each displaced structure (see Section [Frequencies](frequency.md) for details) the user must provide the polarizability tensors appended in a single file (see [File Formats](file_formats.md) for more details.) For the derivatives along the normal modes, the user can either provide the normal mode coordinates or alternatively the forces for each displaced structure, together with the cartesian coordinates of the optimized geometry. An example input section for the static Raman section may look like:
 
 ```bash
 &global
@@ -75,10 +75,15 @@ or if the user want to skip the Hessian diagonalization and give the normal mode
  normal_freq_file {$normal_mode_frequency_file}
  normal_displ_file {$normal_mode_displacement_file}
  displacement {$amount_of_displacement}
+ write_mol_file
 &end static
 ``` 
 
-Vibrant applies Gaussian broadening to the final discrete set of frequencies and intensities. The `fwhm` keyword controls the full width at half maximum (FWHM) value in cm ${^{-1}}$ and if not specified, it is set to 5 cm ${^{-1}}$. The final static Raman intensities are reported in 10 $^{-30}$ cm $^2$ /sr.
+Vibrant applies Gaussian broadening to the final discrete set of frequencies and intensities. The `fwhm` keyword controls the full width at half maximum (FWHM) value in cm ${^{-1}}$ and if not specified, it is set to 5 cm ${^{-1}}$. 
+
+ > 💡 **Note:** The keyword `write_mol_file` is optional and it executes the printing of a `{$filename}.mol` file, which includes the optimized geometry, normal mode frequencies, normal mode coordinates and the non-broadened Raman intensities. The `{$filename}.mol` file can be opened with [MOLDEN](https://www.theochem.ru.nl/molden/) to visualize the normal modes alongside the Raman spectrum. If multiple incident laser frequencies are requested, Vibrant generates a separate `{$filename}.mol` file for each frequency.
+
+The final static Raman intensities are reported in 10 $^{-30}$ cm $^2$ /sr.
 
 > ⚠️ **Warning:** Currently, Vibrant does not support the use of induced dipoles for calculating static Raman spectra, as the finite-difference error can be significant when using the limited number of structures available in a static calculation compared to an MD trajectory. Therefore, static Raman spectra can only be computed from the provided polarizabilities.
 
@@ -103,7 +108,7 @@ $$
 \, \exp(-2\pi i c \tilde{\nu} t)\, dt
 $$
 
-where $\dot{\boldsymbol{\alpha}}$ denotes the time derivative of the polarizability tensor $\boldsymbol{\alpha}$. The anisotropic contribution $\epsilon^{2} (\tilde{\nu})$ is given by:
+where $\tau$ and $t$ refer to the times for two different snapshots, $\dot{\boldsymbol{\alpha}}$ denotes the time derivative of the polarizability tensor $\boldsymbol{\alpha}$. The anisotropic contribution $\epsilon^{2} (\tilde{\nu})$ is given by:
 
 $$
 \begin{aligned}

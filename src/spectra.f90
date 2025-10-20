@@ -610,18 +610,17 @@ CONTAINS
         LOGICAL, DIMENSION(9)                                        :: mk = .TRUE.
         INTEGER                                                     :: stat, i, j, m, n, p, k, info, lwork, lwmax, lda, runit
         REAL(kind=dp)                                               :: fin_diff_factor
-        REAL(kind=dp), DIMENSION(:), ALLOCATABLE                       :: w, work, w_new
+        REAL(kind=dp), DIMENSION(:), ALLOCATABLE                       :: work
         REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE                     :: hessian, atomic_displacements
 
         ! Conservative guess; LAPACK recommends this for DSYEV
         lwmax = MAX(1, 3*sys%natom*64)
         lda = sys%natom*3
-        ! Currently only for non-linear atoms!!!!
-        stats%nmodes = 3*sys%natom - 6
+        stats%nmodes = lda
 
         !Allocate
-        ALLOCATE (work(lwmax), w(sys%natom*3), w_new(sys%natom*3))
-        ALLOCATE (hessian(0:sys%natom*3 - 1, 0:sys%natom*3 - 1))
+        ALLOCATE (work(lwmax), hessian(0:sys%natom*3 - 1, 0:sys%natom*3 - 1))
+        ALLOCATE (stats%freq(stats%nmodes), atomic_displacements(stats%nmodes, sys%natom*3), stats%disp(stats%nmodes, sys%natom, 3))
 
         !!Finite difference factor
         fin_diff_factor = 1.0_dp/(2.0_dp*stats%dx)
@@ -647,30 +646,23 @@ CONTAINS
 
         ! work size query
         lwork = -1
-        CALL DSYEV('V', 'U', n, hessian, lda, w, work, lwork, info)
+        CALL DSYEV('V', 'U', n, hessian, lda, stats%freq, work, lwork, info)
         lwork = MIN(lwmax, INT(work(1)))
 
         ! get eigenvalues and eigenvectors
-        CALL dsyev('V', 'U', n, hessian, lda, w, work, lwork, info)
+        CALL dsyev('V', 'U', n, hessian, lda, stats%freq, work, lwork, info)
 
         hessian = TRANSPOSE(hessian)
 
-        w = REAL(w*SQRT(ABS(w))/ABS(w), kind=dp)
+        stats%freq = REAL(stats%freq*SQRT(ABS(stats%freq))/ABS(stats%freq), kind=dp)
         !!Unit conversion for the frequencies
-        w = REAL(w/(2.0_dp*pi*speed_light), kind=dp)
+        stats%freq = REAL(stats%freq/(2.0_dp*pi*speed_light), kind=dp)
 
-        !!Allocate
-        ALLOCATE (stats%freq(stats%nmodes), atomic_displacements(stats%nmodes, sys%natom*3), stats%disp(stats%nmodes, sys%natom, 3))
 
-        !!Discard first 6 elements of the array (rotational + translational modes)
-        DO i = 7, sys%natom*3
-            stats%freq(i - 6) = w(i)
-        END DO
-
-        atomic_displacements(1:stats%nmodes, 1:sys%natom*3) = hessian(6:3*sys%natom - 1, :)
+        atomic_displacements(1:stats%nmodes, 1:sys%natom*3) = hessian(0:3*sys%natom - 1, :)
 
         m = 0
-        DO j = 0, sys%natom - 1 !sys%natom
+        DO j = 0, sys%natom - 1
             DO k = 0, 2 !dims
                 stats%disp(1:stats%nmodes, j + 1, k + 1) = atomic_displacements(1:stats%nmodes, j + k + 1 + m)
             END DO
@@ -681,7 +673,7 @@ CONTAINS
         OPEN (FILE='normal_mode_freq.txt', STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
         !Check if file exists
         CALL check_file_open(stat, msg, 'normal_mode_freq.txt')
-        DO i = 1, stats%nmodes !!atom_num: 1st atom
+        DO i = 1, stats%nmodes
             WRITE (runit, *) stats%freq(i)
         END DO
         CLOSE (runit)
@@ -690,8 +682,8 @@ CONTAINS
         OPEN (FILE='normal_mode_displ.txt', STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
         !Check if file exists
         CALL check_file_open(stat, msg, 'normal_mode_displ.txt')
-        DO i = 1, stats%nmodes !!atom_num: 1st atom
-            DO j = 1, sys%natom !!dims: x dimension
+        DO i = 1, stats%nmodes
+            DO j = 1, sys%natom 
                 WRITE (runit, *) stats%disp(i, j, 1:3)
             END DO
         END DO
@@ -703,7 +695,8 @@ CONTAINS
             ENDIF
         ENDIF
         CLOSE (runit)
-
+        
+        DEALLOCATE(work, hessian, atomic_displacements)
     END SUBROUTINE normal_mode_analysis
 
 !***********************************************************************************************!
