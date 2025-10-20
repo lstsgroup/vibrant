@@ -161,7 +161,9 @@ The `md` section should be included for the MD-based Raman calculation:
 &end md
 ```
 
- > 💡 **Note:** Vibrant applies the same processing to the final MD-based Raman intensities as given in the Section [IR Spectra](IR_spec.md), including the application of data mirroring and Hann Window function to the autocorrelation data and the application of the sinc function to the final intensities. 
+ ```{note}
+  Vibrant applies the same processing to the final MD-based Raman intensities as given in the Section [IR Spectra](IR_spec.md), including the application of data mirroring and Hann Window function to the autocorrelation data and the application of the sinc function to the final intensities. 
+```
 
  The final MD-based Raman intensities are reported in m $^2$ K cm 10 $^{-30}$ . The polarizability/dipole moment types that can be processed by Vibrant for computing Raman spectra are discussed in the next section.
 
@@ -209,8 +211,12 @@ Dipoles can be computed using the Berry-phase or MLWF formalism, enabling consis
 
 More details on the format of the dipole moment files can be found at ...
 
-> ⚠️ **Warning:** Similar to the MD-based IR spectra, the MD-based spectrum should contain the `cell` subsection alongside the `md` section if the induced dipole method is selected. For more details, please Section [IR Spectra](IR_spec.md).
+```{warning}
+ Similar to the MD-based IR spectra, the MD-based spectrum should contain the `cell` subsection alongside the `md` section if the induced dipole method is selected. For more details, please Section [IR Spectra](IR_spec.md).
+```
 
-> 💡 **Note:** The Wannier centers can be used to compute the dipole moment and consequently the polarizability of the whole supercell, however they can also be used to extract the spectra of user-specified molecular blocks or fragments, which is discussed in Section [Subspectra for MD-based calculations](fragments.md).
+```{note}
+ The Wannier centers can be used to compute the dipole moment and consequently the polarizability of the whole supercell, however they can also be used to extract the spectra of user-specified molecular blocks or fragments, which is discussed in Section [Subspectra for MD-based calculations](fragments.md).
+```
 
 More information on the all available keywords can be found on Section .. and all complete example input files are available on ....
