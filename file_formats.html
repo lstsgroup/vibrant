@@ -128,12 +128,12 @@
                         <main role="main" id="main">
     <section class="tex2jax_ignore mathjax_ignore" id="file-formats">
 <h1>File Formats<a class="headerlink" href="#file-formats" title="Link to this heading">¶</a></h1>
-<p>Vibrant processes multiple data files, such as dipole moments, polarizabilities, and forces, to compute the desired vibrational spectrum. These files must follow specific formats which we describe in this section.</p>
-<p>More information on the all available keywords can be found on Section .. and all complete example input files are available on ….</p>
+<p>Vibrant processes multiple data files, such as the dipole moments, polarizabilities, and forces, in order to compute the desired vibrational spectrum. These files must follow specific formats which we describe in this section.</p>
+<p>More information on all available keywords can be found on Section .. and all complete example input files are available on ….</p>
 <section id="coordinates-of-atomic-positions-xyz-files">
 <h2>1) Coordinates of atomic positions (.xyz files)<a class="headerlink" href="#coordinates-of-atomic-positions-xyz-files" title="Link to this heading">¶</a></h2>
 <p>Static spectral calculations that are based on the normal mode analysis require the cartesian coordinates (in Å) of each atom in the system to be provided in a standard <code class="docutils literal notranslate"><span class="pre">.xyz</span></code> <a class="reference external" href="https://en.wikipedia.org/wiki/XYZ_file_format">format</a>.</p>
-<p>Similarly, the power spectrum calculations requires that the user provides the atomic position or velocity vectors for each MD snapshot in the form of an <code class="docutils literal notranslate"><span class="pre">.xyz</span></code> file format, such as:</p>
+<p>Similarly, the power spectrum calculations requires that the user provides the atomic position (in Å) or velocity vectors (in bohr/a.u. of time) for each MD snapshot in the form of an <code class="docutils literal notranslate"><span class="pre">.xyz</span></code> file format, such as:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">$total_number_of_atoms</span><span class="w"> </span><span class="c1">#first MD frame</span>
 <span class="w">                       </span><span class="c1">#leave 1 blank line</span>
 <span class="nv">$element_symbol</span><span class="w"> </span><span class="nv">$x_coord</span><span class="w"> </span><span class="nv">$y_coord</span><span class="w"> </span><span class="nv">$z_coor</span>
@@ -176,7 +176,7 @@
 <span class="nv">$force_x</span><span class="w"> </span><span class="nv">$force_y</span><span class="w"> </span><span class="nv">$force_z</span><span class="w"> </span><span class="c1">#last atom</span>
 </pre></div>
 </div>
-<p>As an example, <a class="reference download internal" download="" href="_downloads/f106bfe1bda9347625ebe0f8c0aa09c6/force.sh"><span class="xref download myst">this bash script</span></a> enters directories of each displaced structure and appends the <a class="reference download internal" download="" href="_downloads/3287c454638d3f5397d4b7ae1ef57b84/force.xyz"><span class="xref download myst">CP2K force files</span></a> accordingly.</p>
+<p>As an example, <a class="reference download internal" download="" href="_downloads/f106bfe1bda9347625ebe0f8c0aa09c6/force.sh"><span class="xref download myst">this bash script</span></a> enters the directories of each displaced structure and appends the <a class="reference download internal" download="" href="_downloads/3287c454638d3f5397d4b7ae1ef57b84/force.xyz"><span class="xref download myst">CP2K force files</span></a> accordingly.</p>
 </section>
 <section id="normal-mode-frequencies-and-coordinates">
 <h3>2.2 Normal mode frequencies and coordinates<a class="headerlink" href="#normal-mode-frequencies-and-coordinates" title="Link to this heading">¶</a></h3>
@@ -259,7 +259,7 @@
 </section>
 <section id="wannier-centers">
 <h2>4) Wannier centers<a class="headerlink" href="#wannier-centers" title="Link to this heading">¶</a></h2>
-<p>If any MD-based spectrum is being calculated from Wannier centers, then the <code class="docutils literal notranslate"><span class="pre">wannier.xyz</span></code> for whole system (atoms + wannier centers labeled as “X”) should be given for each MD frame in the <code class="docutils literal notranslate"><span class="pre">.xyz</span></code> file format. An example could be seen <a class="reference download internal" download="" href="_downloads/7d4be304ca33cee9f055250963aef337/COF-1_solv_wannier_free.xyz"><span class="xref download myst">here</span></a>.</p>
+<p>If any MD-based spectrum is being calculated from Wannier centers, then the <code class="docutils literal notranslate"><span class="pre">wannier.xyz</span></code> for the whole system (atoms + Wannier centers labeled as “X”) should be given for each MD frame in the <code class="docutils literal notranslate"><span class="pre">.xyz</span></code> file format. An example could be seen <a class="reference download internal" download="" href="_downloads/7d4be304ca33cee9f055250963aef337/COF-1_solv_wannier_free.xyz"><span class="xref download myst">here</span></a>.</p>
 </section>
 <section id="dfpt-polarizabilities">
 <h2>5) DFPT polarizabilities<a class="headerlink" href="#dfpt-polarizabilities" title="Link to this heading">¶</a></h2>

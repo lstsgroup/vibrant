@@ -90,9 +90,9 @@ To compute a static RR spectrum, the user must provide the time-dependent dipole
 ...
 ```
 
-`rtp` subsection provides the necessary information about the RT-TDDFT parameters. The `static` section should be given similar to the [static Raman](Raman_spec.md) input. Complete input files can be found at ....
+`rtp` section provides the necessary information about the RT-TDDFT parameters. The `static` section should be given similar to the [static Raman](Raman_spec.md) input. Complete input files can be found at ....
 
-Vibrant applies Gaussian broadening to the final discrete set of frequencies and intensities. The `fwhm` keyword controls the full width at half maximum (FWHM) value in cm ${^{-1}}$ and if not specified, it is set to 5 cm ${^{-1}}$.
+Vibrant applies Gaussian broadening to the final discrete set of frequencies and intensities. The `fwhm` keyword controls the full width at half-maximum (FWHM) value in cm ${^{-1}}$ and if not specified, it is set to 5 cm ${^{-1}}$.
 
 ```{note}
   The keyword `write_mol_file` is optional and it executes the printing of a `{$filename}.mol` file, which includes the optimized geometry, normal mode frequencies, normal mode coordinates and the non-broadened Raman intensities. The `{$filename}.mol` file can be opened with [MOLDEN](https://www.theochem.ru.nl/molden/) to visualize the normal modes alongside the Raman spectrum. If multiple incident laser frequencies are requested, Vibrant generates a separate `{$filename}.mol` file for each frequency.
@@ -121,11 +121,11 @@ The absorption spectrum calculation does not require the `static` section. An ex
 &end rtp
 ```
 
-The final static resonance Raman intensities are reported in 10 $^{-30}$ cm $^2$ /sr. The absorption spectrum frequencies are reported in eV and the intensities are reported in atomic units.
+The final static resonance Raman intensities are reported in 10 $^{-30}$ cm $^2$ /sr. The absorption spectrum frequencies are reported in eV and the intensities are reported in a.u..
 
 ## b) MD-based RR intensities
 
-In the MD-based RR calculation, the polarizability derivatives along the normal mode coordinates $Q_{p}$ are replaced with the [time derivatives of the polarizability autocorrelation functions](https://pubs.rsc.org/en/content/articlehtml/2013/cp/c3cp44302g) similarly to the MD-based Raman calculation. We applied fast Fourier transformations to the time-domain dynamic polarizability autocorrelations using the [FFTW](https://www.fftw.org/) library to convert them into the frequency-domain. The [MD-based RR intensities](https://pubs.acs.org/doi/full/10.1021/acs.jctc.9b00512) at laser frequency $\omega$ is expressed as a linear combination of isotropic and anisotropic polarizabilities:
+In an MD-based RR calculation, the polarizability derivatives along the normal mode coordinates $Q_{p}$ are replaced with the [time derivatives of the polarizability autocorrelation functions](https://pubs.rsc.org/en/content/articlehtml/2013/cp/c3cp44302g) similarly to the MD-based Raman calculation. We applied fast Fourier transformations to the time-domain dynamic polarizability autocorrelations using the [FFTW](https://www.fftw.org/) library to convert them into the frequency-domain. The [MD-based RR intensities](https://pubs.acs.org/doi/full/10.1021/acs.jctc.9b00512) at laser frequency $\omega$ is expressed as a linear combination of isotropic and anisotropic polarizabilities:
 
 $$
 I_{\textnormal{RR}} (\tilde{\nu}, \omega) = \frac{2h}{8\epsilon_{0}^{2}k_{B}T} \frac{(\omega-\tilde{\nu})^{4}}{\tilde{\nu}} \frac{1}{1-\exp\left(-\frac{hc\tilde{\nu}}{k_{B}T}\right)}\frac{X\delta^{2} (\tilde{\nu}, \omega)+Y\epsilon^{2} (\tilde{\nu}, \omega) }{45} 
@@ -214,9 +214,9 @@ $$
 {\mu}^{j}_i(\omega, t) = \int_{0}^{T} \left( {\mu}^{j}_i(\tau, t)  - \mu^{0}_{i}(\tau, t) \right) e^{i \omega \tau} e^{- \Gamma \tau} \mathrm{d}\tau
 $$
 
-where $T$ is the total RT-TDDFT simulation time, $tau$ is the RT-TDDFT time step, $t$ is the MD time step, ${\mu}^{j}_i(\tau, t)$ is the time-dependent dipole moment under the electric field applied in the $j$ direction, $\mu^{0}_{i}(\tau, t)$ denotes the initial static dipole moment of the unperturbed system, and $\Gamma$ is the damping factor.
+where $T$ is the total RT-TDDFT simulation time, $\tau$ is the RT-TDDFT time step, $t$ is the MD time step, ${\mu}^{j}_i(\tau, t)$ is the time-dependent dipole moment under the electric field applied in the $j$ direction, $\mu^{0}_{i}(\tau, t)$ denotes the initial static dipole moment of the unperturbed system, and $\Gamma$ is the damping factor.
 
-The MD-based RR calculation in Vibrant is not fully tested yet, and more tests are being performed. The current implementation requires that the user provides the time-dependent dipole moments for each MD snapshot, combined into a single file (see File Formats for details). There should be three files in total, each corresponding to calculations performed under electric fields applied along the x-, y-, and z-directions. An example input section for performing an MD-based RR calculation is shown below:
+The MD-based RR calculation in Vibrant is not fully tested yet, and more tests are being performed. The current implementation requires that the user provides the time-dependent dipole moments for each MD snapshot, combined into a single file (see [File Formats](file_formats.md) for more details). There should be three files in total, each corresponding to calculations performed under electric fields applied along the x-, y-, and z-directions. An example input section for performing an MD-based RR calculation is shown below:
 
 ```bash
 &global
@@ -252,6 +252,7 @@ The MD-based absorption spectrum is computed in the same manner as the static ab
 ## c) Application of Padé interpolation
 
 The spectral resolution of the dynamic polarizability $\alpha(\omega)$ and the resulting absorption spectrum depends on the RT-TDDFT simulation length, which requires hundreds of thousands of time steps for fine energy resolution. To overcome the significant computational cost, Vibrant can optionally use rational Padé approximants to reconstruct $\alpha(\omega)$ analytically from discrete RT-TDDFT data.
+
 The complex-valued $\alpha(\omega)$ is approximated as:
 
 $$

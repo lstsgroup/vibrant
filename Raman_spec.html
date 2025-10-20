@@ -179,7 +179,7 @@ I_{\textnormal{Raman}}(\tilde{\nu}_p)=\frac{h}{8\epsilon_{0}^{2}c} \frac{(\tilde
 </tbody>
 </table>
 <p>By default, Vibrant prints only the unpolarized (total) Raman intensities, but the other types of spectra, together with the depolarization ratio (<span class="math notranslate nohighlight">\(\rho (\tilde{\nu})=\frac{I_{\perp }(\tilde{\nu})}{I_{\parallel  }(\tilde{\nu})}\)</span>), can be printed out by setting the <code class="docutils literal notranslate"><span class="pre">spectra_verbosity</span></code> keyword to <code class="docutils literal notranslate"><span class="pre">high</span></code>.</p>
-<p>For each displaced structure (see Section <a class="reference internal" href="frequency.html"><span class="std std-doc">Frequencies</span></a> for details) the user must provide the polarizability tensors appended in a single file (see <a class="reference internal" href="file_formats.html"><span class="std std-doc">File Formats</span></a> for more details.) For the derivatives along the normal modes, the user can either provide the normal mode coordinates or alternatively the forces for each displaced structure, together with the cartesian coordinates of the optimized geometry. An example input section for the static Raman section may look like:</p>
+<p>For each displaced structure (see Section <a class="reference internal" href="frequency.html"><span class="std std-doc">Frequencies</span></a> for details) the user must provide the polarizability tensors appended in a single file (see <a class="reference internal" href="file_formats.html"><span class="std std-doc">File Formats</span></a> for more details.) For the derivatives along the normal modes, the user can either provide the normal mode coordinates or alternatively the forces for each displaced structure, together with the cartesian coordinates of the optimized geometry. An example input section for the static Raman calculation may look like:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="p">&amp;</span>global
 <span class="w"> </span>spectra<span class="w"> </span>R
 <span class="w"> </span>temperature<span class="w"> </span><span class="o">{</span><span class="nv">$temperature_in_K</span><span class="o">}</span>
@@ -328,10 +328,10 @@ I_{\textnormal{Raman}} (\tilde{\nu}) = \frac{2h}{8\epsilon_{0}^{2}k_{B}T} \frac{
 <span class="p">&amp;</span>end<span class="w"> </span>dipoles
 </pre></div>
 </div>
-<p>More details on the format of the dipole moment files can be found at …</p>
+<p>More details on the format of the dipole moment files can be found in Section <a class="reference internal" href="file_formats.html"><span class="std std-doc">File Formats</span></a>.</p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
-<p>Similar to the MD-based IR spectra, the MD-based spectrum should contain the <code class="docutils literal notranslate"><span class="pre">cell</span></code> subsection alongside the <code class="docutils literal notranslate"><span class="pre">md</span></code> section if the induced dipole method is selected. For more details, please Section <a class="reference internal" href="IR_spec.html"><span class="std std-doc">IR Spectra</span></a>.</p>
+<p>Similar to the MD-based IR spectra, the MD-based spectrum should contain the <code class="docutils literal notranslate"><span class="pre">cell</span></code> subsection alongside the <code class="docutils literal notranslate"><span class="pre">md</span></code> section if the induced dipole method is selected. For more details, please see Section <a class="reference internal" href="IR_spec.html"><span class="std std-doc">IR Spectra</span></a>.</p>
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
