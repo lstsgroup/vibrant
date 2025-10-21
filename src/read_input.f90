@@ -623,7 +623,7 @@ CONTAINS
             !check for the full width at half-maximum
             IF (gs%fwhm<0) THEN
                 WRITE (error_unit, '(4X,"[WARN]  ",A)') 'Full width at half-maximum is not defined, setting it to 10 cm^{-1}'
-                gs%temp = 10
+                gs%fwhm = 10
             END IF
         !****************************************************************************************************!
         !****************************************************************************************************!
@@ -664,7 +664,7 @@ CONTAINS
             END IF
             !check for type_dipole
             IF (TRIM(dips%type_dipole)=='') THEN
-                WRITE (error_unit, '(4X,"[WARN]  ",A)') 'type_dipole not defined in the input setting it to 1'
+                WRITE (error_unit, '(4X,"[WARN]  ",A)') 'type_dipole not defined in the input setting it to dfpt'
                 dips%type_dipole = 'dfpt'
             END IF
             !check for the electric field strength
