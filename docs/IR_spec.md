@@ -17,17 +17,17 @@ For each displaced structure (see Section [Frequencies](frequency.md) for detail
 ```bash
 &global
  spectra IR
- fwhm {$full_width_at_half_maximum}
+ fwhm <full_width_at_half_maximum>
 &end global
 &system
- filename {$optimized_geometry_file_name}
+ filename <optimized_geometry_file_name>
 &end system
 &static
  diag_hessian y
  &hessian
-  force_file {$FORCE_FILE_NAME}
+  force_file <FORCE_FILE_NAME>
  &end hessian
- displacement {$amount_of_displacement}
+ displacement <amount_of_displacement>
 &end static
 ``` 
 
@@ -36,16 +36,16 @@ or if the user wants to skip the Hessian diagonalization and give the normal mod
 ```bash
 &global
  spectra IR
- fwhm {$full_width_at_half_maximum}
+ fwhm <full_width_at_half_maximum>
 &end global
 &system
- filename {$optimized_geometry_file_name}
+ filename <optimized_geometry_file_name>
 &end system
 &static
  diag_hessian n
- normal_freq_file {$normal_mode_frequency_file}
- normal_displ_file {$normal_mode_displacement_file}
- displacement {$amount_of_displacement}
+ normal_freq_file <normal_mode_frequency_file>
+ normal_displ_file <normal_mode_displacement_file>
+ displacement <amount_of_displacement>
  write_mol_file
 &end static
 ``` 
@@ -53,10 +53,10 @@ or if the user wants to skip the Hessian diagonalization and give the normal mod
 Vibrant applies Gaussian broadening to the final discrete set of frequencies and intensities. The `fwhm` keyword controls the full width at half-maximum (FWHM) value in cm ${^{-1}}$ and if not specified, it is set to 5 cm ${^{-1}}$. 
 
 ```{note}
-  The keyword `write_mol_file` is optional and it executes the printing of a `{$filename}.mol` file, which includes the optimized geometry, normal mode frequencies, normal mode coordinates and the non-broadened IR intensities. The `{$filename}.mol` file can be opened with [MOLDEN](https://www.theochem.ru.nl/molden/) to visualize the normal modes alongside the IR spectrum.
+  The keyword `write_mol_file` is optional and it executes the printing of a `<filename>.mol` file, which includes the optimized geometry, normal mode frequencies, normal mode coordinates and the non-broadened IR intensities. The `<filename>.mol` file can be opened with [MOLDEN](https://www.theochem.ru.nl/molden/) to visualize the normal modes alongside the IR spectrum.
 ```
 
-The final static IR intensities are reported in km/mol. 
+The final static IR intensities are reported in km/mol.
 
 ## b) MD-based IR intensities
 
@@ -82,17 +82,17 @@ An example input section may look like:
 &end global
 &system
  &cell
-  box_x {$x_vector_of_cell}
-  box_y {$y_vector_of_cell}
-  box_z {$z_vector_of_cell}
-  angle_alpha {$angle_between_x_and_z}
-  angle_beta {$angle_between_y_and_z}
-  angle_gamma {$angle_between_x_and_y}
+  box_x <x_vector_of_cell>
+  box_y <y_vector_of_cell>
+  box_z <z_vector_of_cell>
+  angle_alpha <angle_between_x_and_z>
+  angle_beta <angle_between_y_and_z>
+  angle_gamma <angle_between_x_and_y>
  &end cell
 &end system
 &md
- time_step {$MD_time_step}
- correlation_depth {$correlation_depth}
+ time_step <MD_time_step>
+ correlation_depth <correlation_depth>
 &end md
 ``` 
 
@@ -121,7 +121,7 @@ The selection of the dipole moment type is controlled with the keyword `type_dip
 ```bash 
 &dipoles
  type_dipole berry
- dip_file {$DIPOLE_FILE_NAME}
+ dip_file <DIPOLE_FILE_NAME>
 &end dipoles
 ```
 
@@ -130,11 +130,11 @@ And for the Wannier centers, it would be:
 ```bash 
 &dipoles
  type_dipole wannier
- dip_file {$DIPOLE_FILE_NAME}
+ dip_file <DIPOLE_FILE_NAME>
 &end dipoles
 ```
 
 The Wannier centers can be used to compute the dipole moment of the whole supercell, however they can also be used to extract spectra of user-specified molecular blocks or fragments, which is discussed in Section [Subspectra for MD-based calculations](fragments.md).
 
-More information on the all available keywords can be found on Section .. and all complete example input files are available on ....
+More information on the all available keywords can be found on [Keyword Glossary](Keyword_Glossary.rst) and all complete example input files are available on ....
 

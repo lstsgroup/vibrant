@@ -48,16 +48,16 @@ For each displaced structure (see Section [Frequencies](frequency.md) for detail
 ```bash
 &global
  spectra R
- temperature {$temperature_in_K}
- fwhm {$full_width_at_half_maximum}
+ temperature <temperature_in_K>
+ fwhm <full_width_at_half_maximum>
 &end global
 ...
 &static
  diag_hessian y
  &hessian
-  force_file {$FORCE_FILE_NAME}
+  force_file <FORCE_FILE_NAME>
  &end hessian
- displacement {$amount_of_displacement}
+ displacement <amount_of_displacement>
 &end static
 ``` 
 
@@ -66,15 +66,15 @@ or if the user want to skip the Hessian diagonalization and give the normal mode
 ```bash
 &global
  spectra R
- temperature {$temperature_in_K}
- fwhm {$full_width_at_half_maximum}
+ temperature <temperature_in_K>
+ fwhm <full_width_at_half_maximum>
 &end global
 ...
 &static
  diag_hessian n
- normal_freq_file {$normal_mode_frequency_file}
- normal_displ_file {$normal_mode_displacement_file}
- displacement {$amount_of_displacement}
+ normal_freq_file <normal_mode_frequency_file>
+ normal_displ_file <normal_mode_displacement_file>
+ displacement <amount_of_displacement>
  write_mol_file
 &end static
 ``` 
@@ -82,7 +82,7 @@ or if the user want to skip the Hessian diagonalization and give the normal mode
 Vibrant applies Gaussian broadening to the final discrete set of frequencies and intensities. The `fwhm` keyword controls the full width at half maximum (FWHM) value in cm ${^{-1}}$ and if not specified, it is set to 5 cm ${^{-1}}$. 
 
  ```{note}
-  The keyword `write_mol_file` is optional and it executes the printing of a `{$filename}.mol` file, which includes the optimized geometry, normal mode frequencies, normal mode coordinates and the non-broadened Raman intensities. The `{$filename}.mol` file can be opened with [MOLDEN](https://www.theochem.ru.nl/molden/) to visualize the normal modes alongside the Raman spectrum. If multiple incident laser frequencies are requested, Vibrant generates a separate `{$filename}.mol` file for each frequency.
+  The keyword `write_mol_file` is optional and it executes the printing of a `<filename>.mol` file, which includes the optimized geometry, normal mode frequencies, normal mode coordinates and the non-broadened Raman intensities. The `<filename>.mol` file can be opened with [MOLDEN](https://www.theochem.ru.nl/molden/) to visualize the normal modes alongside the Raman spectrum. If multiple incident laser frequencies are requested, Vibrant generates a separate `<filename>.mol` file for each frequency.
 ```
 
 The final static Raman intensities are reported in 10 $^{-30}$ cm $^2$ /sr.
@@ -152,12 +152,12 @@ The `md` section should be included for the MD-based Raman calculation:
 ```bash
 &global
  spectra MD-R
- temperature {$temperature_in_K}
+ temperature <temperature_in_K>
 &end global
 ...
 &md
- time_step {$MD_time_step}
- correlation_depth {$correlation_depth}
+ time_step <MD_time_step>
+ correlation_depth <correlation_depth>
 &end md
 ```
 
@@ -175,9 +175,9 @@ The MD-based Raman intensities can be computed either directly from the DFPT pol
 ...
 &dipoles
  type_dipole dfpt
- dip_x_file {$dipole_file_name_x_field}
- dip_y_file {$dipole_file_name_y_field}
- dip_z_file {$dipole_file_name_z_field}
+ dip_x_file <dipole_file_name_x_field>
+ dip_y_file <dipole_file_name_y_field>
+ dip_z_file <dipole_file_name_z_field>
 &end dipoles 
 ```
 
@@ -201,11 +201,11 @@ Dipoles can be computed using the Berry-phase or MLWF formalism, enabling consis
 ...
 &dipoles
  type_dipole berry #or `wannier`
- field_strength {$field_strength_in_au}
- dip_file {$dipole_file_name_field_free}
- dip_x_file {$dipole_file_name_x_field}
- dip_y_file {$dipole_file_name_y_field}
- dip_z_file {$dipole_file_name_z_field}
+ field_strength <field_strength_in_au>
+ dip_file <dipole_file_name_field_free>
+ dip_x_file <dipole_file_name_x_field>
+ dip_y_file <dipole_file_name_y_field>
+ dip_z_file <dipole_file_name_z_field>
 &end dipoles
 ```
 
@@ -219,4 +219,4 @@ More details on the format of the dipole moment files can be found in Section [F
  The Wannier centers can be used to compute the dipole moment and consequently the polarizability of the whole supercell, however they can also be used to extract the spectra of user-specified molecular blocks or fragments, which is discussed in Section [Subspectra for MD-based calculations](fragments.md).
 ```
 
-More information on the all available keywords can be found on Section .. and all complete example input files are available on ....
+More information on the all available keywords can be found on [Keyword Glossary](Keyword_Glossary.rst) and all complete example input files are available on ....

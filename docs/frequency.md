@@ -31,13 +31,13 @@ An example input section for performing the normal mode analysis is shown below:
  spectra NMA
 &end global
 &system
- filename {$optimized_geometry_file_name}
+ filename <optimized_geometry_file_name>
 &end system
 &static
   &hessian
-   force_file {$force_file_name}
+   force_file <force_file_name>
   &end hessian
-  displacement {$amount_of_displacement}
+  displacement <amount_of_displacement>
   write_mol_file
 &end static
 ```
@@ -45,7 +45,7 @@ An example input section for performing the normal mode analysis is shown below:
 where the `hessian` section invokes the Hessian diagonalization, and the `displacement` refers to the displacement between the shifted geometries (given in Å).
 
  ```{note}
- The `write_mol_file` keyword is optional and it executes the printing of a `{$filename}.mol` file, which includes the optimized geometry, normal mode frequencies and normal mode coordinates. The `{$filename}.mol` file can be opened with [MOLDEN](https://www.theochem.ru.nl/molden/) to visualize the normal modes.  
+ The `write_mol_file` keyword is optional and it executes the printing of a `<filename>.mol` file, which includes the optimized geometry, normal mode frequencies and normal mode coordinates. The `<filename>.mol` file can be opened with [MOLDEN](https://www.theochem.ru.nl/molden/) to visualize the normal modes.  
  ```
 
 ## b) Power spectrum
@@ -83,15 +83,17 @@ Power spectrum calculation in Vibrant can be invoked by adding the section:
  ...
 &end global
 &system
- type_traj {$type_traj}
- filename {$trajectory_file_name}
- mass_weighting {$mass_weighting_flag}
+ type_traj <type_traj>
+ filename <trajectory_file_name>
+ mass_weighting <mass_weighting_flag>
 &end system
 &md
 ...
 &end md
 ```
 
-where `$type_traj` can be specified by user as `pos` or `vel` standing for "positions" or "velocities". Upon request, Vibrant can compute the mass-weighted power spectrum as well, which is controlled by the keyword `mass_weighting`, which be specified as `y` or `n` standing for "yes" or "no".
+where `type_traj` can be specified by user as `pos` or `vel` standing for "positions" or "velocities". Upon request, Vibrant can compute the mass-weighted power spectrum as well, which is controlled by the keyword `mass_weighting`, which be specified as `y` or `n` standing for "yes" or "no".
 
 The final power intensities are given in K.cm.
+
+More information on the all available keywords can be found on [Keyword Glossary](Keyword_Glossary.rst) and all complete example input files are available on ....
