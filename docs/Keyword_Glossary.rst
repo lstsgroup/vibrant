@@ -94,45 +94,45 @@ Block: system
 Subblock: cell
 -------------
 .. keyword:: cell_type
-    :section: cell
+    :section: system/cell
     :type: string
 
     Crystal type of the simulation cell (e.g., orthorhombic, hexagonal, triclinic).
 
 .. keyword:: box_x
-    :section: cell
+    :section: system/cell
     :type: float
 
     Length of the cell vector :math:\mathbf{a} (x component). Uses the same unit as coordinates.
 
 .. keyword:: box_y
-    :section: cell
+    :section: system/cell
     :type: float
 
     Length of the cell vector :math:\mathbf{b} (y component). Uses the same unit as coordinates.
 
 .. keyword:: box_z
-    :section: cell
+    :section: system/cell
     :type: float
 
     Length of the cell vector :math:\mathbf{c} (z component). Uses the same unit as coordinates.
 
 .. keyword:: angle_alpha
-    :section: cell
+    :section: system/cell
     :type: float
     :unit: deg
 
     Cell angle :math:\alpha=\angle(\mathbf{b},\mathbf{c}).
 
 .. keyword:: angle_beta
-    :section: cell
+    :section: system/cell
     :type: float
     :unit: deg
 
     Cell angle :math:\beta=\angle(\mathbf{a},\mathbf{c}).
 
 .. keyword:: angle_gamma
-    :section: cell
+    :section: system/cell
     :type: float
     :unit: deg
 
