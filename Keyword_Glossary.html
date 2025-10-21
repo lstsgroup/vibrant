@@ -173,10 +173,10 @@
 </ul>
 </div><div class='keyword-entry' id='keyword-fwhm'><div class='keyword-header'>global :: <strong>fwhm</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: float</p></li>
-<li><p><strong>Default</strong>: 300.0</p></li>
+<li><p><strong>Default</strong>: 10</p></li>
 <li><p><strong>Unit</strong>: <span class="math notranslate nohighlight">\(\mathrm{cm}^{-1}\)</span></p></li>
 <li><p>​</p></li>
-<li><p>This fwhm value for Gaussian broadening of static spectra.</p></li>
+<li><p>Full width at half-maximum (fwhm) value for Gaussian broadening of static spectra.</p></li>
 </ul>
 </div><div class='keyword-entry' id='keyword-spectra_verbosity'><div class='keyword-header'>global :: <strong>spectra_verbosity</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: string</p></li>
@@ -193,47 +193,237 @@
 <li><p>​</p></li>
 <li><p>This is the name of coordinates file.</p></li>
 </ul>
-</div><div class='keyword-entry' id='keyword-filename'><div class='keyword-header'>system :: <strong>filename</strong></div><ul class="simple">
+</div><div class='keyword-entry' id='keyword-type_traj'><div class='keyword-header'>system :: <strong>type_traj</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: string</p></li>
 <li><p><strong>Default</strong>: —</p></li>
 <li><p>​</p></li>
-<li><p>This is the name of coordinates file.</p></li>
+<li><p>Define type of provided trajectory. Values: ‘pos’ for positions, ‘vel’ for velocities.</p></li>
+</ul>
+</div><div class='keyword-entry' id='keyword-mass_weighting'><div class='keyword-header'>system :: <strong>mass_weighting</strong></div><ul class="simple">
+<li><p><strong>Type</strong>: string</p></li>
+<li><p><strong>Default</strong>: —</p></li>
+<li><p>​</p></li>
+<li><p>Define if mass weighting should be applied for spectra computation. Values: ‘y’ or ‘n’</p></li>
 </ul>
 </div></section>
-<section id="block-cell">
-<h2>Block: cell<a class="headerlink" href="#block-cell" title="Link to this heading">¶</a></h2>
-</section>
+<section id="subblock-cell">
+<h2>Subblock: cell<a class="headerlink" href="#subblock-cell" title="Link to this heading">¶</a></h2>
+<div class='keyword-entry' id='keyword-cell_type'><div class='keyword-header'>cell :: <strong>cell_type</strong></div><ul class="simple">
+<li><p><strong>Type</strong>: string</p></li>
+<li><p><strong>Default</strong>: —</p></li>
+<li><p>​</p></li>
+<li><p>Crystal type of the simulation cell (e.g., orthorhombic, hexagonal, triclinic).</p></li>
+</ul>
+</div><div class='keyword-entry' id='keyword-box_x'><div class='keyword-header'>cell :: <strong>box_x</strong></div><ul class="simple">
+<li><p><strong>Type</strong>: float</p></li>
+<li><p><strong>Default</strong>: —</p></li>
+<li><p>​</p></li>
+<li><p>Length of the cell vector :math:mathbf{a} (x component). Uses the same unit as coordinates.</p></li>
+</ul>
+</div><div class='keyword-entry' id='keyword-box_y'><div class='keyword-header'>cell :: <strong>box_y</strong></div><ul class="simple">
+<li><p><strong>Type</strong>: float</p></li>
+<li><p><strong>Default</strong>: —</p></li>
+<li><p>​</p></li>
+<li><p>Length of the cell vector :math:mathbf{b} (y component). Uses the same unit as coordinates.</p></li>
+</ul>
+</div><div class='keyword-entry' id='keyword-box_z'><div class='keyword-header'>cell :: <strong>box_z</strong></div><ul class="simple">
+<li><p><strong>Type</strong>: float</p></li>
+<li><p><strong>Default</strong>: —</p></li>
+<li><p>​</p></li>
+<li><p>Length of the cell vector :math:mathbf{c} (z component). Uses the same unit as coordinates.</p></li>
+</ul>
+</div><div class='keyword-entry' id='keyword-angle_alpha'><div class='keyword-header'>cell :: <strong>angle_alpha</strong></div><ul class="simple">
+<li><p><strong>Type</strong>: float</p></li>
+<li><p><strong>Default</strong>: —</p></li>
+<li><p><strong>Unit</strong>: deg</p></li>
+<li><p>​</p></li>
+<li><p>Cell angle :math:alpha=angle(mathbf{b},mathbf{c}).</p></li>
+</ul>
+</div><div class='keyword-entry' id='keyword-angle_beta'><div class='keyword-header'>cell :: <strong>angle_beta</strong></div><ul class="simple">
+<li><p><strong>Type</strong>: float</p></li>
+<li><p><strong>Default</strong>: —</p></li>
+<li><p><strong>Unit</strong>: deg</p></li>
+<li><p>​</p></li>
+<li><p>Cell angle :math:beta=angle(mathbf{a},mathbf{c}).</p></li>
+</ul>
+</div><div class='keyword-entry' id='keyword-angle_gamma'><div class='keyword-header'>cell :: <strong>angle_gamma</strong></div><ul class="simple">
+<li><p><strong>Type</strong>: float</p></li>
+<li><p><strong>Default</strong>: —</p></li>
+<li><p><strong>Unit</strong>: deg</p></li>
+<li><p>​</p></li>
+<li><p>Cell angle :math:gamma=angle(mathbf{a},mathbf{b}).</p></li>
+</ul>
+</div></section>
 <section id="block-fragment">
 <h2>Block: fragment<a class="headerlink" href="#block-fragment" title="Link to this heading">¶</a></h2>
-</section>
-<section id="block-coordinates">
-<h2>Block: coordinates<a class="headerlink" href="#block-coordinates" title="Link to this heading">¶</a></h2>
+<div class='keyword-entry' id='keyword-atom_list'><div class='keyword-header'>fragment :: <strong>atom_list</strong></div><ul class="simple">
+<li><p><strong>Type</strong>: list[int]</p></li>
+<li><p><strong>Default</strong>: —</p></li>
+<li><p>​</p></li>
+<li></li>
+</ul>
+</div><p>List of atomic indices that belong to a fragment (one entry per fragment).</p>
 </section>
 <section id="block-md">
 <h2>Block: md<a class="headerlink" href="#block-md" title="Link to this heading">¶</a></h2>
-</section>
+<div class='keyword-entry' id='keyword-time_step'><div class='keyword-header'>md :: <strong>time_step</strong></div><ul class="simple">
+<li><p><strong>Type</strong>: float</p></li>
+<li><p><strong>Default</strong>: —</p></li>
+<li><p><strong>Unit</strong>: fs</p></li>
+<li><p>​</p></li>
+<li></li>
+</ul>
+</div><p>Time step of molecular dynamics trajectory.</p>
+<div class='keyword-entry' id='keyword-correlation_depth'><div class='keyword-header'>md :: <strong>correlation_depth</strong></div><ul class="simple">
+<li><p><strong>Type</strong>: int</p></li>
+<li><p><strong>Default</strong>: —</p></li>
+<li><p>​</p></li>
+<li><p>Correlation depth used in autocorrelationfunction</p></li>
+</ul>
+</div></section>
 <section id="block-static">
 <h2>Block: static<a class="headerlink" href="#block-static" title="Link to this heading">¶</a></h2>
+<div class='keyword-entry' id='keyword-force_file'><div class='keyword-header'>static :: <strong>force_file</strong></div><ul class="simple">
+<li><p><strong>Type</strong>: string</p></li>
+<li><p><strong>Default</strong>: —</p></li>
+<li><p>​</p></li>
+<li><p>This is the name of force file.</p></li>
+</ul>
+</div><div class='keyword-entry' id='keyword-displacement'><div class='keyword-header'>static :: <strong>displacement</strong></div><ul class="simple">
+<li><p><strong>Type</strong>: float</p></li>
+<li><p><strong>Default</strong>: —</p></li>
+<li><p><strong>Unit</strong>: Angstrom</p></li>
+<li><p>​</p></li>
+<li><p>This is the finite difference displacement.</p></li>
+</ul>
+</div><div class='keyword-entry' id='keyword-diag_hessian'><div class='keyword-header'>static :: <strong>diag_hessian</strong></div><ul class="simple">
+<li><p><strong>Type</strong>: float</p></li>
+<li><p><strong>Default</strong>: —</p></li>
+<li><p><strong>Unit</strong>: Angstrom</p></li>
+<li><p>​</p></li>
+<li><p>This is the finite difference displacement.
+
+.. keyword:: normal_freq_file
+ :section: static
+ :type: string</p></li>
+</ul>
+</div><p>File containing normal mode frequencies for static or mode-based analyses.</p>
+<div class='keyword-entry' id='keyword-normal_displ_file'><div class='keyword-header'>static :: <strong>normal_displ_file</strong></div><ul class="simple">
+<li><p><strong>Type</strong>: string</p></li>
+<li><p><strong>Default</strong>: —</p></li>
+<li><p>​</p></li>
+<li></li>
+</ul>
+</div><p>File containing normal mode displacements or eigenvectors.</p>
+<div class='keyword-entry' id='keyword-write_mol_file'><div class='keyword-header'>static :: <strong>write_mol_file</strong></div><ul class="simple">
+<li><p><strong>Type</strong>: string</p></li>
+<li><p><strong>Default</strong>: —</p></li>
+<li><p>​</p></li>
+<li></li>
+</ul>
+</div><p>Flag to write a molecular structure file (values: “y” or “n”).</p>
 </section>
 <section id="block-hessian">
 <h2>Block: hessian<a class="headerlink" href="#block-hessian" title="Link to this heading">¶</a></h2>
 </section>
 <section id="block-dipoles">
 <h2>Block: dipoles<a class="headerlink" href="#block-dipoles" title="Link to this heading">¶</a></h2>
-</section>
+<div class='keyword-entry' id='keyword-type_dipole'><div class='keyword-header'>dipoles :: <strong>type_dipole</strong></div><ul class="simple">
+<li><p><strong>Type</strong>: string</p></li>
+<li><p><strong>Default</strong>: berry</p></li>
+<li><p>​</p></li>
+<li><p>Specifies the method used to obtain dipole moments (e.g., “berry”, “wannier”, “dfpt”).
+This value can be dfpt 1 berry or wannier? check again</p></li>
+</ul>
+</div><div class='keyword-entry' id='keyword-field_strength'><div class='keyword-header'>dipoles :: <strong>field_strength</strong></div><ul class="simple">
+<li><p><strong>Type</strong>: float</p></li>
+<li><p><strong>Default</strong>: —</p></li>
+<li><p><strong>Unit</strong>: a.u.</p></li>
+<li><p>​</p></li>
+<li><p>Strength of the applied electric field in atomic units.</p></li>
+</ul>
+</div><div class='keyword-entry' id='keyword-dip_file'><div class='keyword-header'>dipoles :: <strong>dip_file</strong></div><ul class="simple">
+<li><p><strong>Type</strong>: string</p></li>
+<li><p><strong>Default</strong>: —</p></li>
+<li><p>​</p></li>
+<li><p>File containing dipole moments (if only a single file is used).</p></li>
+</ul>
+</div><div class='keyword-entry' id='keyword-dip_x_file'><div class='keyword-header'>dipoles :: <strong>dip_x_file</strong></div><ul class="simple">
+<li><p><strong>Type</strong>: string</p></li>
+<li><p><strong>Default</strong>: —</p></li>
+<li><p>​</p></li>
+<li><p>File containing dipole moments obtained under an electric field in the x-direction.</p></li>
+</ul>
+</div><div class='keyword-entry' id='keyword-dip_y_file'><div class='keyword-header'>dipoles :: <strong>dip_y_file</strong></div><ul class="simple">
+<li><p><strong>Type</strong>: string</p></li>
+<li><p><strong>Default</strong>: —</p></li>
+<li><p>​</p></li>
+<li><p>File containing dipole moments obtained under an electric field in the y-direction.</p></li>
+</ul>
+</div><div class='keyword-entry' id='keyword-dip_z_file'><div class='keyword-header'>dipoles :: <strong>dip_z_file</strong></div><ul class="simple">
+<li><p><strong>Type</strong>: string</p></li>
+<li><p><strong>Default</strong>: —</p></li>
+<li><p>​</p></li>
+<li><p>File containing dipole moments obtained under an electric field in the z-direction.</p></li>
+</ul>
+</div><div class='keyword-entry' id='keyword-static_pol_file'><div class='keyword-header'>dipoles :: <strong>static_pol_file</strong></div><ul class="simple">
+<li><p><strong>Type</strong>: string</p></li>
+<li><p><strong>Default</strong>: —</p></li>
+<li><p>​</p></li>
+<li><p>File containing static polarizabilities.</p></li>
+</ul>
+</div></section>
 <section id="block-rtp">
 <h2>Block: rtp<a class="headerlink" href="#block-rtp" title="Link to this heading">¶</a></h2>
+<div class='keyword-entry' id='keyword-rtp_time_step'><div class='keyword-header'>rtp :: <strong>rtp_time_step</strong></div><ul class="simple">
+<li><p><strong>Type</strong>: float</p></li>
+<li><p><strong>Default</strong>: —</p></li>
+<li><p><strong>Unit</strong>: fs</p></li>
+<li><p>​</p></li>
+<li></li>
+</ul>
+</div><p>Time step used for the RTP (real-time propagation) analysis.</p>
+<div class='keyword-entry' id='keyword-rtp_framecount'><div class='keyword-header'>rtp :: <strong>rtp_framecount</strong></div><ul class="simple">
+<li><p><strong>Type</strong>: int</p></li>
+<li><p><strong>Default</strong>: —</p></li>
+<li><p>​</p></li>
+<li></li>
+</ul>
+</div><p>Number of frames used for RTP analysis.</p>
+<div class='keyword-entry' id='keyword-check_pade'><div class='keyword-header'>rtp :: <strong>check_pade</strong></div><ul class="simple">
+<li><p><strong>Type</strong>: string</p></li>
+<li><p><strong>Default</strong>: ‘n’</p></li>
+<li><p>​</p></li>
+<li></li>
+</ul>
+</div><p>Flag to enable Padé interpolation (“y” or “n”).</p>
+<div class='keyword-entry' id='keyword-pade_framecount'><div class='keyword-header'>rtp :: <strong>pade_framecount</strong></div><ul class="simple">
+<li><p><strong>Type</strong>: int</p></li>
+<li><p><strong>Default</strong>: 80000</p></li>
+<li><p>​</p></li>
+<li></li>
+</ul>
+</div><p>Number of frames used after Padé interpolation.</p>
+<div class='keyword-entry' id='keyword-damping_constant'><div class='keyword-header'>rtp :: <strong>damping_constant</strong></div><ul class="simple">
+<li><p><strong>Type</strong>: float</p></li>
+<li><p><strong>Default</strong>: 0.1</p></li>
+<li><p><strong>Unit</strong>: eV</p></li>
+<li><p>​</p></li>
+<li></li>
+</ul>
+</div><p>Damping constant used in RTP spectrum calculations.</p>
 </section>
 <section id="block-raman">
 <h2>Block: raman<a class="headerlink" href="#block-raman" title="Link to this heading">¶</a></h2>
 <div class='keyword-entry' id='keyword-laser_in'><div class='keyword-header'>raman :: <strong>laser_in</strong></div><ul class="simple">
-<li><p><strong>Type</strong>: float</p></li>
-<li><p><strong>Default</strong>: 1.17</p></li>
-<li><p><strong>Unit</strong>: eV</p></li>
+<li><p><strong>Type</strong>: float or list[float]</p></li>
+<li><p><strong>Default</strong>: 0.5</p></li>
+<li><p><strong>Unit</strong>: eV or cm-1 ?? not clear from readinput. check</p></li>
 <li><p>​</p></li>
-<li><p>This is some number for the laser, dont know the unit…</p></li>
+<li></li>
 </ul>
-</div></section>
+</div><p>Incoming laser energy in eV. Multiple values (max 10) may be specified.</p>
+</section>
 </section>
 
 </main>
@@ -254,9 +444,8 @@
 <li><a class="reference internal" href="#">Keyword Glossary</a><ul>
 <li><a class="reference internal" href="#block-global">Block: global</a></li>
 <li><a class="reference internal" href="#block-system">Block: system</a></li>
-<li><a class="reference internal" href="#block-cell">Block: cell</a></li>
+<li><a class="reference internal" href="#subblock-cell">Subblock: cell</a></li>
 <li><a class="reference internal" href="#block-fragment">Block: fragment</a></li>
-<li><a class="reference internal" href="#block-coordinates">Block: coordinates</a></li>
 <li><a class="reference internal" href="#block-md">Block: md</a></li>
 <li><a class="reference internal" href="#block-static">Block: static</a></li>
 <li><a class="reference internal" href="#block-hessian">Block: hessian</a></li>
