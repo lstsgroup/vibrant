@@ -129,7 +129,7 @@
 <h2>a) Normal mode analysis<a class="headerlink" href="#a-normal-mode-analysis" title="Link to this heading">¶</a></h2>
 <p>Vibrant can carry out a normal mode analysis using the atomic forces. In a polyatomic molecule, the potential energy surface can be approximated by a Taylor series expansion around minimum:</p>
 <div class="math notranslate nohighlight">
-\[ 
+\[
 V = V_{0} + \sum_{i}^{3N} \left(\frac{\partial V}{\partial u_{i}}\right)_ {0} u_{i} + \frac{1}{2}\sum_{i,j}^{3N} \left(\frac{\partial^{2} V}{\partial u_{i} u_{j}}\right)_ {0} u_{i} u_{j} + \frac{1}{6} \sum_{i,j,k}^{3N} \left(\frac{\partial^{3} V}{\partial u_{i} u_{j} u_{k}}\right)_ {0} u_{i} u_{j} u_{k} + \cdots
 \]</div>
 <p>where <span class="math notranslate nohighlight">\({u_{i} u_{j}}\)</span> are the mass-weighted Cartesian displacements from the equilibrium position and <span class="math notranslate nohighlight">\(N\)</span> is the number of atoms. The first two terms, corresponding to the energy at the current geometry (<span class="math notranslate nohighlight">\(V_{0}\)</span>) and the first derivative of the energy along the coordinate <span class="math notranslate nohighlight">\(u_{i}\)</span> (<span class="math notranslate nohighlight">\(\frac{\partial V}{\partial u_{i}}\)</span>) vanish. This leaves us with the third term, that is also called Hessian (<span class="math notranslate nohighlight">\( H_{jk} = \left(\frac{\partial^{2} V}{\partial u_{i} u_{j}}\right)_ {0}\)</span>).</p>
@@ -168,7 +168,7 @@ V = V_{0} + \sum_{i}^{3N} \left(\frac{\partial V}{\partial u_{i}}\right)_ {0} u_
 <p>The MD-based equivalent of obtaining all frequencies irrespective of IR or Raman selection rules is to compute the power spectrum. The power spectrum can be computed from the autocorrelation functions of the time derivatives of particle velocities, which are usually available in an MD simulation. The general equation for an <a class="reference external" href="https://books.google.de/books?hl=tr&amp;amp;lr=&amp;amp;id=WFExDwAAQBAJ&amp;amp;oi=fnd&amp;amp;pg=PP1&amp;amp;dq=Allen,+M.+P.%3B+Tildesley,+D.+J.+Computer+Simulation+of+Liquids%3B+Oxford+University+Press,+2017&amp;amp;ots=VHTE8WLE4Q&amp;amp;sig=RLNU7BubcNGC06Bihq6BcmwR2K0&amp;amp;redir_esc=y#v=onepage&amp;amp;q=Allen%2C%20M.%20P.%3B%20Tildesley%2C%20D.%20J.%20Computer%20Simulation%20of%20Liquids%3B%20Oxford%20University%20Press%2C%202017&amp;amp;f=false">autocorrelation function</a> is as follows:</p>
 <div class="math notranslate nohighlight">
 \[
-\left\langle A(\tau) A(\tau + t) \right\rangle_{\tau}
+\left \langle A(\tau) A(\tau + t) \right \rangle_{\tau}
 = \int A(\tau) A(\tau + t)\, d\tau
 \approx \frac{1}{\tau_{\textnormal{max}}} \sum_{\tau=1}^{\tau_{\textnormal{max}}} A(\tau) A(\tau + t)
 \]</div>
