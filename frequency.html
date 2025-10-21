@@ -151,13 +151,13 @@ V = V_{0} + \sum_{i}^{3N} \left(\frac{\partial V}{\partial u_{i}}\right)_ {0} u_
 <span class="w"> </span>spectra<span class="w"> </span>NMA
 <span class="p">&amp;</span>end<span class="w"> </span>global
 <span class="p">&amp;</span>system
-<span class="w"> </span>filename<span class="w"> </span><span class="o">{</span><span class="nv">$optimized_geometry_file_name</span><span class="o">}</span>
+<span class="w"> </span>filename<span class="w"> </span>&lt;optimized_geometry_file_name&gt;
 <span class="p">&amp;</span>end<span class="w"> </span>system
 <span class="p">&amp;</span>static
 <span class="w">  </span><span class="p">&amp;</span>hessian
-<span class="w">   </span>force_file<span class="w"> </span><span class="o">{</span><span class="nv">$force_file_name</span><span class="o">}</span>
+<span class="w">   </span>force_file<span class="w"> </span>&lt;force_file_name&gt;
 <span class="w">  </span><span class="p">&amp;</span>end<span class="w"> </span>hessian
-<span class="w">  </span>displacement<span class="w"> </span><span class="o">{</span><span class="nv">$amount_of_displacement</span><span class="o">}</span>
+<span class="w">  </span>displacement<span class="w"> </span>&lt;amount_of_displacement&gt;
 <span class="w">  </span>write_mol_file
 <span class="p">&amp;</span>end<span class="w"> </span>static
 </pre></div>
@@ -165,7 +165,7 @@ V = V_{0} + \sum_{i}^{3N} \left(\frac{\partial V}{\partial u_{i}}\right)_ {0} u_
 <p>where the <code class="docutils literal notranslate"><span class="pre">hessian</span></code> section invokes the Hessian diagonalization, and the <code class="docutils literal notranslate"><span class="pre">displacement</span></code> refers to the displacement between the shifted geometries (given in Å).</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>The <code class="docutils literal notranslate"><span class="pre">write_mol_file</span></code> keyword is optional and it executes the printing of a <code class="docutils literal notranslate"><span class="pre">{$filename}.mol</span></code> file, which includes the optimized geometry, normal mode frequencies and normal mode coordinates. The <code class="docutils literal notranslate"><span class="pre">{$filename}.mol</span></code> file can be opened with <a class="reference external" href="https://www.theochem.ru.nl/molden/">MOLDEN</a> to visualize the normal modes.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">write_mol_file</span></code> keyword is optional and it executes the printing of a <code class="docutils literal notranslate"><span class="pre">&lt;filename&gt;.mol</span></code> file, which includes the optimized geometry, normal mode frequencies and normal mode coordinates. The <code class="docutils literal notranslate"><span class="pre">&lt;filename&gt;.mol</span></code> file can be opened with <a class="reference external" href="https://www.theochem.ru.nl/molden/">MOLDEN</a> to visualize the normal modes.</p>
 </div>
 </section>
 <section id="b-power-spectrum">
@@ -196,17 +196,18 @@ P(\omega) = \frac{2c}{3k_{B}} \int\_{-\infty}^{\infty} \left&lt; \dot{r}(\tau)\d
 <span class="w"> </span>...
 <span class="p">&amp;</span>end<span class="w"> </span>global
 <span class="p">&amp;</span>system
-<span class="w"> </span>type_traj<span class="w"> </span><span class="o">{</span><span class="nv">$type_traj</span><span class="o">}</span>
-<span class="w"> </span>filename<span class="w"> </span><span class="o">{</span><span class="nv">$trajectory_file_name</span><span class="o">}</span>
-<span class="w"> </span>mass_weighting<span class="w"> </span><span class="o">{</span><span class="nv">$mass_weighting_flag</span><span class="o">}</span>
+<span class="w"> </span>type_traj<span class="w"> </span>&lt;type_traj&gt;
+<span class="w"> </span>filename<span class="w"> </span>&lt;trajectory_file_name&gt;
+<span class="w"> </span>mass_weighting<span class="w"> </span>&lt;mass_weighting_flag&gt;
 <span class="p">&amp;</span>end<span class="w"> </span>system
 <span class="p">&amp;</span>md
 ...
 <span class="p">&amp;</span>end<span class="w"> </span>md
 </pre></div>
 </div>
-<p>where <code class="docutils literal notranslate"><span class="pre">$type_traj</span></code> can be specified by user as <code class="docutils literal notranslate"><span class="pre">pos</span></code> or <code class="docutils literal notranslate"><span class="pre">vel</span></code> standing for “positions” or “velocities”. Upon request, Vibrant can compute the mass-weighted power spectrum as well, which is controlled by the keyword <code class="docutils literal notranslate"><span class="pre">mass_weighting</span></code>, which be specified as <code class="docutils literal notranslate"><span class="pre">y</span></code> or <code class="docutils literal notranslate"><span class="pre">n</span></code> standing for “yes” or “no”.</p>
+<p>where <code class="docutils literal notranslate"><span class="pre">type_traj</span></code> can be specified by user as <code class="docutils literal notranslate"><span class="pre">pos</span></code> or <code class="docutils literal notranslate"><span class="pre">vel</span></code> standing for “positions” or “velocities”. Upon request, Vibrant can compute the mass-weighted power spectrum as well, which is controlled by the keyword <code class="docutils literal notranslate"><span class="pre">mass_weighting</span></code>, which be specified as <code class="docutils literal notranslate"><span class="pre">y</span></code> or <code class="docutils literal notranslate"><span class="pre">n</span></code> standing for “yes” or “no”.</p>
 <p>The final power intensities are given in K.cm.</p>
+<p>More information on the all available keywords can be found on <a class="reference internal" href="Keyword_Glossary.html"><span class="std std-doc">Keyword Glossary</span></a> and all complete example input files are available on ….</p>
 </section>
 </section>
 

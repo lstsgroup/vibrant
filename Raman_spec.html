@@ -183,31 +183,31 @@ I_{\textnormal{Raman}}(\tilde{\nu}_p)=\frac{h}{8\epsilon_{0}^{2}c} \frac{(\tilde
 <p>For each displaced structure (see Section <a class="reference internal" href="frequency.html"><span class="std std-doc">Frequencies</span></a> for details) the user must provide the polarizability tensors appended in a single file (see <a class="reference internal" href="file_formats.html"><span class="std std-doc">File Formats</span></a> for more details.) For the derivatives along the normal modes, the user can either provide the normal mode coordinates or alternatively the forces for each displaced structure, together with the cartesian coordinates of the optimized geometry. An example input section for the static Raman calculation may look like:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="p">&amp;</span>global
 <span class="w"> </span>spectra<span class="w"> </span>R
-<span class="w"> </span>temperature<span class="w"> </span><span class="o">{</span><span class="nv">$temperature_in_K</span><span class="o">}</span>
-<span class="w"> </span>fwhm<span class="w"> </span><span class="o">{</span><span class="nv">$full_width_at_half_maximum</span><span class="o">}</span>
+<span class="w"> </span>temperature<span class="w"> </span>&lt;temperature_in_K&gt;
+<span class="w"> </span>fwhm<span class="w"> </span>&lt;full_width_at_half_maximum&gt;
 <span class="p">&amp;</span>end<span class="w"> </span>global
 ...
 <span class="p">&amp;</span>static
 <span class="w"> </span>diag_hessian<span class="w"> </span>y
 <span class="w"> </span><span class="p">&amp;</span>hessian
-<span class="w">  </span>force_file<span class="w"> </span><span class="o">{</span><span class="nv">$FORCE_FILE_NAME</span><span class="o">}</span>
+<span class="w">  </span>force_file<span class="w"> </span>&lt;FORCE_FILE_NAME&gt;
 <span class="w"> </span><span class="p">&amp;</span>end<span class="w"> </span>hessian
-<span class="w"> </span>displacement<span class="w"> </span><span class="o">{</span><span class="nv">$amount_of_displacement</span><span class="o">}</span>
+<span class="w"> </span>displacement<span class="w"> </span>&lt;amount_of_displacement&gt;
 <span class="p">&amp;</span>end<span class="w"> </span>static
 </pre></div>
 </div>
 <p>or if the user want to skip the Hessian diagonalization and give the normal mode frequencies and eigenvectors externally, the input section becomes:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="p">&amp;</span>global
 <span class="w"> </span>spectra<span class="w"> </span>R
-<span class="w"> </span>temperature<span class="w"> </span><span class="o">{</span><span class="nv">$temperature_in_K</span><span class="o">}</span>
-<span class="w"> </span>fwhm<span class="w"> </span><span class="o">{</span><span class="nv">$full_width_at_half_maximum</span><span class="o">}</span>
+<span class="w"> </span>temperature<span class="w"> </span>&lt;temperature_in_K&gt;
+<span class="w"> </span>fwhm<span class="w"> </span>&lt;full_width_at_half_maximum&gt;
 <span class="p">&amp;</span>end<span class="w"> </span>global
 ...
 <span class="p">&amp;</span>static
 <span class="w"> </span>diag_hessian<span class="w"> </span>n
-<span class="w"> </span>normal_freq_file<span class="w"> </span><span class="o">{</span><span class="nv">$normal_mode_frequency_file</span><span class="o">}</span>
-<span class="w"> </span>normal_displ_file<span class="w"> </span><span class="o">{</span><span class="nv">$normal_mode_displacement_file</span><span class="o">}</span>
-<span class="w"> </span>displacement<span class="w"> </span><span class="o">{</span><span class="nv">$amount_of_displacement</span><span class="o">}</span>
+<span class="w"> </span>normal_freq_file<span class="w"> </span>&lt;normal_mode_frequency_file&gt;
+<span class="w"> </span>normal_displ_file<span class="w"> </span>&lt;normal_mode_displacement_file&gt;
+<span class="w"> </span>displacement<span class="w"> </span>&lt;amount_of_displacement&gt;
 <span class="w"> </span>write_mol_file
 <span class="p">&amp;</span>end<span class="w"> </span>static
 </pre></div>
@@ -215,7 +215,7 @@ I_{\textnormal{Raman}}(\tilde{\nu}_p)=\frac{h}{8\epsilon_{0}^{2}c} \frac{(\tilde
 <p>Vibrant applies Gaussian broadening to the final discrete set of frequencies and intensities. The <code class="docutils literal notranslate"><span class="pre">fwhm</span></code> keyword controls the full width at half maximum (FWHM) value in cm <span class="math notranslate nohighlight">\({^{-1}}\)</span> and if not specified, it is set to 5 cm <span class="math notranslate nohighlight">\({^{-1}}\)</span>.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>The keyword <code class="docutils literal notranslate"><span class="pre">write_mol_file</span></code> is optional and it executes the printing of a <code class="docutils literal notranslate"><span class="pre">{$filename}.mol</span></code> file, which includes the optimized geometry, normal mode frequencies, normal mode coordinates and the non-broadened Raman intensities. The <code class="docutils literal notranslate"><span class="pre">{$filename}.mol</span></code> file can be opened with <a class="reference external" href="https://www.theochem.ru.nl/molden/">MOLDEN</a> to visualize the normal modes alongside the Raman spectrum. If multiple incident laser frequencies are requested, Vibrant generates a separate <code class="docutils literal notranslate"><span class="pre">{$filename}.mol</span></code> file for each frequency.</p>
+<p>The keyword <code class="docutils literal notranslate"><span class="pre">write_mol_file</span></code> is optional and it executes the printing of a <code class="docutils literal notranslate"><span class="pre">&lt;filename&gt;.mol</span></code> file, which includes the optimized geometry, normal mode frequencies, normal mode coordinates and the non-broadened Raman intensities. The <code class="docutils literal notranslate"><span class="pre">&lt;filename&gt;.mol</span></code> file can be opened with <a class="reference external" href="https://www.theochem.ru.nl/molden/">MOLDEN</a> to visualize the normal modes alongside the Raman spectrum. If multiple incident laser frequencies are requested, Vibrant generates a separate <code class="docutils literal notranslate"><span class="pre">&lt;filename&gt;.mol</span></code> file for each frequency.</p>
 </div>
 <p>The final static Raman intensities are reported in 10 <span class="math notranslate nohighlight">\(^{-30}\)</span> cm <span class="math notranslate nohighlight">\(^2\)</span> /sr.</p>
 <div class="admonition warning">
@@ -279,12 +279,12 @@ I_{\textnormal{Raman}} (\tilde{\nu}) = \frac{2h}{8\epsilon_{0}^{2}k_{B}T} \frac{
 <p>The <code class="docutils literal notranslate"><span class="pre">md</span></code> section should be included for the MD-based Raman calculation:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="p">&amp;</span>global
 <span class="w"> </span>spectra<span class="w"> </span>MD-R
-<span class="w"> </span>temperature<span class="w"> </span><span class="o">{</span><span class="nv">$temperature_in_K</span><span class="o">}</span>
+<span class="w"> </span>temperature<span class="w"> </span>&lt;temperature_in_K&gt;
 <span class="p">&amp;</span>end<span class="w"> </span>global
 ...
 <span class="p">&amp;</span>md
-<span class="w"> </span>time_step<span class="w"> </span><span class="o">{</span><span class="nv">$MD_time_step</span><span class="o">}</span>
-<span class="w"> </span>correlation_depth<span class="w"> </span><span class="o">{</span><span class="nv">$correlation_depth</span><span class="o">}</span>
+<span class="w"> </span>time_step<span class="w"> </span>&lt;MD_time_step&gt;
+<span class="w"> </span>correlation_depth<span class="w"> </span>&lt;correlation_depth&gt;
 <span class="p">&amp;</span>end<span class="w"> </span>md
 </pre></div>
 </div>
@@ -300,9 +300,9 @@ I_{\textnormal{Raman}} (\tilde{\nu}) = \frac{2h}{8\epsilon_{0}^{2}k_{B}T} \frac{
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>...
 <span class="p">&amp;</span>dipoles
 <span class="w"> </span>type_dipole<span class="w"> </span>dfpt
-<span class="w"> </span>dip_x_file<span class="w"> </span><span class="o">{</span><span class="nv">$dipole_file_name_x_field</span><span class="o">}</span>
-<span class="w"> </span>dip_y_file<span class="w"> </span><span class="o">{</span><span class="nv">$dipole_file_name_y_field</span><span class="o">}</span>
-<span class="w"> </span>dip_z_file<span class="w"> </span><span class="o">{</span><span class="nv">$dipole_file_name_z_field</span><span class="o">}</span>
+<span class="w"> </span>dip_x_file<span class="w"> </span>&lt;dipole_file_name_x_field&gt;
+<span class="w"> </span>dip_y_file<span class="w"> </span>&lt;dipole_file_name_y_field&gt;
+<span class="w"> </span>dip_z_file<span class="w"> </span>&lt;dipole_file_name_z_field&gt;
 <span class="p">&amp;</span>end<span class="w"> </span>dipoles<span class="w"> </span>
 </pre></div>
 </div>
@@ -321,11 +321,11 @@ I_{\textnormal{Raman}} (\tilde{\nu}) = \frac{2h}{8\epsilon_{0}^{2}k_{B}T} \frac{
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>...
 <span class="p">&amp;</span>dipoles
 <span class="w"> </span>type_dipole<span class="w"> </span>berry<span class="w"> </span><span class="c1">#or `wannier`</span>
-<span class="w"> </span>field_strength<span class="w"> </span><span class="o">{</span><span class="nv">$field_strength_in_au</span><span class="o">}</span>
-<span class="w"> </span>dip_file<span class="w"> </span><span class="o">{</span><span class="nv">$dipole_file_name_field_free</span><span class="o">}</span>
-<span class="w"> </span>dip_x_file<span class="w"> </span><span class="o">{</span><span class="nv">$dipole_file_name_x_field</span><span class="o">}</span>
-<span class="w"> </span>dip_y_file<span class="w"> </span><span class="o">{</span><span class="nv">$dipole_file_name_y_field</span><span class="o">}</span>
-<span class="w"> </span>dip_z_file<span class="w"> </span><span class="o">{</span><span class="nv">$dipole_file_name_z_field</span><span class="o">}</span>
+<span class="w"> </span>field_strength<span class="w"> </span>&lt;field_strength_in_au&gt;
+<span class="w"> </span>dip_file<span class="w"> </span>&lt;dipole_file_name_field_free&gt;
+<span class="w"> </span>dip_x_file<span class="w"> </span>&lt;dipole_file_name_x_field&gt;
+<span class="w"> </span>dip_y_file<span class="w"> </span>&lt;dipole_file_name_y_field&gt;
+<span class="w"> </span>dip_z_file<span class="w"> </span>&lt;dipole_file_name_z_field&gt;
 <span class="p">&amp;</span>end<span class="w"> </span>dipoles
 </pre></div>
 </div>
@@ -338,7 +338,7 @@ I_{\textnormal{Raman}} (\tilde{\nu}) = \frac{2h}{8\epsilon_{0}^{2}k_{B}T} \frac{
 <p class="admonition-title">Note</p>
 <p>The Wannier centers can be used to compute the dipole moment and consequently the polarizability of the whole supercell, however they can also be used to extract the spectra of user-specified molecular blocks or fragments, which is discussed in Section <a class="reference internal" href="fragments.html"><span class="std std-doc">Subspectra for MD-based calculations</span></a>.</p>
 </div>
-<p>More information on the all available keywords can be found on Section .. and all complete example input files are available on ….</p>
+<p>More information on the all available keywords can be found on <a class="reference internal" href="Keyword_Glossary.html"><span class="std std-doc">Keyword Glossary</span></a> and all complete example input files are available on ….</p>
 </section>
 </section>
 

@@ -66,26 +66,26 @@ To compute a static RR spectrum, the user must provide the time-dependent dipole
 ```bash
 &global
  spectra RR
- temperature {$temperature_in_K}
- fwhm {$full_width_at_half_maximum}
+ temperature <temperature_in_K>
+ fwhm <full_width_at_half_maximum>
 &end global
 &system
- filename ...
+ filename <optimized_geometry_file_name>
 &end system
 &static
 ... 
 &end static
 &dipoles
  type_dipole berry
- field_strength {$electric_field_strength_in_au}
- dip_x_file {$time_dependent_dipole_file_under_x_field}
- dip_y_file {$time_dependent_dipole_file_under_y_field}
- dip_z_file {$time_dependent_dipole_file_under_z_field}
+ field_strength <electric_field_strength_in_au>
+ dip_x_file <time_dependent_dipole_file_under_x_field>
+ dip_y_file <time_dependent_dipole_file_under_y_field>
+ dip_z_file <time_dependent_dipole_file_under_z_field>
 &end dipoles
 &rtp
- rtp_time_step {$rtp_time_step_in_fs}
- rtp_framecount {$total_rtp_framecount}
- damping_constant {$damping_factor_in_eV}
+ rtp_time_step <rtp_time_step_in_fs>
+ rtp_framecount <total_rtp_framecount>
+ damping_constant <damping_factor_in_eV>
 &end rtp
 ...
 ```
@@ -95,7 +95,7 @@ To compute a static RR spectrum, the user must provide the time-dependent dipole
 Vibrant applies Gaussian broadening to the final discrete set of frequencies and intensities. The `fwhm` keyword controls the full width at half-maximum (FWHM) value in cm ${^{-1}}$ and if not specified, it is set to 5 cm ${^{-1}}$.
 
 ```{note}
-  The keyword `write_mol_file` is optional and it executes the printing of a `{$filename}.mol` file, which includes the optimized geometry, normal mode frequencies, normal mode coordinates and the non-broadened Raman intensities. The `{$filename}.mol` file can be opened with [MOLDEN](https://www.theochem.ru.nl/molden/) to visualize the normal modes alongside the Raman spectrum. If multiple incident laser frequencies are requested, Vibrant generates a separate `{$filename}.mol` file for each frequency.
+  The keyword `write_mol_file` is optional and it executes the printing of a `<filename>.mol` file, which includes the optimized geometry, normal mode frequencies, normal mode coordinates and the non-broadened Raman intensities. The `<filename>.mol` file can be opened with [MOLDEN](https://www.theochem.ru.nl/molden/) to visualize the normal modes alongside the Raman spectrum. If multiple incident laser frequencies are requested, Vibrant generates a separate `<filename>.mol` file for each frequency.
 ```
 
 The absorption spectrum calculation does not require the `static` section. An example input section is given below:
@@ -109,19 +109,19 @@ The absorption spectrum calculation does not require the `static` section. An ex
 &end system
 &dipoles
  type_dipole berry
- field_strength {$electric_field_strength_in_au}
- dip_x_file {$time_dependent_dipole_file_under_x_field}
- dip_y_file {$time_dependent_dipole_file_under_y_field}
- dip_z_file {$time_dependent_dipole_file_under_z_field}
+ field_strength <electric_field_strength_in_au>
+ dip_x_file <time_dependent_dipole_file_under_x_field>
+ dip_y_file <time_dependent_dipole_file_under_y_field>
+ dip_z_file <time_dependent_dipole_file_under_z_field>
 &end dipoles
 &rtp
- rtp_time_step {$rtp_time_step_in_fs}
- rtp_framecount {$total_rtp_framecount}
- damping_constant {$damping_factor_in_eV}
+ rtp_time_step <rtp_time_step_in_fs>
+ rtp_framecount <total_rtp_framecount>
+ damping_constant <damping_factor_in_eV>
 &end rtp
 ```
 
-The final static resonance Raman intensities are reported in 10 $^{-30}$ cm $^2$ /sr. The absorption spectrum frequencies are reported in eV and the intensities are reported in a.u..
+The final static resonance Raman intensities are reported in 10 $^{-30}$ cm $^2$ /sr. The absorption spectrum frequencies are reported in eV and the intensities are reported in atomic units.
 
 ## b) MD-based RR intensities
 
@@ -221,23 +221,23 @@ The MD-based RR calculation in Vibrant is not fully tested yet, and more tests a
 ```bash
 &global
  spectra MD-RR
- temperature {$temperature_in_K}
+ temperature <temperature_in_K>
 &end global
 &dipoles
  type_dipole berry
- field_strength {$electric_field_strength_in_au}
- dip_x_file {$time_dependent_dipole_file_under_x_field}
- dip_y_file {$time_dependent_dipole_file_under_y_field}
- dip_z_file {$time_dependent_dipole_file_under_z_field}
+ field_strength <electric_field_strength_in_au>
+ dip_x_file <time_dependent_dipole_file_under_x_field>
+ dip_y_file <time_dependent_dipole_file_under_y_field>
+ dip_z_file <time_dependent_dipole_file_under_z_field>
 &end dipoles
 &md
- time_step {$MD_time_step}
- correlation_depth {$correlation_depth}
+ time_step <MD_time_step>
+ correlation_depth <correlation_depth>
 &end md
 &rtp
- rtp_time_step {$rtp_time_step_in_fs}
- rtp_framecount {$total_rtp_framecount}
- damping_constant {$damping_factor_in_eV}
+ rtp_time_step <rtp_time_step_in_fs>
+ rtp_framecount <total_rtp_framecount>
+ damping_constant <damping_factor_in_eV>
 &end rtp
 ```
 
@@ -247,7 +247,7 @@ The MD-based absorption spectrum is computed in the same manner as the static ab
   Vibrant applies the same processing to the final MD-based RR intensities as given in the Section [IR Spectra](IR_spec.md), including the application of data mirroring and Hann Window function to the autocorrelation data and the application of the sinc function to the final intensities.
 ```
 
- The final MD-based RR intensities are reported in m $^2$ K cm 10 $^{-30}$. 
+ The final MD-based RR intensities are reported in m $^2$ K cm 10 $^{-30}$.
 
 ## c) Application of Padé interpolation
 
@@ -281,12 +281,12 @@ The upper figure (a) shows the static absorption spectra of naphthalene obtained
 
 The user can request the Padé post-processing for the static or MD-based RR or absorption spectra using the `check_pade` keyword as shown below:
 
-```bash 
+```bash
 ....
 &rtp
 ...
  check_pade y
- pade_framecount {$final_number_of_frames_after_pade}
+ pade_framecount <final_number_of_frames_after_pade>
 ...
 &end rtp
 ```

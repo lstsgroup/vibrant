@@ -182,26 +182,26 @@ I_{\textnormal{abs}} (\omega) = \frac{1}{3}\textnormal{Tr}\left[ \boldsymbol{\si
 <p>To compute a static RR spectrum, the user must provide the time-dependent dipole moments for each displaced structure, combined into a single file (see <a class="reference internal" href="file_formats.html"><span class="std std-doc">File Formats</span></a> for details). There should be three files in total, each corresponding to calculations performed under electric fields applied along the x-, y-, and z-directions. An example input section for performing a static RR calculation is shown below:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="p">&amp;</span>global
 <span class="w"> </span>spectra<span class="w"> </span>RR
-<span class="w"> </span>temperature<span class="w"> </span><span class="o">{</span><span class="nv">$temperature_in_K</span><span class="o">}</span>
-<span class="w"> </span>fwhm<span class="w"> </span><span class="o">{</span><span class="nv">$full_width_at_half_maximum</span><span class="o">}</span>
+<span class="w"> </span>temperature<span class="w"> </span>&lt;temperature_in_K&gt;
+<span class="w"> </span>fwhm<span class="w"> </span>&lt;full_width_at_half_maximum&gt;
 <span class="p">&amp;</span>end<span class="w"> </span>global
 <span class="p">&amp;</span>system
-<span class="w"> </span>filename<span class="w"> </span>...
+<span class="w"> </span>filename<span class="w"> </span>&lt;optimized_geometry_file_name&gt;
 <span class="p">&amp;</span>end<span class="w"> </span>system
 <span class="p">&amp;</span>static
 ...<span class="w"> </span>
 <span class="p">&amp;</span>end<span class="w"> </span>static
 <span class="p">&amp;</span>dipoles
 <span class="w"> </span>type_dipole<span class="w"> </span>berry
-<span class="w"> </span>field_strength<span class="w"> </span><span class="o">{</span><span class="nv">$electric_field_strength_in_au</span><span class="o">}</span>
-<span class="w"> </span>dip_x_file<span class="w"> </span><span class="o">{</span><span class="nv">$time_dependent_dipole_file_under_x_field</span><span class="o">}</span>
-<span class="w"> </span>dip_y_file<span class="w"> </span><span class="o">{</span><span class="nv">$time_dependent_dipole_file_under_y_field</span><span class="o">}</span>
-<span class="w"> </span>dip_z_file<span class="w"> </span><span class="o">{</span><span class="nv">$time_dependent_dipole_file_under_z_field</span><span class="o">}</span>
+<span class="w"> </span>field_strength<span class="w"> </span>&lt;electric_field_strength_in_au&gt;
+<span class="w"> </span>dip_x_file<span class="w"> </span>&lt;time_dependent_dipole_file_under_x_field&gt;
+<span class="w"> </span>dip_y_file<span class="w"> </span>&lt;time_dependent_dipole_file_under_y_field&gt;
+<span class="w"> </span>dip_z_file<span class="w"> </span>&lt;time_dependent_dipole_file_under_z_field&gt;
 <span class="p">&amp;</span>end<span class="w"> </span>dipoles
 <span class="p">&amp;</span>rtp
-<span class="w"> </span>rtp_time_step<span class="w"> </span><span class="o">{</span><span class="nv">$rtp_time_step_in_fs</span><span class="o">}</span>
-<span class="w"> </span>rtp_framecount<span class="w"> </span><span class="o">{</span><span class="nv">$total_rtp_framecount</span><span class="o">}</span>
-<span class="w"> </span>damping_constant<span class="w"> </span><span class="o">{</span><span class="nv">$damping_factor_in_eV</span><span class="o">}</span>
+<span class="w"> </span>rtp_time_step<span class="w"> </span>&lt;rtp_time_step_in_fs&gt;
+<span class="w"> </span>rtp_framecount<span class="w"> </span>&lt;total_rtp_framecount&gt;
+<span class="w"> </span>damping_constant<span class="w"> </span>&lt;damping_factor_in_eV&gt;
 <span class="p">&amp;</span>end<span class="w"> </span>rtp
 ...
 </pre></div>
@@ -210,7 +210,7 @@ I_{\textnormal{abs}} (\omega) = \frac{1}{3}\textnormal{Tr}\left[ \boldsymbol{\si
 <p>Vibrant applies Gaussian broadening to the final discrete set of frequencies and intensities. The <code class="docutils literal notranslate"><span class="pre">fwhm</span></code> keyword controls the full width at half-maximum (FWHM) value in cm <span class="math notranslate nohighlight">\({^{-1}}\)</span> and if not specified, it is set to 5 cm <span class="math notranslate nohighlight">\({^{-1}}\)</span>.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>The keyword <code class="docutils literal notranslate"><span class="pre">write_mol_file</span></code> is optional and it executes the printing of a <code class="docutils literal notranslate"><span class="pre">{$filename}.mol</span></code> file, which includes the optimized geometry, normal mode frequencies, normal mode coordinates and the non-broadened Raman intensities. The <code class="docutils literal notranslate"><span class="pre">{$filename}.mol</span></code> file can be opened with <a class="reference external" href="https://www.theochem.ru.nl/molden/">MOLDEN</a> to visualize the normal modes alongside the Raman spectrum. If multiple incident laser frequencies are requested, Vibrant generates a separate <code class="docutils literal notranslate"><span class="pre">{$filename}.mol</span></code> file for each frequency.</p>
+<p>The keyword <code class="docutils literal notranslate"><span class="pre">write_mol_file</span></code> is optional and it executes the printing of a <code class="docutils literal notranslate"><span class="pre">&lt;filename&gt;.mol</span></code> file, which includes the optimized geometry, normal mode frequencies, normal mode coordinates and the non-broadened Raman intensities. The <code class="docutils literal notranslate"><span class="pre">&lt;filename&gt;.mol</span></code> file can be opened with <a class="reference external" href="https://www.theochem.ru.nl/molden/">MOLDEN</a> to visualize the normal modes alongside the Raman spectrum. If multiple incident laser frequencies are requested, Vibrant generates a separate <code class="docutils literal notranslate"><span class="pre">&lt;filename&gt;.mol</span></code> file for each frequency.</p>
 </div>
 <p>The absorption spectrum calculation does not require the <code class="docutils literal notranslate"><span class="pre">static</span></code> section. An example input section is given below:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="p">&amp;</span>global
@@ -221,19 +221,19 @@ I_{\textnormal{abs}} (\omega) = \frac{1}{3}\textnormal{Tr}\left[ \boldsymbol{\si
 <span class="p">&amp;</span>end<span class="w"> </span>system
 <span class="p">&amp;</span>dipoles
 <span class="w"> </span>type_dipole<span class="w"> </span>berry
-<span class="w"> </span>field_strength<span class="w"> </span><span class="o">{</span><span class="nv">$electric_field_strength_in_au</span><span class="o">}</span>
-<span class="w"> </span>dip_x_file<span class="w"> </span><span class="o">{</span><span class="nv">$time_dependent_dipole_file_under_x_field</span><span class="o">}</span>
-<span class="w"> </span>dip_y_file<span class="w"> </span><span class="o">{</span><span class="nv">$time_dependent_dipole_file_under_y_field</span><span class="o">}</span>
-<span class="w"> </span>dip_z_file<span class="w"> </span><span class="o">{</span><span class="nv">$time_dependent_dipole_file_under_z_field</span><span class="o">}</span>
+<span class="w"> </span>field_strength<span class="w"> </span>&lt;electric_field_strength_in_au&gt;
+<span class="w"> </span>dip_x_file<span class="w"> </span>&lt;time_dependent_dipole_file_under_x_field&gt;
+<span class="w"> </span>dip_y_file<span class="w"> </span>&lt;time_dependent_dipole_file_under_y_field&gt;
+<span class="w"> </span>dip_z_file<span class="w"> </span>&lt;time_dependent_dipole_file_under_z_field&gt;
 <span class="p">&amp;</span>end<span class="w"> </span>dipoles
 <span class="p">&amp;</span>rtp
-<span class="w"> </span>rtp_time_step<span class="w"> </span><span class="o">{</span><span class="nv">$rtp_time_step_in_fs</span><span class="o">}</span>
-<span class="w"> </span>rtp_framecount<span class="w"> </span><span class="o">{</span><span class="nv">$total_rtp_framecount</span><span class="o">}</span>
-<span class="w"> </span>damping_constant<span class="w"> </span><span class="o">{</span><span class="nv">$damping_factor_in_eV</span><span class="o">}</span>
+<span class="w"> </span>rtp_time_step<span class="w"> </span>&lt;rtp_time_step_in_fs&gt;
+<span class="w"> </span>rtp_framecount<span class="w"> </span>&lt;total_rtp_framecount&gt;
+<span class="w"> </span>damping_constant<span class="w"> </span>&lt;damping_factor_in_eV&gt;
 <span class="p">&amp;</span>end<span class="w"> </span>rtp
 </pre></div>
 </div>
-<p>The final static resonance Raman intensities are reported in 10 <span class="math notranslate nohighlight">\(^{-30}\)</span> cm <span class="math notranslate nohighlight">\(^2\)</span> /sr. The absorption spectrum frequencies are reported in eV and the intensities are reported in a.u..</p>
+<p>The final static resonance Raman intensities are reported in 10 <span class="math notranslate nohighlight">\(^{-30}\)</span> cm <span class="math notranslate nohighlight">\(^2\)</span> /sr. The absorption spectrum frequencies are reported in eV and the intensities are reported in atomic units.</p>
 </section>
 <section id="b-md-based-rr-intensities">
 <h2>b) MD-based RR intensities<a class="headerlink" href="#b-md-based-rr-intensities" title="Link to this heading">¶</a></h2>
@@ -323,23 +323,23 @@ I_{\textnormal{RR}} (\tilde{\nu}, \omega) = \frac{2h}{8\epsilon_{0}^{2}k_{B}T} \
 <p>The MD-based RR calculation in Vibrant is not fully tested yet, and more tests are being performed. The current implementation requires that the user provides the time-dependent dipole moments for each MD snapshot, combined into a single file (see <a class="reference internal" href="file_formats.html"><span class="std std-doc">File Formats</span></a> for more details). There should be three files in total, each corresponding to calculations performed under electric fields applied along the x-, y-, and z-directions. An example input section for performing an MD-based RR calculation is shown below:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="p">&amp;</span>global
 <span class="w"> </span>spectra<span class="w"> </span>MD-RR
-<span class="w"> </span>temperature<span class="w"> </span><span class="o">{</span><span class="nv">$temperature_in_K</span><span class="o">}</span>
+<span class="w"> </span>temperature<span class="w"> </span>&lt;temperature_in_K&gt;
 <span class="p">&amp;</span>end<span class="w"> </span>global
 <span class="p">&amp;</span>dipoles
 <span class="w"> </span>type_dipole<span class="w"> </span>berry
-<span class="w"> </span>field_strength<span class="w"> </span><span class="o">{</span><span class="nv">$electric_field_strength_in_au</span><span class="o">}</span>
-<span class="w"> </span>dip_x_file<span class="w"> </span><span class="o">{</span><span class="nv">$time_dependent_dipole_file_under_x_field</span><span class="o">}</span>
-<span class="w"> </span>dip_y_file<span class="w"> </span><span class="o">{</span><span class="nv">$time_dependent_dipole_file_under_y_field</span><span class="o">}</span>
-<span class="w"> </span>dip_z_file<span class="w"> </span><span class="o">{</span><span class="nv">$time_dependent_dipole_file_under_z_field</span><span class="o">}</span>
+<span class="w"> </span>field_strength<span class="w"> </span>&lt;electric_field_strength_in_au&gt;
+<span class="w"> </span>dip_x_file<span class="w"> </span>&lt;time_dependent_dipole_file_under_x_field&gt;
+<span class="w"> </span>dip_y_file<span class="w"> </span>&lt;time_dependent_dipole_file_under_y_field&gt;
+<span class="w"> </span>dip_z_file<span class="w"> </span>&lt;time_dependent_dipole_file_under_z_field&gt;
 <span class="p">&amp;</span>end<span class="w"> </span>dipoles
 <span class="p">&amp;</span>md
-<span class="w"> </span>time_step<span class="w"> </span><span class="o">{</span><span class="nv">$MD_time_step</span><span class="o">}</span>
-<span class="w"> </span>correlation_depth<span class="w"> </span><span class="o">{</span><span class="nv">$correlation_depth</span><span class="o">}</span>
+<span class="w"> </span>time_step<span class="w"> </span>&lt;MD_time_step&gt;
+<span class="w"> </span>correlation_depth<span class="w"> </span>&lt;correlation_depth&gt;
 <span class="p">&amp;</span>end<span class="w"> </span>md
 <span class="p">&amp;</span>rtp
-<span class="w"> </span>rtp_time_step<span class="w"> </span><span class="o">{</span><span class="nv">$rtp_time_step_in_fs</span><span class="o">}</span>
-<span class="w"> </span>rtp_framecount<span class="w"> </span><span class="o">{</span><span class="nv">$total_rtp_framecount</span><span class="o">}</span>
-<span class="w"> </span>damping_constant<span class="w"> </span><span class="o">{</span><span class="nv">$damping_factor_in_eV</span><span class="o">}</span>
+<span class="w"> </span>rtp_time_step<span class="w"> </span>&lt;rtp_time_step_in_fs&gt;
+<span class="w"> </span>rtp_framecount<span class="w"> </span>&lt;total_rtp_framecount&gt;
+<span class="w"> </span>damping_constant<span class="w"> </span>&lt;damping_factor_in_eV&gt;
 <span class="p">&amp;</span>end<span class="w"> </span>rtp
 </pre></div>
 </div>
@@ -377,7 +377,7 @@ I_{\textnormal{RR}} (\tilde{\nu}, \omega) = \frac{2h}{8\epsilon_{0}^{2}k_{B}T} \
 <span class="p">&amp;</span>rtp
 ...
 <span class="w"> </span>check_pade<span class="w"> </span>y
-<span class="w"> </span>pade_framecount<span class="w"> </span><span class="o">{</span><span class="nv">$final_number_of_frames_after_pade</span><span class="o">}</span>
+<span class="w"> </span>pade_framecount<span class="w"> </span>&lt;final_number_of_frames_after_pade&gt;
 ...
 <span class="p">&amp;</span>end<span class="w"> </span>rtp
 </pre></div>
