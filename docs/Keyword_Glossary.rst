@@ -45,7 +45,7 @@ Block: global
    :type: string
    :default: None
 
-   This is the spectra type. Possible values are: MD-RR, MD-RT, RR, RT, FT....
+   This is the spectra type. Possible values are: MD-RR, MD-RT, RR, RT, FT, ABS
 
 .. keyword:: temperature
    :section: global
@@ -54,6 +54,61 @@ Block: global
    :unit: K
 
    This is the Temperature. with formula :math:`\omega = 2\pi f`.
+
+.. keyword:: fwhm
+   :section: global
+   :type: float
+   :default: 300.0
+   :unit: :math:`\mathrm{cm}^{-1}`
+
+    This fwhm value for Gaussian broadening of static spectra. 
+
+.. keyword:: spectra_verbosity
+   :section: global
+   :type: string
+   :default: normal
+
+   This is a verbosity setting for creating raman spectra files.
+
+
+Block: system
+-------------
+.. keyword:: filename
+   :section: system
+   :type: string
+    
+    This is the name of coordinates file.
+
+.. keyword:: filename
+   :section: system
+   :type: string
+    
+    This is the name of coordinates file.
+
+
+Block: cell
+-------------
+
+Block: fragment
+-------------
+
+Block: coordinates
+-------------
+
+Block: md
+-------------
+
+Block: static
+-------------
+
+Block: hessian
+-------------
+
+Block: dipoles
+-------------
+
+Block: rtp
+-------------
 
 Block: raman
 -------------
