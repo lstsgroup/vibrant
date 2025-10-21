@@ -2,7 +2,7 @@
 
 Vibrant processes multiple data files, such as the dipole moments, polarizabilities, and forces, in order to compute the desired vibrational spectrum. These files must follow specific formats which we describe in this section.
 
-More information on all available keywords can be found on Section .. and all complete example input files are available on ....
+More information on all available keywords can be found on [Keyword Glossary](Keyword_Glossary.rst) and all complete example input files are available on ....
 
 ## 1) Coordinates of atomic positions (.xyz files)
 
@@ -11,12 +11,12 @@ Static spectral calculations that are based on the normal mode analysis require 
 Similarly, the power spectrum calculations requires that the user provides the atomic position (in Å) or velocity vectors (in bohr/a.u. of time) for each MD snapshot in the form of an `.xyz` file format, such as:
 
 ```bash
-$total_number_of_atoms #first MD frame
+<total_number_of_atoms> #first MD frame
                        #leave 1 blank line
-$element_symbol $x_coord $y_coord $z_coor
+<element_symbol> <x_coord> <y_coord> <z_coord>
 ...
 ...
-$total_number_of_atoms #second MD frame
+<total_number_of_atoms> #second MD frame
                        #leave 1 blank line
 ...
 
@@ -30,29 +30,29 @@ To carry out a normal mode analysis, the user must provide the atomic force vect
 
 ```bash
 #start with forces coming from Atom 1 displaced in +x direction
-$force_x $force_y $force_z #first atom
-$force_x $force_y $force_z #second atom
+<force_x <force_y> <force_z> #first atom
+<force_x> <force_y> <force_z> #second atom
 ...
-$force_x $force_y $force_z #last atom
+<force_x> <force_y> <force_z> #last atom
 #forces coming from Atom 1 displaced in +y direction
-$force_x $force_y $force_z #first atom
+<force_x> <force_y> <force_z> #first atom
 ...
 #forces coming from Atom 1 displaced in +z direction
-$force_x $force_y $force_z #first atom
+<force_x> <force_y> <force_z> #first atom
 ...
 #forces coming from Atom 2 displaced in +x direction
-$force_x $force_y $force_z #first atom
+<force_x> <force_y> <force_z> #first atom
 ...
 ... 
 #finish looping over all atoms displaces in +x, +y, +z directions.
 #continue with forces coming from Atom 1 displaced in -x direction
-$force_x $force_y $force_z #first atom
+<force_x> <force_y> <force_z> #first atom
 ...
 ...
 #finish with the last atom displaced in -z direction
-$force_x $force_y $force_z #first atom
+<force_x> <force_y> <force_z> #first atom
 ...
-$force_x $force_y $force_z #last atom
+<force_x> <force_y> <force_z> #last atom
 ```
 
 As an example, [this bash script](_static/force.sh) enters the directories of each displaced structure and appends the [CP2K force files](_static/force.xyz) accordingly.
@@ -62,23 +62,23 @@ As an example, [this bash script](_static/force.sh) enters the directories of ea
 The user can provide the normal mode frequencies and coordinates instead of forces. In that case, the normal mode frequencies should be given as:
 
 ```bash
-$frequency #for the first normal mode
-$frequency #for the second normal mode
+<frequency> #for the first normal mode
+<frequency> #for the second normal mode
 ...
-$frequency #for the last normal mode
+<frequency> #for the last normal mode
 ```
 
 And the normal mode coordinates should be given as the atomic cartesian coordinates (in. a.u.) for each vibrational mode, such as:
 
 ```bash
-$x_coord $y_coord $z_coord # coordinates of Atom 1 for normal mode 1
-$x_coord $y_coord $z_coord # coordinates of Atom 2 for normal mode 1
+<x_coord> <y_coord> <z_coord> # coordinates of Atom 1 for normal mode 1
+<x_coord> <y_coord> <z_coord> # coordinates of Atom 2 for normal mode 1
 ...
-$x_coord $y_coord $z_coord # coordinates of the last atom for normal mode 1
-$x_coord $y_coord $z_coord # coordinates of Atom 1 for normal mode 2
+<x_coord> <y_coord> <z_coord> # coordinates of the last atom for normal mode 1
+<x_coord> <y_coord> <z_coord> # coordinates of Atom 1 for normal mode 2
 ...
 ...
-$x_coord $y_coord $z_coord # coordinates of the last atom for the last normal mode
+<x_coord> <y_coord> <z_coord> # coordinates of the last atom for the last normal mode
 ```
 
 ## 3) Berry-phase dipole moments
@@ -90,14 +90,14 @@ The Berry phase dipole moment vectors for the MD-based spectra should be given i
 ```bash
 1 # because there is only 1 dipole vector for the whole system
                        #leave 1 blank line
-'dummy_value' $dipole_x $dipole_y $dipole_z #first MD frame
+<dummy_value> <dipole_x> <dipole_y> <dipole_z> #first MD frame
 1 
                        #leave 1 blank line
-'dummy_value' $dipole_x $dipole_y $dipole_z #second MD frame
+<dummy_value> <dipole_x> <dipole_y> <dipole_z> #second MD frame
 ...
 1 
                        #leave 1 blank line
-'dummy_value' $dipole_x $dipole_y $dipole_z #last MD frame
+<dummy_value> <dipole_x> <dipole_y> <dipole_z> #last MD frame
 ```
 
 ### 3.2 Static spectra based on normal modes
@@ -108,35 +108,35 @@ The Berry phase dipole moment vectors for a static calculation should be given i
 #dipoles coming from Atom 1 displaced in +x direction
 1 # because there is only 1 dipole vector for the whole system
                        #leave 1 blank line
-'dummy_value' $dipole_x $dipole_y $dipole_z 
+<dummy_value> <dipole_x> <dipole_y> <dipole_z> 
 #dipoles coming from Atom 1 displaced in +y direction
 1 
                        
-'dummy_value' $dipole_x $dipole_y $dipole_z 
+<dummy_value> <dipole_x> <dipole_y> <dipole_z> 
 #dipoles coming from Atom 1 displaced in +z direction
 1 
                        
-'dummy_value' $dipole_x $dipole_y $dipole_z 
+<dummy_value> <dipole_x> <dipole_y> <dipole_z> 
 #dipoles coming from Atom 2 displaced in +x direction
 1 
                        
-'dummy_value' $dipole_x $dipole_y $dipole_z 
+<dummy_value> <dipole_x> <dipole_y> <dipole_z> 
 ...
 ...
 #dipoles coming from Atom 2 displaced in +x direction
 1 
                        
-'dummy_value' $dipole_x $dipole_y $dipole_z 
+<dummy_value> <dipole_x> <dipole_y> <dipole_z> 
 ...
 #dipoles coming from Atom 1 displaced in -x direction
 1 
                        
-'dummy_value' $dipole_x $dipole_y $dipole_z 
+<dummy_value> <dipole_x> <dipole_y> <dipole_z> 
 ...
 #dipoles coming from the last atom displaced in -z direction
 1 
                        
-'dummy_value' $dipole_x $dipole_y $dipole_z 
+<dummy_value> <dipole_x> <dipole_y> <dipole_z> 
 ```
 
 ## 4) Wannier centers
@@ -153,14 +153,14 @@ The DFPT polarizabilities for the MD-based spectra should be given in Å $^3$ in
 ```bash
 1 # because there is only 1 polarizability tensor for the whole system
                        #leave 1 blank line
-'dummy_value' $alpha_ix $alpha_iy $alpha_iz #first MD frame
+<dummy_value> <alpha_ix> <alpha_iy> <alpha_iz> #first MD frame
 1 
                        #leave 1 blank line
-'dummy_value' $alpha_ix $alpha_iy $alpha_iz #second MD frame
+<dummy_value> <alpha_ix> <alpha_iy> <alpha_iz> #second MD frame
 ...
 1 
                        #leave 1 blank line
-'dummy_value' $alpha_ix $alpha_iy $alpha_iz #last MD frame
+<dummy_value> <alpha_ix> <alpha_iy> <alpha_iz> #last MD frame
 ```
 
 where $i$ is $x$, $y$, or $z$.
@@ -172,40 +172,40 @@ The DFPT polarizabilities for a static calculation should be given in Å $^3$ fo
 ```bash
 #leave 6 blank lines
 #Atom 1 displaced in +x direction
-'dummy_value' $alpha_xx $alpha_yy $alpha_zz 
-'dummy_value' $alpha_xy $alpha_xz $alpha_yz 
-'dummy_value' $alpha_yx $alpha_zx $alpha_zy 
+<dummy_value> <alpha_xx> <alpha_yy> <alpha_zz> 
+<dummy_value> <alpha_xy> <alpha_xz> <alpha_yz> 
+<dummy_value> <alpha_yx> <alpha_zx> <alpha_zy> 
 #Atom 1 displaced in +y direction
 #leave 6 blank lines
-'dummy_value' $alpha_xx $alpha_yy $alpha_zz 
-'dummy_value' $alpha_xy $alpha_xz $alpha_yz 
-'dummy_value' $alpha_yx $alpha_zx $alpha_zy 
+<dummy_value> <alpha_xx> <alpha_yy> <alpha_zz> 
+<dummy_value> <alpha_xy> <alpha_xz> <alpha_yz> 
+<dummy_value> <alpha_yx> <alpha_zx> <alpha_zy> 
 #Atom 1 displaced in +z direction
 #leave 6 blank lines
-'dummy_value' $alpha_xx $alpha_yy $alpha_zz 
-'dummy_value' $alpha_xy $alpha_xz $alpha_yz 
-'dummy_value' $alpha_yx $alpha_zx $alpha_zy 
+<dummy_value> <alpha_xx> <alpha_yy> <alpha_zz> 
+<dummy_value> <alpha_xy> <alpha_xz> <alpha_yz> 
+<dummy_value> <alpha_yx> <alpha_zx> <alpha_zy> 
 ...
 #Atom 2 displaced in +x direction
 #leave 6 blank lines
-'dummy_value' $alpha_xx $alpha_yy $alpha_zz 
-'dummy_value' $alpha_xy $alpha_xz $alpha_yz 
-'dummy_value' $alpha_yx $alpha_zx $alpha_zy 
+<dummy_value> <alpha_xx> <alpha_yy> <alpha_zz> 
+<dummy_value> <alpha_xy> <alpha_xz> <alpha_yz> 
+<dummy_value> <alpha_yx> <alpha_zx> <alpha_zy> 
 ...
 #Atom 1 displaced in -x direction
 #leave 6 blank lines
-'dummy_value' $alpha_xx $alpha_yy $alpha_zz 
-'dummy_value' $alpha_xy $alpha_xz $alpha_yz 
-'dummy_value' $alpha_yx $alpha_zx $alpha_zy 
+<dummy_value> <alpha_xx> <alpha_yy> <alpha_zz> 
+<dummy_value> <alpha_xy> <alpha_xz> <alpha_yz> 
+<dummy_value> <alpha_yx> <alpha_zx> <alpha_zy> 
 ...
 #Last atom displaced in -z direction
 #leave 6 blank lines
-'dummy_value' $alpha_xx $alpha_yy $alpha_zz 
-'dummy_value' $alpha_xy $alpha_xz $alpha_yz 
-'dummy_value' $alpha_yx $alpha_zx $alpha_zy 
+<dummy_value> <alpha_xx> <alpha_yy> <alpha_zz> 
+<dummy_value> <alpha_xy> <alpha_xz> <alpha_yz> 
+<dummy_value> <alpha_yx> <alpha_zx> <alpha_zy> 
 ```
 
-The reason for leaving six blank spaces is because the user can directly append the CP2K DFPT polarizabilities, an example is shown below:
+The reason for leaving six blank spaces is because the user can directly append the [CP2K DFPT polarizabilities](https://manual.cp2k.org/trunk/CP2K_INPUT/FORCE_EVAL/PROPERTIES/LINRES/POLAR.html#CP2K_INPUT.FORCE_EVAL.PROPERTIES.LINRES.POLAR.DO_RAMAN), an example is shown below:
 
 ```bash
 
@@ -229,25 +229,25 @@ Vibrant only reads the polarizabilities in Å $^3$, ignoring the a.u. block.
 The time-dependent Berry phase dipole moment vectors for the MD-based resonance Raman (RR) or absorption spectra should be given in Debye in the `.xyz` format, combined for all MD snapshots in a single file such as:
 
 ```bash
-'dummy_value' #first MD frame
+<dummy_value> #first MD frame
                        #leave 1 blank line
-'dummy_value' $dipole_x $dipole_y $dipole_z #unperturbed dipoles
-'dummy_value' $dipole_x $dipole_y $dipole_z #RT-TDDFT step 1
-'dummy_value' $dipole_x $dipole_y $dipole_z #RT-TDDFT step 2
+<dummy_value> <dipole_x> <dipole_y> <dipole_z> #unperturbed dipoles
+<dummy_value> <dipole_x> <dipole_y> <dipole_z> #RT-TDDFT step 1
+<dummy_value> <dipole_x> <dipole_y> <dipole_z> #RT-TDDFT step 2
 ...
-'dummy_value' $dipole_x $dipole_y $dipole_z #last RT-TDDFT step
-'dummy_value' #second MD frame
+<dummy_value> <dipole_x> <dipole_y> <dipole_z> #last RT-TDDFT step
+<dummy_value> #second MD frame
                        #leave 1 blank line
-'dummy_value' $dipole_x $dipole_y $dipole_z #unperturbed dipoles
-'dummy_value' $dipole_x $dipole_y $dipole_z #RT-TDDFT step 1
+<dummy_value> <dipole_x> <dipole_y> <dipole_z> #unperturbed dipoles
+<dummy_value> <dipole_x> <dipole_y> <dipole_z> #RT-TDDFT step 1
 ...
 ...
-'dummy_value' #last MD frame
+<dummy_value> #last MD frame
                        #leave 1 blank line
-'dummy_value' $dipole_x $dipole_y $dipole_z #unperturbed dipoles
-'dummy_value' $dipole_x $dipole_y $dipole_z #RT-TDDFT step 1
+<dummy_value> <dipole_x> <dipole_y> <dipole_z> #unperturbed dipoles
+<dummy_value> <dipole_x> <dipole_y> <dipole_z> #RT-TDDFT step 1
 ...
-'dummy_value' $dipole_x $dipole_y $dipole_z #last RT-TDDFT step
+<dummy_value> <dipole_x> <dipole_y> <dipole_z> #last RT-TDDFT step
 ```
 
 Here the unperturbed dipole moments refer to $\mu^{0}_{i}$ described in Section [Resonance Raman (RR) and absorption spectra](Resonance_Raman_spec.md). Three files should be given in total, each containing the unperturbed dipole moments + time-dependent dipole moments perturbed under electric field applied in $x$, $y$ or $z$ direction.
@@ -258,46 +258,46 @@ The time-dependent Berry phase dipole moment vectors for a static RR or absorpti
 
 ```bash
 #dipoles coming from Atom 1 displaced in +x direction
-'dummy_value'
+<dummy_value>
                        #leave 1 blank line
-'dummy_value' $dipole_x $dipole_y $dipole_z #unperturbed dipoles
-'dummy_value' $dipole_x $dipole_y $dipole_z #RT-TDDFT step 1
-'dummy_value' $dipole_x $dipole_y $dipole_z #RT-TDDFT step 2
+<dummy_value> <dipole_x> <dipole_y> <dipole_z> #unperturbed dipoles
+<dummy_value> <dipole_x> <dipole_y> <dipole_z> #RT-TDDFT step 1
+<dummy_value> <dipole_x> <dipole_y> <dipole_z> #RT-TDDFT step 2
 ...
-'dummy_value' $dipole_x $dipole_y $dipole_z #last RT-TDDFT step
+<dummy_value> <dipole_x> <dipole_y> <dipole_z> #last RT-TDDFT step
 #dipoles coming from Atom 1 displaced in +y direction
-'dummy_value' 
+<dummy_value> 
                        #leave 1 blank line
-'dummy_value' $dipole_x $dipole_y $dipole_z #unperturbed dipoles
-'dummy_value' $dipole_x $dipole_y $dipole_z #RT-TDDFT step 1
+<dummy_value> <dipole_x> <dipole_y> <dipole_z> #unperturbed dipoles
+<dummy_value> <dipole_x> <dipole_y> <dipole_z> #RT-TDDFT step 1
 ...
 #dipoles coming from Atom 1 displaced in +z direction
-'dummy_value' 
+<dummy_value> 
                        #leave 1 blank line
-'dummy_value' $dipole_x $dipole_y $dipole_z #unperturbed dipoles
-'dummy_value' $dipole_x $dipole_y $dipole_z #RT-TDDFT step 1
+<dummy_value> <dipole_x> <dipole_y> <dipole_z> #unperturbed dipoles
+<dummy_value> <dipole_x> <dipole_y> <dipole_z> #RT-TDDFT step 1
 ...
 #dipoles coming from Atom 2 displaced in +x direction
-'dummy_value'
+<dummy_value>
                        #leave 1 blank line
-'dummy_value' $dipole_x $dipole_y $dipole_z #unperturbed dipoles
-'dummy_value' $dipole_x $dipole_y $dipole_z #RT-TDDFT step 1
+<dummy_value> <dipole_x> <dipole_y> <dipole_z> #unperturbed dipoles
+<dummy_value> <dipole_x> <dipole_y> <dipole_z> #RT-TDDFT step 1
 ...
 ...
 #dipoles coming from Atom 1 displaced in -x direction
-'dummy_value'
+<dummy_value>
                        #leave 1 blank line
-'dummy_value' $dipole_x $dipole_y $dipole_z #unperturbed dipoles
-'dummy_value' $dipole_x $dipole_y $dipole_z #RT-TDDFT step 1
+<dummy_value> <dipole_x> <dipole_y> <dipole_z> #unperturbed dipoles
+<dummy_value> <dipole_x> <dipole_y> <dipole_z> #RT-TDDFT step 1
 ...
 ...
 #dipoles coming from the last atom displaced in -z direction
-'dummy_value'
+<dummy_value>
                        #leave 1 blank line
-'dummy_value' $dipole_x $dipole_y $dipole_z #unperturbed dipoles
-'dummy_value' $dipole_x $dipole_y $dipole_z #RT-TDDFT step 1
+<dummy_value> <dipole_x> <dipole_y> <dipole_z> #unperturbed dipoles
+<dummy_value> <dipole_x> <dipole_y> <dipole_z> #RT-TDDFT step 1
 ...
-'dummy_value' $dipole_x $dipole_y $dipole_z #last RT-TDDFT step
+<dummy_value> <dipole_x> <dipole_y> <dipole_z> #last RT-TDDFT step
 ```
 
 Similarly to the MD-based spectra, here the unperturbed dipole moments refer to $\mu^{0}_{i}$ described in Section [Resonance Raman (RR) and absorption spectra](Resonance_Raman_spec.md). Three files should be given in total, each containing the unperturbed dipole moments + time-dependent dipole moments perturbed under electric field applied in $x$, $y$ or $z$ direction.

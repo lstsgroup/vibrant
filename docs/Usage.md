@@ -6,7 +6,7 @@ maxdepth: 1
 titlesonly:
 ---
 file_formats
-frequency 
+frequency
 IR_spec
 Raman_spec
 fragments

@@ -6,7 +6,7 @@ Vibrant can calculate the frequencies either statically from normal mode analysi
 
 Vibrant can carry out a normal mode analysis using the atomic forces. In a polyatomic molecule, the potential energy surface can be approximated by a Taylor series expansion around minimum:
 
-$$ 
+$$
 V = V_{0} + \sum_{i}^{3N} \left(\frac{\partial V}{\partial u_{i}}\right)_ {0} u_{i} + \frac{1}{2}\sum_{i,j}^{3N} \left(\frac{\partial^{2} V}{\partial u_{i} u_{j}}\right)_ {0} u_{i} u_{j} + \frac{1}{6} \sum_{i,j,k}^{3N} \left(\frac{\partial^{3} V}{\partial u_{i} u_{j} u_{k}}\right)_ {0} u_{i} u_{j} u_{k} + \cdots
 $$
 
@@ -31,13 +31,13 @@ An example input section for performing the normal mode analysis is shown below:
  spectra NMA
 &end global
 &system
- filename {$optimized_geometry_file_name}
+ filename <optimized_geometry_file_name>
 &end system
 &static
   &hessian
-   force_file {$force_file_name}
+   force_file <force_file_name>
   &end hessian
-  displacement {$amount_of_displacement}
+  displacement <amount_of_displacement>
   write_mol_file
 &end static
 ```
@@ -45,7 +45,7 @@ An example input section for performing the normal mode analysis is shown below:
 where the `hessian` section invokes the Hessian diagonalization, and the `displacement` refers to the displacement between the shifted geometries (given in Å).
 
  ```{note}
- The `write_mol_file` keyword is optional and it executes the printing of a `{$filename}.mol` file, which includes the optimized geometry, normal mode frequencies and normal mode coordinates. The `{$filename}.mol` file can be opened with [MOLDEN](https://www.theochem.ru.nl/molden/) to visualize the normal modes.  
+ The `write_mol_file` keyword is optional and it executes the printing of a `<filename>.mol` file, which includes the optimized geometry, normal mode frequencies and normal mode coordinates. The `<filename>.mol` file can be opened with [MOLDEN](https://www.theochem.ru.nl/molden/) to visualize the normal modes.  
  ```
 
 ## b) Power spectrum
@@ -53,7 +53,7 @@ where the `hessian` section invokes the Hessian diagonalization, and the `displa
 The MD-based equivalent of obtaining all frequencies irrespective of IR or Raman selection rules is to compute the power spectrum. The power spectrum can be computed from the autocorrelation functions of the time derivatives of particle velocities, which are usually available in an MD simulation. The general equation for an [autocorrelation function](https://books.google.de/books?hl=tr&lr=&id=WFExDwAAQBAJ&oi=fnd&pg=PP1&dq=Allen,+M.+P.%3B+Tildesley,+D.+J.+Computer+Simulation+of+Liquids%3B+Oxford+University+Press,+2017&ots=VHTE8WLE4Q&sig=RLNU7BubcNGC06Bihq6BcmwR2K0&redir_esc=y#v=onepage&q=Allen%2C%20M.%20P.%3B%20Tildesley%2C%20D.%20J.%20Computer%20Simulation%20of%20Liquids%3B%20Oxford%20University%20Press%2C%202017&f=false) is as follows:
 
 $$
-\left\langle A(\tau) A(\tau + t) \right\rangle_{\tau}
+\left \langle A(\tau) A(\tau + t) \right \rangle_{\tau}
 = \int A(\tau) A(\tau + t)\, d\tau
 \approx \frac{1}{\tau_{\textnormal{max}}} \sum_{\tau=1}^{\tau_{\textnormal{max}}} A(\tau) A(\tau + t)
 $$
@@ -83,15 +83,17 @@ Power spectrum calculation in Vibrant can be invoked by adding the section:
  ...
 &end global
 &system
- type_traj {$type_traj}
- filename {$trajectory_file_name}
- mass_weighting {$mass_weighting_flag}
+ type_traj <type_traj>
+ filename <trajectory_file_name>
+ mass_weighting <mass_weighting_flag>
 &end system
 &md
 ...
 &end md
-``` 
+```
 
-where `$type_traj` can be specified by user as `pos` or `vel` standing for "positions" or "velocities". Upon request, Vibrant can compute the mass-weighted power spectrum as well, which is controlled by the keyword `mass_weighting`, which be specified as `y` or `n` standing for "yes" or "no".
+where `type_traj` can be specified by user as `pos` or `vel` standing for "positions" or "velocities". Upon request, Vibrant can compute the mass-weighted power spectrum as well, which is controlled by the keyword `mass_weighting`, which be specified as `y` or `n` standing for "yes" or "no".
 
 The final power intensities are given in K.cm.
+
+More information on the all available keywords can be found on [Keyword Glossary](Keyword_Glossary.rst) and all complete example input files are available on ....
