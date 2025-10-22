@@ -54,7 +54,7 @@ In this work, we present Vibrant, a vibrational analysis program written in Fort
 
 why do we need vibrant
 
-![Sketch of the methods supported by GX-TimeFrequency which start from $\hat{\chi}^0(i\tau)$. In addition to the discrete time and frequency grids $\{\tau_{j}\}$ and $\{\omega_{k}\    }$, the library provides the corresponding weights $\{\sigma_{j}\}$ and $\{\gamma_{k}\}$ for the integration of the correlation energy $E_c$ as well as the Fourier weights $\delta_    {kj}$, $\eta_{jk}$ and $\lambda_{kj}$ defined in Equations 2--4. The bare and screened Coulomb interactions are indicated by $v(\mathbf{r},\mathbf{r}')=1/|\mathbf{r}-\mathbf{r}|'$     and $W(i\omega)$, respectively. $\epsilon(i\omega)$ is the dynamical dielectric function, $\Sigma$ the \textit{GW} self-energy, and AC stands for analytic continuation.\label{fig:f    lowchart}](flowchart.png)
+![flowchart.\label{fig:flowchart}](flowchart.png)
 
 
 citing ekins paper here [@ekin2024]
