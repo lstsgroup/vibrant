@@ -48,9 +48,9 @@ For o-Nitrophenol, it can look as follows.
 
 .. code-block:: input
    &global
-   spectra IR
-   temperature 300
-   fwhm 5
+      spectra IR
+      temperature 300
+      fwhm 5
    &end global
    &system
       filename o-NP.xyz
@@ -81,7 +81,7 @@ Check :doc:`IR spectrum documentation <IR_spec>` for more theoretical background
 Data files can be downloaded here:
 
 * :download:`Geometry file <../test/IR_Static_NMA/o-NP.xyz>`
-* :download:`Force data <_../test/IR_Static_NMA/o-NP-force.data3>`
+* :download:`Force data <../test/IR_Static_NMA/o-NP-force.data3>`
 * :download:`Dipole data <../test/IR_Static_NMA/dipole_o-NP_free_static.xyz>`
 
 After running ``vibrant``, multiple output files are produced.
@@ -109,8 +109,6 @@ with a simple Python script, for example:
 
    plt.tight_layout()
    plt.show()
-
-Resuting spectra:
 
 .. raw:: html
 
