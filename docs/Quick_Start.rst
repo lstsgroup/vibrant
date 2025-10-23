@@ -10,10 +10,17 @@ Quick Start
 ===========
 Welcome to the ``vibrant`` documentation webpage.
 
-The ``vibrant`` code is a post-processing tool for calculating vibrational spectra from ab initio data.
-
 Installation 
 -------------
+
+The CMake build framework is used in order to compile the ``vibrant`` code. To install it type the following in the root directory of the repository and make sure that you have a working GNU Fortran compiler (e.g. ``gfortran``):
+
+.. code-block:: bash
+
+   mkdir build && cd build
+   cmake ..
+   make -j 5
+   
 See the :doc:`Installation <Installation>` section for fine-grained installation instructions.
 
 After installation, a compiled binary should be available in the build directory as ``build/vibrant`` can be invoked e.g. from the root directory by the command
