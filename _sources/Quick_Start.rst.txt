@@ -1,3 +1,11 @@
+.. raw:: html
+
+   <div style="text-align: center; margin-bottom: 1em;">
+   <picture>
+      <img alt="Vibrant logo" src="_static/all_img/logo_vibrant.svg" style="height:140px; display: inline-block;">
+   </picture>
+   </div>
+
 Quick Start 
 ===========
 Welcome to the ``vibrant`` documentation webpage.
@@ -95,4 +103,4 @@ with a simple Python script, for example:
    </picture>
    </div>
 
---> more examples
+More examples for calculating vibrational spectra can be found in the :doc:`Examples <Examples>`  section.
