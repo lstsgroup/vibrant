@@ -15,7 +15,6 @@
             <link rel="index" title="Index" href="genindex.html" />
             <link rel="search" title="Search" href="search.html" />
             <link rel="top" title="vibrant  documentation" href="#" />
-            <link rel="next" title="Installation" href="Installation.html" />
     </head>
 <body>
     <script type="text/javascript" src="_static/dist/blocking.js"></script>
@@ -58,23 +57,7 @@
     </form>
 </div><div class="site-toc">
     <nav class="toc mt-3" aria-label="Main menu">
-        <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="Installation.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Usage.html">Usage</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="file_formats.html">File Formats</a></li>
-<li class="toctree-l2"><a class="reference internal" href="frequency.html">Frequencies</a></li>
-<li class="toctree-l2"><a class="reference internal" href="IR_spec.html">IR spectra</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Raman_spec.html">Raman spectra</a></li>
-<li class="toctree-l2"><a class="reference internal" href="fragments.html">Subspectra for MD-based calculations</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Resonance_Raman_spec.html">Resonance Raman (RR) and absorption spectra</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="Keyword_Glossary.html">Keyword Glossary</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Cite.html">Cite</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Contribute.html">Contribute</a></li>
-</ul>
-
+        
     </nav>
     <template data-toggle-item-template>
         <button class="btn btn-sm btn-link toctree-expand" type="button">
@@ -124,50 +107,48 @@
                 <div class="row">
                     <div class="col-12 col-lg-9 order-last order-lg-first rst-content">
                         <main role="main" id="main">
-    <div style="text-align: left; margin-bottom: 1em;">
-
-  <picture>
-    <img alt="Vibrant logo" src="_static/all_img/logo_vibrant.svg" style="height:140px; display: block;">
-  </picture>
-
-</div><div class="toctree-wrapper compound">
-<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="Installation.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Usage.html">Usage</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Keyword_Glossary.html">Keyword Glossary</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Cite.html">Cite</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Contribute.html">Contribute</a></li>
-</ul>
-</div>
-<section id="quick-start">
+    <div style="text-align: center; margin-bottom: 1em;">
+<picture>
+   <img alt="Vibrant logo" src="_static/all_img/logo_vibrant.svg" style="height:140px; display: inline-block;">
+</picture>
+</div><section id="quick-start">
 <h1>Quick Start<a class="headerlink" href="#quick-start" title="Link to this heading">¶</a></h1>
-<p>The CMake build framework is used in order to compile the <code class="docutils literal notranslate"><span class="pre">vibrant</span></code> code. To install it type the following in the root directory of the repository and make sure that you have a working GNU Fortran compiler (e.g. <code class="docutils literal notranslate"><span class="pre">gfortran</span></code>):</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mkdir<span class="w"> </span>build<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>build
-cmake<span class="w"> </span>..
-make<span class="w"> </span>-j<span class="w"> </span><span class="m">5</span>
-</pre></div>
-</div>
-<p>Optional: Test if the installation is working as expected by typing</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>ctest
-</pre></div>
-</div>
-<p>in the build directory to run the regression tests.</p>
-<p>For more a more fine-grained installation please refer to the <a class="reference external" href="https://lstsgroup.github.io/vibrant/Installation.html">documentation of vibrant</a>.</p>
-<p>The compiled binary is now available in the build directory as <code class="docutils literal notranslate"><span class="pre">build/vibrant</span></code> and can be invoked e.g. from the root directory by the command</p>
+<p>Welcome to the <code class="docutils literal notranslate"><span class="pre">vibrant</span></code> documentation webpage.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">vibrant</span></code> code is a post-processing tool for calculating vibrational spectra from ab initio data.</p>
+<section id="installation-h2">
+<h2>Installation (H2)<a class="headerlink" href="#installation-h2" title="Link to this heading">¶</a></h2>
+<p>See the <cite>Installation &lt;https://lstsgroup.github.io/vibrant/Installation.html&gt;</cite> section for fine-grained installation instructions.</p>
+<p>After installation, a compiled binary should be available in the build directory as <code class="docutils literal notranslate"><span class="pre">build/vibrant</span></code> can be invoked e.g. from the root directory by the command</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>build/vibrant<span class="w"> </span>input.txt
 </pre></div>
 </div>
-<p>with <code class="docutils literal notranslate"><span class="pre">input.txt</span></code> as a input file with the vibrant settings.</p>
+<p>For more details on the <code class="docutils literal notranslate"><span class="pre">input.txt</span></code> format, see the <cite>Usage &lt;https://lstsgroup.github.io/vibrant/Usage.md&gt;</cite> section and the <cite>Keyword Glossary &lt;https://lstsgroup.github.io/vibrant/Keyword_Glossary.rst&gt;</cite>.
+Information about the required data and file formats can be found on the <cite>File Formats &lt;https://lstsgroup.github.io/vibrant/file_formats.md&gt;</cite> (in Usage).</p>
+</section>
+<section id="example-staic-ir-spectra-of-atoms-h2">
+<h2>Example staic IR Spectra of Atoms (H2)<a class="headerlink" href="#example-staic-ir-spectra-of-atoms-h2" title="Link to this heading">¶</a></h2>
+<p>–&gt; more examples
+Python examples fürs postproces</p>
+</section>
 </section>
 
 </main>
-                        <nav aria-label="Page navigation" class="py-4 my-5 clearfix font-weight-bold border-top">
-    <a class="float-right" href="Installation.html" title="Next">
-        Installation <span aria-hidden="true">&nbsp;→</span>
-    </a>
-</nav>
+                        
                     </div>
+                    
+                    <nav class="col-12 col-lg-3 pb-4">
+                        <div class="sticky-top toc page-toc" aria-labelledby="page-toc-heading">
+                            <p class="font-weight-bold" id="page-toc-heading">Page contents</p>
+                            <ul>
+<li><a class="reference internal" href="#">Quick Start</a><ul>
+<li><a class="reference internal" href="#installation-h2">Installation (H2)</a></li>
+<li><a class="reference internal" href="#example-staic-ir-spectra-of-atoms-h2">Example staic IR Spectra of Atoms (H2)</a></li>
+</ul>
+</li>
+</ul>
+
+                        </div>
+                    </nav>
                     
                 </div>
             </div>

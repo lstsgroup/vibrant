@@ -5,52 +5,33 @@
 
 .. raw:: html
 
-   <div style="text-align: left; margin-bottom: 1em;">
-
-     <picture>
-       <img alt="Vibrant logo" src="_static/all_img/logo_vibrant.svg" style="height:140px; display: block;">
-     </picture>
-
+   <div style="text-align: center; margin-bottom: 1em;">
+   <picture>
+      <img alt="Vibrant logo" src="_static/all_img/logo_vibrant.svg" style="height:140px; display: inline-block;">
+   </picture>
    </div>
-
-
-.. toctree::
-   :maxdepth: 1
-   :caption: Contents:
-
-   Installation
-   Usage
-   Keyword_Glossary
-   Cite
-   Contribute
-
 
 Quick Start 
 ===========
+Welcome to the ``vibrant`` documentation webpage.
 
-The CMake build framework is used in order to compile the ``vibrant`` code. To install it type the following in the root directory of the repository and make sure that you have a working GNU Fortran compiler (e.g. ``gfortran``):
+The ``vibrant`` code is a post-processing tool for calculating vibrational spectra from ab initio data.
 
-.. code-block:: bash
+Installation (H2)
+-------------
+See the `Installation <https://lstsgroup.github.io/vibrant/Installation.html>` section for fine-grained installation instructions.
 
-   mkdir build && cd build
-   cmake ..
-   make -j 5
-   
-Optional: Test if the installation is working as expected by typing 
-
-.. code-block:: bash
-   
-   ctest 
-
-in the build directory to run the regression tests.
-
-For more a more fine-grained installation please refer to the `documentation of vibrant <https://lstsgroup.github.io/vibrant/Installation.html>`_.
-
-The compiled binary is now available in the build directory as ``build/vibrant`` and can be invoked e.g. from the root directory by the command
+After installation, a compiled binary should be available in the build directory as ``build/vibrant`` can be invoked e.g. from the root directory by the command
 
 .. code-block:: bash
    
    build/vibrant input.txt
 
-with ``input.txt`` as a input file with the vibrant settings.
+For more details on the ``input.txt`` format, see the `Usage <https://lstsgroup.github.io/vibrant/Usage.md>` section and the `Keyword Glossary <https://lstsgroup.github.io/vibrant/Keyword_Glossary.rst>`.
+Information about the required data and file formats can be found on the `File Formats <https://lstsgroup.github.io/vibrant/file_formats.md>` (in Usage).
 
+Example staic IR Spectra of Atoms (H2)
+-------------
+
+--> more examples
+Python examples fürs postproces
