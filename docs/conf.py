@@ -42,9 +42,9 @@ source_suffix = {
 myst_enable_extensions = [
     "dollarmath"
 ]
-#redirects = {
-#    "index": "quickstart.html",
-#}
+redirects = {
+    "index": "quickstart.html",
+}
 
 
 
