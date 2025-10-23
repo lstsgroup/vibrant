@@ -3,51 +3,27 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-.. raw:: html
 
-   <div style="text-align: center; margin-bottom: 1em;">
-   <picture>
-      <img alt="Vibrant logo" src="_static/all_img/logo_vibrant.svg" style="height:140px; display: inline-block;">
-   </picture>
-   </div>
+
+   
 
 Overview 
 ===========
 The ``vibrant`` code is a post-processing tool for calculating vibrational spectra from ab initio data.
 
+.. raw:: html
+
+   <div style="text-align: center; margin-bottom: 1em;">
+      <picture>
+         <img alt="Vibrant logo" src="_static/all_img/logo_vibrant.svg" style="height:140px; display: inline-block;">
+      </picture>
+   </div>
 Features
 ===========
-   
-Quick Installation
-===========
-
-The CMake build framework is used in order to compile the ``vibrant`` code. To install it type the following in the root directory of the repository and make sure that you have a working GNU Fortran compiler (e.g. ``gfortran``):
-
-.. code-block:: bash
-
-   mkdir build && cd build
-   cmake ..
-   make -j 5
-   
-Optional: Test if the installation is working as expected by typing 
-
-.. code-block:: bash
-   
-   ctest 
-
-in the build directory to run the regression tests.
-
-For more a more fine-grained installation please refer to the `documentation of vibrant <https://lstsgroup.github.io/vibrant/Installation.html>`_.
-
-The compiled binary is now available in the build directory as ``build/vibrant`` and can be invoked e.g. from the root directory by the command
-
-.. code-block:: bash
-   
-   build/vibrant input.txt
-
-with ``input.txt`` as a input file with the vibrant settings.
-
-
+   * **IR and Raman spectra** from static calculations or *ab initio* molecular dynamics.  
+   * **Resonance Raman spectra** via efficient Padé approximation or explicit frequency sampling.  
+   * **Absorption spectra** computed alongside vibrational data for comprehensive analysis.  
+   * **Fast and efficient** post-processing of large systems and long trajectories. 
 Quick Start
 ===========
 To get started with ``vibrant``, see the :doc:`Quick Start <Quick_Start>` section of the documentation.
@@ -57,7 +33,6 @@ Documentation
 ===========
 .. toctree::
    :maxdepth: 1
-   :caption: Contents:
 
    Quick_Start
    Installation

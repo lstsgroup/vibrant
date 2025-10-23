@@ -58,8 +58,7 @@
     </form>
 </div><div class="site-toc">
     <nav class="toc mt-3" aria-label="Main menu">
-        <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
-<ul>
+        <ul>
 <li class="toctree-l1"><a class="reference internal" href="Quick_Start.html">Quick Start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Usage.html">Usage</a><ul>
@@ -125,36 +124,24 @@
                 <div class="row">
                     <div class="col-12 col-lg-9 order-last order-lg-first rst-content">
                         <main role="main" id="main">
-    <div style="text-align: center; margin-bottom: 1em;">
-<picture>
-   <img alt="Vibrant logo" src="_static/all_img/logo_vibrant.svg" style="height:140px; display: inline-block;">
-</picture>
-</div><section id="overview">
+    <section id="overview">
 <h1>Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h1>
 <p>The <code class="docutils literal notranslate"><span class="pre">vibrant</span></code> code is a post-processing tool for calculating vibrational spectra from ab initio data.</p>
-</section>
+<div style="text-align: center; margin-bottom: 1em;">
+   <picture>
+      <img alt="Vibrant logo" src="_static/all_img/logo_vibrant.svg" style="height:140px; display: inline-block;">
+   </picture>
+</div></section>
 <section id="features">
 <h1>Features<a class="headerlink" href="#features" title="Link to this heading">¶</a></h1>
-</section>
-<section id="quick-installation">
-<h1>Quick Installation<a class="headerlink" href="#quick-installation" title="Link to this heading">¶</a></h1>
-<p>The CMake build framework is used in order to compile the <code class="docutils literal notranslate"><span class="pre">vibrant</span></code> code. To install it type the following in the root directory of the repository and make sure that you have a working GNU Fortran compiler (e.g. <code class="docutils literal notranslate"><span class="pre">gfortran</span></code>):</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mkdir<span class="w"> </span>build<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>build
-cmake<span class="w"> </span>..
-make<span class="w"> </span>-j<span class="w"> </span><span class="m">5</span>
-</pre></div>
-</div>
-<p>Optional: Test if the installation is working as expected by typing</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>ctest
-</pre></div>
-</div>
-<p>in the build directory to run the regression tests.</p>
-<p>For more a more fine-grained installation please refer to the <a class="reference external" href="https://lstsgroup.github.io/vibrant/Installation.html">documentation of vibrant</a>.</p>
-<p>The compiled binary is now available in the build directory as <code class="docutils literal notranslate"><span class="pre">build/vibrant</span></code> and can be invoked e.g. from the root directory by the command</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>build/vibrant<span class="w"> </span>input.txt
-</pre></div>
-</div>
-<p>with <code class="docutils literal notranslate"><span class="pre">input.txt</span></code> as a input file with the vibrant settings.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><strong>IR and Raman spectra</strong> from static calculations or <em>ab initio</em> molecular dynamics.</p></li>
+<li><p><strong>Resonance Raman spectra</strong> via efficient Padé approximation or explicit frequency sampling.</p></li>
+<li><p><strong>Absorption spectra</strong> computed alongside vibrational data for comprehensive analysis.</p></li>
+<li><p><strong>Fast and efficient</strong> post-processing of large systems and long trajectories.</p></li>
+</ul>
+</div></blockquote>
 </section>
 <section id="quick-start">
 <h1>Quick Start<a class="headerlink" href="#quick-start" title="Link to this heading">¶</a></h1>
@@ -163,7 +150,6 @@ make<span class="w"> </span>-j<span class="w"> </span><span class="m">5</span>
 <section id="documentation">
 <h1>Documentation<a class="headerlink" href="#documentation" title="Link to this heading">¶</a></h1>
 <div class="toctree-wrapper compound">
-<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="Quick_Start.html">Quick Start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Installation.html">Installation</a></li>
@@ -189,7 +175,6 @@ make<span class="w"> </span>-j<span class="w"> </span><span class="m">5</span>
                             <ul>
 <li><a class="reference internal" href="#">Overview</a></li>
 <li><a class="reference internal" href="#features">Features</a></li>
-<li><a class="reference internal" href="#quick-installation">Quick Installation</a></li>
 <li><a class="reference internal" href="#quick-start">Quick Start</a></li>
 <li><a class="reference internal" href="#documentation">Documentation</a></li>
 </ul>
