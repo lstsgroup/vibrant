@@ -29,7 +29,7 @@ The ``vibrant`` code is a post-processing tool for calculating vibrational spect
 
 Installation 
 -------------
-See the `Installation <https://lstsgroup.github.io/vibrant/Installation.html>` section for fine-grained installation instructions.
+See the [installation](Installation.md) section for fine-grained installation instructions.
 
 After installation, a compiled binary should be available in the build directory as ``build/vibrant`` can be invoked e.g. from the root directory by the command
 
