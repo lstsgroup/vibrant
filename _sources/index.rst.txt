@@ -14,6 +14,7 @@
 .. toctree::
    :maxdepth: 1
    :caption: Contents:
+   :hidden:
 
    Installation
    Usage
@@ -29,7 +30,7 @@ The ``vibrant`` code is a post-processing tool for calculating vibrational spect
 
 Installation 
 -------------
-See the `Installation <https://lstsgroup.github.io/vibrant/Installation.html>` section for fine-grained installation instructions.
+See the :doc:`Installation <Installation>` section for fine-grained installation instructions.
 
 After installation, a compiled binary should be available in the build directory as ``build/vibrant`` can be invoked e.g. from the root directory by the command
 
@@ -37,8 +38,8 @@ After installation, a compiled binary should be available in the build directory
    
    build/vibrant input.txt
 
-For more details on the ``input.txt`` format, see the `Usage <https://lstsgroup.github.io/vibrant/Usage.md>` section and the `Keyword Glossary <https://lstsgroup.github.io/vibrant/Keyword_Glossary.rst>`.
-Information about the required data and file formats can be found on the `File Formats <https://lstsgroup.github.io/vibrant/file_formats.md>` (in Usage).
+For more details on the ``input.txt`` format, see the :doc:`Usage <Usage>` section and the :doc:`Keyword Glossary <Keyword_Glossary>`.
+Information about the required data and file formats can be found on the :doc:`File Formats <file_formats>`(in Usage).
 
 Example staic IR Spectra of Atoms
 -------------
