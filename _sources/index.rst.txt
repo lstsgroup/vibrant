@@ -46,68 +46,52 @@ Example static IR Spectrum of o-Nitrophenol
 For the calculation of the IR spectrum, we need to define the ``input.txt`` file.
 For o-Nitrophenol, it can look as follows.
 
-.. code-block:: input.txt
-
-    &global
-      spectra IR
-      temperature 300
-      fwhm 5
-   &end global
-   &system
-      filename o-NP.xyz
-   &end system
-   &static
-      diag_hessian y
-      &hessian
-         force_file o-NP-force.data3
-      &end hessian
-      displacement 0.001
-   &end static
-   &dipoles
-      type_dipole berry
-      dip_file dipole_o-NP_free_static.xyz
-   &end dipoles
-
-In addtion we need the data files. For calculating the static IR spectrum here we need the XYZ coordinates of the structrue, 
-the force data for computing the Hessian, and the dipole data for calculating the intensities. Check :doc:`IR spectrum documentation <IR_spec>` for more theoretical background.
-Data file can be downloaded here:
-
-After running the vibrant exectuable we get mutiple outputs the spectra information is written to result_static_ir.txt an can be plotten with a simple python scirpt e.g
-
+In addition, we need the data files. For calculating the static IR spectrum we need the XYZ coordinates of the structure, 
+the force data for computing the Hessian, and the dipole data for calculating the intensities. 
+Check :doc:`IR spectrum documentation <IR_spec>` for more theoretical background.
 
 .. raw:: html
-   <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 1em;">
-   <div style="flex: 0 0 250px; text-align: right;">
-      <img src="_static/index/o-NP.png" alt="o-NP" style="max-width: 100%; height: auto; border-radius: 6px;">
-   </div>
+
+   <div style="text-align: center; margin: 1em 0;">
+     <img src="_static/index/o-NP.png" alt="o-NP" style="max-width: 300px; height: auto; border-radius: 6px;">
+     <p style="font-size: 0.9em; color: #555;">Figure: o-Nitrophenol structure used for IR spectrum calculation</p>
    </div>
 
-.. code-block:: plotting
+Data files can be downloaded here:
+
+* :download:`Geometry file <../test/IR_Static_NMA/o-NP.xyz>`
+* :download:`Force data <_../test/IR_Static_NMA/o-NP-force.data3>`
+* :download:`Dipole data <../test/IR_Static_NMA/dipole_o-NP_free_static.xyz>`
+
+After running ``vibrant``, multiple output files are produced.
+The spectral information is written to ``result_static_ir.txt`` and can be plotted
+with a simple Python script, for example:
+
+.. code-block:: python
+
    import numpy as np
    import matplotlib.pyplot as plt
 
-   filename = "result_static_ir.txt"
-   data = np.loadtxt(filename, skiprows=1)
+   data = np.loadtxt("result_static_ir.txt")
    x, y = data[:, 0], data[:, 1]
 
-   # === Plot ===
    plt.figure(figsize=(6, 4))
-   plt.plot(x, y, color="red", linewidth=1)
+   plt.plot(x, y, color="black", linewidth=1)
    plt.xlabel("Wavenumber (cm$^{-1}$)")
-   plt.ylabel("Intensity")
-   plt.title("IR Spectrum")
-   ax = plt.gca()
-   ax.set_yticks([])      
-   ax.set_yticklabels([])
+   plt.ylabel("Intensity (a.u.)")
+   plt.title("IR Spectrum of o-Nitrophenol")
+   plt.gca().invert_xaxis()
    plt.tight_layout()
    plt.show()
-   
+
 Resuting spectra
 
 .. raw:: html
-   <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 1em;">
-   <div style="flex: 0 0 250px; text-align: right;">
-      <img src="_static/index/ir_spectrum_o-NP.png" alt="o-NP" style="max-width: 100%; height: auto; border-radius: 6px;">
+
+   <div style="text-align: center; margin-bottom: 1em;">
+   <picture>
+      <img alt="IR spectrum o-NP" src="_static/index/ir_spectrum_o-NP.png" style="max-width: auto; height: auto; display: inline-block;">
+   </picture>
    </div>
-   </div>
+
 --> more examples
