@@ -23,7 +23,8 @@ extensions = [
     "sphinx_wagtail_theme",
     "myst_parser",
     "sphinx.ext.mathjax",
-    "in_keyword"
+    "in_keyword",
+    "sphinx_reredirects"
 ]
 
 myst_enable_extensions = [
@@ -41,7 +42,9 @@ source_suffix = {
 myst_enable_extensions = [
     "dollarmath"
 ]
-
+#redirects = {
+#    "index": "Quick_Start.html",
+#}
 
 
 
