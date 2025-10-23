@@ -58,7 +58,23 @@
     </form>
 </div><div class="site-toc">
     <nav class="toc mt-3" aria-label="Main menu">
-        
+        <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Usage.html">Usage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_formats.html">File Formats</a></li>
+<li class="toctree-l2"><a class="reference internal" href="frequency.html">Frequencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="IR_spec.html">IR spectra</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Raman_spec.html">Raman spectra</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fragments.html">Subspectra for MD-based calculations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Resonance_Raman_spec.html">Resonance Raman (RR) and absorption spectra</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Keyword_Glossary.html">Keyword Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Cite.html">Cite</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Contribute.html">Contribute</a></li>
+</ul>
+
     </nav>
     <template data-toggle-item-template>
         <button class="btn btn-sm btn-link toctree-expand" type="button">
@@ -113,6 +129,14 @@
    <img alt="Vibrant logo" src="_static/all_img/logo_vibrant.svg" style="height:140px; display: inline-block;">
 </picture>
 </div><div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Keyword_Glossary.html">Keyword Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Cite.html">Cite</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Contribute.html">Contribute</a></li>
+</ul>
 </div>
 <section id="quick-start">
 <h1>Quick Start<a class="headerlink" href="#quick-start" title="Link to this heading">¶</a></h1>
@@ -126,45 +150,61 @@
 </pre></div>
 </div>
 <p>For more details on the <code class="docutils literal notranslate"><span class="pre">input.txt</span></code> format, see the <a class="reference internal" href="Usage.html"><span class="doc">Usage</span></a> section and the <a class="reference internal" href="Keyword_Glossary.html"><span class="doc">Keyword Glossary</span></a>.
-Information about the required data and file formats can be found on the :doc:<a href="#id1"><span class="problematic" id="id2">`</span></a>File Formats &lt;file_formats&gt;`(in Usage).</p>
+Information about the required data and file formats can be found on the <a class="reference internal" href="file_formats.html"><span class="doc">File Formats</span></a> (in Usage).</p>
 </section>
-<section id="example-staic-ir-spectra-of-o-nitrophenol">
-<h2>Example staic IR Spectra of o-Nitrophenol<a class="headerlink" href="#example-staic-ir-spectra-of-o-nitrophenol" title="Link to this heading">¶</a></h2>
-<div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 1em;">
-
-<div style="flex: 1; padding-right: 20px;">
-   <p>For the calculation of the IR spectrum, we need to define the input file.
-   For o-NP, it can look as follows.
-   From this, it becomes clear that three input files are required for the IR spectrum calculation:
-   the XYZ coordinates of the structure, the force data for computing the Hessian, and the dipole data for calculating the intensities.
-   (For more theoretical background, see the following link.)</p>
-</div>
-
-<div style="flex: 0 0 250px; text-align: right;">
-   <img src="_static/index/o-NP.png" alt="o-NP" style="max-width: 100%; height: auto; border-radius: 6px;">
-</div>
-
-</div><div class="highlight-input.txt notranslate"><div class="highlight"><pre><span></span> &amp;global
-   spectra IR
-   temperature 300
-   fwhm 5
-&amp;end global
-&amp;system
-   filename o-NP.xyz
-&amp;end system
-&amp;static
-   diag_hessian y
-   &amp;hessian
-      force_file o-NP-force.data3
-   &amp;end hessian
-   displacement 0.001
-&amp;end static
-&amp;dipoles
-   type_dipole berry
-   dip_file dipole_o-NP_free_static.xyz
-&amp;end dipoles
-</pre></div>
-</div>
+<section id="example-static-ir-spectrum-of-o-nitrophenol">
+<h2>Example static IR Spectrum of o-Nitrophenol<a class="headerlink" href="#example-static-ir-spectrum-of-o-nitrophenol" title="Link to this heading">¶</a></h2>
+<p>For the calculation of the IR spectrum, we need to define the <code class="docutils literal notranslate"><span class="pre">input.txt</span></code> file.
+For o-NP, it can look as follows.
+.. code-block:: input.txt</p>
+<blockquote>
+<div><blockquote>
+<div><dl class="simple">
+<dt>&amp;global</dt><dd><p>spectra IR
+temperature 300
+fwhm 5</p>
+</dd>
+</dl>
+</div></blockquote>
+<p>&amp;end global
+&amp;system</p>
+<blockquote>
+<div><p>filename o-NP.xyz</p>
+</div></blockquote>
+<p>&amp;end system
+&amp;static</p>
+<blockquote>
+<div><p>diag_hessian y
+&amp;hessian</p>
+<blockquote>
+<div><p>force_file o-NP-force.data3</p>
+</div></blockquote>
+<p>&amp;end hessian
+displacement 0.001</p>
+</div></blockquote>
+<p>&amp;end static
+&amp;dipoles</p>
+<blockquote>
+<div><p>type_dipole berry
+dip_file dipole_o-NP_free_static.xyz</p>
+</div></blockquote>
+<p>&amp;end dipoles</p>
+</div></blockquote>
+<p>In addtion we need the data files. For calculating the static IR spectrum here we need the XYZ coordinates of the structrue,
+the force data for computing the Hessian, and the dipole data for calculating the intensities. Check <a class="reference internal" href="IR_spec.html"><span class="doc">IR spectrum documentation</span></a> for more theoretical background.
+Download datafiles
+.. raw:: html</p>
+<blockquote>
+<div><p>&lt;div style=”display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 1em;”&gt;
+&lt;div style=”flex: 0 0 250px; text-align: right;”&gt;</p>
+<blockquote>
+<div><p>&lt;img src=”_static/index/o-NP.png” alt=”o-NP” style=”max-width: 100%; height: auto; border-radius: 6px;”&gt;</p>
+</div></blockquote>
+<p>&lt;/div&gt;
+&lt;/div&gt;</p>
+</div></blockquote>
+<p>After running the vibrant exectuable we get mutiple outputs the spectra information is written to result_static_ir an can be plotten with a simple python scirpt e.g</p>
+<p>Resuting spectra</p>
 <p>–&gt; more examples</p>
 </section>
 </section>
@@ -183,7 +223,7 @@ Information about the required data and file formats can be found on the :doc:<a
                             <ul>
 <li><a class="reference internal" href="#">Quick Start</a><ul>
 <li><a class="reference internal" href="#installation">Installation</a></li>
-<li><a class="reference internal" href="#example-staic-ir-spectra-of-o-nitrophenol">Example staic IR Spectra of o-Nitrophenol</a></li>
+<li><a class="reference internal" href="#example-static-ir-spectrum-of-o-nitrophenol">Example static IR Spectrum of o-Nitrophenol</a></li>
 </ul>
 </li>
 </ul>
