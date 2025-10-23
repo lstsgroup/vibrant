@@ -15,12 +15,13 @@
    :maxdepth: 1
    :caption: Contents:
 
-   QuickStart
+   Quick_Start
    Installation
    Usage
    Keyword_Glossary
    Cite
    Contribute
+   
 Quick Start 
 ===========
 Welcome to the ``vibrant`` documentation webpage.
@@ -46,7 +47,7 @@ Example Static IR Spectrum of o-Nitrophenol
 For the calculation of the IR spectrum, we need to define the ``input.txt`` file.
 For o-Nitrophenol (o-NP), it can look as follows.
 
-.. code-block:: input
+.. code-block:: text
    &global
       spectra IR
       temperature 300
