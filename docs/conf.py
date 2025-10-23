@@ -43,7 +43,7 @@ myst_enable_extensions = [
     "dollarmath"
 ]
 redirects = {
-    "index": "quickstart.html",
+    "index": "Quick_Start.html",
 }
 
 
