@@ -11,13 +11,23 @@
    </picture>
    </div>
 
+.. toctree::
+   :maxdepth: 1
+   :caption: Contents:
+
+   Installation
+   Usage
+   Keyword_Glossary
+   Cite
+   Contribute
+
 Quick Start 
 ===========
 Welcome to the ``vibrant`` documentation webpage.
 
 The ``vibrant`` code is a post-processing tool for calculating vibrational spectra from ab initio data.
 
-Installation (H2)
+Installation 
 -------------
 See the `Installation <https://lstsgroup.github.io/vibrant/Installation.html>` section for fine-grained installation instructions.
 
@@ -30,7 +40,7 @@ After installation, a compiled binary should be available in the build directory
 For more details on the ``input.txt`` format, see the `Usage <https://lstsgroup.github.io/vibrant/Usage.md>` section and the `Keyword Glossary <https://lstsgroup.github.io/vibrant/Keyword_Glossary.rst>`.
 Information about the required data and file formats can be found on the `File Formats <https://lstsgroup.github.io/vibrant/file_formats.md>` (in Usage).
 
-Example staic IR Spectra of Atoms (H2)
+Example staic IR Spectra of Atoms
 -------------
 
 --> more examples
