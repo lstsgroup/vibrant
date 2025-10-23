@@ -44,7 +44,7 @@ Example Static IR Spectrum of o-Nitrophenol
 -------------
 
 For the calculation of the IR spectrum, we need to define the ``input.txt`` file.
-For o-Nitrophenol, it can look as follows.
+For o-Nitrophenol (o-NP), it can look as follows.
 
 .. code-block:: input
    &global
@@ -67,8 +67,8 @@ For o-Nitrophenol, it can look as follows.
       dip_file dipole_o-NP_free_static.xyz
    &end dipoles
 
-In addition, we need the data files. For calculating the static IR spectrum we need the XYZ coordinates of the structure, 
-the force data for computing the Hessian, and the dipole data for calculating the intensities. 
+In addition, we need the data to feed to vibrant. For calculating the static IR spectrum we need the coordinates of o-NP, 
+the forces for computing the Hessian, and the dipole data for calculating the intensities. 
 Check :doc:`IR spectrum documentation <IR_spec>` for more theoretical background.
 
 .. raw:: html
@@ -78,7 +78,7 @@ Check :doc:`IR spectrum documentation <IR_spec>` for more theoretical background
      <p style="font-size: 0.9em; color: #555;">Figure: o-Nitrophenol structure used for IR spectrum calculation</p>
    </div>
 
-Data files can be downloaded here:
+Data files for o-NP can be downloaded here:
 
 * :download:`Geometry file <../test/IR_Static_NMA/o-NP.xyz>`
 * :download:`Force data <../test/IR_Static_NMA/o-NP-force.data3>`
