@@ -1,6 +1,6 @@
 Quick Start 
 ===========
-Welcome to the ``vibrant`` documentation webpage.
+Welcome to the ``vibrant`` documentation webpage!
 
 Installation 
 -------------
