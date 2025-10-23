@@ -15,7 +15,7 @@
             <link rel="index" title="Index" href="genindex.html" />
             <link rel="search" title="Search" href="search.html" />
             <link rel="top" title="vibrant  documentation" href="#" />
-            <link rel="next" title="Installation" href="Installation.html" />
+            <link rel="next" title="Quick Start" href="Quick_Start.html" />
     </head>
 <body>
     <script type="text/javascript" src="_static/dist/blocking.js"></script>
@@ -60,6 +60,7 @@
     <nav class="toc mt-3" aria-label="Main menu">
         <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="Quick_Start.html">Quick Start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Usage.html">Usage</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="file_formats.html">File Formats</a></li>
@@ -131,6 +132,7 @@
 </div><div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="Quick_Start.html">Quick Start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Usage.html">Usage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Keyword_Glossary.html">Keyword Glossary</a></li>
@@ -156,6 +158,27 @@ Information about the required data and file formats can be found on the <a clas
 <h2>Example Static IR Spectrum of o-Nitrophenol<a class="headerlink" href="#example-static-ir-spectrum-of-o-nitrophenol" title="Link to this heading">¶</a></h2>
 <p>For the calculation of the IR spectrum, we need to define the <code class="docutils literal notranslate"><span class="pre">input.txt</span></code> file.
 For o-Nitrophenol (o-NP), it can look as follows.</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&amp;global
+   spectra IR
+   temperature 300
+   fwhm 5
+&amp;end global
+&amp;system
+   filename o-NP.xyz
+&amp;end system
+&amp;static
+   diag_hessian y
+   &amp;hessian
+      force_file o-NP-force.data3
+   &amp;end hessian
+displacement 0.001
+&amp;end static
+&amp;dipoles
+   type_dipole berry
+   dip_file dipole_o-NP_free_static.xyz
+&amp;end dipoles
+</pre></div>
+</div>
 <p>In addition, we need the data to feed to vibrant. For calculating the static IR spectrum we need the coordinates of o-NP,
 the forces for computing the Hessian, and the dipole data for calculating the intensities.
 Check <a class="reference internal" href="IR_spec.html"><span class="doc">IR spectrum documentation</span></a> for more theoretical background.</p>
@@ -202,8 +225,8 @@ with a simple Python script, for example:</p>
 
 </main>
                         <nav aria-label="Page navigation" class="py-4 my-5 clearfix font-weight-bold border-top">
-    <a class="float-right" href="Installation.html" title="Next">
-        Installation <span aria-hidden="true">&nbsp;→</span>
+    <a class="float-right" href="Quick_Start.html" title="Next">
+        Quick Start <span aria-hidden="true">&nbsp;→</span>
     </a>
 </nav>
                     </div>
