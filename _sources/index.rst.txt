@@ -11,6 +11,50 @@
    </picture>
    </div>
 
+Overview 
+===========
+The ``vibrant`` code is a post-processing tool for calculating vibrational spectra from ab initio data.
+
+Features
+===========
+   
+Quick Installation
+===========
+
+The CMake build framework is used in order to compile the ``vibrant`` code. To install it type the following in the root directory of the repository and make sure that you have a working GNU Fortran compiler (e.g. ``gfortran``):
+
+.. code-block:: bash
+
+   mkdir build && cd build
+   cmake ..
+   make -j 5
+   
+Optional: Test if the installation is working as expected by typing 
+
+.. code-block:: bash
+   
+   ctest 
+
+in the build directory to run the regression tests.
+
+For more a more fine-grained installation please refer to the `documentation of vibrant <https://lstsgroup.github.io/vibrant/Installation.html>`_.
+
+The compiled binary is now available in the build directory as ``build/vibrant`` and can be invoked e.g. from the root directory by the command
+
+.. code-block:: bash
+   
+   build/vibrant input.txt
+
+with ``input.txt`` as a input file with the vibrant settings.
+
+
+Quick Start
+===========
+To get started with ``vibrant``, see the :doc:`Quick Start <Quick_Start>` section of the documentation.
+
+
+Documentation
+===========
 .. toctree::
    :maxdepth: 1
    :caption: Contents:
