@@ -40,11 +40,32 @@ After installation, a compiled binary should be available in the build directory
 For more details on the ``input.txt`` format, see the :doc:`Usage <Usage>` section and the :doc:`Keyword Glossary <Keyword_Glossary>`.
 Information about the required data and file formats can be found on the :doc:`File Formats <file_formats>` (in Usage).
 
-Example static IR Spectrum of o-Nitrophenol
+Example Static IR Spectrum of o-Nitrophenol
 -------------
 
 For the calculation of the IR spectrum, we need to define the ``input.txt`` file.
 For o-Nitrophenol, it can look as follows.
+
+.. code-block:: input
+   &global
+   spectra IR
+   temperature 300
+   fwhm 5
+   &end global
+   &system
+      filename o-NP.xyz
+   &end system
+   &static
+      diag_hessian y
+      &hessian
+         force_file o-NP-force.data3
+      &end hessian
+   displacement 0.001
+   &end static
+   &dipoles
+      type_dipole berry
+      dip_file dipole_o-NP_free_static.xyz
+   &end dipoles
 
 In addition, we need the data files. For calculating the static IR spectrum we need the XYZ coordinates of the structure, 
 the force data for computing the Hessian, and the dipole data for calculating the intensities. 
@@ -72,19 +93,24 @@ with a simple Python script, for example:
    import numpy as np
    import matplotlib.pyplot as plt
 
-   data = np.loadtxt("result_static_ir.txt")
+   filename = "result_static_ir.txt"
+   data = np.loadtxt(filename, skiprows=1)
    x, y = data[:, 0], data[:, 1]
-
+   # === Plot ===
    plt.figure(figsize=(6, 4))
-   plt.plot(x, y, color="black", linewidth=1)
+   plt.plot(x, y, color="red", linewidth=1)
    plt.xlabel("Wavenumber (cm$^{-1}$)")
-   plt.ylabel("Intensity (a.u.)")
-   plt.title("IR Spectrum of o-Nitrophenol")
-   plt.gca().invert_xaxis()
+   plt.title("")
+   ax = plt.gca()
+   ax.yaxis.set_visible(False) 
+   ax.spines['top'].set_visible(False)    
+   ax.spines['right'].set_visible(False) 
+   ax.spines['left'].set_visible(False)   
+
    plt.tight_layout()
    plt.show()
 
-Resuting spectra
+Resuting spectra:
 
 .. raw:: html
 
