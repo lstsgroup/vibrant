@@ -1,11 +1,3 @@
-.. raw:: html
-
-   <div style="text-align: center; margin-bottom: 1em;">
-   <picture>
-      <img alt="Vibrant logo" src="_static/all_img/logo_vibrant.svg" style="height:140px; display: inline-block;">
-   </picture>
-   </div>
-
 Quick Start 
 ===========
 Welcome to the ``vibrant`` documentation webpage.
@@ -23,7 +15,7 @@ The CMake build framework is used in order to compile the ``vibrant`` code. To i
    
 See the :doc:`Installation <Installation>` section for fine-grained installation instructions.
 
-After installation, a compiled binary should be available in the build directory as ``build/vibrant`` can be invoked e.g. from the root directory by the command
+After installation, the compiled binary should be available in the build directory as ``build/vibrant`` and can be invoked e.g. from the root directory by the command
 
 .. code-block:: bash
    
