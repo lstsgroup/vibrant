@@ -44,7 +44,8 @@ Example static IR Spectrum of o-Nitrophenol
 -------------
 
 For the calculation of the IR spectrum, we need to define the ``input.txt`` file.
-For o-NP, it can look as follows.
+For o-Nitrophenol, it can look as follows.
+
 .. code-block:: input.txt
 
     &global
@@ -66,16 +67,20 @@ For o-NP, it can look as follows.
       type_dipole berry
       dip_file dipole_o-NP_free_static.xyz
    &end dipoles
+
 In addtion we need the data files. For calculating the static IR spectrum here we need the XYZ coordinates of the structrue, 
 the force data for computing the Hessian, and the dipole data for calculating the intensities. Check :doc:`IR spectrum documentation <IR_spec>` for more theoretical background.
-Download datafiles
+Data file can be downloaded here:
+
+After running the vibrant exectuable we get mutiple outputs the spectra information is written to result_static_ir.txt an can be plotten with a simple python scirpt e.g
+
+
 .. raw:: html
    <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 1em;">
    <div style="flex: 0 0 250px; text-align: right;">
       <img src="_static/index/o-NP.png" alt="o-NP" style="max-width: 100%; height: auto; border-radius: 6px;">
    </div>
    </div>
-After running the vibrant exectuable we get mutiple outputs the spectra information is written to result_static_ir an can be plotten with a simple python scirpt e.g
 
 .. code-block:: plotting
    import numpy as np
