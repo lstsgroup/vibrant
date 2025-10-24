@@ -22,11 +22,11 @@ Block: global
    :type: string
    :default: None
 
-   Type of spectra to calculate. Possible values are:|br|
+   Type of spectra to calculate. Possible values are:
 
-   • **NMA**, **IR**, **R** — Normal Mode Analysis, Static IR, Static Raman |br|
-   • **P**, **MD-IR**, **MD-R** — Power Spectrum, Dynamic IR, Dynamic Raman |br|
-   • **ABS**, **RR**, **MD-RR** — Absorption Spectrum, Static Resonance Raman, Dynamic Resonance Raman
+   **NMA**, **IR**, **R** — Normal Mode Analysis, Static IR, Static Raman
+   **P**, **MD-IR**, **MD-R** — Power Spectrum, Dynamic IR, Dynamic Raman 
+   **ABS**, **RR**, **MD-RR** — Absorption Spectrum, Static Resonance Raman, Dynamic Resonance Raman
 
 
 .. keyword:: temperature
@@ -76,8 +76,8 @@ Block: system
     
     Define type of provided trajectory. Possible values are: 
 
-    * **pos** for a trajectory of positions
-    * **vel** or a trajectory of velocities
+    * **pos** — for a trajectory of positions
+    * **vel** — for a trajectory of velocities
 
 .. keyword:: mass_weighting
    :section: system
@@ -85,8 +85,8 @@ Block: system
     
    Define if mass weighting should be applied for spectra computation. Possible values are: 
 
-   * **y** yes, apply mass weighting 
-   * **n** no, dont apply mass weighting 
+   * **y** — yes, apply mass weighting 
+   * **n** — no, dont apply mass weighting 
 
 Subblock: cell
 ~~~~~~~~~~~~~~~~
@@ -107,9 +107,9 @@ Subblock: cell
 
     Define type of the simulation cell. Possible values are: 
 
-    * **orthorhombic** yes, apply mass weighting 
-    * **hexagonal** no, dont apply mass weighting 
-    * **triclinic** no, dont apply mass weighting 
+    * **orthorhombic** 
+    * **hexagonal**
+    * **triclinic**
     CHECK AGAIN
 
 .. keyword:: box_x
@@ -273,9 +273,9 @@ Block: dipoles
     
     Define type of provided dipole moments. Possible values are: 
 
-    * **berry** for berry phase dipolemoments
-    * **wannier** for wannier dipolemoments
-    * **dfpt** for density functional perturbation theory
+    * **berry** — for berry phase dipolemoments
+    * **wannier** — for wannier dipolemoments
+    * **dfpt** — for density functional perturbation theory
     check again
 
 .. keyword:: field_strength
