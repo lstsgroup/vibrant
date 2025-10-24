@@ -15,39 +15,39 @@ Block: global
     &end global
 
 .. keyword:: spectra
-   :section: global
-   :type: string
-   :default: None
+    :section: global
+    :type: string
+    :default: None
 
-   Type of spectra to calculate. Possible values are:
+    Type of spectra to calculate. Possible values are:
 
-   * **NMA**, **IR**, **R** — Normal Mode Analysis, Static IR, Static Raman
-   * **P**, **MD-IR**, **MD-R** — Power Spectrum, Dynamic IR, Dynamic Raman 
-   * **ABS**, **RR**, **MD-RR** — Absorption Spectrum, Static Resonance Raman, Dynamic Resonance Raman
+    * **NMA**, **IR**, **R** — Normal Mode Analysis, Static IR, Static Raman
+    * **P**, **MD-IR**, **MD-R** — Power Spectrum, Dynamic IR, Dynamic Raman 
+    * **ABS**, **RR**, **MD-RR** — Absorption Spectrum, Static Resonance Raman, Dynamic Resonance Raman
 
 
 .. keyword:: temperature
-   :section: global
-   :type: float
-   :default: 300.0
-   :unit: K
+    :section: global
+    :type: float
+    :default: 300.0
+    :unit: K
 
-   This is the Temperature.
+    This is the Temperature.
 
 .. keyword:: fwhm
-   :section: global
-   :type: float
-   :default: 10
-   :unit: :math:`\mathrm{cm}^{-1}`
+    :section: global
+    :type: float
+    :default: 10
+    :unit: :math:`\mathrm{cm}^{-1}`
 
     Full width at half-maximum (fwhm) value for Gaussian broadening of static spectra. 
 
 .. keyword:: spectra_verbosity
-   :section: global
-   :type: string
-   :default: normal
+    :section: global
+    :type: string
+    :default: normal
 
-   This is a verbosity setting for writing raman spectra files.
+    This is a verbosity setting for writing raman spectra files.
 
 
 Block: system
@@ -62,28 +62,28 @@ Block: system
     &end system
     
 .. keyword:: filename
-   :section: system
-   :type: string
-    
+    :section: system
+    :type: string
+
     This is the path of the file containing the system coordinates.
 
 .. keyword:: type_traj
-   :section: system
-   :type: string
-    
+    :section: system
+    :type: string
+
     Define type of provided trajectory. Possible values are: 
 
     * **pos** — for a trajectory of positions
     * **vel** — for a trajectory of velocities
 
 .. keyword:: mass_weighting
-   :section: system
-   :type: string
-    
-   Define if mass weighting should be applied for spectra computation. Possible values are: 
+    :section: system
+    :type: string
 
-   * **y** — yes, apply mass weighting 
-   * **n** — no, dont apply mass weighting 
+    Define if mass weighting should be applied for spectra computation. Possible values are: 
+
+    * **y** — yes, apply mass weighting 
+    * **n** — no, dont apply mass weighting 
 
 Subblock: cell
 ~~~~~~~~~~~~~~~~
@@ -102,7 +102,7 @@ Subblock: cell
     :section: system/cell
     :type: string
 
-    Define type of the simulation cell. Possible values are: 
+    Define type of the simulation cell. Possible values are:
 
     * **orthorhombic** 
     * **hexagonal**
@@ -208,14 +208,14 @@ Block: static
    This is the finite difference displacement.
 
 .. keyword:: diag_hessian
-   :section: static
-   :type: float
-   :unit: Angstrom
+    :section: static
+    :type: float
+    :unit: Angstrom
 
-   Define if the Hessian should be diagonalized. Possible values are:
+    Define if the Hessian should be diagonalized. Possible values are:
 
-   * **y** — yes, diagonalize the Hessian --> provide `force_file <#keyword-force_file>`__
-   * **n** — no, load existing data --> provide `normal_freq_file <#keyword-normal_freq_file>`__ and `normal_displ_file <#keyword-normal_displ_file>`__
+    * **y** — yes, diagonalize the Hessian --> provide `force_file <#keyword-force_file>`__
+    * **n** — no, load existing data --> provide `normal_freq_file <#keyword-normal_freq_file>`__ and `normal_displ_file <#keyword-normal_displ_file>`__
 
 .. keyword:: normal_freq_file
     :section: static
@@ -246,7 +246,7 @@ Block: hessian
    :section: static
    :type: string
 
-   This is the path of the file containing the system forces to build hessian.
+    This is the path of the file containing the system forces to build hessian.
 
 Block: dipoles
 -------------
@@ -267,7 +267,7 @@ Block: dipoles
     :section: dipoles
     :type: string
     :default: berry
-    
+
     Define type of provided dipole moments. Possible values are: 
 
     * **berry** — for berry phase dipolemoments
@@ -343,7 +343,10 @@ Block: rtp
     :type: string
     :default: 'n'
 
-    Flag to enable Padé interpolation (“y” or “n”).
+    Define if Padé interpolation should be used. Possible values are:
+
+    * **y** — yes, apply Padé interpolation
+    * **n** — no, dont apply Padé interpolation
 
 .. keyword:: pade_framecount
     :section: rtp
