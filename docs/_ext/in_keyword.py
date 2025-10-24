@@ -37,7 +37,7 @@ class KeywordDirective(Directive):
         type_ = self.options.get('type', '—')
         default = self.options.get('default', '—')
         unit = self.options.get('unit', None)
-        description = '\n'.join(self.content)
+        #description = '\n'.join(self.content)
 
         # Create a target for cross-referencing
         target_name = f'keyword-{keyword.lower()}'
