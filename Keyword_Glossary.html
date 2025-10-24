@@ -348,13 +348,11 @@
 <li><p>​</p></li>
 <li></li>
 </ul>
-<blockquote>
-<div><p>Define if the Hessian should be diagonalized. Possible values are:</p>
+<p>Define if the Hessian should be diagonalized. Possible values are:</p>
 <ul class="simple">
 <li><p><strong>y</strong> — yes, diagonalize the Hessian –&gt; provide <a class="reference external" href="#keyword-force_file">force_file</a></p></li>
 <li><p><strong>n</strong> — no, load existing data –&gt; provide <a class="reference external" href="#keyword-normal_freq_file">normal_freq_file</a> and <a class="reference external" href="#keyword-normal_displ_file">normal_displ_file</a></p></li>
 </ul>
-</div></blockquote>
 </div><div class='keyword-entry' id='keyword-normal_freq_file'><div class='keyword-header'>static :: <strong>normal_freq_file</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: string</p></li>
 <li><p><strong>Default</strong>: —</p></li>
@@ -496,7 +494,11 @@
 <li><p>​</p></li>
 <li></li>
 </ul>
-<p>Flag to enable Padé interpolation (“y” or “n”).</p>
+<p>Define if Padé interpolation should be used. Possible values are:</p>
+<ul class="simple">
+<li><p><strong>y</strong> — yes, apply Padé interpolation</p></li>
+<li><p><strong>n</strong> — no, dont apply Padé interpolation</p></li>
+</ul>
 </div><div class='keyword-entry' id='keyword-pade_framecount'><div class='keyword-header'>rtp :: <strong>pade_framecount</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: int</p></li>
 <li><p><strong>Default</strong>: 80000</p></li>
