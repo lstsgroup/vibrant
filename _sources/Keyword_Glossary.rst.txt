@@ -22,7 +22,10 @@ Block: global
    :type: string
    :default: None
 
-   This is the spectra type. Possible values are: MD-RR, MD-RT, RR, RT, FT, ABS
+   Type of spectra to calculate. Possible values are: 
+    * **NMA, IR, R** Normal Mode Analysis, Static IR, Static Raman
+    * **P, MD-IR, MD-R** Dynamic Powerspectrum, Dynamic IR, Dynamic Raman
+    * **ABS, RR, MD-RR** Absorption Spectrum, Static Resonance Raman, Dynamic Resonance Resonance
 
 .. keyword:: temperature
    :section: global
@@ -45,7 +48,7 @@ Block: global
    :type: string
    :default: normal
 
-   This is a verbosity setting for creating raman spectra files.
+   This is a verbosity setting for writing raman spectra files.
 
 
 Block: system
@@ -63,20 +66,24 @@ Block: system
    :section: system
    :type: string
     
-    This is the name of coordinates file.
+    This is the path of the file containing the system coordinates.
 
 .. keyword:: type_traj
    :section: system
    :type: string
     
-   Define type of provided trajectory. Values: 'pos' for positions, 'vel' for velocities.
+    Define type of provided trajectory. Possible values are: 
+    * **pos** for a trajectory of positions
+    * **vel** or a trajectory of velocities
 
 .. keyword:: mass_weighting
    :section: system
    :type: string
     
-   Define if mass weighting should be applied for spectra computation. Values: 'y' or 'n'
-
+   Define if mass weighting should be applied for spectra computation. Possible values are: 
+    * **y** yes, apply mass weighting 
+    * **n** no, dont apply mass weighting 
+    
 Subblock: cell
 ~~~~~~~~~~~~~~~~
 .. code-block:: text
@@ -94,46 +101,50 @@ Subblock: cell
     :section: system/cell
     :type: string
 
-    Crystal type of the simulation cell (e.g., orthorhombic, hexagonal, triclinic).
+    Define type of the simulation cell. Possible values are: 
+    * **orthorhombic** yes, apply mass weighting 
+    * **hexagonal** no, dont apply mass weighting 
+    * **triclinic** no, dont apply mass weighting 
+    CHECK AGAIN
 
 .. keyword:: box_x
     :section: system/cell
     :type: float
 
-    Length of the cell vector :math:\mathbf{a} (x component). Uses the same unit as coordinates.
+    Length of the cell vector :math:`\mathbf{a}` (x component). Uses the same unit as coordinates.
 
 .. keyword:: box_y
     :section: system/cell
     :type: float
 
-    Length of the cell vector :math:\mathbf{b} (y component). Uses the same unit as coordinates.
+    Length of the cell vector :math:`\mathbf{b}` (y component). Uses the same unit as coordinates.
 
 .. keyword:: box_z
     :section: system/cell
     :type: float
 
-    Length of the cell vector :math:\mathbf{c} (z component). Uses the same unit as coordinates.
+    Length of the cell vector :math:`\mathbf{c}` (z component). Uses the same unit as coordinates.
 
 .. keyword:: angle_alpha
     :section: system/cell
     :type: float
     :unit: deg
 
-    Cell angle :math:\alpha=\angle(\mathbf{b},\mathbf{c}).
+    Cell angle  :math:`\alpha = \angle(\mathbf{b}, \mathbf{c})`.
 
 .. keyword:: angle_beta
     :section: system/cell
     :type: float
     :unit: deg
 
-    Cell angle :math:\beta=\angle(\mathbf{a},\mathbf{c}).
+    Cell angle :math:`\beta = \angle(\mathbf{a}, \mathbf{c})`.
 
 .. keyword:: angle_gamma
     :section: system/cell
     :type: float
     :unit: deg
 
-    Cell angle :math:\gamma=\angle(\mathbf{a},\mathbf{b}).
+    Cell angle :math:`\gamma = \angle(\mathbf{a}, \mathbf{b})`.
 
 Subblock: fragment
 ~~~~~~~~~~~~~~~~
@@ -147,7 +158,7 @@ Subblock: fragment
     :section: fragment
     :type: list[int]
 
-List of atomic indices that belong to a fragment (one entry per fragment).
+    List of atomic indices that belong to a fragment (one entry per fragment).
 
 
 Block: md
@@ -165,13 +176,13 @@ Block: md
     :type: float
     :unit: fs
 
-Time step of molecular dynamics trajectory.
+    Time step of molecular dynamics trajectory.
 
 .. keyword:: correlation_depth
     :section: md
     :type: int
 
-    Correlation depth used in autocorrelationfunction
+    Correlation depth used in autocorrelation function.
 
 Block: static
 -------------
@@ -179,7 +190,6 @@ Block: static
 .. code-block:: text
     
     &static
-        force_file
         displacement
         diag_hessian 
         normal_freq_file
@@ -187,11 +197,6 @@ Block: static
         write_mol_file
     &end static
 
-.. keyword:: force_file
-   :section: static
-   :type: string
-
-   This is the name of force file.
 
 .. keyword:: displacement
    :section: static
@@ -205,28 +210,40 @@ Block: static
    :type: float
    :unit: Angstrom
 
-   This is the finite difference displacement.
+   Define if Hessian should be diagonalized. Possible values are: 
+    * **y** yes, diagonalized Hessian --> provide `force_file <#keyword-force_file>`
+    * **n** no, load existing data --> provide `normal_freq_file <#keyword-normal_freq_file>` and `normal_displ_file <#keyword-normal_displ_file>`
 
    .. keyword:: normal_freq_file
     :section: static
     :type: string
 
-File containing normal mode frequencies for static or mode-based analyses.
+    This is the path of the file containing the systems normal mode frequencies.
 
 .. keyword:: normal_displ_file
     :section: static
     :type: string
 
-File containing normal mode displacements or eigenvectors.
+    This is the path of the file containing the systems normal mode displacements.
 
 .. keyword:: write_mol_file
     :section: static
     :type: string
 
-Flag to write a molecular structure file (values: “y” or “n”).
+    Flag for writing a Molden file for analyzing static spectra.
 
 Block: hessian
 ~~~~~~~~~~~~~~~~
+.. code-block:: text
+    
+    &hessian
+        force_file
+    &end hessian
+.. keyword:: force_file
+   :section: static
+   :type: string
+
+   This is the path of the file containing the system forces to build hessian.
 
 Block: dipoles
 -------------
@@ -248,8 +265,12 @@ Block: dipoles
     :type: string
     :default: berry
     
-    Specifies the method used to obtain dipole moments (e.g., “berry”, “wannier”, “dfpt”).
-    This value can be dfpt 1 berry or wannier? check again
+    Define type of provided dipole moments. Possible values are: 
+    * **berry** for berry phase dipolemoments
+    * **wannier** for wannier dipolemoments
+    * **dfpt** for density functional perturbation theory
+    check again
+
 .. keyword:: field_strength
     :section: dipoles
     :type: float
@@ -261,31 +282,31 @@ Block: dipoles
     :section: dipoles
     :type: string
     
-    File containing dipole moments (if only a single file is used).
+    This is the path of the file containing the systems dipole moments (if only a single file is used).
     
 .. keyword:: dip_x_file
     :section: dipoles
     :type: string
     
-    File containing dipole moments obtained under an electric field in the x-direction.
+    This is the path of the file containing the systems dipole moments obtained under an electric field in the x-direction.
     
 .. keyword:: dip_y_file
     :section: dipoles
     :type: string
     
-    File containing dipole moments obtained under an electric field in the y-direction.
+    This is the path of the file containing the systems dipole moments obtained under an electric field in the y-direction.
     
 .. keyword:: dip_z_file
     :section: dipoles
     :type: string
     
-    File containing dipole moments obtained under an electric field in the z-direction.
+    This is the path of the file containing the systems dipole moments obtained under an electric field in the z-direction.
     
 .. keyword:: static_pol_file
     :section: dipoles
     :type: string
     
-    File containing static polarizabilities.
+    This is the path of the file containing the systems static polarizabilities.
 
 Block: rtp
 -------------
@@ -305,27 +326,27 @@ Block: rtp
     :type: float
     :unit: fs
 
-Time step used for the RTP (real-time propagation) analysis.
+    Time step used for the RTP (real-time propagation) analysis.
 
 .. keyword:: rtp_framecount
     :section: rtp
     :type: int
 
-Number of frames used for RTP analysis.
+    Number of frames used for RTP analysis.
 
 .. keyword:: check_pade
     :section: rtp
     :type: string
     :default: 'n'
 
-Flag to enable Padé interpolation (“y” or “n”).
+    Flag to enable Padé interpolation (“y” or “n”).
 
 .. keyword:: pade_framecount
     :section: rtp
     :type: int
     :default: 80000
 
-Number of frames used after Padé interpolation.
+    Number of frames used after Padé interpolation.
 
 .. keyword:: damping_constant
     :section: rtp
@@ -333,7 +354,7 @@ Number of frames used after Padé interpolation.
     :unit: eV
     :default: 0.1
 
-Damping constant used in RTP spectrum calculations.
+    Damping constant used in RTP spectrum calculations.
 
 Block: raman
 -------------
@@ -350,4 +371,4 @@ Block: raman
     :unit: eV or cm-1 ?? not clear from readinput. check
     :default: 0.5
 
-Incoming laser energy in eV. Multiple values (max 10) may be specified.
+    Incoming laser energy in eV. Multiple values (max 10) may be specified.
