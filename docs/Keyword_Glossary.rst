@@ -1,18 +1,8 @@
 
 Keyword Glossary
-================
+-------------
 
 link to a keyword: `See temperature keyword <#keyword-temperature>`__
-
-All Keywords and sections are listed here:
-
-.. code-block:: text
-
-    &raman
-        laser_in 
-    &end raman
-
-
 
 
 Block: global
@@ -21,7 +11,9 @@ Block: global
 
     &global
         spectra 
-        temperature 
+        temperature
+        fwhm
+        spectra_verbosity
     &end global
 
 .. keyword:: spectra
@@ -37,7 +29,7 @@ Block: global
    :default: 300.0
    :unit: K
 
-   This is the Temperature. with formula :math:`\omega = 2\pi f`.
+   This is the Temperature.
 
 .. keyword:: fwhm
    :section: global
@@ -57,7 +49,14 @@ Block: global
 
 Block: system
 -------------
+.. code-block:: text
 
+    &system
+        filename 
+        type_traj 
+        mass_weighting 
+    &end system
+    
 .. keyword:: filename
    :section: system
    :type: string
@@ -78,6 +77,17 @@ Block: system
 
 Subblock: cell
 ================
+.. code-block:: text
+
+    &cell
+        box_x 
+        box_y 
+        box_z 
+        angle_alpha 
+        angle_beta 
+        angle_gamma
+    &end cell
+
 .. keyword:: cell_type
     :section: system/cell
     :type: string
@@ -123,8 +133,14 @@ Subblock: cell
 
     Cell angle :math:\gamma=\angle(\mathbf{a},\mathbf{b}).
 
-Block: fragment
+Subblock: fragment
 ================
+.. code-block:: text
+
+    &fragment
+        atom_list 
+    &end fragment
+
 .. keyword:: atom_list
     :section: fragment
     :type: list[int]
@@ -156,6 +172,16 @@ Time step of molecular dynamics trajectory.
 
 Block: static
 -------------
+.. code-block:: text
+    
+    &static
+        force_file
+        displacement
+        diag_hessian 
+        normal_freq_file
+        normal_displ_file
+        write_mol_file
+    &end static
 
 .. keyword:: force_file
    :section: static
@@ -204,11 +230,14 @@ Block: dipoles
     
     &dipoles
         type_dipole
-        field_strength 
+        field_strength
+        dip_file 
         dip_x_file
         dip_y_fil
-        dip_z_file 
+        dip_z_file
+        static_pol_file
     &end dipoles
+
 .. keyword:: type_dipole
     :section: dipoles
     :type: string
@@ -264,6 +293,7 @@ Block: rtp
         pade_framecount 
         damping_constant 
     &end rtp
+
 .. keyword:: rtp_time_step
     :section: rtp
     :type: float
@@ -306,7 +336,7 @@ Block: raman
     &raman
         laser_in 
     &end raman
-    
+
 .. keyword:: laser_in
     :section: raman
     :type: float or list[float]
