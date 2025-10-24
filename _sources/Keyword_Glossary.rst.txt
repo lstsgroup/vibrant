@@ -15,9 +15,9 @@ Block: global
     &end global
 
 .. keyword:: spectra
-   :section: global
-   :type: string
-   :default: None
+    :section: global
+    :type: string
+    :default: None
 
     Type of spectra to calculate. Possible values are:
 
@@ -27,25 +27,25 @@ Block: global
 
 
 .. keyword:: temperature
-   :section: global
-   :type: float
-   :default: 300.0
-   :unit: K
+    :section: global
+    :type: float
+    :default: 300.0
+    :unit: K
 
     This is the Temperature.
 
 .. keyword:: fwhm
-   :section: global
-   :type: float
-   :default: 10
-   :unit: :math:`\mathrm{cm}^{-1}`
+    :section: global
+    :type: float
+    :default: 10
+    :unit: :math:`\mathrm{cm}^{-1}`
 
     Full width at half-maximum (fwhm) value for Gaussian broadening of static spectra. 
 
 .. keyword:: spectra_verbosity
-   :section: global
-   :type: string
-   :default: normal
+    :section: global
+    :type: string
+    :default: normal
 
     This is a verbosity setting for writing raman spectra files.
 
@@ -62,24 +62,24 @@ Block: system
     &end system
     
 .. keyword:: filename
-   :section: system
-   :type: string
-    
+    :section: system
+    :type: string
+
     This is the path of the file containing the system coordinates.
 
 .. keyword:: type_traj
-   :section: system
-   :type: string
-    
+    :section: system
+    :type: string
+
     Define type of provided trajectory. Possible values are: 
 
     * **pos** — for a trajectory of positions
     * **vel** — for a trajectory of velocities
 
 .. keyword:: mass_weighting
-   :section: system
-   :type: string
-    
+    :section: system
+    :type: string
+
     Define if mass weighting should be applied for spectra computation. Possible values are: 
 
     * **y** — yes, apply mass weighting 
@@ -246,7 +246,7 @@ Block: hessian
    :section: static
    :type: string
 
-   This is the path of the file containing the system forces to build hessian.
+    This is the path of the file containing the system forces to build hessian.
 
 Block: dipoles
 -------------
@@ -267,7 +267,7 @@ Block: dipoles
     :section: dipoles
     :type: string
     :default: berry
-    
+
     Define type of provided dipole moments. Possible values are: 
 
     * **berry** — for berry phase dipolemoments
