@@ -37,12 +37,12 @@ class KeywordDirective(Directive):
         type_ = self.options.get('type', '—')
         default = self.options.get('default', '—')
         unit = self.options.get('unit', None)
-        #description = '\n'.join(self.content)
+        description = '\n'.join(self.content)
 
         # Create a target for cross-referencing
-        #target_name = f'keyword-{keyword.lower()}'
-        #target_node = nodes.target('', '', ids=[target_name])
-        #self.state.document.note_explicit_target(target_node)
+        target_name = f'keyword-{keyword.lower()}'
+        target_node = nodes.target('', '', ids=[target_name])
+        self.state.document.note_explicit_target(target_node)
 
 
         # Store info in the node (for HTML visitor)
@@ -51,34 +51,17 @@ class KeywordDirective(Directive):
         node['keyword'] = keyword
         node['target_id'] = target_name
 
-        ## Build reST for type/default/unit/description
-        #text = [
-        #    f"- **Type**: {type_}",
-        #    f"- **Default**: {default}",
-        #]
-        #if unit:
-        #    text.append(f"- **Unit**: {unit}")
-        #text += ["-  \u200b", "- " + description]
-
-        #content = StringList(text)
-        #self.state.nested_parse(content, self.content_offset, node)
-        info_lines = [
+        # Build reST for type/default/unit/description
+        text = [
             f"- **Type**: {type_}",
             f"- **Default**: {default}",
         ]
         if unit:
-            info_lines.append(f"- **Unit**: {unit}")
+            text.append(f"- **Unit**: {unit}")
+        text += ["-  \u200b", "- " + description]
 
-        info = StringList(info_lines)
-        self.state.nested_parse(info, self.content_offset, node)
-
-        # Leer-Absatz (optional)
-        # node += nodes.paragraph()
-
-        # WICHTIG: Original-Content separat block-level parsen,
-        # damit darin Bullets/Tabellen funktionieren.
-        if self.content:
-            self.state.nested_parse(self.content, self.content_offset, node)
+        content = StringList(text)
+        self.state.nested_parse(content, self.content_offset, node)
 
         return [target_node, node]
 
