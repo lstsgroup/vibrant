@@ -208,9 +208,9 @@ Block: static
    This is the finite difference displacement.
 
 .. keyword:: diag_hessian
-   :section: static
-   :type: float
-   :unit: Angstrom
+    :section: static
+    :type: float
+    :unit: Angstrom
 
     Define if the Hessian should be diagonalized. Possible values are:
 
@@ -343,7 +343,10 @@ Block: rtp
     :type: string
     :default: 'n'
 
-    Flag to enable Padé interpolation (“y” or “n”).
+    Define if Padé interpolation should be used. Possible values are:
+
+    * **y** — yes, apply Padé interpolation
+    * **n** — no, dont apply Padé interpolation
 
 .. keyword:: pade_framecount
     :section: rtp
