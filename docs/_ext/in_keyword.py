@@ -59,9 +59,9 @@ class KeywordDirective(Directive):
         if unit:
             info_lines.append(f"- **Unit**: {unit}")
 
-        info = StringList(info_lines)
         if self.content:
-            info += ["-  \u200b", "- "]
+            info_lines += ["-  \u200b", "- "]
+        info = StringList(info_lines)
         self.state.nested_parse(info, self.content_offset, node)
 
         #content = StringList(text)
