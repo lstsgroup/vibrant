@@ -19,11 +19,11 @@ Block: global
    :type: string
    :default: None
 
-   Type of spectra to calculate. Possible values are:
-
-   * **NMA**, **IR**, **R** — Normal Mode Analysis, Static IR, Static Raman
-   * **P**, **MD-IR**, **MD-R** — Power Spectrum, Dynamic IR, Dynamic Raman 
-   * **ABS**, **RR**, **MD-RR** — Absorption Spectrum, Static Resonance Raman, Dynamic Resonance Raman
+    Type of spectra to calculate. Possible values are:
+    
+    * **NMA**, **IR**, **R** — Normal Mode Analysis, Static IR, Static Raman
+    * **P**, **MD-IR**, **MD-R** — Power Spectrum, Dynamic IR, Dynamic Raman 
+    * **ABS**, **RR**, **MD-RR** — Absorption Spectrum, Static Resonance Raman, Dynamic Resonance Raman
 
 
 .. keyword:: temperature
@@ -32,7 +32,7 @@ Block: global
    :default: 300.0
    :unit: K
 
-   This is the Temperature.
+    This is the Temperature.
 
 .. keyword:: fwhm
    :section: global
@@ -47,7 +47,7 @@ Block: global
    :type: string
    :default: normal
 
-   This is a verbosity setting for writing raman spectra files.
+    This is a verbosity setting for writing raman spectra files.
 
 
 Block: system
@@ -80,10 +80,10 @@ Block: system
    :section: system
    :type: string
     
-   Define if mass weighting should be applied for spectra computation. Possible values are: 
+    Define if mass weighting should be applied for spectra computation. Possible values are: 
 
-   * **y** — yes, apply mass weighting 
-   * **n** — no, dont apply mass weighting 
+    * **y** — yes, apply mass weighting 
+    * **n** — no, dont apply mass weighting 
 
 Subblock: cell
 ~~~~~~~~~~~~~~~~
@@ -102,7 +102,7 @@ Subblock: cell
     :section: system/cell
     :type: string
 
-    Define type of the simulation cell. Possible values are: 
+    Define type of the simulation cell. Possible values are:
 
     * **orthorhombic** 
     * **hexagonal**
@@ -212,10 +212,10 @@ Block: static
    :type: float
    :unit: Angstrom
 
-   Define if the Hessian should be diagonalized. Possible values are:
+    Define if the Hessian should be diagonalized. Possible values are:
 
-   * **y** — yes, diagonalize the Hessian --> provide `force_file <#keyword-force_file>`__
-   * **n** — no, load existing data --> provide `normal_freq_file <#keyword-normal_freq_file>`__ and `normal_displ_file <#keyword-normal_displ_file>`__
+    * **y** — yes, diagonalize the Hessian --> provide `force_file <#keyword-force_file>`__
+    * **n** — no, load existing data --> provide `normal_freq_file <#keyword-normal_freq_file>`__ and `normal_displ_file <#keyword-normal_displ_file>`__
 
 .. keyword:: normal_freq_file
     :section: static
