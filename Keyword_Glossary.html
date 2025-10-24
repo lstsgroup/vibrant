@@ -72,9 +72,13 @@
 </ul>
 </li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Keyword Glossary</a></li>
-<li class="toctree-l1"><a class="reference internal" href="#subblock-cell">Subblock: cell</a></li>
-<li class="toctree-l1"><a class="reference internal" href="#block-fragment">Block: fragment</a></li>
-<li class="toctree-l1"><a class="reference internal" href="#block-hessian">Block: hessian</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#block-global">Block: global</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#block-system">Block: system</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#block-md">Block: md</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#block-static">Block: static</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#block-dipoles">Block: dipoles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#block-rtp">Block: rtp</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#block-raman">Block: raman</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Cite.html">Cite</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Contribute.html">Contribute</a></li>
 </ul>
@@ -131,17 +135,14 @@
     <section id="keyword-glossary">
 <h1>Keyword Glossary<a class="headerlink" href="#keyword-glossary" title="Link to this heading">¶</a></h1>
 <p>link to a keyword: <a class="reference external" href="#keyword-temperature">See temperature keyword</a></p>
-<p>All Keywords and sections are listed here:</p>
-<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&amp;raman
-    laser_in
-&amp;end raman
-</pre></div>
-</div>
+</section>
 <section id="block-global">
-<h2>Block: global<a class="headerlink" href="#block-global" title="Link to this heading">¶</a></h2>
+<h1>Block: global<a class="headerlink" href="#block-global" title="Link to this heading">¶</a></h1>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&amp;global
     spectra
     temperature
+    fwhm
+    spectra_verbosity
 &amp;end global
 </pre></div>
 </div>
@@ -156,7 +157,7 @@
 <li><p><strong>Default</strong>: 300.0</p></li>
 <li><p><strong>Unit</strong>: K</p></li>
 <li><p>​</p></li>
-<li><p>This is the Temperature. with formula <span class="math notranslate nohighlight">\(\omega = 2\pi f\)</span>.</p></li>
+<li><p>This is the Temperature.</p></li>
 </ul>
 </div><div class='keyword-entry' id='keyword-fwhm'><div class='keyword-header'>global :: <strong>fwhm</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: float</p></li>
@@ -173,7 +174,14 @@
 </ul>
 </div></section>
 <section id="block-system">
-<h2>Block: system<a class="headerlink" href="#block-system" title="Link to this heading">¶</a></h2>
+<h1>Block: system<a class="headerlink" href="#block-system" title="Link to this heading">¶</a></h1>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&amp;system
+    filename
+    type_traj
+    mass_weighting
+&amp;end system
+</pre></div>
+</div>
 <div class='keyword-entry' id='keyword-filename'><div class='keyword-header'>system :: <strong>filename</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: string</p></li>
 <li><p><strong>Default</strong>: —</p></li>
@@ -192,10 +200,18 @@
 <li><p>​</p></li>
 <li><p>Define if mass weighting should be applied for spectra computation. Values: ‘y’ or ‘n’</p></li>
 </ul>
-</div></section>
-</section>
-<section id="subblock-cell">
-<h1>Subblock: cell<a class="headerlink" href="#subblock-cell" title="Link to this heading">¶</a></h1>
+</div><section id="subblock-cell">
+<h2>Subblock: cell<a class="headerlink" href="#subblock-cell" title="Link to this heading">¶</a></h2>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&amp;cell
+    box_x
+    box_y
+    box_z
+    angle_alpha
+    angle_beta
+    angle_gamma
+&amp;end cell
+</pre></div>
+</div>
 <div class='keyword-entry' id='keyword-cell_type'><div class='keyword-header'>system/cell :: <strong>cell_type</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: string</p></li>
 <li><p><strong>Default</strong>: —</p></li>
@@ -242,8 +258,13 @@
 <li><p>Cell angle :math:gamma=angle(mathbf{a},mathbf{b}).</p></li>
 </ul>
 </div></section>
-<section id="block-fragment">
-<h1>Block: fragment<a class="headerlink" href="#block-fragment" title="Link to this heading">¶</a></h1>
+<section id="subblock-fragment">
+<h2>Subblock: fragment<a class="headerlink" href="#subblock-fragment" title="Link to this heading">¶</a></h2>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&amp;fragment
+    atom_list
+&amp;end fragment
+</pre></div>
+</div>
 <div class='keyword-entry' id='keyword-atom_list'><div class='keyword-header'>fragment :: <strong>atom_list</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: list[int]</p></li>
 <li><p><strong>Default</strong>: —</p></li>
@@ -251,8 +272,10 @@
 <li></li>
 </ul>
 </div><p>List of atomic indices that belong to a fragment (one entry per fragment).</p>
+</section>
+</section>
 <section id="block-md">
-<h2>Block: md<a class="headerlink" href="#block-md" title="Link to this heading">¶</a></h2>
+<h1>Block: md<a class="headerlink" href="#block-md" title="Link to this heading">¶</a></h1>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&amp;md
     time_step
     correlation_depth
@@ -275,7 +298,17 @@
 </ul>
 </div></section>
 <section id="block-static">
-<h2>Block: static<a class="headerlink" href="#block-static" title="Link to this heading">¶</a></h2>
+<h1>Block: static<a class="headerlink" href="#block-static" title="Link to this heading">¶</a></h1>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&amp;static
+    force_file
+    displacement
+    diag_hessian
+    normal_freq_file
+    normal_displ_file
+    write_mol_file
+&amp;end static
+</pre></div>
+</div>
 <div class='keyword-entry' id='keyword-force_file'><div class='keyword-header'>static :: <strong>force_file</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: string</p></li>
 <li><p><strong>Default</strong>: —</p></li>
@@ -315,18 +348,20 @@
 <li></li>
 </ul>
 </div><p>Flag to write a molecular structure file (values: “y” or “n”).</p>
-</section>
-</section>
 <section id="block-hessian">
-<h1>Block: hessian<a class="headerlink" href="#block-hessian" title="Link to this heading">¶</a></h1>
+<h2>Block: hessian<a class="headerlink" href="#block-hessian" title="Link to this heading">¶</a></h2>
+</section>
+</section>
 <section id="block-dipoles">
-<h2>Block: dipoles<a class="headerlink" href="#block-dipoles" title="Link to this heading">¶</a></h2>
+<h1>Block: dipoles<a class="headerlink" href="#block-dipoles" title="Link to this heading">¶</a></h1>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&amp;dipoles
     type_dipole
     field_strength
+    dip_file
     dip_x_file
     dip_y_fil
     dip_z_file
+    static_pol_file
 &amp;end dipoles
 </pre></div>
 </div>
@@ -376,7 +411,7 @@ This value can be dfpt 1 berry or wannier? check again</p></li>
 </ul>
 </div></section>
 <section id="block-rtp">
-<h2>Block: rtp<a class="headerlink" href="#block-rtp" title="Link to this heading">¶</a></h2>
+<h1>Block: rtp<a class="headerlink" href="#block-rtp" title="Link to this heading">¶</a></h1>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&amp;rtp
     rtp_time_step
     rtp_framecount
@@ -425,7 +460,7 @@ This value can be dfpt 1 berry or wannier? check again</p></li>
 </div><p>Damping constant used in RTP spectrum calculations.</p>
 </section>
 <section id="block-raman">
-<h2>Block: raman<a class="headerlink" href="#block-raman" title="Link to this heading">¶</a></h2>
+<h1>Block: raman<a class="headerlink" href="#block-raman" title="Link to this heading">¶</a></h1>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&amp;raman
     laser_in
 &amp;end raman
@@ -439,7 +474,6 @@ This value can be dfpt 1 berry or wannier? check again</p></li>
 <li></li>
 </ul>
 </div><p>Incoming laser energy in eV. Multiple values (max 10) may be specified.</p>
-</section>
 </section>
 
 </main>
@@ -457,23 +491,21 @@ This value can be dfpt 1 berry or wannier? check again</p></li>
                         <div class="sticky-top toc page-toc" aria-labelledby="page-toc-heading">
                             <p class="font-weight-bold" id="page-toc-heading">Page contents</p>
                             <ul>
-<li><a class="reference internal" href="#">Keyword Glossary</a><ul>
+<li><a class="reference internal" href="#">Keyword Glossary</a></li>
 <li><a class="reference internal" href="#block-global">Block: global</a></li>
-<li><a class="reference internal" href="#block-system">Block: system</a></li>
-</ul>
-</li>
+<li><a class="reference internal" href="#block-system">Block: system</a><ul>
 <li><a class="reference internal" href="#subblock-cell">Subblock: cell</a></li>
-<li><a class="reference internal" href="#block-fragment">Block: fragment</a><ul>
-<li><a class="reference internal" href="#block-md">Block: md</a></li>
-<li><a class="reference internal" href="#block-static">Block: static</a></li>
+<li><a class="reference internal" href="#subblock-fragment">Subblock: fragment</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#block-hessian">Block: hessian</a><ul>
+<li><a class="reference internal" href="#block-md">Block: md</a></li>
+<li><a class="reference internal" href="#block-static">Block: static</a><ul>
+<li><a class="reference internal" href="#block-hessian">Block: hessian</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#block-dipoles">Block: dipoles</a></li>
 <li><a class="reference internal" href="#block-rtp">Block: rtp</a></li>
 <li><a class="reference internal" href="#block-raman">Block: raman</a></li>
-</ul>
-</li>
 </ul>
 
                         </div>
