@@ -143,12 +143,14 @@
 <li><p>​</p></li>
 <li></li>
 </ul>
-<p>Type of spectra to calculate. Possible values are:</p>
+<blockquote>
+<div><p>Type of spectra to calculate. Possible values are:</p>
 <ul class="simple">
 <li><p><strong>NMA</strong>, <strong>IR</strong>, <strong>R</strong> — Normal Mode Analysis, Static IR, Static Raman</p></li>
 <li><p><strong>P</strong>, <strong>MD-IR</strong>, <strong>MD-R</strong> — Power Spectrum, Dynamic IR, Dynamic Raman</p></li>
 <li><p><strong>ABS</strong>, <strong>RR</strong>, <strong>MD-RR</strong> — Absorption Spectrum, Static Resonance Raman, Dynamic Resonance Raman</p></li>
 </ul>
+</div></blockquote>
 </div><div class='keyword-entry' id='keyword-temperature'><div class='keyword-header'>global :: <strong>temperature</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: float</p></li>
 <li><p><strong>Default</strong>: 300.0</p></li>
@@ -156,7 +158,9 @@
 <li><p>​</p></li>
 <li></li>
 </ul>
-<p>This is the Temperature.</p>
+<blockquote>
+<div><p>This is the Temperature.</p>
+</div></blockquote>
 </div><div class='keyword-entry' id='keyword-fwhm'><div class='keyword-header'>global :: <strong>fwhm</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: float</p></li>
 <li><p><strong>Default</strong>: 10</p></li>
@@ -173,7 +177,9 @@
 <li><p>​</p></li>
 <li></li>
 </ul>
-<p>This is a verbosity setting for writing raman spectra files.</p>
+<blockquote>
+<div><p>This is a verbosity setting for writing raman spectra files.</p>
+</div></blockquote>
 </div></section>
 <section id="block-system">
 <h2>Block: system<a class="headerlink" href="#block-system" title="Link to this heading">¶</a></h2>
@@ -212,11 +218,13 @@
 <li><p>​</p></li>
 <li></li>
 </ul>
-<p>Define if mass weighting should be applied for spectra computation. Possible values are:</p>
+<blockquote>
+<div><p>Define if mass weighting should be applied for spectra computation. Possible values are:</p>
 <ul class="simple">
 <li><p><strong>y</strong> — yes, apply mass weighting</p></li>
 <li><p><strong>n</strong> — no, dont apply mass weighting</p></li>
 </ul>
+</div></blockquote>
 </div><section id="subblock-cell">
 <h3>Subblock: cell<a class="headerlink" href="#subblock-cell" title="Link to this heading">¶</a></h3>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&amp;cell
@@ -354,11 +362,13 @@
 <li><p>​</p></li>
 <li></li>
 </ul>
-<p>Define if the Hessian should be diagonalized. Possible values are:</p>
+<blockquote>
+<div><p>Define if the Hessian should be diagonalized. Possible values are:</p>
 <ul class="simple">
 <li><p><strong>y</strong> — yes, diagonalize the Hessian –&gt; provide <a class="reference external" href="#keyword-force_file">force_file</a></p></li>
 <li><p><strong>n</strong> — no, load existing data –&gt; provide <a class="reference external" href="#keyword-normal_freq_file">normal_freq_file</a> and <a class="reference external" href="#keyword-normal_displ_file">normal_displ_file</a></p></li>
 </ul>
+</div></blockquote>
 </div><div class='keyword-entry' id='keyword-normal_freq_file'><div class='keyword-header'>static :: <strong>normal_freq_file</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: string</p></li>
 <li><p><strong>Default</strong>: —</p></li>
