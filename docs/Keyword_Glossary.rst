@@ -2,9 +2,6 @@
 Keyword Glossary
 ================
 
-link to a keyword: `See temperature keyword <#keyword-temperature>`__
-
-
 Block: global
 -------------
 
@@ -24,9 +21,9 @@ Block: global
 
    Type of spectra to calculate. Possible values are:
 
-   **NMA**, **IR**, **R** — Normal Mode Analysis, Static IR, Static Raman
-   **P**, **MD-IR**, **MD-R** — Power Spectrum, Dynamic IR, Dynamic Raman 
-   **ABS**, **RR**, **MD-RR** — Absorption Spectrum, Static Resonance Raman, Dynamic Resonance Raman
+   * **NMA**, **IR**, **R** — Normal Mode Analysis, Static IR, Static Raman
+   * **P**, **MD-IR**, **MD-R** — Power Spectrum, Dynamic IR, Dynamic Raman 
+   * **ABS**, **RR**, **MD-RR** — Absorption Spectrum, Static Resonance Raman, Dynamic Resonance Raman
 
 
 .. keyword:: temperature
@@ -220,7 +217,7 @@ Block: static
    * **y** — yes, diagonalize the Hessian --> provide `force_file <#keyword-force_file>`__
    * **n** — no, load existing data --> provide `normal_freq_file <#keyword-normal_freq_file>`__ and `normal_displ_file <#keyword-normal_displ_file>`__
 
-   .. keyword:: normal_freq_file
+.. keyword:: normal_freq_file
     :section: static
     :type: string
 
