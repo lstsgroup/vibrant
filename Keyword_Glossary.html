@@ -141,33 +141,32 @@
 <div class='keyword-entry' id='keyword-spectra'><div class='keyword-header'>global :: <strong>spectra</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: string</p></li>
 <li><p><strong>Default</strong>: None</p></li>
-<li><p>​</p></li>
-<li><p>Type of spectra to calculate. Possible values are:<a href="#id1"><span class="problematic" id="id2">|br|</span></a>
-
-• <strong>NMA</strong>, <strong>IR</strong>, <strong>R</strong> — Normal Mode Analysis, Static IR, Static Raman <a href="#id3"><span class="problematic" id="id4">|br|</span></a>
-• <strong>P</strong>, <strong>MD-IR</strong>, <strong>MD-R</strong> — Power Spectrum, Dynamic IR, Dynamic Raman <a href="#id5"><span class="problematic" id="id6">|br|</span></a>
-• <strong>ABS</strong>, <strong>RR</strong>, <strong>MD-RR</strong> — Absorption Spectrum, Static Resonance Raman, Dynamic Resonance Raman</p></li>
+</ul>
+<p>Type of spectra to calculate. Possible values are:<a href="#id1"><span class="problematic" id="id2">|br|</span></a></p>
+<ul class="simple">
+<li><p><strong>NMA</strong>, <strong>IR</strong>, <strong>R</strong> — Normal Mode Analysis, Static IR, Static Raman <a href="#id3"><span class="problematic" id="id4">|br|</span></a></p></li>
+<li><p><strong>P</strong>, <strong>MD-IR</strong>, <strong>MD-R</strong> — Power Spectrum, Dynamic IR, Dynamic Raman <a href="#id5"><span class="problematic" id="id6">|br|</span></a></p></li>
+<li><p><strong>ABS</strong>, <strong>RR</strong>, <strong>MD-RR</strong> — Absorption Spectrum, Static Resonance Raman, Dynamic Resonance Raman</p></li>
 </ul>
 </div><div class='keyword-entry' id='keyword-temperature'><div class='keyword-header'>global :: <strong>temperature</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: float</p></li>
 <li><p><strong>Default</strong>: 300.0</p></li>
 <li><p><strong>Unit</strong>: K</p></li>
-<li><p>​</p></li>
-<li><p>This is the Temperature.</p></li>
 </ul>
+<p>This is the Temperature.</p>
 </div><div class='keyword-entry' id='keyword-fwhm'><div class='keyword-header'>global :: <strong>fwhm</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: float</p></li>
 <li><p><strong>Default</strong>: 10</p></li>
 <li><p><strong>Unit</strong>: <span class="math notranslate nohighlight">\(\mathrm{cm}^{-1}\)</span></p></li>
-<li><p>​</p></li>
-<li><p>Full width at half-maximum (fwhm) value for Gaussian broadening of static spectra.</p></li>
 </ul>
+<blockquote>
+<div><p>Full width at half-maximum (fwhm) value for Gaussian broadening of static spectra.</p>
+</div></blockquote>
 </div><div class='keyword-entry' id='keyword-spectra_verbosity'><div class='keyword-header'>global :: <strong>spectra_verbosity</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: string</p></li>
 <li><p><strong>Default</strong>: normal</p></li>
-<li><p>​</p></li>
-<li><p>This is a verbosity setting for writing raman spectra files.</p></li>
 </ul>
+<p>This is a verbosity setting for writing raman spectra files.</p>
 </div></section>
 <section id="block-system">
 <h2>Block: system<a class="headerlink" href="#block-system" title="Link to this heading">¶</a></h2>
@@ -181,26 +180,29 @@
 <div class='keyword-entry' id='keyword-filename'><div class='keyword-header'>system :: <strong>filename</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: string</p></li>
 <li><p><strong>Default</strong>: —</p></li>
-<li><p>​</p></li>
-<li><p>This is the path of the file containing the system coordinates.</p></li>
 </ul>
+<blockquote>
+<div><p>This is the path of the file containing the system coordinates.</p>
+</div></blockquote>
 </div><div class='keyword-entry' id='keyword-type_traj'><div class='keyword-header'>system :: <strong>type_traj</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: string</p></li>
 <li><p><strong>Default</strong>: —</p></li>
-<li><p>​</p></li>
-<li><p>Define type of provided trajectory. Possible values are:
-
- * <strong>pos</strong> for a trajectory of positions
- * <strong>vel</strong> or a trajectory of velocities</p></li>
 </ul>
+<blockquote>
+<div><p>Define type of provided trajectory. Possible values are:</p>
+<ul class="simple">
+<li><p><strong>pos</strong> for a trajectory of positions</p></li>
+<li><p><strong>vel</strong> or a trajectory of velocities</p></li>
+</ul>
+</div></blockquote>
 </div><div class='keyword-entry' id='keyword-mass_weighting'><div class='keyword-header'>system :: <strong>mass_weighting</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: string</p></li>
 <li><p><strong>Default</strong>: —</p></li>
-<li><p>​</p></li>
-<li><p>Define if mass weighting should be applied for spectra computation. Possible values are:
-
-* <strong>y</strong> yes, apply mass weighting
-* <strong>n</strong> no, dont apply mass weighting</p></li>
+</ul>
+<p>Define if mass weighting should be applied for spectra computation. Possible values are:</p>
+<ul class="simple">
+<li><p><strong>y</strong> yes, apply mass weighting</p></li>
+<li><p><strong>n</strong> no, dont apply mass weighting</p></li>
 </ul>
 </div><section id="subblock-cell">
 <h3>Subblock: cell<a class="headerlink" href="#subblock-cell" title="Link to this heading">¶</a></h3>
@@ -217,53 +219,47 @@
 <div class='keyword-entry' id='keyword-cell_type'><div class='keyword-header'>system/cell :: <strong>cell_type</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: string</p></li>
 <li><p><strong>Default</strong>: —</p></li>
-<li><p>​</p></li>
-<li><p>Define type of the simulation cell. Possible values are:
-
-* <strong>orthorhombic</strong> yes, apply mass weighting
-* <strong>hexagonal</strong> no, dont apply mass weighting
-* <strong>triclinic</strong> no, dont apply mass weighting
-CHECK AGAIN</p></li>
 </ul>
+<p>Define type of the simulation cell. Possible values are:</p>
+<ul class="simple">
+<li><p><strong>orthorhombic</strong> yes, apply mass weighting</p></li>
+<li><p><strong>hexagonal</strong> no, dont apply mass weighting</p></li>
+<li><p><strong>triclinic</strong> no, dont apply mass weighting</p></li>
+</ul>
+<p>CHECK AGAIN</p>
 </div><div class='keyword-entry' id='keyword-box_x'><div class='keyword-header'>system/cell :: <strong>box_x</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: float</p></li>
 <li><p><strong>Default</strong>: —</p></li>
-<li><p>​</p></li>
-<li><p>Length of the box lenght <span class="math notranslate nohighlight">\(\mathbf{a}\)</span>. Uses the same unit as coordinates.</p></li>
 </ul>
+<p>Length of the box lenght <span class="math notranslate nohighlight">\(\mathbf{a}\)</span>. Uses the same unit as coordinates.</p>
 </div><div class='keyword-entry' id='keyword-box_y'><div class='keyword-header'>system/cell :: <strong>box_y</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: float</p></li>
 <li><p><strong>Default</strong>: —</p></li>
-<li><p>​</p></li>
-<li><p>Length of the box lenght <span class="math notranslate nohighlight">\(\mathbf{b}\)</span>. Uses the same unit as coordinates.</p></li>
 </ul>
+<p>Length of the box lenght <span class="math notranslate nohighlight">\(\mathbf{b}\)</span>. Uses the same unit as coordinates.</p>
 </div><div class='keyword-entry' id='keyword-box_z'><div class='keyword-header'>system/cell :: <strong>box_z</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: float</p></li>
 <li><p><strong>Default</strong>: —</p></li>
-<li><p>​</p></li>
-<li><p>Length of the box lenght <span class="math notranslate nohighlight">\(\mathbf{c}\)</span>. Uses the same unit as coordinates.</p></li>
 </ul>
+<p>Length of the box lenght <span class="math notranslate nohighlight">\(\mathbf{c}\)</span>. Uses the same unit as coordinates.</p>
 </div><div class='keyword-entry' id='keyword-angle_alpha'><div class='keyword-header'>system/cell :: <strong>angle_alpha</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: float</p></li>
 <li><p><strong>Default</strong>: —</p></li>
 <li><p><strong>Unit</strong>: deg</p></li>
-<li><p>​</p></li>
-<li><p>Cell angle  <span class="math notranslate nohighlight">\(\alpha\)</span>.</p></li>
 </ul>
+<p>Cell angle  <span class="math notranslate nohighlight">\(\alpha\)</span>.</p>
 </div><div class='keyword-entry' id='keyword-angle_beta'><div class='keyword-header'>system/cell :: <strong>angle_beta</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: float</p></li>
 <li><p><strong>Default</strong>: —</p></li>
 <li><p><strong>Unit</strong>: deg</p></li>
-<li><p>​</p></li>
-<li><p>Cell angle <span class="math notranslate nohighlight">\(\beta\)</span>.</p></li>
 </ul>
+<p>Cell angle <span class="math notranslate nohighlight">\(\beta\)</span>.</p>
 </div><div class='keyword-entry' id='keyword-angle_gamma'><div class='keyword-header'>system/cell :: <strong>angle_gamma</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: float</p></li>
 <li><p><strong>Default</strong>: —</p></li>
 <li><p><strong>Unit</strong>: deg</p></li>
-<li><p>​</p></li>
-<li><p>Cell angle <span class="math notranslate nohighlight">\(\gamma\)</span>.</p></li>
 </ul>
+<p>Cell angle <span class="math notranslate nohighlight">\(\gamma\)</span>.</p>
 </div></section>
 <section id="subblock-fragment">
 <h3>Subblock: fragment<a class="headerlink" href="#subblock-fragment" title="Link to this heading">¶</a></h3>
@@ -275,9 +271,8 @@ CHECK AGAIN</p></li>
 <div class='keyword-entry' id='keyword-atom_list'><div class='keyword-header'>fragment :: <strong>atom_list</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: list[int]</p></li>
 <li><p><strong>Default</strong>: —</p></li>
-<li><p>​</p></li>
-<li><p>List of atomic indices that belong to a fragment (one entry per fragment).</p></li>
 </ul>
+<p>List of atomic indices that belong to a fragment (one entry per fragment).</p>
 </div></section>
 </section>
 <section id="block-md">
@@ -292,15 +287,13 @@ CHECK AGAIN</p></li>
 <li><p><strong>Type</strong>: float</p></li>
 <li><p><strong>Default</strong>: —</p></li>
 <li><p><strong>Unit</strong>: fs</p></li>
-<li><p>​</p></li>
-<li><p>Time step of molecular dynamics trajectory.</p></li>
 </ul>
+<p>Time step of molecular dynamics trajectory.</p>
 </div><div class='keyword-entry' id='keyword-correlation_depth'><div class='keyword-header'>md :: <strong>correlation_depth</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: int</p></li>
 <li><p><strong>Default</strong>: —</p></li>
-<li><p>​</p></li>
-<li><p>Correlation depth used in autocorrelation function.</p></li>
 </ul>
+<p>Correlation depth used in autocorrelation function.</p>
 </div></section>
 <section id="block-static">
 <h2>Block: static<a class="headerlink" href="#block-static" title="Link to this heading">¶</a></h2>
@@ -317,37 +310,33 @@ CHECK AGAIN</p></li>
 <li><p><strong>Type</strong>: float</p></li>
 <li><p><strong>Default</strong>: —</p></li>
 <li><p><strong>Unit</strong>: Angstrom</p></li>
-<li><p>​</p></li>
-<li><p>This is the finite difference displacement.</p></li>
 </ul>
+<p>This is the finite difference displacement.</p>
 </div><div class='keyword-entry' id='keyword-diag_hessian'><div class='keyword-header'>static :: <strong>diag_hessian</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: float</p></li>
 <li><p><strong>Default</strong>: —</p></li>
 <li><p><strong>Unit</strong>: Angstrom</p></li>
-<li><p>​</p></li>
-<li><p>Define if the Hessian should be diagonalized. Possible values are:
-
-* <strong>y</strong> — yes, diagonalize the Hessian –&gt; provide <a class="reference external" href="#keyword-force_file">force_file</a>
-* <strong>n</strong> — no, load existing data –&gt; provide <a class="reference external" href="#keyword-normal_freq_file">normal_freq_file</a> and <a class="reference external" href="#keyword-normal_displ_file">normal_displ_file</a>
-
-.. keyword:: normal_freq_file
- :section: static
- :type: string
-
- This is the path of the file containing the systems normal mode frequencies.</p></li>
 </ul>
-</div><div class='keyword-entry' id='keyword-normal_displ_file'><div class='keyword-header'>static :: <strong>normal_displ_file</strong></div><ul class="simple">
+<p>Define if the Hessian should be diagonalized. Possible values are:</p>
+<ul class="simple">
+<li><p><strong>y</strong> — yes, diagonalize the Hessian –&gt; provide <a class="reference external" href="#keyword-force_file">force_file</a></p></li>
+<li><p><strong>n</strong> — no, load existing data –&gt; provide <a class="reference external" href="#keyword-normal_freq_file">normal_freq_file</a> and <a class="reference external" href="#keyword-normal_displ_file">normal_displ_file</a></p></li>
+</ul>
+<div class='keyword-entry' id='keyword-normal_freq_file'><div class='keyword-header'>static :: <strong>normal_freq_file</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: string</p></li>
 <li><p><strong>Default</strong>: —</p></li>
-<li><p>​</p></li>
-<li><p>This is the path of the file containing the systems normal mode displacements.</p></li>
 </ul>
+<p>This is the path of the file containing the systems normal mode frequencies.</p>
+</div></div><div class='keyword-entry' id='keyword-normal_displ_file'><div class='keyword-header'>static :: <strong>normal_displ_file</strong></div><ul class="simple">
+<li><p><strong>Type</strong>: string</p></li>
+<li><p><strong>Default</strong>: —</p></li>
+</ul>
+<p>This is the path of the file containing the systems normal mode displacements.</p>
 </div><div class='keyword-entry' id='keyword-write_mol_file'><div class='keyword-header'>static :: <strong>write_mol_file</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: string</p></li>
 <li><p><strong>Default</strong>: —</p></li>
-<li><p>​</p></li>
-<li><p>Flag for writing a Molden file for analyzing static spectra.</p></li>
 </ul>
+<p>Flag for writing a Molden file for analyzing static spectra.</p>
 </div><section id="block-hessian">
 <h3>Block: hessian<a class="headerlink" href="#block-hessian" title="Link to this heading">¶</a></h3>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&amp;hessian
@@ -358,9 +347,8 @@ CHECK AGAIN</p></li>
 <div class='keyword-entry' id='keyword-force_file'><div class='keyword-header'>static :: <strong>force_file</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: string</p></li>
 <li><p><strong>Default</strong>: —</p></li>
-<li><p>​</p></li>
-<li><p>This is the path of the file containing the system forces to build hessian.</p></li>
 </ul>
+<p>This is the path of the file containing the system forces to build hessian.</p>
 </div></section>
 </section>
 <section id="block-dipoles">
@@ -379,51 +367,45 @@ CHECK AGAIN</p></li>
 <div class='keyword-entry' id='keyword-type_dipole'><div class='keyword-header'>dipoles :: <strong>type_dipole</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: string</p></li>
 <li><p><strong>Default</strong>: berry</p></li>
-<li><p>​</p></li>
-<li><p>Define type of provided dipole moments. Possible values are:
-
-* <strong>berry</strong> for berry phase dipolemoments
-* <strong>wannier</strong> for wannier dipolemoments
-* <strong>dfpt</strong> for density functional perturbation theory
-check again</p></li>
 </ul>
+<p>Define type of provided dipole moments. Possible values are:</p>
+<ul class="simple">
+<li><p><strong>berry</strong> for berry phase dipolemoments</p></li>
+<li><p><strong>wannier</strong> for wannier dipolemoments</p></li>
+<li><p><strong>dfpt</strong> for density functional perturbation theory</p></li>
+</ul>
+<p>check again</p>
 </div><div class='keyword-entry' id='keyword-field_strength'><div class='keyword-header'>dipoles :: <strong>field_strength</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: float</p></li>
 <li><p><strong>Default</strong>: —</p></li>
 <li><p><strong>Unit</strong>: a.u.</p></li>
-<li><p>​</p></li>
-<li><p>Strength of the applied electric field in atomic units.</p></li>
 </ul>
+<p>Strength of the applied electric field in atomic units.</p>
 </div><div class='keyword-entry' id='keyword-dip_file'><div class='keyword-header'>dipoles :: <strong>dip_file</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: string</p></li>
 <li><p><strong>Default</strong>: —</p></li>
-<li><p>​</p></li>
-<li><p>This is the path of the file containing the systems dipole moments (if only a single file is used).</p></li>
 </ul>
+<p>This is the path of the file containing the systems dipole moments (if only a single file is used).</p>
 </div><div class='keyword-entry' id='keyword-dip_x_file'><div class='keyword-header'>dipoles :: <strong>dip_x_file</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: string</p></li>
 <li><p><strong>Default</strong>: —</p></li>
-<li><p>​</p></li>
-<li><p>This is the path of the file containing the systems dipole moments obtained under an electric field in the x-direction.</p></li>
 </ul>
+<p>This is the path of the file containing the systems dipole moments obtained under an electric field in the x-direction.</p>
 </div><div class='keyword-entry' id='keyword-dip_y_file'><div class='keyword-header'>dipoles :: <strong>dip_y_file</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: string</p></li>
 <li><p><strong>Default</strong>: —</p></li>
-<li><p>​</p></li>
-<li><p>This is the path of the file containing the systems dipole moments obtained under an electric field in the y-direction.</p></li>
 </ul>
+<p>This is the path of the file containing the systems dipole moments obtained under an electric field in the y-direction.</p>
 </div><div class='keyword-entry' id='keyword-dip_z_file'><div class='keyword-header'>dipoles :: <strong>dip_z_file</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: string</p></li>
 <li><p><strong>Default</strong>: —</p></li>
-<li><p>​</p></li>
-<li><p>This is the path of the file containing the systems dipole moments obtained under an electric field in the z-direction.</p></li>
 </ul>
+<p>This is the path of the file containing the systems dipole moments obtained under an electric field in the z-direction.</p>
 </div><div class='keyword-entry' id='keyword-static_pol_file'><div class='keyword-header'>dipoles :: <strong>static_pol_file</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: string</p></li>
 <li><p><strong>Default</strong>: —</p></li>
-<li><p>​</p></li>
-<li><p>This is the path of the file containing the systems static polarizabilities.</p></li>
 </ul>
+<p>This is the path of the file containing the systems static polarizabilities.</p>
 </div></section>
 <section id="block-rtp">
 <h2>Block: rtp<a class="headerlink" href="#block-rtp" title="Link to this heading">¶</a></h2>
@@ -440,34 +422,29 @@ check again</p></li>
 <li><p><strong>Type</strong>: float</p></li>
 <li><p><strong>Default</strong>: —</p></li>
 <li><p><strong>Unit</strong>: fs</p></li>
-<li><p>​</p></li>
-<li><p>Time step used for the RTP (real-time propagation) analysis.</p></li>
 </ul>
+<p>Time step used for the RTP (real-time propagation) analysis.</p>
 </div><div class='keyword-entry' id='keyword-rtp_framecount'><div class='keyword-header'>rtp :: <strong>rtp_framecount</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: int</p></li>
 <li><p><strong>Default</strong>: —</p></li>
-<li><p>​</p></li>
-<li><p>Number of frames used for RTP analysis.</p></li>
 </ul>
+<p>Number of frames used for RTP analysis.</p>
 </div><div class='keyword-entry' id='keyword-check_pade'><div class='keyword-header'>rtp :: <strong>check_pade</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: string</p></li>
 <li><p><strong>Default</strong>: ‘n’</p></li>
-<li><p>​</p></li>
-<li><p>Flag to enable Padé interpolation (“y” or “n”).</p></li>
 </ul>
+<p>Flag to enable Padé interpolation (“y” or “n”).</p>
 </div><div class='keyword-entry' id='keyword-pade_framecount'><div class='keyword-header'>rtp :: <strong>pade_framecount</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: int</p></li>
 <li><p><strong>Default</strong>: 80000</p></li>
-<li><p>​</p></li>
-<li><p>Number of frames used after Padé interpolation.</p></li>
 </ul>
+<p>Number of frames used after Padé interpolation.</p>
 </div><div class='keyword-entry' id='keyword-damping_constant'><div class='keyword-header'>rtp :: <strong>damping_constant</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: float</p></li>
 <li><p><strong>Default</strong>: 0.1</p></li>
 <li><p><strong>Unit</strong>: eV</p></li>
-<li><p>​</p></li>
-<li><p>Damping constant used in RTP spectrum calculations.</p></li>
 </ul>
+<p>Damping constant used in RTP spectrum calculations.</p>
 </div></section>
 <section id="block-raman">
 <h2>Block: raman<a class="headerlink" href="#block-raman" title="Link to this heading">¶</a></h2>
@@ -480,9 +457,8 @@ check again</p></li>
 <li><p><strong>Type</strong>: float or list[float]</p></li>
 <li><p><strong>Default</strong>: 0.5</p></li>
 <li><p><strong>Unit</strong>: eV or cm-1 ?? not clear from readinput. check</p></li>
-<li><p>​</p></li>
-<li><p>Incoming laser energy in eV. Multiple values (max 10) may be specified.</p></li>
 </ul>
+<p>Incoming laser energy in eV. Multiple values (max 10) may be specified.</p>
 </div></section>
 </section>
 
