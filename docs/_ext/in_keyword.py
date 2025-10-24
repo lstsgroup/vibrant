@@ -37,7 +37,7 @@ class KeywordDirective(Directive):
         type_ = self.options.get('type', '—')
         default = self.options.get('default', '—')
         unit = self.options.get('unit', None)
-        description = '\n'.join(self.content)
+        #description = '\n'.join(self.content)
 
         # Create a target for cross-referencing
         target_name = f'keyword-{keyword.lower()}'
@@ -52,16 +52,21 @@ class KeywordDirective(Directive):
         node['target_id'] = target_name
 
         # Build reST for type/default/unit/description
-        text = [
+        info_lines = [
             f"- **Type**: {type_}",
             f"- **Default**: {default}",
         ]
         if unit:
-            text.append(f"- **Unit**: {unit}")
-        text += ["-  \u200b", "- " + description]
+            info_lines.append(f"- **Unit**: {unit}")
 
-        content = StringList(text)
-        self.state.nested_parse(content, self.content_offset, node)
+        if self.content:
+            info_lines += ["-  \u200b", "- "]
+        info = StringList(info_lines)
+        self.state.nested_parse(info, self.content_offset, node)
+
+        #content = StringList(text)
+        if self.content:
+            self.state.nested_parse(self.content, self.content_offset, node)
 
         return [target_node, node]
 
