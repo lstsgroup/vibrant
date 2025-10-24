@@ -63,7 +63,7 @@ class KeywordDirective(Directive):
         self.state.nested_parse(info, self.content_offset, node)
         #text += ["-  \u200b", "- " + description]
 
-        content = StringList(text)
+        #content = StringList(text)
         if self.content:
             self.state.nested_parse(self.content, self.content_offset, node)
 
