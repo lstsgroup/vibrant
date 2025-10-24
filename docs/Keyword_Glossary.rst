@@ -24,10 +24,31 @@ Block: global
 
     Type of spectra to calculate. Possible values are:
 
-   * **NMA**, **IR**, **R** — Normal Mode Analysis, Static IR, Static Raman
-   * **P**, **MD-IR**, **MD-R** — Power Spectrum, Dynamic IR, Dynamic Raman
-   * **ABS**, **RR**, **MD-RR** — Absorption Spectrum, Static Resonance Raman, Dynamic Resonance Raman
+    * **NMA**, **IR**, **R** — Normal Mode Analysis, Static IR, Static Raman
+    * **P**, **MD-IR**, **MD-R** — Power Spectrum, Dynamic IR, Dynamic Raman
+    * **ABS**, **RR**, **MD-RR** — Absorption Spectrum, Static Resonance Raman, Dynamic Resonance Raman
 
+.. keyword:: spectra
+   :section: global
+   :type: string
+   :default: None
+
+    Type of spectra to calculate. Possible values are:
+
+        * **NMA**, **IR**, **R** — Normal Mode Analysis, Static IR, Static Raman
+        * **P**, **MD-IR**, **MD-R** — Power Spectrum, Dynamic IR, Dynamic Raman
+        * **ABS**, **RR**, **MD-RR** — Absorption Spectrum, Static Resonance Raman, Dynamic Resonance Raman
+
+.. keyword:: spectra
+   :section: global
+   :type: string
+   :default: None
+
+    Type of spectra to calculate. Possible values are:
+
+    * **NMA**, **IR**, **R** — Normal Mode Analysis, Static IR, Static Raman
+        * **P**, **MD-IR**, **MD-R** — Power Spectrum, Dynamic IR, Dynamic Raman
+        * **ABS**, **RR**, **MD-RR** — Absorption Spectrum, Static Resonance Raman, Dynamic Resonance Raman
 
 .. keyword:: temperature
    :section: global
@@ -85,8 +106,8 @@ Block: system
     
    Define if mass weighting should be applied for spectra computation. Possible values are: 
 
-    * **y** yes, apply mass weighting 
-    * **n** no, dont apply mass weighting 
+   * **y** yes, apply mass weighting 
+   * **n** no, dont apply mass weighting 
 
 Subblock: cell
 ~~~~~~~~~~~~~~~~
@@ -106,6 +127,7 @@ Subblock: cell
     :type: string
 
     Define type of the simulation cell. Possible values are: 
+
     * **orthorhombic** yes, apply mass weighting 
     * **hexagonal** no, dont apply mass weighting 
     * **triclinic** no, dont apply mass weighting 
