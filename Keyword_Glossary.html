@@ -143,9 +143,10 @@
 <li><p><strong>Default</strong>: None</p></li>
 <li><p>​</p></li>
 <li><p>Type of spectra to calculate. Possible values are:
- * <strong>NMA, IR, R</strong> Normal Mode Analysis, Static IR, Static Raman
- * <strong>P, MD-IR, MD-R</strong> Dynamic Powerspectrum, Dynamic IR, Dynamic Raman
- * <strong>ABS, RR, MD-RR</strong> Absorption Spectrum, Static Resonance Raman, Dynamic Resonance Resonance</p></li>
+
+ * <strong>NMA</strong>, <strong>IR</strong>, <strong>R</strong> Normal Mode Analysis, Static IR, Static Raman
+ * <strong>P</strong>, <strong>MD-IR</strong>, <strong>MD-R</strong> Dynamic Power Spectrum, Dynamic IR, Dynamic Raman
+ * <strong>ABS</strong>, <strong>RR</strong>, <strong>MD-RR</strong> Absorption Spectrum, Static Resonance Raman, Dynamic Resonance Raman</p></li>
 </ul>
 </div><div class='keyword-entry' id='keyword-temperature'><div class='keyword-header'>global :: <strong>temperature</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: float</p></li>
@@ -188,6 +189,7 @@
 <li><p><strong>Default</strong>: —</p></li>
 <li><p>​</p></li>
 <li><p>Define type of provided trajectory. Possible values are:
+
  * <strong>pos</strong> for a trajectory of positions
  * <strong>vel</strong> or a trajectory of velocities</p></li>
 </ul>
@@ -196,6 +198,7 @@
 <li><p><strong>Default</strong>: —</p></li>
 <li><p>​</p></li>
 <li><p>Define if mass weighting should be applied for spectra computation. Possible values are:
+
  * <strong>y</strong> yes, apply mass weighting
  * <strong>n</strong> no, dont apply mass weighting</p></li>
 </ul>
@@ -225,40 +228,40 @@ CHECK AGAIN</p></li>
 <li><p><strong>Type</strong>: float</p></li>
 <li><p><strong>Default</strong>: —</p></li>
 <li><p>​</p></li>
-<li><p>Length of the cell vector <span class="math notranslate nohighlight">\(\mathbf{a}\)</span> (x component). Uses the same unit as coordinates.</p></li>
+<li><p>Length of the box lenght <span class="math notranslate nohighlight">\(\mathbf{a}\)</span>. Uses the same unit as coordinates.</p></li>
 </ul>
 </div><div class='keyword-entry' id='keyword-box_y'><div class='keyword-header'>system/cell :: <strong>box_y</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: float</p></li>
 <li><p><strong>Default</strong>: —</p></li>
 <li><p>​</p></li>
-<li><p>Length of the cell vector <span class="math notranslate nohighlight">\(\mathbf{b}\)</span> (y component). Uses the same unit as coordinates.</p></li>
+<li><p>Length of the box lenght <span class="math notranslate nohighlight">\(\mathbf{b}\)</span>. Uses the same unit as coordinates.</p></li>
 </ul>
 </div><div class='keyword-entry' id='keyword-box_z'><div class='keyword-header'>system/cell :: <strong>box_z</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: float</p></li>
 <li><p><strong>Default</strong>: —</p></li>
 <li><p>​</p></li>
-<li><p>Length of the cell vector <span class="math notranslate nohighlight">\(\mathbf{c}\)</span> (z component). Uses the same unit as coordinates.</p></li>
+<li><p>Length of the box lenght <span class="math notranslate nohighlight">\(\mathbf{c}\)</span>. Uses the same unit as coordinates.</p></li>
 </ul>
 </div><div class='keyword-entry' id='keyword-angle_alpha'><div class='keyword-header'>system/cell :: <strong>angle_alpha</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: float</p></li>
 <li><p><strong>Default</strong>: —</p></li>
 <li><p><strong>Unit</strong>: deg</p></li>
 <li><p>​</p></li>
-<li><p>Cell angle  <span class="math notranslate nohighlight">\(\alpha = \angle(\mathbf{b}, \mathbf{c})\)</span>.</p></li>
+<li><p>Cell angle  <span class="math notranslate nohighlight">\(\alpha\)</span>.</p></li>
 </ul>
 </div><div class='keyword-entry' id='keyword-angle_beta'><div class='keyword-header'>system/cell :: <strong>angle_beta</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: float</p></li>
 <li><p><strong>Default</strong>: —</p></li>
 <li><p><strong>Unit</strong>: deg</p></li>
 <li><p>​</p></li>
-<li><p>Cell angle <span class="math notranslate nohighlight">\(\beta = \angle(\mathbf{a}, \mathbf{c})\)</span>.</p></li>
+<li><p>Cell angle <span class="math notranslate nohighlight">\(\beta\)</span>.</p></li>
 </ul>
 </div><div class='keyword-entry' id='keyword-angle_gamma'><div class='keyword-header'>system/cell :: <strong>angle_gamma</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: float</p></li>
 <li><p><strong>Default</strong>: —</p></li>
 <li><p><strong>Unit</strong>: deg</p></li>
 <li><p>​</p></li>
-<li><p>Cell angle <span class="math notranslate nohighlight">\(\gamma = \angle(\mathbf{a}, \mathbf{b})\)</span>.</p></li>
+<li><p>Cell angle <span class="math notranslate nohighlight">\(\gamma\)</span>.</p></li>
 </ul>
 </div></section>
 <section id="subblock-fragment">
@@ -322,6 +325,7 @@ CHECK AGAIN</p></li>
 <li><p><strong>Unit</strong>: Angstrom</p></li>
 <li><p>​</p></li>
 <li><p>Define if Hessian should be diagonalized. Possible values are:
+
  * <strong>y</strong> yes, diagonalized Hessian –&gt; provide <cite>force_file &lt;#keyword-force_file&gt;</cite>
  * <strong>n</strong> no, load existing data –&gt; provide <cite>normal_freq_file &lt;#keyword-normal_freq_file&gt;</cite> and <cite>normal_displ_file &lt;#keyword-normal_displ_file&gt;</cite>
 
@@ -376,6 +380,7 @@ CHECK AGAIN</p></li>
 <li><p><strong>Default</strong>: berry</p></li>
 <li><p>​</p></li>
 <li><p>Define type of provided dipole moments. Possible values are:
+
 * <strong>berry</strong> for berry phase dipolemoments
 * <strong>wannier</strong> for wannier dipolemoments
 * <strong>dfpt</strong> for density functional perturbation theory
