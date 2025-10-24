@@ -1,12 +1,13 @@
 
 Keyword Glossary
--------------
+================
 
 link to a keyword: `See temperature keyword <#keyword-temperature>`__
 
 
 Block: global
 -------------
+
 .. code-block:: text
 
     &global
@@ -49,6 +50,7 @@ Block: global
 
 Block: system
 -------------
+
 .. code-block:: text
 
     &system
@@ -76,7 +78,7 @@ Block: system
    Define if mass weighting should be applied for spectra computation. Values: 'y' or 'n'
 
 Subblock: cell
-================
+~~~~~~~~~~~~~~~~
 .. code-block:: text
 
     &cell
@@ -134,7 +136,7 @@ Subblock: cell
     Cell angle :math:\gamma=\angle(\mathbf{a},\mathbf{b}).
 
 Subblock: fragment
-================
+~~~~~~~~~~~~~~~~
 .. code-block:: text
 
     &fragment
@@ -150,6 +152,7 @@ List of atomic indices that belong to a fragment (one entry per fragment).
 
 Block: md
 -------------
+
 .. code-block:: text
 
     &md
@@ -172,6 +175,7 @@ Time step of molecular dynamics trajectory.
 
 Block: static
 -------------
+
 .. code-block:: text
     
     &static
@@ -222,10 +226,11 @@ File containing normal mode displacements or eigenvectors.
 Flag to write a molecular structure file (values: “y” or “n”).
 
 Block: hessian
-================
+~~~~~~~~~~~~~~~~
 
 Block: dipoles
 -------------
+
 .. code-block:: text
     
     &dipoles
@@ -284,6 +289,7 @@ Block: dipoles
 
 Block: rtp
 -------------
+
 .. code-block:: text
 
     &rtp
@@ -331,6 +337,7 @@ Damping constant used in RTP spectrum calculations.
 
 Block: raman
 -------------
+
 .. code-block:: text
 
     &raman
