@@ -52,16 +52,20 @@ class KeywordDirective(Directive):
         node['target_id'] = target_name
 
         # Build reST for type/default/unit/description
-        text = [
+        info_lines = [
             f"- **Type**: {type_}",
             f"- **Default**: {default}",
         ]
         if unit:
-            text.append(f"- **Unit**: {unit}")
-        text += ["-  \u200b", "- " + description]
+            info_lines.append(f"- **Unit**: {unit}")
+
+        info = StringList(info_lines)
+        self.state.nested_parse(info, self.content_offset, node)
+        #text += ["-  \u200b", "- " + description]
 
         content = StringList(text)
-        self.state.nested_parse(content, self.content_offset, node)
+        if self.content:
+            self.state.nested_parse(self.content, self.content_offset, node)
 
         return [target_node, node]
 
