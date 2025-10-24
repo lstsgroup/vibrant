@@ -20,7 +20,7 @@ Block: global
    :default: None
 
     Type of spectra to calculate. Possible values are:
-    
+
     * **NMA**, **IR**, **R** — Normal Mode Analysis, Static IR, Static Raman
     * **P**, **MD-IR**, **MD-R** — Power Spectrum, Dynamic IR, Dynamic Raman 
     * **ABS**, **RR**, **MD-RR** — Absorption Spectrum, Static Resonance Raman, Dynamic Resonance Raman
