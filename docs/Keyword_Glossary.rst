@@ -22,38 +22,16 @@ Block: global
    :type: string
    :default: None
 
-    Type of spectra to calculate. Possible values are:
+   Type of spectra to calculate. Possible values are:
 
-    * **NMA**, **IR**, **R** — Normal Mode Analysis, Static IR, Static Raman
-    * **P**, **MD-IR**, **MD-R** — Power Spectrum, Dynamic IR, Dynamic Raman
-    * **ABS**, **RR**, **MD-RR** — Absorption Spectrum, Static Resonance Raman, Dynamic Resonance Raman
+   **NMA**, **IR**, **R**
+      Normal Mode Analysis, Static IR, Static Raman
 
-.. keyword:: spectra
-   :section: global
-   :type: string
-   :default: None
+   **P**, **MD-IR**, **MD-R**
+      Power Spectrum, Dynamic IR, Dynamic Raman
 
-    .. list-table::
-        :widths: 15 85
-        :header-rows: 0
-
-        * - **NMA**, **IR**, **R**
-            - Normal Mode Analysis, Static IR, Static Raman
-        * - **P**, **MD-IR**, **MD-R**
-            - Power Spectrum, Dynamic IR, Dynamic Raman
-        * - **ABS**, **RR**, **MD-RR**
-            - Absorption Spectrum, Static Resonance Raman, Dynamic Resonance Raman
-
-.. list-table::
-   :widths: 15 85
-   :header-rows: 0
-
-   * - **NMA**, **IR**, **R**
-     - Normal Mode Analysis, Static IR, Static Raman
-   * - **P**, **MD-IR**, **MD-R**
-     - Power Spectrum, Dynamic IR, Dynamic Raman
-   * - **ABS**, **RR**, **MD-RR**
-     - Absorption Spectrum, Static Resonance Raman, Dynamic Resonance Raman
+   **ABS**, **RR**, **MD-RR**
+      Absorption Spectrum, Static Resonance Raman, Dynamic Resonance Raman
 
 
 .. keyword:: temperature
