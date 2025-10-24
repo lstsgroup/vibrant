@@ -60,7 +60,7 @@ Check :doc:`IR spectrum documentation <IR_spec>` for more theoretical background
 
    <div style="text-align: center; margin: 1em 0;">
      <img src="_static/index/o-NP.png" alt="o-NP" style="max-width: 300px; height: auto; border-radius: 6px;">
-     <p style="font-size: 0.9em; color: #555;">Figure: o-Nitrophenol structure used for IR spectrum calculation</p>
+     <p style="font-size: 0.9em; color: #555;">o-Nitrophenol structure used for IR spectrum calculation</p>
    </div>
 
 Data files for o-NP can be downloaded here:
