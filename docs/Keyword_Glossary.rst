@@ -22,10 +22,12 @@ Block: global
    :type: string
    :default: None
 
-   Type of spectra to calculate. Possible values are: 
-    * **NMA, IR, R** Normal Mode Analysis, Static IR, Static Raman
-    * **P, MD-IR, MD-R** Dynamic Powerspectrum, Dynamic IR, Dynamic Raman
-    * **ABS, RR, MD-RR** Absorption Spectrum, Static Resonance Raman, Dynamic Resonance Resonance
+    Type of spectra to calculate. Possible values are:
+
+    * **NMA**, **IR**, **R** Normal Mode Analysis, Static IR, Static Raman  
+    * **P**, **MD-IR**, **MD-R** Dynamic Power Spectrum, Dynamic IR, Dynamic Raman  
+    * **ABS**, **RR**, **MD-RR** Absorption Spectrum, Static Resonance Raman, Dynamic Resonance Raman
+
 
 .. keyword:: temperature
    :section: global
@@ -73,6 +75,7 @@ Block: system
    :type: string
     
     Define type of provided trajectory. Possible values are: 
+
     * **pos** for a trajectory of positions
     * **vel** or a trajectory of velocities
 
@@ -81,9 +84,10 @@ Block: system
    :type: string
     
    Define if mass weighting should be applied for spectra computation. Possible values are: 
+
     * **y** yes, apply mass weighting 
     * **n** no, dont apply mass weighting 
-    
+
 Subblock: cell
 ~~~~~~~~~~~~~~~~
 .. code-block:: text
@@ -111,40 +115,40 @@ Subblock: cell
     :section: system/cell
     :type: float
 
-    Length of the cell vector :math:`\mathbf{a}` (x component). Uses the same unit as coordinates.
+    Length of the box lenght :math:`\mathbf{a}`. Uses the same unit as coordinates.
 
 .. keyword:: box_y
     :section: system/cell
     :type: float
 
-    Length of the cell vector :math:`\mathbf{b}` (y component). Uses the same unit as coordinates.
+    Length of the box lenght :math:`\mathbf{b}`. Uses the same unit as coordinates.
 
 .. keyword:: box_z
     :section: system/cell
     :type: float
 
-    Length of the cell vector :math:`\mathbf{c}` (z component). Uses the same unit as coordinates.
+    Length of the box lenght :math:`\mathbf{c}`. Uses the same unit as coordinates.
 
 .. keyword:: angle_alpha
     :section: system/cell
     :type: float
     :unit: deg
 
-    Cell angle  :math:`\alpha = \angle(\mathbf{b}, \mathbf{c})`.
+    Cell angle  :math:`\alpha`.
 
 .. keyword:: angle_beta
     :section: system/cell
     :type: float
     :unit: deg
 
-    Cell angle :math:`\beta = \angle(\mathbf{a}, \mathbf{c})`.
+    Cell angle :math:`\beta`.
 
 .. keyword:: angle_gamma
     :section: system/cell
     :type: float
     :unit: deg
 
-    Cell angle :math:`\gamma = \angle(\mathbf{a}, \mathbf{b})`.
+    Cell angle :math:`\gamma`.
 
 Subblock: fragment
 ~~~~~~~~~~~~~~~~
@@ -211,6 +215,7 @@ Block: static
    :unit: Angstrom
 
    Define if Hessian should be diagonalized. Possible values are: 
+
     * **y** yes, diagonalized Hessian --> provide `force_file <#keyword-force_file>`
     * **n** no, load existing data --> provide `normal_freq_file <#keyword-normal_freq_file>` and `normal_displ_file <#keyword-normal_displ_file>`
 
@@ -266,6 +271,7 @@ Block: dipoles
     :default: berry
     
     Define type of provided dipole moments. Possible values are: 
+
     * **berry** for berry phase dipolemoments
     * **wannier** for wannier dipolemoments
     * **dfpt** for density functional perturbation theory
