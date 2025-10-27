@@ -415,6 +415,12 @@ CONTAINS
         DEALLOCATE (sys%fragments%refpoint)
     END SUBROUTINE compute_dipole
 
+    !> @brief Computes cell parameters from lattice vectors.
+    !>
+    !> This subroutine calculates the cell parameters of the system from the provided lattice vectors.
+    !>
+    !> @param[inout] sys    --  System data structure (provides atomic and cell information)
+    !>
     SUBROUTINE check_lattice_parameters(sys)
         
         TYPE(systems), INTENT(INOUT) :: sys
