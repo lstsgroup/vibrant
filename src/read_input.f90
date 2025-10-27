@@ -450,7 +450,7 @@ CONTAINS
                     sentinel = HUGE(1.0_dp)
                     buf = sentinel
 
-                    READ (line, *, iostat=ios) dummy, (buf(i), i=1, 10)
+                    READ (line, *, iostat=ios) dummy, (buf(i), i=1, 4)
                     m = COUNT(buf/=sentinel)
 
                     IF (m==0) THEN
@@ -643,7 +643,7 @@ CONTAINS
             !check for the full width at half-maximum
             IF (gs%fwhm<0) THEN
                 WRITE (error_unit, '(4X,"[WARN]  ",A)') 'Full width at half-maximum is not defined, setting it to 10 cm^{-1}'
-                gs%temp = 10
+                gs%fwhm = 10
             END IF
 
             
