@@ -19,7 +19,7 @@
 MODULE dipole_calc
 
     USE kinds, ONLY: dp, str_len
-    USE constants, ONLY: debye, bohr2ang
+    USE constants, ONLY: debye, bohr2ang, pi
     USE ISO_FORTRAN_ENV, ONLY: output_unit, error_unit
     USE vib_types, ONLY: global_settings, systems, molecular_dynamics, static, dipoles, fragment_group
     USE cell_types, ONLY: build_hmat, pbc, pbc_vec, invert3x3, determinant3x3
@@ -28,7 +28,7 @@ MODULE dipole_calc
 
     IMPLICIT NONE
 
-    PUBLIC :: compute_dipole, check_jumps, assign_wannier, compute_dipole_frag
+    PUBLIC :: compute_dipole, check_jumps, assign_wannier, compute_dipole_frag, check_lattice_parameters
     PRIVATE
 
 CONTAINS
@@ -414,5 +414,37 @@ CONTAINS
 
         DEALLOCATE (sys%fragments%refpoint)
     END SUBROUTINE compute_dipole
+
+    SUBROUTINE check_lattice_parameters(sys)
+        
+        TYPE(systems), INTENT(INOUT) :: sys
+        REAL(kind=dp) :: dot_ab, dot_ac, dot_bc
+        IF (sys%cell%box_x<0 .OR. sys%cell%box_y<0 .OR.sys%cell%box_z<0 .OR.sys%cell%angle_alpha<0 .OR. sys%cell%angle_beta<0 .OR. sys%cell%angle_gamma<0) THEN
+            IF (ALLOCATED(sys%cell%lattice_x) .AND. ALLOCATED(sys%cell%lattice_y) .AND. ALLOCATED(sys%cell%lattice_z)) THEN
+                ! Lengths
+                sys%cell%box_x = sqrt(sum(sys%cell%lattice_x**2))
+                sys%cell%box_y = sqrt(sum(sys%cell%lattice_y**2))
+                sys%cell%box_z = sqrt(sum(sys%cell%lattice_z**2))
+            
+                ! Dot products
+                dot_ab = sum(sys%cell%lattice_x * sys%cell%lattice_y)
+                dot_ac = sum(sys%cell%lattice_x * sys%cell%lattice_z)
+                dot_bc = sum(sys%cell%lattice_y * sys%cell%lattice_z)
+            
+                ! Angles (convert from radians to degrees)
+                sys%cell%angle_alpha = acos(dot_bc / (sys%cell%box_y * sys%cell%box_z)) * 180.0d0 / pi
+                sys%cell%angle_beta  = acos(dot_ac / (sys%cell%box_x * sys%cell%box_z)) * 180.0d0 / pi
+                sys%cell%angle_gamma = acos(dot_ab / (sys%cell%box_x * sys%cell%box_y)) * 180.0d0 / pi
+                
+                WRITE (*, '(4X,A, T60, A)') "Found lattice vector and calculating cell parameters:"
+                WRITE (*, '(6X,A, T60, F0.6, 1X, F0.6, 1X,F0.6)') "ell parameter: ", sys%cell%box_x, sys%cell%box_y, sys%cell%box_z
+                WRITE (*, '(6X,A, T60, F0.6,1X,F0.6,1X,F0.6)') "cell angles: ", sys%cell%angle_alpha, sys%cell%angle_beta,  sys%cell%angle_gamma
+            ELSE
+                WRITE (error_unit, '(4X,"[ERROR] ",A)') 'Cell parameter not correctly defined' 
+                STOP
+            END IF
+        END IF
+        
+    END SUBROUTINE check_lattice_parameters
 
 END MODULE dipole_calc

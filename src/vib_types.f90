@@ -58,15 +58,10 @@ MODULE vib_types
 
     !***************************************************************************
     TYPE cell
-        CHARACTER(LEN=40)                              :: cell_type !orthorombic/hexagonal etc, not used currently
-        REAL(kind=dp)                                  :: box_x !a vector of the box
-        REAL(kind=dp)                                  :: box_y !b vector of the box
-        REAL(kind=dp)                                  :: box_z !c vector of the box
-        REAL(kind=dp)                                  :: vec(3) !coord2-coord1 before pbc correction
-        REAL(kind=dp)                                  :: vec_pbc(3) !coord2-coord1 after pbc correction
-        REAL(kind=dp)                                  :: angle_alpha !alpha angle of the box
-        REAL(kind=dp)                                  :: angle_beta !beta angle of the box
-        REAL(kind=dp)                                  :: angle_gamma !gamma angle of the box
+        CHARACTER(LEN=40)                              :: cell_type
+        REAL(kind=dp)                                  :: box_all, box_x, box_y, box_z, vec(3), vec_pbc(3)
+        REAL(kind=dp)                                  :: angle_alpha, angle_beta, angle_gamma
+        REAL(kind=dp), DIMENSION(:), ALLOCATABLE       :: lattice_x, lattice_y, lattice_z
     END TYPE cell
     !***************************************************************************
     TYPE frame_type
@@ -543,6 +538,15 @@ CONTAINS
         sys%type_traj = ''
         sys%input_mass = ''
         sys%mass_tot = -1.0_dp
+
+        !cell
+        sys%cell%box_x = -1.0_dp
+        sys%cell%box_y = -1.0_dp
+        sys%cell%box_z = -1.0_dp
+
+        sys%cell%angle_alpha    = -1.0_dp
+        sys%cell%angle_beta     = -1.0_dp
+        sys%cell%angle_gamma    = -1.0_dp
     END SUBROUTINE init_systems
 
     !**************************************************************************************!
