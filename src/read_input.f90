@@ -21,7 +21,7 @@ MODULE read_input
     USE vib_types!, ONLY: global_settings, systems, static, dipoles, raman, molecular_dynamics
     USE output_io, ONLY: check_file_open
     USE ISO_FORTRAN_ENV, ONLY: output_unit, error_unit
-
+    USE dipole_calc, ONLY: check_lattice_parameters
     IMPLICIT NONE
 
     PRIVATE
@@ -311,32 +311,52 @@ CONTAINS
                         READ (line, *) dummy, sys%cell%cell_type
                         WRITE (*, '(4X,A, T60, A)') "cell type: ", sys%cell%cell_type
                     END IF
-                    IF (INDEX(to_lower(line), 'box_x')>0) THEN
-                        READ (line, *) dummy, sys%cell%box_x
-                        WRITE (*, '(4X,A, T60, F0.6)') "cell vector x: ", sys%cell%box_x
+                    IF (INDEX(to_lower(line), 'box')>0) THEN
+                        IF (INDEX(to_lower(line), 'box_xyz')>0) THEN
+                            READ (line, *) dummy, sys%cell%box_x, sys%cell%box_y, sys%cell%box_z
+                            WRITE (*, '(4X,A, T60, F0.6, F0.6, F0.6)') "cell vector: ", sys%cell%box_x, sys%cell%box_y, sys%cell%box_z
+                        ELSEIF (INDEX(to_lower(line), 'box_x')>0) THEN
+                            READ (line, *) dummy, sys%cell%box_x
+                            WRITE (*, '(4X,A, T60, F0.6)') "cell vector x: ", sys%cell%box_x
+                        ELSEIF (INDEX(to_lower(line), 'box_y')>0) THEN
+                            READ (line, *) dummy, sys%cell%box_y
+                            WRITE (*, '(4X,A, T60, F0.6)') "cell vector y: ", sys%cell%box_y
+                        ELSEIF (INDEX(to_lower(line), 'box_z')>0) THEN
+                            READ (line, *) dummy, sys%cell%box_z
+                            WRITE (*, '(4X,A, T60, F0.6)') "cell vector z: ", sys%cell%box_z
+                        END IF
                     END IF
-                    IF (INDEX(to_lower(line), 'box_y')>0) THEN
-                        READ (line, *) dummy, sys%cell%box_y
-                        WRITE (*, '(4X,A, T60, F0.6)') "cell vector y: ", sys%cell%box_y
+                    IF (INDEX(to_lower(line), 'angle')>0) THEN
+                        IF (INDEX(to_lower(line), 'angle_alpha_beta_gamma')>0) THEN
+                            READ (line, *) dummy, sys%cell%angle_alpha, sys%cell%angle_beta,  sys%cell%angle_gamma
+                            WRITE (*, '(4X,A, T60, F0.6,1X,F0.6,1X,F0.6)') "Angle alpha: ", sys%cell%angle_alpha, sys%cell%angle_beta,  sys%cell%angle_gamma
+                        ELSEIF (INDEX(to_lower(line), 'angle_alpha')>0) THEN
+                            READ (line, *) dummy, sys%cell%angle_alpha
+                            WRITE (*, '(4X,A, T60, F0.6)') "Angle alpha: ", sys%cell%angle_alpha
+                        ELSEIF (INDEX(to_lower(line), 'angle_beta')>0) THEN
+                            READ (line, *) dummy, sys%cell%angle_beta
+                            WRITE (*, '(4X,A, T60, F0.6)') "Angle beta: ", sys%cell%angle_beta
+                        ELSEIF (INDEX(to_lower(line), 'angle_gamma')>0) THEN
+                            READ (line, *) dummy, sys%cell%angle_gamma
+                            WRITE (*, '(4X,A, T60, F0.6)') "Angle gamma: ", sys%cell%angle_gamma
+                        END IF
                     END IF
-                    IF (INDEX(to_lower(line), 'box_z')>0) THEN
-                        READ (line, *) dummy, sys%cell%box_z
-                        WRITE (*, '(4X,A, T60, F0.6)') "cell vector z: ", sys%cell%box_z
-                    END IF
-                    IF (INDEX(to_lower(line), 'angle_alpha')>0) THEN
-                        READ (line, *) dummy, sys%cell%angle_alpha
-                        WRITE (*, '(4X,A, T60, F0.6)') "Angle alpha: ", sys%cell%angle_alpha
-                    END IF
-                    IF (INDEX(to_lower(line), 'angle_beta')>0) THEN
-                        READ (line, *) dummy, sys%cell%angle_beta
-                        WRITE (*, '(4X,A, T60, F0.6)') "Angle beta: ", sys%cell%angle_beta
-                    END IF
-                    IF (INDEX(to_lower(line), 'angle_gamma')>0) THEN
-                        READ (line, *) dummy, sys%cell%angle_gamma
-                        WRITE (*, '(4X,A, T60, F0.6)') "Angle gamma: ", sys%cell%angle_gamma
-                    END IF
+                        IF (INDEX(to_lower(line), 'lattice_x')>0) THEN
+                            ALLOCATE(sys%cell%lattice_x(3))
+                            READ (line, *) dummy, sys%cell%lattice_x(1), sys%cell%lattice_x(2) ,sys%cell%lattice_x(3)
+                            WRITE (*, '(4X,A, T60, F0.6,1X,F0.6,1X,F0.6)') "lattice vector x: ", sys%cell%lattice_x(1), sys%cell%lattice_x(2) ,sys%cell%lattice_x(3)
+                        END IF
+                        IF (INDEX(to_lower(line), 'lattice_y')>0) THEN
+                            ALLOCATE(sys%cell%lattice_y(3))
+                            READ (line, *) dummy, sys%cell%lattice_y(1), sys%cell%lattice_y(2) ,sys%cell%lattice_y(3)
+                            WRITE (*, '(4X,A, T60, F0.6,1X,F0.6,1X,F0.6)') "lattice vector y: ",sys%cell%lattice_y(1), sys%cell%lattice_y(2) ,sys%cell%lattice_y(3)
+                        END IF
+                        IF (INDEX(to_lower(line), 'lattice_z')>0) THEN
+                            ALLOCATE(sys%cell%lattice_z(3))
+                            READ (line, *) dummy,  sys%cell%lattice_z(1), sys%cell%lattice_z(2) ,sys%cell%lattice_z(3)
+                            WRITE (*, '(4X,A, T60, F0.6,1X,F0.6,1X,F0.6)') "lattice vector z: ", sys%cell%lattice_z(1), sys%cell%lattice_z(2) ,sys%cell%lattice_z(3)
+                        END IF
                 END IF
-
                 IF (in_fragment_group) THEN
                     IF (INDEX(to_lower(line), 'atom_list')>0) THEN
                         arr = 0
@@ -625,6 +645,8 @@ CONTAINS
                 WRITE (error_unit, '(4X,"[WARN]  ",A)') 'Full width at half-maximum is not defined, setting it to 10 cm^{-1}'
                 gs%temp = 10
             END IF
+
+            
         !****************************************************************************************************!
         !****************************************************************************************************!
         !Check for static Raman
@@ -688,6 +710,7 @@ CONTAINS
                 WRITE (error_unit, '(4X,"[WARN]  ",A)') 'Full width at half-maximum is not defined, setting it to 10 cm^{-1}'
                 gs%fwhm = 10
             END IF
+
         !****************************************************************************************************!
         !****************************************************************************************************!
         !Check for absorption spectrum
@@ -873,6 +896,8 @@ CONTAINS
                     WRITE (error_unit, '(4X,"[ERROR] ",A)') 'correlation depth not defined in the input, we will continue with an estimate' !can be worded differently
                     STOP
                 END IF
+
+                CALL check_lattice_parameters(sys)
             !****************************************************************************************************!
             !****************************************************************************************************!
             !Check for MD-based Raman
@@ -927,6 +952,9 @@ CONTAINS
                     WRITE (error_unit, '(4X,"[WARN]  ",A)') 'Incident laser frequency not defined, setting it to 1 0.5 cm⁻1'
                     ALLOCATE (rams%laser_in(1))
                     rams%laser_in(1) = 0.5
+                END IF
+                IF (TRIM(dips%type_dipole)=='wannier') THEN
+                    CALL check_lattice_parameters(sys)
                 END IF
             !****************************************************************************************************!
             !****************************************************************************************************!

@@ -148,6 +148,27 @@ Subblock: cell
 
     Cell angle :math:`\gamma`.
 
+.. keyword:: lattice_x
+    :section: system/cell
+    :type: list[float]
+
+
+    Lattice vector in x direction of system.
+
+.. keyword:: lattice_y
+    :section: system/cell
+    :type: list[float]
+
+
+    Lattice vector in y direction of system.
+
+.. keyword:: lattice_z
+    :section: system/cell
+    :type: list[float]
+
+
+    Lattice vector in z direction of system.
+
 Subblock: fragment
 ~~~~~~~~~~~~~~~~
 .. code-block:: text
