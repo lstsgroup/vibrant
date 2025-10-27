@@ -803,24 +803,30 @@ CONTAINS
         LOGICAL                                                   :: first_column
         INTEGER                                                  :: stat, i, j, x, freq_res, runit, i_laser
         INTEGER                                                  :: start_freq, end_freq!, recl
-        REAL(kind=dp)                                             :: broad
-        REAL(kind=dp), DIMENSION(:), ALLOCATABLE                    :: iso_sq, aniso_sq, ram_const, data2, freq!,broad
+        REAL(kind=dp)                                             :: broad, broad_para, broad_ortho
+        REAL(kind=dp), DIMENSION(:), ALLOCATABLE                    :: r_int_para, r_int_ortho , iso_sq, aniso_sq, ram_const, data2, spec_broad_para, spec_broad_ortho, freq!,broad
 
         !!Allocate
         ALLOCATE (iso_sq(stats%nmodes), aniso_sq(stats%nmodes))
         ALLOCATE (rams%raman_int(stats%nmodes), ram_const(stats%nmodes))
-
+        IF (gs%spectra_verbosity=='high') THEN
+            ALLOCATE (r_int_para(stats%nmodes),r_int_ortho(stats%nmodes))
+        END IF
         !!Estimate frequency range
         start_freq = 1
         end_freq = INT(MAXVAL(stats%freq) + 1000.0_dp)
         freq_res = INT(end_freq - start_freq)
         !!Allcate based on the freq range
         ALLOCATE (data2(freq_res + 1))
+        IF (gs%spectra_verbosity=='high') THEN
+            ALLOCATE (spec_broad_para(freq_res + 1))
+            ALLOCATE (spec_broad_ortho(freq_res + 1))
+        END IF
         ALLOCATE (freq(freq_res + 1))
         data2 = 0.0_dp
         ! recl = 4096
 
-        outfile = 'result_static_raman.txt'
+      
 
         !!!Isotropic and anisotropic contributions!!
         iso_sq(:) = REAL((rams%pol_dq(:, 1, 1) + rams%pol_dq(:, 2, 2) + rams%pol_dq(:, 3, 3))/3.0_dp, kind=dp)**2.0_dp
@@ -836,7 +842,6 @@ CONTAINS
         aniso_sq = aniso_sq*(ang**4._dp)/am_u
         !!Different laser wavelengths
         DO i_laser = 1, SIZE(rams%laser_in)
-
             !!! Conversion of static Raman units into 10^{-30}*cm^2/sr
             ram_const(:) = (const_planck/(8.0_dp*speed_light*cm2m*const_permit*const_permit)*1.e+30* &
                             REAL(((rams%laser_in(i_laser)/reccm2ev - stats%freq(:))**4.0_dp)/(stats%freq(:)*cm2m**3.0_dp), kind=dp)* &
@@ -844,29 +849,60 @@ CONTAINS
                                                   (const_boltz*gs%temp)))))/(cm2m**2._dp)
 
             !!! Unpolarized Raman intensities
+            IF (gs%spectra_verbosity=='high') THEN 
+                r_int_para(:) = REAL(((4.0_dp*aniso_sq(:)) + (45.0_dp*iso_sq(:)))/45.0_dp, kind=dp)*ram_const(:)
+                r_int_ortho(:) = REAL(((3.0_dp*aniso_sq(:)))/45.0_dp, kind=dp)*ram_const(:)
+            END IF
             rams%raman_int(:) = REAL(((7.0_dp*aniso_sq(:)) + (45.0_dp*iso_sq(:)))/45.0_dp, kind=dp)*ram_const(:)
 
             data2(:) = 0.0_dp
+            IF (gs%spectra_verbosity=='high') THEN
+                spec_broad_para(:) = 0.0_dp
+                spec_broad_ortho(:) = 0.0_dp
+            END IF
             freq(:) = 0.0_dp
             !!! Apply Gaussian broadening
             DO i = start_freq, end_freq
                 broad = 0.0_dp
+                broad_ortho = 0.0_dp
+                broad_para = 0.0_dp
                 DO x = 1, stats%nmodes
                     broad = broad + (rams%raman_int(x)*(1.0_dp/(gs%fwhm*SQRT(2.0_dp*pi)))* &
                                      EXP(-0.50_dp*((i - stats%freq(x))/gs%fwhm)**2.0_dp))
+                    IF (gs%spectra_verbosity=='high') THEN  
+                        broad_para = broad_para + (r_int_para(x)*(1.0_dp/(gs%fwhm*SQRT(2.0_dp*pi)))* &
+                                        EXP(-0.50_dp*((i - stats%freq(x))/gs%fwhm)**2.0_dp))
+                        broad_ortho = broad_ortho + (r_int_ortho(x)*(1.0_dp/(gs%fwhm*SQRT(2.0_dp*pi)))* &
+                                        EXP(-0.50_dp*((i - stats%freq(x))/gs%fwhm)**2.0_dp))
+                    END IF
                 END DO
                 freq(i) = i
                 data2(i) = broad
+                IF (gs%spectra_verbosity=='high') THEN
+                    spec_broad_para(i) = broad_para
+                    spec_broad_ortho(i) = broad_ortho
+                END IF
             END DO
 
             !!Write the results to a file
+            outfile = 'result_static_raman.txt'
             WRITE (c_label, '("INT ",F10.6, " eV")') rams%laser_in(i_laser)
             IF (i_laser==1) THEN
-                !CALL write_spectra_data(outfile, c_label, start_freq, end_freq, data2(:))
                 CALL write_spectra_data(outfile, c_label, freq, data2(:))
+                IF (gs%spectra_verbosity=='high') THEN
+                    outfile = 'result_static_raman_para.txt'
+                    CALL write_spectra_data(outfile, c_label, freq, spec_broad_para(:))
+                    outfile = 'result_static_raman_ortho.txt'
+                    CALL write_spectra_data(outfile, c_label, freq, spec_broad_ortho(:))
+                END IF
             ELSE
-                !WRITE(c_label,'("INT ",F10.6, " eV")') rams%laser_in(i_laser)
                 CALL append_column(outfile, c_label, data2(:), freq)
+                IF (gs%spectra_verbosity=='high') THEN
+                    outfile = 'result_static_raman_para.txt'
+                    CALL append_column(outfile, c_label, spec_broad_para(:), freq)
+                    outfile = 'result_static_raman_ortho.txt'
+                    CALL append_column(outfile, c_label, spec_broad_ortho(:), freq)
+                END IF
             END IF
 
         !!Write .mol output
@@ -1042,9 +1078,9 @@ CONTAINS
         INTEGER                                                       :: start_freq, end_freq, rtp_point
         INTEGER(kind=dp)                                               :: plan
         CHARACTER(len=str_len)                                         :: msg, fname, outfile, c_label
-        REAL(kind=dp)                                                  :: rtp_freq_res, pade_freq_res, fin_diff_factor, broad
-        REAL(kind=dp), DIMENSION(:), ALLOCATABLE                         :: data2, ram_const, freq
-        REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE                       :: iso_sq, aniso_sq, raman_int
+        REAL(kind=dp)                                                  :: rtp_freq_res, pade_freq_res, fin_diff_factor, broad, broad_para, broad_ortho
+        REAL(kind=dp), DIMENSION(:), ALLOCATABLE                         :: data2,spec_broad_para, spec_broad_ortho,  ram_const, freq
+        REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE                       :: iso_sq, aniso_sq, raman_int, r_int_para, r_int_ortho
         COMPLEX(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE                   :: zhat_pol_dq_rtp
         COMPLEX(kind=dp), DIMENSION(:, :, :, :, :), ALLOCATABLE                 :: zhat_pol_dxyz_rtp
 
@@ -1060,8 +1096,12 @@ CONTAINS
         ALLOCATE (zhat_pol_dq_rtp(stats%nmodes, 3, 3, rams%RR%framecount_rtp))
         ALLOCATE (iso_sq(stats%nmodes, rams%RR%framecount_rtp), aniso_sq(stats%nmodes, rams%RR%framecount_rtp))
         ALLOCATE (raman_int(stats%nmodes, rams%RR%framecount_rtp), ram_const(stats%nmodes))
-
-        outfile = 'result_static_resraman.txt'
+        IF (gs%spectra_verbosity=='high') THEN
+            ALLOCATE (r_int_para(stats%nmodes, rams%RR%framecount_rtp),r_int_ortho(stats%nmodes, rams%RR%framecount_rtp))
+            ALLOCATE (spec_broad_para(freq_res*stats%nmodes))
+            ALLOCATE (spec_broad_ortho(freq_res*stats%nmodes))
+        END IF
+        
 
         !!Finite difference factor
         fin_diff_factor = 1.0_dp/(2.0_dp*stats%dx)
@@ -1109,7 +1149,8 @@ CONTAINS
 
         !!!Finding laser frequency
         rtp_freq_res = REAL(rams%RR%freq_range_rtp/rams%RR%framecount_rtp, kind=dp)
-
+        
+       
         DO i_laser = 1, SIZE(rams%laser_in)
 
             rtp_point = ANINT(rams%laser_in(i_laser)/(rtp_freq_res*reccm2ev), kind=dp)
@@ -1122,30 +1163,63 @@ CONTAINS
                                                   (const_boltz*gs%temp)))))/(cm2m**2._dp)
 
             !!!Calculation of the unpolarized resonance Raman intensities!!
+            IF (gs%spectra_verbosity=='high') THEN 
+                r_int_para(:,rtp_point) = REAL(((4.0_dp*aniso_sq(:, rtp_point)) + (45.0_dp*iso_sq(:, rtp_point)))/45.0_dp, kind=dp)*ram_const(:)
+                r_int_ortho(:,rtp_point) = REAL(((3.0_dp*aniso_sq(:, rtp_point)))/45.0_dp, kind=dp)*ram_const(:)
+            END IF
             raman_int(:, rtp_point) = REAL(((7.0_dp*aniso_sq(:, rtp_point)) + (45.0_dp*iso_sq(:, rtp_point)))/45.0_dp, kind=dp)* &
                                       ram_const(:)
 
             data2(:) = 0.0_dp
+            IF (gs%spectra_verbosity=='high') THEN
+                spec_broad_para(:) = 0.0_dp
+                spec_broad_ortho(:) = 0.0_dp
+            END IF
             freq(:) = 0.0_dp
             !!!Broadening the spectrum!!
             DO x = start_freq, end_freq
                 broad = 0.0_dp
+                broad_ortho = 0.0_dp
+                broad_para = 0.0_dp
                 DO i = 1, stats%nmodes
                     broad = broad + (raman_int(i, rtp_point)*(1.0_dp/(gs%fwhm*SQRT(2.0_dp*pi))) &
                                      *EXP(-0.50_dp*((x - stats%freq(i))/gs%fwhm)**2.0_dp))
+                    IF (gs%spectra_verbosity=='high') THEN  
+                        broad_para = broad_para + (r_int_para(i, rtp_point)*(1.0_dp/(gs%fwhm*SQRT(2.0_dp*pi))) &
+                                    *EXP(-0.50_dp*((x - stats%freq(i))/gs%fwhm)**2.0_dp))
+                        broad_ortho = broad_ortho + (r_int_ortho(i, rtp_point)*(1.0_dp/(gs%fwhm*SQRT(2.0_dp*pi))) &
+                                        *EXP(-0.50_dp*((x - stats%freq(i))/gs%fwhm)**2.0_dp))
+                    END IF
                 END DO
                 data2(x) = broad
+                IF (gs%spectra_verbosity=='high') THEN
+                    spec_broad_para(x) = broad_para
+                    spec_broad_ortho(x) = broad_ortho
+                END IF
                 freq(x) = x
             END DO
 
             !!Writing out the results
+            outfile = 'result_static_resraman.txt'
             WRITE (c_label, '("INT ",F10.6, " eV")') rams%laser_in(i_laser)
             IF (i_laser==1) THEN
                 !CALL write_spectra_data(outfile, c_label, start_freq, end_freq, data2(:))
                 CALL write_spectra_data(outfile, c_label, freq, data2(:))
+                IF (gs%spectra_verbosity=='high') THEN
+                    outfile = 'result_static_resraman_para.txt'
+                    CALL write_spectra_data(outfile, c_label, freq, spec_broad_para(:))
+                    outfile = 'result_static_resraman_ortho.txt'
+                    CALL write_spectra_data(outfile, c_label, freq, spec_broad_ortho(:))
+                END IF
             ELSE
                 !WRITE(c_label,'("INT ",F10.6, " eV")') rams%laser_in(i_laser)
                 CALL append_column(outfile, c_label, data2(:), freq)
+                IF (gs%spectra_verbosity=='high') THEN
+                    outfile = 'result_static_resraman_para.txt'
+                    CALL append_column(outfile, c_label, spec_broad_para(:), freq)
+                    outfile = 'result_static_resraman_ortho.txt'
+                    CALL append_column(outfile, c_label, spec_broad_ortho(:), freq)
+                END IF
             END IF
         
             !!Write .mol output
@@ -1379,7 +1453,7 @@ CONTAINS
         INTEGER(kind=dp)                                          :: plan, rtp_point
         REAL(kind=dp)                                             :: f, freq_res, freq_range, rtp_freq_res, pade_freq_res, laser_in
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE                    :: trace, abs_intens, trace_pade, abs_intens_pade
-        REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE                  :: zhat_unpol_resraman
+        REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE                  :: zhat_unpol_resraman,zhat_para_resraman,zhat_ortho_resraman
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE                     :: raman_const, sinc_func, freq
         COMPLEX(kind=dp), DIMENSION(:, :), ALLOCATABLE               :: zhat_iso_resraman, zhat_aniso_resraman
 
@@ -1414,6 +1488,10 @@ CONTAINS
         !! Allocate
         ALLOCATE (zhat_iso_resraman(0:md%t_cor*2, Nw), zhat_aniso_resraman(0:md%t_cor*2, Nw))
         ALLOCATE (zhat_unpol_resraman(0:md%t_cor*2, Nw))
+        IF (gs%spectra_verbosity=='high') THEN
+            ALLOCATE (zhat_para_resraman(0:md%t_cor*2, Nw))
+            ALLOCATE (zhat_ortho_resraman(0:md%t_cor*2, Nw))
+        END IF
         !!Initialize
         zhat_iso_resraman = COMPLEX(0._dp, 0.0_dp)
         zhat_aniso_resraman = COMPLEX(0._dp, 0.0_dp)
@@ -1469,8 +1547,13 @@ CONTAINS
                 zhat_aniso_resraman(i + 1, rtp_point) = (zhat_aniso_resraman(i + 1, rtp_point))*(f*(i + 1)/SIN(f*(i + 1)))**2._dp
                 !!Generate the spectrum
                 zhat_unpol_resraman(i, rtp_point) = REAL(zhat_iso_resraman(i, rtp_point) + (zhat_aniso_resraman(i, rtp_point)*7.0_dp/45.0_dp), KIND=dp)*raman_const(i)
-
                 zhat_unpol_resraman(0, rtp_point) = 0.0_dp
+                IF (gs%spectra_verbosity=='high') THEN
+                    zhat_para_resraman(i, rtp_point) = REAL(zhat_iso_resraman(i, rtp_point) + (zhat_aniso_resraman(i, rtp_point)*4.0_dp/45.0_dp), KIND=dp)*raman_const(i)
+                    zhat_para_resraman(0, rtp_point) = 0.0_dp
+                    zhat_ortho_resraman(i, rtp_point) = REAL((zhat_aniso_resraman(i, rtp_point)*3.0_dp/45.0_dp), KIND=dp)*raman_const(i)
+                    zhat_ortho_resraman(0, rtp_point) = 0.0_dp
+                END IF
 
             END DO
 
@@ -1479,12 +1562,27 @@ CONTAINS
             WRITE (c_label, '("INT ",F10.6, " eV")') rams%laser_in(i_laser)
             IF (i_laser==1) THEN
                 CALL write_spectra_data(outfile, c_label, freq, zhat_unpol_resraman(:, rtp_point), 5000.0_dp)
+                IF (gs%spectra_verbosity=='high') THEN
+                    outfile = 'resonance_raman_para.txt'
+                    CALL write_spectra_data(outfile, c_label, freq, zhat_para_resraman(:, rtp_point), 5000.0_dp)
+                    outfile = 'resonance_raman_ortho.txt'
+                    CALL write_spectra_data(outfile, c_label, freq, zhat_ortho_resraman(:, rtp_point), 5000.0_dp)
+                END IF
             ELSE
                 CALL append_column(outfile, c_label, zhat_unpol_resraman(:, rtp_point), freq, 5000.0_dp)
+                IF (gs%spectra_verbosity=='high') THEN
+                    outfile = 'resonance_raman_para.txt'
+                    CALL append_column(outfile, c_label, zhat_para_resraman(:, rtp_point), freq, 5000.0_dp)
+                    outfile = 'resonance_raman_ortho.txt'
+                    CALL append_column(outfile, c_label, zhat_ortho_resraman(:, rtp_point), freq, 5000.0_dp)
+                END IF
             END IF
         END DO
 
         DEALLOCATE (zhat_iso_resraman, zhat_aniso_resraman, zhat_unpol_resraman, freq, raman_const)
+        IF (gs%spectra_verbosity=='high') THEN
+            DEALLOCATE (zhat_iso_resraman, zhat_aniso_resraman, zhat_unpol_resraman, freq, raman_const)
+        END IF
 
     END SUBROUTINE spec_resraman
 
