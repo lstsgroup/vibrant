@@ -96,6 +96,9 @@ Subblock: cell
         angle_alpha 
         angle_beta 
         angle_gamma
+        lattice_x
+        lattice_y
+        lattice_z
     &end cell
 
 .. keyword:: cell_type
@@ -399,4 +402,4 @@ Block: raman
     :unit: eV or cm-1 ?? not clear from readinput. check
     :default: 0.5
 
-    Incoming laser energy in eV. Multiple values (max 10) may be specified.
+    Incoming laser energy in eV. Multiple values (max 4) may be specified.
