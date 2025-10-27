@@ -1581,7 +1581,7 @@ CONTAINS
 
         DEALLOCATE (zhat_iso_resraman, zhat_aniso_resraman, zhat_unpol_resraman, freq, raman_const)
         IF (gs%spectra_verbosity=='high') THEN
-            DEALLOCATE (zhat_iso_resraman, zhat_aniso_resraman, zhat_unpol_resraman, freq, raman_const)
+            DEALLOCATE (zhat_para_resraman, zhat_ortho_resraman)
         END IF
 
     END SUBROUTINE spec_resraman
