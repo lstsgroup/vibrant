@@ -1,5 +1,5 @@
 ---
-title: 'vibrant: insert fancy title'
+title: 'Vibrant: A Post-Processing Tool for Static and MD-based Vibrational Spectroscopy Simulations'
 tags:
   - Fortran
   - spectroscopy
@@ -7,7 +7,7 @@ tags:
   - IR
 authors:
   - name:
-      given-names: Ekin Esme
+      given-names: Ekin
       surname: Winogradow
     affiliation: '1'
 
@@ -45,20 +45,38 @@ date: 15 September 2025
 bibliography: paper.bib
 ---
 
-
 # Summary 
 
-abstract
+In this work, we present Vibrant, a vibrational analysis program written in Fortran 2008 with interfaces to the FFTW[@frigo1998fftw] and GreenX (GX-AC)[@leucke2025analytic] libraries and parallelized using OpenMP for maximum efficiency. Vibrant enables the generation of vibrational spectra for a wide range of materials through post-processing atomic positions, velocities, forces, polarizability tensors and static or time-dependent dipole moments. Its functionalities include the computation of both static and molecular dynamics (MD)-based infrared (IR), Raman, resonance Raman (RR) and absorption spectra, as well as frequency analyses such as normal mode analysis and power spectrum calculations. Vibrant is distributed under the Apache 2.0 license and is available as open-source software on GitHub.
 
 # Statement of need
 
-why do we need vibrant
+Vibrational spectroscopy, particularly IR and Raman, is a powerful and widely used technique for characterizing gaseous, liquid or solid-state systems. An important extension of Raman spectroscopy is resonance Raman (RR) spectroscopy, where the incident laser frequency matches the energy of an electronic transition in the system[@long2002raman]. As a result, intensities of the vibrational modes that are coupled to these electronic transitions get enhanced, enabling a feasible characterization of certain materials[@meinke2014uv; @goetz2019influence].
 
-citing ekins paper here [@ekin2024]
+Computational simulation of vibrational spectroscopy is often not straightforward. Most quantum chemistry packages that perform electronic structure calculations provide only the dipole moments or polarizability tensors, rather than the final spectrum itself. The challenge becomes greater when one goes beyond the static regime to compute vibrational spectra, such as when performing MD simulations to capture anharmonic modes or solvent effects, or real-time time-dependent density functional theory (RT-TDDFT) simulations to access excited state dynamics, which is essential to calculate a RR spectrum.
+
+Post-processing programs that can handle these properties are often limited in scope and scattered across different software packages. In this work, we introduce Vibrant, a computational tool which bridges this gap by performing a series of post-processing procedures on dipole moment and polarizability data to generate MD-based or static vibrational spectra. Figure&#160;1 provides an overview of Vibrant's major functionalities.
+
+The first panel (top-left) emphasizes Vibrant's key feature, its ability to perform both static calculations based on the harmonic approximation and the post-processing of MD-based trajectories. Static spectra are computed via evaluating finite displacement data and performing normal mode analysis to obtain vibrational frequencies and normal mode coordinates. In the MD-based approach, the normal mode derivatives are replaced by the Fourier transforms of time-autocorrelation functions[@thomas2013computing; @gordon1965molecular].
+
+The second panel (top-right) features the main strengths of Vibrant, highlighting its capabilities for both static and MD-based vibrational spectroscopy, particularly IR, Raman and RR spectra. The latter is calculated by post-processing the time-dependent dipole trajectories, i.e. those generated from RT-TDDFT simulations. Although not depicted on the panel, Vibrant also computes absorption spectra from time-dependent dipole data.
+
+The third panel (bottom-left) demonstrates Vibrant's capability to dissect MD-based spectra via computing the subspectra for user-defined molecular fragments. This feature facilitates the analysis of vibrational peaks, and is especially useful for characterizing guest-host systems or evaluating solvent contributions[@bas2024robust; @guo2010cyclodextrin; @sun2020covalent].
+
+The last panel (bottom-right) demonstrates the use of Padé approximants in absorption or RR spectra calculations, implemented in Vibrant through integrating the GreenX library’s analytic continuation component[@leucke2025analytic]. In RT-TDDFT simulations, frequency resolution strongly depends on the trajectory length, and shorter trajectories often struggle with poor spectral resolution.[@bruner2016accelerated] Applying Padé interpolation is particularly useful for achieving spectral convergence from short RT-TDDFT trajectories[@bruner2016accelerated; @mattiat2018efficient]. As demonstrated in the panel, Padé interpolation enables convergence and improved frequency resolution even for trajectories as short as 20 fs, resulting in a fivefold reduction of overall computational cost.
+
+ ![Overview of Vibrant's functionalities. The top-left panel illustrates its ability to perform both static and MD-based vibrational spectroscopy calculations, where the vibrational frequencies are calculated from the position autocorrelation functions or the energy derivatives along displaced coordinates. The top-right panel presents the major functionalities of Vibrant. The bottom-left panel highlights Vibrant's feature of calculating subspectra for user-defined molecular fragments. The bottom-right panel demonstrates its integration with Padé approximants to achieve finer frequency resolution from time-dependent dipole data. More information about the theoretical background and calculation procedures are available on the [Vibrant website](https://lstsgroup.github.io/vibrant/index.html).](flowchart.png){label="overview"}
 
 # State of the field
-what other similar codes exists, what makes vibrant different 
+
+Currently, there are only a limited number of computational programs available for calculating MD-based and static vibrational spectra. A prominent example is TRAVIS[@brehm2020travis; @brehm2011travis], which processes various properties obtained from MD simulations to compute different types of spectra, including power, IR, Raman[@thomas2013computing; @thomas2015voronoi], RR[@brehm2019computing], vibrational circular dichroism[@thomas2016classical], and vibrational optical activity[@brehm2017computing]. However, TRAVIS is mainly designed for liquids, and in order to compute aforementioned spectra, it post-processes either Wannier centers, or uses the electronic density to perform Voronoi integration[@thomas2015voronoi]. Other than TRAVIS, there are Python-based scripts, for example, those that process CP2K[@kuhne2020cp2k] polarizabilities[@mattiat2018efficient] to generate static Raman spectra[@beat_hubmann_2020_4026342], or the scripts distributed with FHI-aims[@blum2009ab; @abbott2025roadmap], which read FHI-aims output files to perform normal mode analysis or compute static IR and Raman spectra. Another popular tool is Phonopy[@phonopy-phono3py-JPCM; @phonopy-phono3py-JPSJ], which can calculate phonon dispersion relations and vibrational densities of state; however, it is not designed for post-processing time-dependent quantities such as dipole moments or polarizabilities computed through MD or RT-TDDFT simulations.
+
+To the best of our knowledge, there is currently no computational tool that offers the flexibility to post-process both Wannier centers and direct static, time-dependent or field-induced dipole moments or polarizability tensors, derived from normal mode analysis, MD simulations or RT-TDDFT calculations.
+
+Vibrant provides a flexible and efficient environment for post-processing different types of properties and computing static and MD-based vibrational spectra for gas-phase, liquid, and solid-state systems, including subspectra for user-defined molecular fragments. Furthermore, Vibrant features the implementation of Padé approximants and is integrated with OpenMP parallelization, promoting the computation of a well-resolved RR or absorption spectra even from relatively short RT-TDDFT trajectories.
 
 # Acknowledgements
+
+The Emmy Noether Programme of the German Research Foundation (Project No. 453275048) is gratefully acknowledged for funding. The authors acknowledge the German Research Foundation for support within CRC 1415 (Chemistry of Synthetic Two-Dimensional Materials, Project No. 417590517) and RTG 2861 (Research Training Group, Project No. 491865171). The ZIH of the TU Dresden, the Jülich Supercomputing Centre, the Paderborn Center for Parallel Computing (PC2) as well as the Finnish CSC - IT Center for Science are acknowledged for providing computational resources.
 
 # References
