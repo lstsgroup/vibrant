@@ -75,6 +75,10 @@
 <li class="toctree-l1"><a class="reference internal" href="Keyword_Glossary.html">Keyword Glossary</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Cite.html">Cite</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Contribute.html">Contribute</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">Examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="examples_static_water.html">Static spectral calculations for the water molecule</a></li>
+</ul>
+</li>
 </ul>
 
     </nav>
@@ -179,7 +183,7 @@ I_{\textnormal{abs}} (\omega) = \frac{1}{3}\textnormal{Tr}\left[ \boldsymbol{\si
 {\mu}^{j}_i(\omega) = \int_{0}^{T} \left( {\mu}^{j}_i(t)  - \mu^{0}_{i} \right) e^{i \omega t} e^{- \Gamma t} \mathrm{d}t
 \]</div>
 <p>where <span class="math notranslate nohighlight">\(T\)</span> is the total RT-TDDFT simulation time, <span class="math notranslate nohighlight">\(t\)</span> is the RT-TDDFT time step, <span class="math notranslate nohighlight">\({\mu}^{j}_i(t)\)</span> is the time-dependent dipole moment under the electric field applied in the <span class="math notranslate nohighlight">\(j\)</span> direction, <span class="math notranslate nohighlight">\(\mu^{0}_{i}\)</span> denotes the initial static dipole moment of the unperturbed system, and <span class="math notranslate nohighlight">\(\Gamma\)</span> is the <a class="reference external" href="https://pubs.aip.org/aip/jcp/article/138/4/044101/193408">damping factor</a>.</p>
-<p>To compute a static RR spectrum, the user must provide the time-dependent dipole moments for each displaced structure, combined into a single file (see <a class="reference internal" href="file_formats.html"><span class="std std-doc">File Formats</span></a> for details). There should be three files in total, each corresponding to calculations performed under electric fields applied along the x-, y-, and z-directions. An example input section for performing a static RR calculation is shown below:</p>
+<p>To compute a static RR spectrum, the user must provide the time-dependent dipole moments for each displaced structure, combined into a single file (see <a class="reference internal" href="file_formats.html#62-static-spectra-based-on-normal-modes"><span class="std std-ref">File Formats</span></a> for details). There should be three files in total, each corresponding to calculations performed under electric fields applied along the x-, y-, and z-directions. An example input section for performing a static RR calculation is shown below:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="p">&amp;</span>global
 <span class="w"> </span>spectra<span class="w"> </span>RR
 <span class="w"> </span>temperature<span class="w"> </span>&lt;temperature_in_K&gt;
@@ -206,7 +210,7 @@ I_{\textnormal{abs}} (\omega) = \frac{1}{3}\textnormal{Tr}\left[ \boldsymbol{\si
 ...
 </pre></div>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">rtp</span></code> section provides the necessary information about the RT-TDDFT parameters. The <code class="docutils literal notranslate"><span class="pre">static</span></code> section should be given similar to the <a class="reference internal" href="Raman_spec.html"><span class="std std-doc">static Raman</span></a> input. Complete input files can be found at ….</p>
+<p><code class="docutils literal notranslate"><span class="pre">rtp</span></code> section provides the necessary information about the RT-TDDFT parameters. The <code class="docutils literal notranslate"><span class="pre">static</span></code> section should be given similar to the <a class="reference internal" href="Raman_spec.html#a-static-raman-intensities"><span class="std std-ref">static Raman</span></a> input. Complete input files can be found at ….</p>
 <p>Vibrant applies Gaussian broadening to the final discrete set of frequencies and intensities. The <code class="docutils literal notranslate"><span class="pre">fwhm</span></code> keyword controls the full width at half-maximum (FWHM) value in cm <span class="math notranslate nohighlight">\({^{-1}}\)</span> and if not specified, it is set to 5 cm <span class="math notranslate nohighlight">\({^{-1}}\)</span>.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -320,7 +324,7 @@ I_{\textnormal{RR}} (\tilde{\nu}, \omega) = \frac{2h}{8\epsilon_{0}^{2}k_{B}T} \
 {\mu}^{j}_i(\omega, t) = \int_{0}^{T} \left( {\mu}^{j}_i(\tau, t)  - \mu^{0}_{i}(\tau, t) \right) e^{i \omega \tau} e^{- \Gamma \tau} \mathrm{d}\tau
 \]</div>
 <p>where <span class="math notranslate nohighlight">\(T\)</span> is the total RT-TDDFT simulation time, <span class="math notranslate nohighlight">\(\tau\)</span> is the RT-TDDFT time step, <span class="math notranslate nohighlight">\(t\)</span> is the MD time step, <span class="math notranslate nohighlight">\({\mu}^{j}_i(\tau, t)\)</span> is the time-dependent dipole moment under the electric field applied in the <span class="math notranslate nohighlight">\(j\)</span> direction, <span class="math notranslate nohighlight">\(\mu^{0}_{i}(\tau, t)\)</span> denotes the initial static dipole moment of the unperturbed system, and <span class="math notranslate nohighlight">\(\Gamma\)</span> is the damping factor.</p>
-<p>The MD-based RR calculation in Vibrant is not fully tested yet, and more tests are being performed. The current implementation requires that the user provides the time-dependent dipole moments for each MD snapshot, combined into a single file (see <a class="reference internal" href="file_formats.html"><span class="std std-doc">File Formats</span></a> for more details). There should be three files in total, each corresponding to calculations performed under electric fields applied along the x-, y-, and z-directions. An example input section for performing an MD-based RR calculation is shown below:</p>
+<p>The MD-based RR calculation in Vibrant is not fully tested yet, and more tests are being performed. The current implementation requires that the user provides the time-dependent dipole moments for each MD snapshot, combined into a single file (see <a class="reference internal" href="file_formats.html#61-md-based-spectra"><span class="std std-ref">File Formats</span></a> for more details). There should be three files in total, each corresponding to calculations performed under electric fields applied along the x-, y-, and z-directions. An example input section for performing an MD-based RR calculation is shown below:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="p">&amp;</span>global
 <span class="w"> </span>spectra<span class="w"> </span>MD-RR
 <span class="w"> </span>temperature<span class="w"> </span>&lt;temperature_in_K&gt;
@@ -346,7 +350,7 @@ I_{\textnormal{RR}} (\tilde{\nu}, \omega) = \frac{2h}{8\epsilon_{0}^{2}k_{B}T} \
 <p>The MD-based absorption spectrum is computed in the same manner as the static absorption spectrum described above, except that the absorption intensities are averaged over all MD snapshots. The MD-based absorption spectrum does not require the specification of the <code class="docutils literal notranslate"><span class="pre">md</span></code> section.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Vibrant applies the same processing to the final MD-based RR intensities as given in the Section <a class="reference internal" href="IR_spec.html"><span class="std std-doc">IR Spectra</span></a>, including the application of data mirroring and Hann Window function to the autocorrelation data and the application of the sinc function to the final intensities.</p>
+<p>Vibrant applies the same post-processing to the final MD-based RR intensities as given in the subsection <a class="reference internal" href="frequency.html#spectral-refinement"><span class="std std-ref">Spectral refinement</span></a>, including the application of data mirroring and Hann Window function to the autocorrelation data and the application of the sinc function to the final intensities.</p>
 </div>
 <p>The final MD-based RR intensities are reported in m <span class="math notranslate nohighlight">\(^2\)</span> K cm 10 <span class="math notranslate nohighlight">\(^{-30}\)</span>.</p>
 </section>
@@ -360,7 +364,7 @@ I_{\textnormal{RR}} (\tilde{\nu}, \omega) = \frac{2h}{8\epsilon_{0}^{2}k_{B}T} \
 \frac{A_0 + A_1 \omega + A_2 \omega^2 + \cdots + A_{\frac{T-1}{2}} \omega^{\frac{T-1}{2}}}
 {1 + B_1 \omega + B_2 \omega^2 + \cdots + B_{\frac{T}{2}} \omega^{\frac{T}{2}}}
 \]</div>
-<p>where <span class="math notranslate nohighlight">\(A_i\)</span> and <span class="math notranslate nohighlight">\(B_i\)</span> are the Padé coefficients, and <span class="math notranslate nohighlight">\(T\)</span> represents the total number of RT-TDDFT time steps. These coefficients are obtained using <a class="reference external" href="https://books.google.de/books?hl=tr&amp;amp;lr=&amp;amp;id=LFCzdo4_20EC&amp;amp;oi=fnd&amp;amp;pg=PP1&amp;amp;dq=George+Jr,+A.%3B+others+Essentials+of+Pad%C3%A9+approximants%3B+Elsevier,+1975.&amp;amp;ots=DADABOyfgn&amp;amp;sig=GSjxHhTenQR_ZmJuVFT0a9PCGaU&amp;amp;redir_esc=y#v=onepage&amp;amp;q=George%20Jr%2C%20A.%3B%20others%20Essentials%20of%20Pad%C3%A9%20approximants%3B%20Elsevier%2C%201975.&amp;amp;f=false">Thiele’s reciprocal difference method</a>, applied to the <span class="math notranslate nohighlight">\(T\)</span> discrete data points <span class="math notranslate nohighlight">\({\omega_i, \alpha_i}\)</span> generated along the RT-TDDFT trajectory.</p>
+<p>where <span class="math notranslate nohighlight">\(A_i\)</span> and <span class="math notranslate nohighlight">\(B_i\)</span> are the Padé coefficients, and <span class="math notranslate nohighlight">\(T\)</span> represents the total number of RT-TDDFT time steps. These coefficients are obtained using Thiele’s reciprocal difference method, applied to the <span class="math notranslate nohighlight">\(T\)</span> discrete data points <span class="math notranslate nohighlight">\({\omega_i, \alpha_i}\)</span> generated along the RT-TDDFT trajectory.</p>
 <p>Padé interpolation improves the resolution and stability significantly for shorter or noisy RT-TDDFT trajectories. Unlike <a class="reference external" href="https://pubs.acs.org/doi/full/10.1021/acs.jctc.6b00511">previous approaches</a> that replace FFTs entirely, this method applies the Padé interpolation as a post-processing step to refine spectra and correct distortions and noise in the peaks. The Padé fitting is implemented using the “plain-128” algorithm of the <a class="reference external" href="https://nomad-coe.github.io/greenX/gx_ac.html">GreenX library</a>, which provides a numerically robust and efficient solver for <a class="reference external" href="https://joss.theoj.org/papers/10.21105/joss.07859">computing Padé coefficients and evaluating the resulting analytic continuation</a>. The following figure demonstrates how the application of Padé approximants enhances the spectral resolution significantly and “corrects” the peak positions:</p>
 <div style="display:flex; justify-content: center; align-items: center;">
   <div style="width: 500px;">
@@ -387,7 +391,7 @@ I_{\textnormal{RR}} (\tilde{\nu}, \omega) = \frac{2h}{8\epsilon_{0}^{2}k_{B}T} \
 <p class="admonition-title">Tip</p>
 <p>The Padé fitting usually takes time, but it is accelarated using OpenMP threads. To control the number of parallel threads you can export the environment variable <code class="docutils literal notranslate"><span class="pre">export</span> <span class="pre">OMP_NUM_THREADS=&lt;num_threads&gt;</span></code> before calling the vibrant code. Occasionally for large RTP steps you can run into a “out-of-memory” error. The amout of RAM memory vibrant needs can be computed roughly by <span class="math notranslate nohighlight">\(N_{RTP}^2\cdot 16 \cdot 10^{-9} \cdot N_{threads}\)</span> (in GB).</p>
 </div>
-<p>More information on the all available keywords can be found on Section .. and all complete example input files are available on ….</p>
+<p>More information on the all available keywords can be found on <a class="reference internal" href="Keyword_Glossary.html"><span class="std std-doc">Keyword Glossary</span></a> and all complete example input files are available on ….</p>
 </section>
 </section>
 

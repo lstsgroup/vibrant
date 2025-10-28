@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en" data-content_root="./">
+<head>
+    <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+        <title>Static spectral calculations for the water molecule &mdash; vibrant  documentation</title>
+    
+    <link rel="stylesheet" type="text/css" href="_static/dist/fontawesome.css" />
+      <link rel="stylesheet" type="text/css" href="_static/dist/theme.css?v=310cf088" />
+      <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="_static/keyword.css?v=002e9df8" />
+            <link rel="index" title="Index" href="genindex.html" />
+            <link rel="search" title="Search" href="search.html" />
+            <link rel="top" title="vibrant  documentation" href="#" />
+            <link rel="up" title="Examples" href="Examples.html" />
+            <link rel="prev" title="Examples" href="Examples.html" />
+    </head>
+<body>
+    <script type="text/javascript" src="_static/dist/blocking.js"></script>
+    <header class="container-fluid bg-primary">
+        <a class="btn btn-sm btn-light skip-to-content-link" href="#main">Skip to content</a>
+        <div class="container-fluid">
+            <div class="navbar navbar-expand-lg navbar-dark font-weight-bold">
+                    <a href="https://lstsgroup.github.io/vibrant/index.html"
+                        title="vibrant"
+                        class="logo navbar-brand"
+                    >
+                        <img src="_static/all_img/logo_vibrant_dark.svg" width="45" height="100" alt="vibrant"
+                            class="logo-img"
+                        />
+                        vibrant
+                    </a>
+                
+                
+                <button class="navbar-toggler btn btn-primary d-lg-none" type="button" data-toggle="collapse" data-target="#collapseSidebar" aria-expanded="false" aria-controls="collapseExample">
+                    <span class="navbar-toggler-icon"></span>
+                    <span class="sr-only">menu</span>
+                </button>
+            </div>
+        </div>
+    </header>
+    <div class="container-fluid">
+        <div class="row">
+            <aside class="col-12 col-lg-3 sidebar-container">
+                <div id="collapseSidebar" class="collapse sticky-top d-lg-block pt-5 pr-lg-4">
+<div id="searchbox" class="searchbox mb-6 px-1" role="search">
+    <form id="search-form" action="search.html" autocomplete="off" method="get" role="search">
+        <div class="input-group">
+            <div class="input-group-prepend">
+                <div class="input-group-text border-right-0 bg-white py-3 pl-3 pr-2"><span class="fas fa-search"></span></div>
+            </div>
+            <input class="form-control py-3 pr-3 pl-1 h-100 border-left-0" type="search" name="q" placeholder="Search documentation" aria-label="Search documentation" id="searchinput" />
+        </div>
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+    </form>
+</div><div class="site-toc">
+    <nav class="toc mt-3" aria-label="Main menu">
+        <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Quick_Start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Usage.html">Usage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_formats.html">File Formats</a></li>
+<li class="toctree-l2"><a class="reference internal" href="frequency.html">Frequencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="IR_spec.html">IR spectra</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Raman_spec.html">Raman spectra</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fragments.html">Subspectra for MD-based calculations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Resonance_Raman_spec.html">Resonance Raman (RR) and absorption spectra</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Keyword_Glossary.html">Keyword Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Cite.html">Cite</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Contribute.html">Contribute</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Examples.html">Examples</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Static spectral calculations for the water molecule</a></li>
+</ul>
+</li>
+</ul>
+
+    </nav>
+    <template data-toggle-item-template>
+        <button class="btn btn-sm btn-link toctree-expand" type="button">
+            <span class="sr-only">Toggle menu contents</span>
+        </button>
+    </template>
+</div>
+                    <div class="d-lg-none border-bottom">
+                        
+                    </div>
+                </div>
+            </aside>
+            <div class="col-12 col-lg-9 pt-5">
+                <header class="row align-items-baseline">
+                    <div class="col">
+                        <nav aria-label="breadcrumb">
+    <ol class="breadcrumb m-0 p-0 bg-transparent">
+        <li class="breadcrumb-item"><a href="index.html">Docs</a></li>
+            <li class="breadcrumb-item"><a href="Examples.html">Examples</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Static spectral calculations for the water molecule</li>
+    </ol>
+</nav>
+                    </div>
+                    <div class="col-sm-12 col-lg-auto mt-3 mt-lg-3">
+                        <noscript>
+                            <p>JavaScript is required to toggle light/dark mode..</p>
+                        </noscript>
+                        <button id="wagtail-theme" class="btn btn-sm btn-light text-decoration-none" type="button">
+                            <span class="dark-only"><i class="fas fa-sun"></i> Light mode</span>
+                            <span class="light-only"><i class="fas fa-moon"></i> Dark mode</span>
+                        </button>
+    <a class="btn btn-sm btn-light text-decoration-none" href="https://github.com/lstsgroup/vibrant/tree/main/srcexamples_static_water.md" rel="nofollow">
+        <span class="btn-icon"><span class="fab fa-github"></span></span>
+        <span class="btn-text">Edit on GitHub</span>
+    </a>
+    <a class="btn btn-sm btn-light text-decoration-none" href="_sources/examples_static_water.md.txt" rel="nofollow">
+        <span class="btn-icon"><span class="fas fa-code"></span></span>
+        <span class="btn-text">View source</span>
+    </a>
+                        
+                    </div>
+                </header>
+                <div class="row" >
+                    <div class="col-12">
+                        <hr class="w-100 my-4">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12 col-lg-9 order-last order-lg-first rst-content">
+                        <main role="main" id="main">
+    <section class="tex2jax_ignore mathjax_ignore" id="static-spectral-calculations-for-the-water-molecule">
+<h1>Static spectral calculations for the water molecule<a class="headerlink" href="#static-spectral-calculations-for-the-water-molecule" title="Link to this heading">¶</a></h1>
+<section id="normal-mode-analysis">
+<h2>Normal mode analysis<a class="headerlink" href="#normal-mode-analysis" title="Link to this heading">¶</a></h2>
+<p>The test calculation on the directory <code class="docutils literal notranslate"><span class="pre">/Static/Normal_mode_analysis</span></code> demonstrates how one can carry out a normal mode analysis for a simple water molecule providing the and giving the geometry file <code class="docutils literal notranslate"><span class="pre">water.xyz</span></code> and the file which contains the atomic forces <code class="docutils literal notranslate"><span class="pre">water-force.data</span></code> (see <a class="reference internal" href="file_formats.html#21-atomic-forces"><span class="std std-ref">File Formats</span></a> for more details on how to append the atomic forces for each displaced structure.) The input file is then given as:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="p">&amp;</span>global
+<span class="w"> </span>spectra<span class="w"> </span>NMA
+<span class="p">&amp;</span>end<span class="w"> </span>global
+<span class="p">&amp;</span>system
+<span class="w"> </span>filename<span class="w"> </span>water.xyz
+<span class="p">&amp;</span>end<span class="w"> </span>system
+<span class="p">&amp;</span>static
+<span class="w">  </span><span class="p">&amp;</span>hessian
+<span class="w">   </span>force_file<span class="w"> </span>water-force.data
+<span class="w">  </span><span class="p">&amp;</span>end<span class="w"> </span>hessian
+<span class="w">  </span>displacement<span class="w"> </span><span class="m">0</span>.001
+<span class="w">  </span>write_mol_file
+<span class="p">&amp;</span>end<span class="w"> </span>static
+</pre></div>
+</div>
+<p>This calculation generates three output files named:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">normal_mode_freq.txt</span></code> → contains normal mode frequencies</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="w">  </span>-176.97535653970249<span class="w">     </span>
+<span class="w">  </span>-176.42583329045769<span class="w">     </span>
+<span class="w">   </span><span class="m">105</span>.51923823199118<span class="w">     </span>
+<span class="w">   </span><span class="m">193</span>.50471510887877<span class="w">     </span>
+<span class="w">   </span><span class="m">230</span>.82082299950909<span class="w">     </span>
+<span class="w">   </span><span class="m">275</span>.41014020547584<span class="w">     </span>
+<span class="w">   </span><span class="m">1588</span>.9102733774585<span class="w">     </span>
+<span class="w">   </span><span class="m">3612</span>.3956359220965<span class="w">     </span>
+<span class="w">   </span><span class="m">3712</span>.8115592866070<span class="w">     </span>
+</pre></div>
+</div>
+<p>where the last 3 frequencies correspond to the bending, symmetric stretching and asymmetric stretching modes of water. The first 6 modes correspond to the translational and rotational mode frequencies and can be disregarded by the user. The reason some of them show negative frequencies is because the molecular structure used for the normal mode analysis is not tightly optimized.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">normal_mode_displ.txt</span></code> → contains normal mode coordinates</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># first atom in first vibrational mode</span>
+<span class="w">  </span><span class="m">0</span>.94616809213469699<span class="w">        </span><span class="m">2</span>.7946421871026641E-005<span class="w">  </span>-2.9767288434384802E-002
+<span class="c1"># second atom in first vibrational mode</span>
+<span class="w">  </span><span class="m">0</span>.22740474089226850<span class="w">        </span><span class="m">1</span>.2654307516200803E-002<span class="w">  </span>-8.3175715860303919E-003
+<span class="c1"># third atom in first vibrational mode</span>
+<span class="w">  </span><span class="m">0</span>.22740216306823607<span class="w">       </span>-1.2642516133164316E-002<span class="w">  </span>-8.1266552822378130E-003
+<span class="w"> </span>...
+<span class="c1"># first atom in last vibrational mode</span>
+<span class="w">  </span><span class="m">0</span>.26728409439256395<span class="w">        </span><span class="m">4</span>.0116848009155714E-006<span class="w">  </span>-8.2828918268760410E-007
+<span class="c1"># second atom in last vibrational mode</span>
+<span class="w"> </span>-0.53240940739379650<span class="w">      </span>-0.42525005582409653<span class="w">       </span>-9.0204921754870363E-007
+<span class="c1"># third atom in last vibrational mode</span>
+<span class="w"> </span>-0.53238715822178384<span class="w">       </span><span class="m">0</span>.42523609861802070<span class="w">       </span>-1.2091347908508780E-010
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">vibrations.mol</span></code> → can be opened with <a class="reference external" href="https://www.theochem.ru.nl/molden/">MOLDEN</a> to visualize the normal mode vibrations</p></li>
+</ul>
+<p>The following screenshot shows how one can use the <code class="docutils literal notranslate"><span class="pre">vibrations.mol</span></code> file to visualize the normal modes via <a class="reference external" href="https://www.theochem.ru.nl/molden/">MOLDEN</a>:</p>
+<div style="display:flex; justify-content:center; align-items:center; flex-direction:column;">
+  <img src="./_static/vibrations.gif" alt="Vibrational mode of water" style="max-width:500px; width:100%; border-radius:8px;">
+  <p style="color:gray; font-size:0.9em; text-align:center; margin-top:10px;">
+    Visualization of the bending mode of water.
+  </p>
+</div>
+</section>
+<section id="static-ir-and-raman-spectra-for-water-molecule">
+<h2>Static IR and Raman spectra for water molecule<a class="headerlink" href="#static-ir-and-raman-spectra-for-water-molecule" title="Link to this heading">¶</a></h2>
+<p>The next example is about the static IR and Raman calculation of the water molecule. Starting with the IR calculation on <code class="docutils literal notranslate"><span class="pre">/Static/IR/</span></code>, one can see that now there are some new files in addition to the <code class="docutils literal notranslate"><span class="pre">input.txt</span></code> and <code class="docutils literal notranslate"><span class="pre">water.xyz</span></code> files, named:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">normal_mode_freq.txt</span></code> and <code class="docutils literal notranslate"><span class="pre">normal_mode_displ.txt</span></code> → normal mode frequencies
+and normal mode coordinates (See <a class="reference internal" href="file_formats.html#22-normal-mode-frequencies-and-coordinates"><span class="std std-ref">File Formats</span></a> for the formatting of these file)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dipoles_water.xyz</span></code> → contains the dipole moments for all displaced structures (See <a class="reference internal" href="file_formats.html#32-static-spectra-based-on-normal-modes"><span class="std std-ref">File Formats</span></a> for the formatting)</p></li>
+</ul>
+<p>This example does not perform a normal mode analysis, and instead uses the user-provided normal mode frequencies and coordinates. Running the calculation generates two files:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">result_static_ir.txt</span></code> → contains broadened IR spectrum</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">IR.mol</span></code> → can be opened with <a class="reference external" href="https://www.theochem.ru.nl/molden/">MOLDEN</a> to visualize the normal mode vibrations, but this time also the IR spectrum, as shown in the following gif:</p></li>
+</ul>
+<div style="display:flex; justify-content:center; align-items:center; flex-direction:column;">
+  <img src="./_static/IR.gif" alt="Vibrational mode of water" style="max-width:500px; width:100%; border-radius:8px;">
+  <p style="color:gray; font-size:0.9em; text-align:center; margin-top:10px;">
+    Visualization of the antisymmetric stretching mode of water, alongside the IR spectrum.
+  </p>
+</div>
+<p>The IR spectrum can be obtained directly using the chosen broadening method and full width at half maximum (FWHM). Alternatively, one may plot the Gaussian-broadened file <code class="docutils literal notranslate"><span class="pre">result_static_ir.txt</span></code> produced by Vibrant with the desired FWHM value, for example using Python or Gnuplot.</p>
+<p>The Raman calculation can be found in the directory <code class="docutils literal notranslate"><span class="pre">/scratch/ekin/Examples/Static/Raman</span></code></p>
+</section>
+</section>
+
+</main>
+                        <nav aria-label="Page navigation" class="py-4 my-5 clearfix font-weight-bold border-top">
+    <a class="float-left" href="Examples.html" title="Previous">
+        <span aria-hidden="true">←&nbsp;</span>Examples
+    </a>
+</nav>
+                    </div>
+                    
+                    <nav class="col-12 col-lg-3 pb-4">
+                        <div class="sticky-top toc page-toc" aria-labelledby="page-toc-heading">
+                            <p class="font-weight-bold" id="page-toc-heading">Page contents</p>
+                            <ul>
+<li><a class="reference internal" href="#">Static spectral calculations for the water molecule</a><ul>
+<li><a class="reference internal" href="#normal-mode-analysis">Normal mode analysis</a></li>
+<li><a class="reference internal" href="#static-ir-and-raman-spectra-for-water-molecule">Static IR and Raman spectra for water molecule</a></li>
+</ul>
+</li>
+</ul>
+
+                        </div>
+                    </nav>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+    <footer class="container-fluid bg-primary text-light">
+        <div class="container">
+            <div class="row">
+        <div class="col p-4">
+            
+                <nav aria-label="Footer">
+                    <ul class="nav justify-content-center mb-2">
+                        
+                            
+                            
+                            <li class="nav-item"><a class="nav-link text-light"  href="https://golzegroup.org/">Golze Group</a></li>
+                        
+                            
+                            
+                            <li class="nav-item"><a class="nav-link text-light"  href="https://golzegroup.org/contact/">Contact</a></li>
+                        
+                    </ul>
+                </nav>
+            
+            <div class="text-center">
+                    &copy; Copyright 2024, Ekin Esme Winogradow, Golze Group
+            </div>
+            <div class="text-center text-white-50 font-italic mt-3">
+                <small>
+                    Created using
+                    <a class="text-white" href="https://github.com/wagtail/sphinx_wagtail_theme" rel="nofollow" target="_blank">
+                        Sphinx Wagtail Theme 6.5.0
+                    </a>
+                    and
+                    <a class="text-white" href="https://www.sphinx-doc.org/" rel="nofollow" target="_blank">
+                        Sphinx 8.2.3
+                    </a>
+                </small>
+            </div>
+        </div>
+    </div>
+        </div>
+    </footer>
+        <script src="_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="_static/doctools.js?v=9bcbadda"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+        <script src="_static/copybutton.js?v=f281be69"></script>
+        <script type="text/javascript" src="_static/dist/theme.js"></script>
+        <script type="text/javascript" src="_static/dist/vendor.js"></script>
+        <script type="text/javascript" src="_static/searchtools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+        <script type="text/javascript">
+            document.addEventListener('DOMContentLoaded', function() { Search.loadIndex("searchindex.js"); });
+        </script>
+        <script type="text/javascript" id="searchindexloader"></script>
+    </body>
+</html>

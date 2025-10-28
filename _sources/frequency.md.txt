@@ -22,7 +22,7 @@ where $\omega$ is the angular frequency  (measured in radians per second), and $
 
 The eigenvectors $\mathbf{\tilde{u}}_ {p}$ provide the amplitude of the normal mode vibrations, and eventually provide the normal mode coordinates $Q_{p} = \mathbf{\tilde{u}}_ {p}^{T} \mathbf {u}_ {p}$. The normal mode coordinates are also printed by Vibrant. Their mass-weighted versions can later be used in computing static IR, Raman or resonance Raman intensities.
 
-For each displaced structure, the user must provide the atomic forces appended in a single file (see [File Formats](file_formats.md) for more details). Hessian diagonalization is performed using the [LAPACK](https://www.netlib.org/lapack/) library.
+For each displaced structure, the user must provide the atomic forces appended in a single file (see [File Formats](file_formats.md#21-atomic-forces) for more details). Hessian diagonalization is performed using the [LAPACK](https://www.netlib.org/lapack/) library.
 
 An example input section for performing the normal mode analysis is shown below:
 
@@ -50,7 +50,7 @@ where the `hessian` section invokes the Hessian diagonalization, and the `displa
 
 ## b) Power spectrum
 
-The MD-based equivalent of obtaining all frequencies irrespective of IR or Raman selection rules is to compute the power spectrum. The power spectrum can be computed from the autocorrelation functions of the time derivatives of particle velocities, which are usually available in an MD simulation. The general equation for an [autocorrelation function](https://books.google.de/books?hl=tr&lr=&id=WFExDwAAQBAJ&oi=fnd&pg=PP1&dq=Allen,+M.+P.%3B+Tildesley,+D.+J.+Computer+Simulation+of+Liquids%3B+Oxford+University+Press,+2017&ots=VHTE8WLE4Q&sig=RLNU7BubcNGC06Bihq6BcmwR2K0&redir_esc=y#v=onepage&q=Allen%2C%20M.%20P.%3B%20Tildesley%2C%20D.%20J.%20Computer%20Simulation%20of%20Liquids%3B%20Oxford%20University%20Press%2C%202017&f=false) is as follows:
+The MD-based equivalent of obtaining all frequencies irrespective of IR or Raman selection rules is to compute the power spectrum. The power spectrum can be computed from the autocorrelation functions of the time derivatives of particle velocities, which are usually available in an MD simulation. The general equation for an [autocorrelation function](https://academic.oup.com/book/27866) is as follows:
 
 $$
 \left \langle A(\tau) A(\tau + t) \right \rangle_{\tau}
@@ -95,5 +95,10 @@ Power spectrum calculation in Vibrant can be invoked by adding the section:
 where `type_traj` can be specified by user as `pos` or `vel` standing for "positions" or "velocities". Upon request, Vibrant can compute the mass-weighted power spectrum as well, which is controlled by the keyword `mass_weighting`, which be specified as `y` or `n` standing for "yes" or "no".
 
 The final power intensities are given in K.cm.
+
+### Spectral refinement
+
+Vibrant applies several procedures to improve the frequency resolution of MD-based spectra. It applies [finite difference correction](https://www.sciencedirect.com/science/article/pii/S0377042700003484) via dividing the intensities by the sinc function $\left(\frac{\sin(\tilde{\nu} \Delta t)}{\tilde{\nu} t} \right )^{2}$. Additionally, in order to increase the spectral resolution, Vibrant applies ["data mirroring"](https://link.springer.com/book/10.1007/978-3-319-49628-3?utm_medium=referral&utm_source=google_books&utm_campaign=3_pier05_buy_print&utm_content=en_08082017) to the autocorrelation functions. This is done by appending the data set in reverse order to the original data set. Vibrant also employs [Hann Window](https://link.springer.com/book/10.1007/978-3-319-49628-3?utm_medium=referral&utm_source=google_books&utm_campaign=3_pier05_buy_print&utm_content=en_08082017) function to further improve the resolution. This is achieved by multiplying the autocorrelation data with $\displaystyle\cos^{2}[\pi/(2\tau_{\textnormal{max}}-2)]$ before performing the Fourier transformations. $\tau_{\text{max}}$ corresponds to the correlation depth.
+
 
 More information on the all available keywords can be found on [Keyword Glossary](Keyword_Glossary.rst) and all complete example input files are available on ....

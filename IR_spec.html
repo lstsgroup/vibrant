@@ -75,6 +75,10 @@
 <li class="toctree-l1"><a class="reference internal" href="Keyword_Glossary.html">Keyword Glossary</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Cite.html">Cite</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Contribute.html">Contribute</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">Examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="examples_static_water.html">Static spectral calculations for the water molecule</a></li>
+</ul>
+</li>
 </ul>
 
     </nav>
@@ -138,7 +142,7 @@
 I_{\textnormal{IR}}(\tilde{\nu}_p) = \frac{N_{A} }{12\varepsilon _{0}c^{2}}\left ( \frac{\partial \boldsymbol{\mu} }{\partial Q_{p}} \right )^{2}
 \]</div>
 <p>where <span class="math notranslate nohighlight">\(\varepsilon_{0}\)</span> is the vacuum permittivity, <span class="math notranslate nohighlight">\(N_{A}\)</span> is the Avogadro constant and <span class="math notranslate nohighlight">\(c\)</span> is the speed of light. <span class="math notranslate nohighlight">\(\tilde{\nu_{p}}\)</span> is the wavenumber defined as <span class="math notranslate nohighlight">\(\tilde{\nu_{p}}=\nu_{p}/c\)</span>.</p>
-<p>For each displaced structure (see Section <a class="reference internal" href="frequency.html"><span class="std std-doc">Frequencies</span></a> for details) the user must provide the dipole moments appended in a single file (see <a class="reference internal" href="file_formats.html"><span class="std std-doc">File Formats</span></a> for more details.) For the derivatives along the normal modes, the user can either provide the normal mode coordinates or alternatively the forces for each displaced structure, together with the cartesian coordinates of the optimized geometry. An example input section for the <code class="docutils literal notranslate"><span class="pre">static</span></code> section may look like:</p>
+<p>For each displaced structure (see Section <a class="reference internal" href="frequency.html#a-normal-mode-analysis"><span class="std std-ref">Frequencies</span></a> for details) the user must provide the dipole moments appended in a single file (see <a class="reference internal" href="file_formats.html#32-static-spectra-based-on-normal-modes"><span class="std std-ref">File Formats</span></a> for more details.) For the derivatives along the normal modes, the user can either provide the normal mode coordinates or alternatively the forces for each displaced structure, together with the cartesian coordinates of the optimized geometry. An example input for the <code class="docutils literal notranslate"><span class="pre">static</span></code> section may look like:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="p">&amp;</span>global
 <span class="w"> </span>spectra<span class="w"> </span>IR
 <span class="w"> </span>fwhm<span class="w"> </span>&lt;full_width_at_half_maximum&gt;
@@ -212,10 +216,10 @@ I_{\textnormal{IR}} (\tilde{\nu}) = \frac{2N_{A}}{12\varepsilon _{0}ck_{B}T}\int
 <span class="p">&amp;</span>end<span class="w"> </span>md
 </pre></div>
 </div>
-<section id="processing-of-the-final-spectra">
-<h3>Processing of the final spectra<a class="headerlink" href="#processing-of-the-final-spectra" title="Link to this heading">¶</a></h3>
-<p>Vibrant applies several procedures to improve the spectral resolution. It applies <a class="reference external" href="https://www.sciencedirect.com/science/article/pii/S0377042700003484">finite difference correction</a> via dividing the intensities by the sinc function <span class="math notranslate nohighlight">\(\left(\frac{\sin(\tilde{\nu} \Delta t)}{\tilde{\nu} t} \right )^{2}\)</span>. Additionally, in order to increase the spectral resolution, Vibrant applies <a class="reference external" href="https://link.springer.com/book/10.1007/978-3-319-49628-3?utm_medium=referral&amp;amp;utm_source=google_books&amp;amp;utm_campaign=3_pier05_buy_print&amp;amp;utm_content=en_08082017">“data mirroring”</a> to the autocorrelation functions. This is done by appending the data set in reverse order to the original data set. Vibrant also employs <a class="reference external" href="https://link.springer.com/book/10.1007/978-3-319-49628-3?utm_medium=referral&amp;amp;utm_source=google_books&amp;amp;utm_campaign=3_pier05_buy_print&amp;amp;utm_content=en_08082017">Hann Window</a> function to further improve the resolution. This is achieved by multiplying the autocorrelation data with <span class="math notranslate nohighlight">\(\displaystyle\cos^{2}[\pi/(2\tau_{\textnormal{max}}-2)]\)</span> before performing the Fourier transformations. <span class="math notranslate nohighlight">\(\tau_{\text{max}}\)</span> corresponds to the correlation depth.</p>
-</section>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Vibrant applies the same post-processing to the final MD-based IR intensities as given in the subsection <a class="reference internal" href="frequency.html#spectral-refinement"><span class="std std-ref">Spectral refinement</span></a>, including the application of data mirroring and Hann Window function to the autocorrelation data and the application of the sinc function to the final intensities.</p>
+</div>
 </section>
 <section id="c-dipole-moment-types">
 <h2>c) Dipole moment types<a class="headerlink" href="#c-dipole-moment-types" title="Link to this heading">¶</a></h2>
@@ -266,10 +270,7 @@ I_{\textnormal{IR}} (\tilde{\nu}) = \frac{2N_{A}}{12\varepsilon _{0}ck_{B}T}\int
                             <ul>
 <li><a class="reference internal" href="#">IR spectra</a><ul>
 <li><a class="reference internal" href="#a-static-ir-intensities">a) Static IR intensities</a></li>
-<li><a class="reference internal" href="#b-md-based-ir-intensities">b) MD-based IR intensities</a><ul>
-<li><a class="reference internal" href="#processing-of-the-final-spectra">Processing of the final spectra</a></li>
-</ul>
-</li>
+<li><a class="reference internal" href="#b-md-based-ir-intensities">b) MD-based IR intensities</a></li>
 <li><a class="reference internal" href="#c-dipole-moment-types">c) Dipole moment types</a></li>
 </ul>
 </li>

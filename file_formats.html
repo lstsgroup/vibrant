@@ -75,6 +75,10 @@
 <li class="toctree-l1"><a class="reference internal" href="Keyword_Glossary.html">Keyword Glossary</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Cite.html">Cite</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Contribute.html">Contribute</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">Examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="examples_static_water.html">Static spectral calculations for the water molecule</a></li>
+</ul>
+</li>
 </ul>
 
     </nav>
@@ -150,7 +154,7 @@
 <h2>2) Files for normal mode analysis<a class="headerlink" href="#files-for-normal-mode-analysis" title="Link to this heading">¶</a></h2>
 <section id="atomic-forces">
 <h3>2.1 Atomic forces<a class="headerlink" href="#atomic-forces" title="Link to this heading">¶</a></h3>
-<p>To carry out a normal mode analysis, the user must provide the atomic force vectors in a.u. for each <span class="math notranslate nohighlight">\(6N\)</span> displaced structure (for more information, see Section <a class="reference internal" href="frequency.html"><span class="std std-doc">Frequencies</span></a>. The file should have the format (ignoring the comment lines):</p>
+<p>To carry out a normal mode analysis, the user must provide the atomic force vectors in a.u. for each <span class="math notranslate nohighlight">\(6N\)</span> displaced structure (for more information, see Section <a class="reference internal" href="frequency.html#a-normal-mode-analysis"><span class="std std-ref">Frequencies</span></a>. The file should have the format (ignoring the comment lines):</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1">#start with forces coming from Atom 1 displaced in +x direction</span>
 &lt;force_x<span class="w"> </span>&lt;force_y&gt;<span class="w"> </span>&lt;force_z&gt;<span class="w"> </span><span class="c1">#first atom</span>
 &lt;force_x&gt;<span class="w"> </span>&lt;force_y&gt;<span class="w"> </span>&lt;force_z&gt;<span class="w"> </span><span class="c1">#second atom</span>
@@ -221,7 +225,7 @@
 </section>
 <section id="static-spectra-based-on-normal-modes">
 <h3>3.2 Static spectra based on normal modes<a class="headerlink" href="#static-spectra-based-on-normal-modes" title="Link to this heading">¶</a></h3>
-<p>The Berry phase dipole moment vectors for a static calculation should be given in Debye for each <span class="math notranslate nohighlight">\(6N\)</span> displaced structure (for more information, see Section <a class="reference internal" href="frequency.html"><span class="std std-doc">Frequencies</span></a> combined in a single file, such as (ignoring the comment lines):</p>
+<p>The Berry phase dipole moment vectors for a static calculation should be given in Debye for each <span class="math notranslate nohighlight">\(6N\)</span> displaced structure (for more information, see Section <a class="reference internal" href="frequency.html#a-normal-mode-analysis"><span class="std std-ref">Frequencies</span></a> combined in a single file, such as (ignoring the comment lines):</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1">#dipoles coming from Atom 1 displaced in +x direction</span>
 <span class="m">1</span><span class="w"> </span><span class="c1"># because there is only 1 dipole vector for the whole system</span>
 <span class="w">                       </span><span class="c1">#leave 1 blank line</span>
@@ -283,7 +287,7 @@
 </section>
 <section id="id2">
 <h3>5.2 Static spectra based on normal modes<a class="headerlink" href="#id2" title="Link to this heading">¶</a></h3>
-<p>The DFPT polarizabilities for a static calculation should be given in Å <span class="math notranslate nohighlight">\(^3\)</span> for each <span class="math notranslate nohighlight">\(6N\)</span> displaced structure (for more information, see Section <a class="reference internal" href="frequency.html"><span class="std std-doc">Frequencies</span></a> combined in a single file, such as (ignoring the comment lines):</p>
+<p>The DFPT polarizabilities for a static calculation should be given in Å <span class="math notranslate nohighlight">\(^3\)</span> for each <span class="math notranslate nohighlight">\(6N\)</span> displaced structure (for more information, see Section <a class="reference internal" href="frequency.html#a-normal-mode-analysis"><span class="std std-ref">Frequencies</span></a> combined in a single file, such as (ignoring the comment lines):</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1">#leave 6 blank lines</span>
 <span class="c1">#Atom 1 displaced in +x direction</span>
 &lt;dummy_value&gt;<span class="w"> </span>&lt;alpha_xx&gt;<span class="w"> </span>&lt;alpha_yy&gt;<span class="w"> </span>&lt;alpha_zz&gt;<span class="w"> </span>
@@ -363,7 +367,7 @@ yx,zx,zy<span class="w">       </span>-0.00000<span class="w">        </span><sp
 </section>
 <section id="id4">
 <h3>6.2 Static spectra based on normal modes<a class="headerlink" href="#id4" title="Link to this heading">¶</a></h3>
-<p>The time-dependent Berry phase dipole moment vectors for a static RR or absorption spectrum calculation should be given in Debye for each <span class="math notranslate nohighlight">\(6N\)</span> displaced structure (for more information, see Section <a class="reference internal" href="frequency.html"><span class="std std-doc">Frequencies</span></a> combined in a single file, such as (ignoring the comment lines):</p>
+<p>The time-dependent Berry phase dipole moment vectors for a static RR or absorption spectrum calculation should be given in Debye for each <span class="math notranslate nohighlight">\(6N\)</span> displaced structure (for more information, see Section <a class="reference internal" href="frequency.html#a-normal-mode-analysis"><span class="std std-ref">Frequencies</span></a> combined in a single file, such as (ignoring the comment lines):</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1">#dipoles coming from Atom 1 displaced in +x direction</span>
 &lt;dummy_value&gt;
 <span class="w">                       </span><span class="c1">#leave 1 blank line</span>

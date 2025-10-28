@@ -12,7 +12,7 @@ $$
 
 where $\varepsilon_{0}$ is the vacuum permittivity, $N_{A}$ is the Avogadro constant and $c$ is the speed of light. $\tilde{\nu_{p}}$ is the wavenumber defined as $\tilde{\nu_{p}}=\nu_{p}/c$.
 
-For each displaced structure (see Section [Frequencies](frequency.md) for details) the user must provide the dipole moments appended in a single file (see [File Formats](file_formats.md) for more details.) For the derivatives along the normal modes, the user can either provide the normal mode coordinates or alternatively the forces for each displaced structure, together with the cartesian coordinates of the optimized geometry. An example input section for the `static` section may look like:
+For each displaced structure (see Section [Frequencies](frequency.md#a-normal-mode-analysis) for details) the user must provide the dipole moments appended in a single file (see [File Formats](file_formats.md#32-static-spectra-based-on-normal-modes) for more details.) For the derivatives along the normal modes, the user can either provide the normal mode coordinates or alternatively the forces for each displaced structure, together with the cartesian coordinates of the optimized geometry. An example input for the `static` section may look like:
 
 ```bash
 &global
@@ -96,9 +96,9 @@ An example input section may look like:
 &end md
 ``` 
 
-### Processing of the final spectra
-
-Vibrant applies several procedures to improve the spectral resolution. It applies [finite difference correction](https://www.sciencedirect.com/science/article/pii/S0377042700003484) via dividing the intensities by the sinc function $\left(\frac{\sin(\tilde{\nu} \Delta t)}{\tilde{\nu} t} \right )^{2}$. Additionally, in order to increase the spectral resolution, Vibrant applies ["data mirroring"](https://link.springer.com/book/10.1007/978-3-319-49628-3?utm_medium=referral&utm_source=google_books&utm_campaign=3_pier05_buy_print&utm_content=en_08082017) to the autocorrelation functions. This is done by appending the data set in reverse order to the original data set. Vibrant also employs [Hann Window](https://link.springer.com/book/10.1007/978-3-319-49628-3?utm_medium=referral&utm_source=google_books&utm_campaign=3_pier05_buy_print&utm_content=en_08082017) function to further improve the resolution. This is achieved by multiplying the autocorrelation data with $\displaystyle\cos^{2}[\pi/(2\tau_{\textnormal{max}}-2)]$ before performing the Fourier transformations. $\tau_{\text{max}}$ corresponds to the correlation depth.
+ ```{note}
+  Vibrant applies the same post-processing to the final MD-based IR intensities as given in the subsection [Spectral refinement](frequency.md#spectral-refinement), including the application of data mirroring and Hann Window function to the autocorrelation data and the application of the sinc function to the final intensities. 
+```
 
 ## c) Dipole moment types
 
@@ -137,4 +137,3 @@ And for the Wannier centers, it would be:
 The Wannier centers can be used to compute the dipole moment of the whole supercell, however they can also be used to extract spectra of user-specified molecular blocks or fragments, which is discussed in Section [Subspectra for MD-based calculations](fragments.md).
 
 More information on the all available keywords can be found on [Keyword Glossary](Keyword_Glossary.rst) and all complete example input files are available on ....
-

@@ -43,7 +43,7 @@ Unpolarized ($I(\tilde{\nu}) = I_{\perp }(\tilde{\nu}) + I_{\parallel }(\tilde{\
 
 By default, Vibrant prints only the unpolarized (total) Raman intensities, but the other types of spectra, together with the depolarization ratio ($\rho (\tilde{\nu})=\frac{I_{\perp }(\tilde{\nu})}{I_{\parallel  }(\tilde{\nu})}$), can be printed out by setting the `spectra_verbosity` keyword to `high`.
 
-For each displaced structure (see Section [Frequencies](frequency.md) for details) the user must provide the polarizability tensors appended in a single file (see [File Formats](file_formats.md) for more details.) For the derivatives along the normal modes, the user can either provide the normal mode coordinates or alternatively the forces for each displaced structure, together with the cartesian coordinates of the optimized geometry. An example input section for the static Raman calculation may look like:
+For each displaced structure (see Section [Frequencies](frequency.md) for details) the user must provide the polarizability tensors appended in a single file (see [File Formats](file_formats.md#52-static-spectra-based-on-normal-modes) for more details.) For the derivatives along the normal modes, the user can either provide the normal mode coordinates or alternatively the forces for each displaced structure, together with the cartesian coordinates of the optimized geometry. An example input section for the static Raman calculation may look like:
 
 ```bash
 &global
@@ -162,14 +162,14 @@ The `md` section should be included for the MD-based Raman calculation:
 ```
 
  ```{note}
-  Vibrant applies the same processing to the final MD-based Raman intensities as given in the Section [IR Spectra](IR_spec.md), including the application of data mirroring and Hann Window function to the autocorrelation data and the application of the sinc function to the final intensities. 
+  Vibrant applies the same post-processing to the final MD-based Raman intensities as given in the subsection [Spectral refinement](frequency.md#spectral-refinement), including the application of data mirroring and Hann Window function to the autocorrelation data and the application of the sinc function to the final intensities. 
 ```
 
  The final MD-based Raman intensities are reported in m $^2$ K cm 10 $^{-30}$ . The polarizability/dipole moment types that can be processed by Vibrant for computing Raman spectra are discussed in the next section.
 
 ## c) Different polarizability tensors
 
-The MD-based Raman intensities can be computed either directly from the DFPT polarizabilities or from an induced dipole approach where Berry phase dipole moments or Wannier centers are processed. [CP2K](https://www.cp2k.org/) program package enables the [calculation of the polarizability tensors via DFPT](https://pubs.aip.org/aip/jcp/article/141/9/094503/193754), which can be processed by Vibrant. [DFPT](https://journals.aps.org/prb/abstract/10.1103/PhysRevB.39.13120) analytically evaluates the response of a system to external electric or magnetic fields. The DFPT polarizabilities are obtained for the whole supercell, and are obtained directly from a single linear-response calculation, without any field adjustments. The DFPT polarizabilities are uniquely defined unlike the dipole moments, meaning no phase indeterminacy is involved. The DFPT polarizabilities can be specified in the Vibrant input file using the `type_dipole` keyword:
+The MD-based Raman intensities can be computed either directly from the DFPT polarizabilities or from an induced dipole approach where Berry phase dipole moments or Wannier centers are processed. [CP2K](https://www.cp2k.org/) program package enables the [calculation of the polarizability tensors via DFPT](https://pubs.aip.org/aip/jcp/article/141/9/094503/193754), which can be processed by Vibrant. [DFPT](https://www.cambridge.org/core/books/berry-phases-in-electronic-structure-theory/DDD71CA4FE9AF5F3A2FB300E602F394A) analytically evaluates the response of a system to external electric or magnetic fields. The DFPT polarizabilities are obtained for the whole supercell, and are obtained directly from a single linear-response calculation, without any field adjustments. The DFPT polarizabilities are uniquely defined unlike the dipole moments, meaning no phase indeterminacy is involved. The DFPT polarizabilities can be specified in the Vibrant input file using the `type_dipole` keyword:
 
 ```bash
 ...
@@ -195,7 +195,7 @@ $$
 
 where $\boldsymbol{\mu}^{0}$ is the dipole moment vector obtained from the field-free calculations. The components $\alpha_{\alpha\beta}$ of the polarizability tensor are then given by $ \alpha_{\alpha,\beta=k} = \mu^k_{\textnormal{ind},\alpha}/E$ .
 
-Dipoles can be computed using the Berry-phase or MLWF formalism, enabling consistent treatment of IR and Raman spectra and local Raman analyses. The field strength must be optimized to balance finite-difference accuracy and noise. More details on the Berry phase method and maximally localized Wannier functions (MLWFs) are provided in Section [IR Spectra](IR_spec.md). The induced dipole section must also include the file that contains the field-free dipole moments and the `field_strength` keyword:
+Dipoles can be computed using the Berry-phase or MLWF formalism, enabling consistent treatment of IR and Raman spectra and local Raman analyses. The field strength must be optimized to balance finite-difference accuracy and noise. More details on the Berry phase method and maximally localized Wannier functions (MLWFs) are provided in the IR section under the subsection ["Dipole moment types"](IR_spec.md#c-dipole-moment-types). The induced dipole section must also include the file that contains the field-free dipole moments and the `field_strength` keyword:
 
 ```bash
 ...
@@ -209,10 +209,10 @@ Dipoles can be computed using the Berry-phase or MLWF formalism, enabling consis
 &end dipoles
 ```
 
-More details on the format of the dipole moment files can be found in Section [File Formats](file_formats.md).
+More details on the format of the dipole moment and polarizability files can be found in Section [File Formats](file_formats.md).
 
 ```{warning}
- Similar to the MD-based IR spectra, the MD-based spectrum should contain the `cell` subsection alongside the `md` section if the induced dipole method is selected. For more details, please see Section [IR Spectra](IR_spec.md).
+ Similar to the MD-based IR spectra, the MD-based spectrum should contain the `cell` subsection alongside the `md` section if the induced dipole method is selected. For more details, please see [MD-based IR Spectra](IR_spec.md#b-md-based-ir-intensities) under the IR section.
 ```
 
 ```{note}

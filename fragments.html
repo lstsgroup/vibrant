@@ -75,6 +75,10 @@
 <li class="toctree-l1"><a class="reference internal" href="Keyword_Glossary.html">Keyword Glossary</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Cite.html">Cite</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Contribute.html">Contribute</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">Examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="examples_static_water.html">Static spectral calculations for the water molecule</a></li>
+</ul>
+</li>
 </ul>
 
     </nav>
@@ -158,8 +162,8 @@
 <span class="p">&amp;</span>end<span class="w"> </span>system
 </pre></div>
 </div>
-<p>For instance, the phenyl and boroxine fragments of COF-1 can be given in different <code class="docutils literal notranslate"><span class="pre">fragment</span></code> blocks. However, all fragments in a fragment block (indicated with the keyword <code class="docutils literal notranslate"><span class="pre">atom_list</span></code>) must consist of the same number of atoms. The rest of the input file must include all the other necessary sections in an MD-based Raman (see Section <a class="reference internal" href="Raman_spec.html"><span class="std std-doc">Raman Spectra</span></a>) or MD-based IR calculation (see Section <a class="reference internal" href="IR_spec.html"><span class="std std-doc">IR Spectra</span></a>).</p>
-<p>Based on a distance cut-off criteria which relies on periodic boundary conditions (PBC), Vibrant scans through all Wannier centers in the provided file and assigns them to the individiual molecular blocks. Afterwards, center of mass of each fragment is calculated, which serves as the reference point. The dipole moment contribution of the specified molecular block is computed based on the distances and charges of the fragment atoms with respect to the defined center of mass. More information on the equations is provided in the subsection “Dipole moment types” of Section <a class="reference internal" href="IR_spec.html"><span class="std std-doc">IR Spectra</span></a>. For all given <code class="docutils literal notranslate"><span class="pre">fragment</span></code> blocks, Vibrant prints out the requested spectra in separate files, such as in the form:</p>
+<p>For instance, the phenyl and boroxine fragments of COF-1 can be given in different <code class="docutils literal notranslate"><span class="pre">fragment</span></code> blocks. However, all fragments in a fragment block (indicated with the keyword <code class="docutils literal notranslate"><span class="pre">atom_list</span></code>) must consist of the same number of atoms. The rest of the input file must include all the other necessary sections for computing <a class="reference internal" href="Raman_spec.html#b-md-based-raman-intensities"><span class="std std-ref">MD-based Raman Spectra</span></a> or <a class="reference internal" href="IR_spec.html#b-md-based-ir-intensities"><span class="std std-ref">MD-based IR Spectra</span></a>.</p>
+<p>Based on a distance cut-off criteria which relies on periodic boundary conditions (PBC), Vibrant scans through all Wannier centers in the provided file and assigns them to the individiual molecular blocks. Afterwards, center of mass of each fragment is calculated, which serves as the reference point. The dipole moment contribution of the specified molecular block is computed based on the distances and charges of the fragment atoms with respect to the defined center of mass. More information on the equations is provided in the subsection <a class="reference internal" href="IR_spec.html#c-dipole-moment-types"><span class="std std-ref">“Dipole moment types”</span></a> of the IR section. For all given <code class="docutils literal notranslate"><span class="pre">fragment</span></code> blocks, Vibrant prints out the requested spectra in separate files, such as in the form:</p>
 <ul class="simple">
 <li><p>IR_spectrum_fragment_1.txt</p></li>
 <li><p>IR_spectrum_fragment_2.txt</p></li>
