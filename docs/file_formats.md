@@ -26,7 +26,7 @@ Similarly, the power spectrum calculations requires that the user provides the a
 
 ### 2.1 Atomic forces
 
-To carry out a normal mode analysis, the user must provide the atomic force vectors in a.u. for each $6N$ displaced structure (for more information, see Section [Frequencies](frequency.md). The file should have the format (ignoring the comment lines):
+To carry out a normal mode analysis, the user must provide the atomic force vectors in a.u. for each $6N$ displaced structure (for more information, see Section [Frequencies](frequency.md#a-normal-mode-analysis). The file should have the format (ignoring the comment lines):
 
 ```bash
 #start with forces coming from Atom 1 displaced in +x direction
@@ -102,7 +102,7 @@ The Berry phase dipole moment vectors for the MD-based spectra should be given i
 
 ### 3.2 Static spectra based on normal modes
 
-The Berry phase dipole moment vectors for a static calculation should be given in Debye for each $6N$ displaced structure (for more information, see Section [Frequencies](frequency.md) combined in a single file, such as (ignoring the comment lines):
+The Berry phase dipole moment vectors for a static calculation should be given in Debye for each $6N$ displaced structure (for more information, see Section [Frequencies](frequency.md#a-normal-mode-analysis) combined in a single file, such as (ignoring the comment lines):
 
 ```bash
 #dipoles coming from Atom 1 displaced in +x direction
@@ -167,7 +167,7 @@ where $i$ is $x$, $y$, or $z$.
 
 ### 5.2 Static spectra based on normal modes
 
-The DFPT polarizabilities for a static calculation should be given in Å $^3$ for each $6N$ displaced structure (for more information, see Section [Frequencies](frequency.md) combined in a single file, such as (ignoring the comment lines):
+The DFPT polarizabilities for a static calculation should be given in Å $^3$ for each $6N$ displaced structure (for more information, see Section [Frequencies](frequency.md#a-normal-mode-analysis) combined in a single file, such as (ignoring the comment lines):
 
 ```bash
 #leave 6 blank lines
@@ -254,7 +254,7 @@ Here the unperturbed dipole moments refer to $\mu^{0}_{i}$ described in Section 
 
 ### 6.2 Static spectra based on normal modes
 
-The time-dependent Berry phase dipole moment vectors for a static RR or absorption spectrum calculation should be given in Debye for each $6N$ displaced structure (for more information, see Section [Frequencies](frequency.md) combined in a single file, such as (ignoring the comment lines):
+The time-dependent Berry phase dipole moment vectors for a static RR or absorption spectrum calculation should be given in Debye for each $6N$ displaced structure (for more information, see Section [Frequencies](frequency.md#a-normal-mode-analysis) combined in a single file, such as (ignoring the comment lines):
 
 ```bash
 #dipoles coming from Atom 1 displaced in +x direction

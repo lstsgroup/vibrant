@@ -61,7 +61,7 @@ $$
 
 where $T$ is the total RT-TDDFT simulation time, $t$ is the RT-TDDFT time step, ${\mu}^{j}_i(t)$ is the time-dependent dipole moment under the electric field applied in the $j$ direction, $\mu^{0}_{i}$ denotes the initial static dipole moment of the unperturbed system, and $\Gamma$ is the [damping factor](https://pubs.aip.org/aip/jcp/article/138/4/044101/193408).
 
-To compute a static RR spectrum, the user must provide the time-dependent dipole moments for each displaced structure, combined into a single file (see [File Formats](file_formats.md) for details). There should be three files in total, each corresponding to calculations performed under electric fields applied along the x-, y-, and z-directions. An example input section for performing a static RR calculation is shown below:
+To compute a static RR spectrum, the user must provide the time-dependent dipole moments for each displaced structure, combined into a single file (see [File Formats](file_formats.md#62-static-spectra-based-on-normal-modes) for details). There should be three files in total, each corresponding to calculations performed under electric fields applied along the x-, y-, and z-directions. An example input section for performing a static RR calculation is shown below:
 
 ```bash
 &global
@@ -90,7 +90,7 @@ To compute a static RR spectrum, the user must provide the time-dependent dipole
 ...
 ```
 
-`rtp` section provides the necessary information about the RT-TDDFT parameters. The `static` section should be given similar to the [static Raman](Raman_spec.md) input. Complete input files can be found at ....
+`rtp` section provides the necessary information about the RT-TDDFT parameters. The `static` section should be given similar to the [static Raman](Raman_spec.md#a-static-raman-intensities) input. Complete input files can be found at ....
 
 Vibrant applies Gaussian broadening to the final discrete set of frequencies and intensities. The `fwhm` keyword controls the full width at half-maximum (FWHM) value in cm ${^{-1}}$ and if not specified, it is set to 5 cm ${^{-1}}$.
 
@@ -216,7 +216,7 @@ $$
 
 where $T$ is the total RT-TDDFT simulation time, $\tau$ is the RT-TDDFT time step, $t$ is the MD time step, ${\mu}^{j}_i(\tau, t)$ is the time-dependent dipole moment under the electric field applied in the $j$ direction, $\mu^{0}_{i}(\tau, t)$ denotes the initial static dipole moment of the unperturbed system, and $\Gamma$ is the damping factor.
 
-The MD-based RR calculation in Vibrant is not fully tested yet, and more tests are being performed. The current implementation requires that the user provides the time-dependent dipole moments for each MD snapshot, combined into a single file (see [File Formats](file_formats.md) for more details). There should be three files in total, each corresponding to calculations performed under electric fields applied along the x-, y-, and z-directions. An example input section for performing an MD-based RR calculation is shown below:
+The MD-based RR calculation in Vibrant is not fully tested yet, and more tests are being performed. The current implementation requires that the user provides the time-dependent dipole moments for each MD snapshot, combined into a single file (see [File Formats](file_formats.md#61-md-based-spectra) for more details). There should be three files in total, each corresponding to calculations performed under electric fields applied along the x-, y-, and z-directions. An example input section for performing an MD-based RR calculation is shown below:
 
 ```bash
 &global
@@ -244,7 +244,7 @@ The MD-based RR calculation in Vibrant is not fully tested yet, and more tests a
 The MD-based absorption spectrum is computed in the same manner as the static absorption spectrum described above, except that the absorption intensities are averaged over all MD snapshots. The MD-based absorption spectrum does not require the specification of the `md` section.
 
 ```{note}
-  Vibrant applies the same processing to the final MD-based RR intensities as given in the Section [IR Spectra](IR_spec.md), including the application of data mirroring and Hann Window function to the autocorrelation data and the application of the sinc function to the final intensities.
+  Vibrant applies the same post-processing to the final MD-based RR intensities as given in the subsection [Spectral refinement](frequency.md#spectral-refinement), including the application of data mirroring and Hann Window function to the autocorrelation data and the application of the sinc function to the final intensities. 
 ```
 
  The final MD-based RR intensities are reported in m $^2$ K cm 10 $^{-30}$.
@@ -261,7 +261,7 @@ $$
 {1 + B_1 \omega + B_2 \omega^2 + \cdots + B_{\frac{T}{2}} \omega^{\frac{T}{2}}}
 $$
 
-where $A_i$ and $B_i$ are the Padé coefficients, and $T$ represents the total number of RT-TDDFT time steps. These coefficients are obtained using [Thiele’s reciprocal difference method](https://books.google.de/books?hl=tr&lr=&id=LFCzdo4_20EC&oi=fnd&pg=PP1&dq=George+Jr,+A.%3B+others+Essentials+of+Pad%C3%A9+approximants%3B+Elsevier,+1975.&ots=DADABOyfgn&sig=GSjxHhTenQR_ZmJuVFT0a9PCGaU&redir_esc=y#v=onepage&q=George%20Jr%2C%20A.%3B%20others%20Essentials%20of%20Pad%C3%A9%20approximants%3B%20Elsevier%2C%201975.&f=false), applied to the $T$ discrete data points ${\omega_i, \alpha_i}$ generated along the RT-TDDFT trajectory.
+where $A_i$ and $B_i$ are the Padé coefficients, and $T$ represents the total number of RT-TDDFT time steps. These coefficients are obtained using Thiele’s reciprocal difference method, applied to the $T$ discrete data points ${\omega_i, \alpha_i}$ generated along the RT-TDDFT trajectory.
 
 Padé interpolation improves the resolution and stability significantly for shorter or noisy RT-TDDFT trajectories. Unlike [previous approaches](https://pubs.acs.org/doi/full/10.1021/acs.jctc.6b00511) that replace FFTs entirely, this method applies the Padé interpolation as a post-processing step to refine spectra and correct distortions and noise in the peaks. The Padé fitting is implemented using the "plain-128" algorithm of the [GreenX library](https://nomad-coe.github.io/greenX/gx_ac.html), which provides a numerically robust and efficient solver for [computing Padé coefficients and evaluating the resulting analytic continuation](https://joss.theoj.org/papers/10.21105/joss.07859). The following figure demonstrates how the application of Padé approximants enhances the spectral resolution significantly and "corrects" the peak positions:
 
@@ -297,4 +297,4 @@ The user must also specify the number of the final data points after the Padé f
 The Padé fitting usually takes time, but it is accelarated using OpenMP threads. To control the number of parallel threads you can export the environment variable `export OMP_NUM_THREADS=<num_threads>` before calling the vibrant code. Occasionally for large RTP steps you can run into a "out-of-memory" error. The amout of RAM memory vibrant needs can be computed roughly by $N_{RTP}^2\cdot 16 \cdot 10^{-9} \cdot N_{threads}$ (in GB).
 ```
 
-More information on the all available keywords can be found on Section .. and all complete example input files are available on ....
+More information on the all available keywords can be found on [Keyword Glossary](Keyword_Glossary.rst) and all complete example input files are available on ....
