@@ -90,7 +90,7 @@ To compute a static RR spectrum, the user must provide the time-dependent dipole
 ...
 ```
 
-`rtp` section provides the necessary information about the RT-TDDFT parameters. The `static` section should be given similar to the [static Raman](Raman_spec.md#a-static-raman-intensities) input. Complete input files can be found at ....
+`rtp` section provides the necessary information about the RT-TDDFT parameters. The `static` section should be given similar to the [static Raman](Raman_spec.md#a-static-raman-intensities) input. Complete input files can be found at [Examples](Examples.md).
 
 Vibrant applies Gaussian broadening to the final discrete set of frequencies and intensities. The `fwhm` keyword controls the full width at half-maximum (FWHM) value in cm ${^{-1}}$ and if not specified, it is set to 5 cm ${^{-1}}$.
 
@@ -297,4 +297,4 @@ The user must also specify the number of the final data points after the Padé f
 The Padé fitting usually takes time, but it is accelarated using OpenMP threads. To control the number of parallel threads you can export the environment variable `export OMP_NUM_THREADS=<num_threads>` before calling the vibrant code. Occasionally for large RTP steps you can run into a "out-of-memory" error. The amout of RAM memory vibrant needs can be computed roughly by $N_{RTP}^2\cdot 16 \cdot 10^{-9} \cdot N_{threads}$ (in GB).
 ```
 
-More information on the all available keywords can be found on [Keyword Glossary](Keyword_Glossary.rst) and all complete example input files are available on ....
+More information on the all available keywords can be found on [Keyword Glossary](Keyword_Glossary.rst) and all complete example input files are available on [Examples](Examples.md).

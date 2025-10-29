@@ -4,11 +4,11 @@ Vibrant can compute the molecular dynamics (MD)-based IR or Raman subspectra of 
 
 <div style="display:flex; justify-content: center; align-items: center;">
   <div style="width: 500px;">
-  <img src="./_static/fragment.png">
+  <img src="./_static/fragments.png">
   <br>
   <div style="display: block; padding: 20px; color: gray; text-align: justify;">
 
-  Assigned fragments in a framework system (COF-1). The boroxine and phenyl fragments of the system are highlighted in green and purple, the connecting B-C bonds are highlighted in blue.
+  Assigned fragments in a framework system (COF-1). The boroxine and phenyl fragments of the system are highlighted in red and purple, the connecting B-C bonds are highlighted in orange.
 
    </div>
    </div>
@@ -47,7 +47,7 @@ An example taken from our [previous publication on the MD-based vibrational spec
 
 <div style="display:flex; justify-content: center; align-items: center;">
   <div style="width: 500px;">
-  <img src="./_static/fragments_spectrum.png">
+  <img src="./_static/JOSS_COF-1_frags.png">
   <br>
   <div style="display: block; padding: 20px; color: gray; text-align: justify;">
 
@@ -71,4 +71,4 @@ Another example is [the dissection of the overall spectrum into solvent and mate
    </div>
 </div>
 
-More information on the all available keywords can be found on [Keyword Glossary](Keyword_Glossary.rst) and all complete example input files are available on ....
+More information on the all available keywords can be found on [Keyword Glossary](Keyword_Glossary.rst) and all complete example input files are available on [Examples](Examples.md).

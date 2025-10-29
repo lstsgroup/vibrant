@@ -3,7 +3,7 @@ name: Deploy Documentation Website
 on:
   push:
     branches:
-      - main
+      - JOSS
   pull_request:
     branches:
       - main

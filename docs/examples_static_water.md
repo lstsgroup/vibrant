@@ -1,4 +1,4 @@
-# Static spectral calculations for the water molecule
+# Static spectral calculations for water molecule
 
 ## Normal mode analysis
 
@@ -89,6 +89,34 @@ This example does not perform a normal mode analysis, and instead uses the user-
   </p>
 </div>
 
-The IR spectrum can be obtained directly using the chosen broadening method and full width at half maximum (FWHM). Alternatively, one may plot the Gaussian-broadened file `result_static_ir.txt` produced by Vibrant with the desired FWHM value, for example using Python or Gnuplot.
+The IR spectrum can be obtained directly using the chosen broadening method and full width at half maximum (FWHM). Alternatively, one may plot the Gaussian-broadened file `result_static_ir.txt` produced by Vibrant with the desired FWHM value, for example using Python or Gnuplot. An example Python script is given in the [Quick Start](Quick_Start.rst) section.
 
-The Raman calculation can be found in the directory `/scratch/ekin/Examples/Static/Raman`
+The Raman calculation can be found in the directory `/scratch/ekin/Examples/Static/Raman`. This example uses again the atomic forces to calculate the normal mode frequencies and coordinates. It also uses the `polarizabilities.dat` file for the polarizability tensors. Details on the format of this file is given in the [File Formats](file_formats.md#52-static-spectra-based-on-normal-modes) section.
+
+```bash
+&global
+ spectra R
+ temperature 300
+ fwhm 5
+&end global
+&system
+ filename water.xyz
+&end system
+&static
+ diag_hessian y
+ &hessian
+  force_file water-force.data
+ &end hessian
+ displacement 0.001
+ write_mol_file
+&end static
+&dipoles
+ type_dipole dfpt
+ static_pol_file polarizabilities.dat
+&end dipoles
+&raman
+ laser_in 2.540639
+&end raman
+```
+
+This calculation generates four files, again the normal mode frequency and normal mode coordinate files `normal_mode_freq.txt` and `normal_mode_displ.txt`, and also the `result_static_raman.txt` file which contains the broadened frequencies and the Raman spectrum and can be plotted with, for example, Python. Additionally, `Raman.mol` can again be opened with [MOLDEN](https://www.theochem.ru.nl/molden/) to visualize the normal modes alongside the Raman spectrum.
