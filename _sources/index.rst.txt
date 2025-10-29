@@ -38,6 +38,6 @@ Documentation
    Installation
    Usage
    Keyword_Glossary
+   Examples
    Cite
    Contribute
-   Examples

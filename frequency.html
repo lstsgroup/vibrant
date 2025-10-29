@@ -73,12 +73,14 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="Keyword_Glossary.html">Keyword Glossary</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Cite.html">Cite</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Contribute.html">Contribute</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Examples.html">Examples</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="examples_static_water.html">Static spectral calculations for the water molecule</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples_static_water.html">Static spectral calculations for water molecule</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples_RR_and_absorption.html">Static resonance Raman and absorption spectra of <em>R</em>-methyloxirane</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples_MD_spectra.html">MD-based Spectra of COF-1</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="Cite.html">Cite</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Contribute.html">Contribute</a></li>
 </ul>
 
     </nav>
@@ -214,7 +216,7 @@ P(\omega) = \frac{2c}{3k_{B}} \int\_{-\infty}^{\infty} \left&lt; \dot{r}(\tau)\d
 <section id="spectral-refinement">
 <h3>Spectral refinement<a class="headerlink" href="#spectral-refinement" title="Link to this heading">¶</a></h3>
 <p>Vibrant applies several procedures to improve the frequency resolution of MD-based spectra. It applies <a class="reference external" href="https://www.sciencedirect.com/science/article/pii/S0377042700003484">finite difference correction</a> via dividing the intensities by the sinc function <span class="math notranslate nohighlight">\(\left(\frac{\sin(\tilde{\nu} \Delta t)}{\tilde{\nu} t} \right )^{2}\)</span>. Additionally, in order to increase the spectral resolution, Vibrant applies <a class="reference external" href="https://link.springer.com/book/10.1007/978-3-319-49628-3?utm_medium=referral&amp;amp;utm_source=google_books&amp;amp;utm_campaign=3_pier05_buy_print&amp;amp;utm_content=en_08082017">“data mirroring”</a> to the autocorrelation functions. This is done by appending the data set in reverse order to the original data set. Vibrant also employs <a class="reference external" href="https://link.springer.com/book/10.1007/978-3-319-49628-3?utm_medium=referral&amp;amp;utm_source=google_books&amp;amp;utm_campaign=3_pier05_buy_print&amp;amp;utm_content=en_08082017">Hann Window</a> function to further improve the resolution. This is achieved by multiplying the autocorrelation data with <span class="math notranslate nohighlight">\(\displaystyle\cos^{2}[\pi/(2\tau_{\textnormal{max}}-2)]\)</span> before performing the Fourier transformations. <span class="math notranslate nohighlight">\(\tau_{\text{max}}\)</span> corresponds to the correlation depth.</p>
-<p>More information on the all available keywords can be found on <a class="reference internal" href="Keyword_Glossary.html"><span class="std std-doc">Keyword Glossary</span></a> and all complete example input files are available on ….</p>
+<p>More information on the all available keywords can be found on <a class="reference internal" href="Keyword_Glossary.html"><span class="std std-doc">Keyword Glossary</span></a> and all complete example input files are available on <a class="reference internal" href="Examples.html"><span class="std std-doc">Examples</span></a>.</p>
 </section>
 </section>
 </section>

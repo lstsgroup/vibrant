@@ -73,12 +73,14 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="Keyword_Glossary.html">Keyword Glossary</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Cite.html">Cite</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Contribute.html">Contribute</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Examples.html">Examples</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="examples_static_water.html">Static spectral calculations for the water molecule</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples_static_water.html">Static spectral calculations for water molecule</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples_RR_and_absorption.html">Static resonance Raman and absorption spectra of <em>R</em>-methyloxirane</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples_MD_spectra.html">MD-based Spectra of COF-1</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="Cite.html">Cite</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Contribute.html">Contribute</a></li>
 </ul>
 
     </nav>
@@ -136,10 +138,10 @@
 <p>Vibrant can compute the molecular dynamics (MD)-based IR or Raman subspectra of specified molecular blocks or fragments by processing the Wannier centers. This is especially useful for extracting the solvent contribution in a system consisting of a material + solvent. Additionally, molecular blocks found in framework systems (such as covalent organic frameworks, denoted as COFs) can similarly be specified in a list to extract their subspectra, allowing the analysis of individual contributions on the spectrum. To calculate any subspectra, the user first must provide the list of the indices of all atoms belonging to that fragment. Multiple fragment blocks can be specified by the user, each consisting of several atom lists. The following figure demonstrates how the molecular blocks in a framework system may look like:</p>
 <div style="display:flex; justify-content: center; align-items: center;">
   <div style="width: 500px;">
-  <img src="./_static/fragment.png">
+  <img src="./_static/fragments.png">
   <br>
   <div style="display: block; padding: 20px; color: gray; text-align: justify;">
-<p>Assigned fragments in a framework system (COF-1). The boroxine and phenyl fragments of the system are highlighted in green and purple, the connecting B-C bonds are highlighted in blue.</p>
+<p>Assigned fragments in a framework system (COF-1). The boroxine and phenyl fragments of the system are highlighted in red and purple, the connecting B-C bonds are highlighted in orange.</p>
    </div>
    </div>
 </div>
@@ -172,7 +174,7 @@
 <p>An example taken from our <a class="reference external" href="https://pubs.acs.org/doi/full/10.1021/acs.jctc.4c01021">previous publication on the MD-based vibrational spectra of layered materials</a>, shows how this method can be utilized to dissect a spectrum:</p>
 <div style="display:flex; justify-content: center; align-items: center;">
   <div style="width: 500px;">
-  <img src="./_static/fragments_spectrum.png">
+  <img src="./_static/JOSS_COF-1_frags.png">
   <br>
   <div style="display: block; padding: 20px; color: gray; text-align: justify;">
 <p>The AIMD-based Raman spectra for pristine COF-1 calculated from Wannier centers. The subspectra of the boroxine/phenyl units and B-C bonds are calculated by defining fragments. The prominent peaks are highlighted. This method helps in dissecting and characterizing the overall MD-based spectrum.</p>
@@ -189,7 +191,7 @@
    </div>
    </div>
 </div>
-<p>More information on the all available keywords can be found on <a class="reference internal" href="Keyword_Glossary.html"><span class="std std-doc">Keyword Glossary</span></a> and all complete example input files are available on ….</p>
+<p>More information on the all available keywords can be found on <a class="reference internal" href="Keyword_Glossary.html"><span class="std std-doc">Keyword Glossary</span></a> and all complete example input files are available on <a class="reference internal" href="Examples.html"><span class="std std-doc">Examples</span></a>.</p>
 </section>
 
 </main>

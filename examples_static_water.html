@@ -6,7 +6,7 @@
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
-        <title>Static spectral calculations for the water molecule &mdash; vibrant  documentation</title>
+        <title>Static spectral calculations for water molecule &mdash; vibrant  documentation</title>
     
     <link rel="stylesheet" type="text/css" href="_static/dist/fontawesome.css" />
       <link rel="stylesheet" type="text/css" href="_static/dist/theme.css?v=310cf088" />
@@ -16,6 +16,7 @@
             <link rel="search" title="Search" href="search.html" />
             <link rel="top" title="vibrant  documentation" href="#" />
             <link rel="up" title="Examples" href="Examples.html" />
+            <link rel="next" title="Static resonance Raman and absorption spectra of R-methyloxirane" href="examples_RR_and_absorption.html" />
             <link rel="prev" title="Examples" href="Examples.html" />
     </head>
 <body>
@@ -72,12 +73,14 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="Keyword_Glossary.html">Keyword Glossary</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Cite.html">Cite</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Contribute.html">Contribute</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="Examples.html">Examples</a><ul class="current">
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Static spectral calculations for the water molecule</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Static spectral calculations for water molecule</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples_RR_and_absorption.html">Static resonance Raman and absorption spectra of <em>R</em>-methyloxirane</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples_MD_spectra.html">MD-based Spectra of COF-1</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="Cite.html">Cite</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Contribute.html">Contribute</a></li>
 </ul>
 
     </nav>
@@ -99,7 +102,7 @@
     <ol class="breadcrumb m-0 p-0 bg-transparent">
         <li class="breadcrumb-item"><a href="index.html">Docs</a></li>
             <li class="breadcrumb-item"><a href="Examples.html">Examples</a></li>
-        <li class="breadcrumb-item active" aria-current="page">Static spectral calculations for the water molecule</li>
+        <li class="breadcrumb-item active" aria-current="page">Static spectral calculations for water molecule</li>
     </ol>
 </nav>
                     </div>
@@ -130,8 +133,8 @@
                 <div class="row">
                     <div class="col-12 col-lg-9 order-last order-lg-first rst-content">
                         <main role="main" id="main">
-    <section class="tex2jax_ignore mathjax_ignore" id="static-spectral-calculations-for-the-water-molecule">
-<h1>Static spectral calculations for the water molecule<a class="headerlink" href="#static-spectral-calculations-for-the-water-molecule" title="Link to this heading">¶</a></h1>
+    <section class="tex2jax_ignore mathjax_ignore" id="static-spectral-calculations-for-water-molecule">
+<h1>Static spectral calculations for water molecule<a class="headerlink" href="#static-spectral-calculations-for-water-molecule" title="Link to this heading">¶</a></h1>
 <section id="normal-mode-analysis">
 <h2>Normal mode analysis<a class="headerlink" href="#normal-mode-analysis" title="Link to this heading">¶</a></h2>
 <p>The test calculation on the directory <code class="docutils literal notranslate"><span class="pre">/Static/Normal_mode_analysis</span></code> demonstrates how one can carry out a normal mode analysis for a simple water molecule providing the and giving the geometry file <code class="docutils literal notranslate"><span class="pre">water.xyz</span></code> and the file which contains the atomic forces <code class="docutils literal notranslate"><span class="pre">water-force.data</span></code> (see <a class="reference internal" href="file_formats.html#21-atomic-forces"><span class="std std-ref">File Formats</span></a> for more details on how to append the atomic forces for each displaced structure.) The input file is then given as:</p>
@@ -214,8 +217,34 @@ and normal mode coordinates (See <a class="reference internal" href="file_format
     Visualization of the antisymmetric stretching mode of water, alongside the IR spectrum.
   </p>
 </div>
-<p>The IR spectrum can be obtained directly using the chosen broadening method and full width at half maximum (FWHM). Alternatively, one may plot the Gaussian-broadened file <code class="docutils literal notranslate"><span class="pre">result_static_ir.txt</span></code> produced by Vibrant with the desired FWHM value, for example using Python or Gnuplot.</p>
-<p>The Raman calculation can be found in the directory <code class="docutils literal notranslate"><span class="pre">/scratch/ekin/Examples/Static/Raman</span></code></p>
+<p>The IR spectrum can be obtained directly using the chosen broadening method and full width at half maximum (FWHM). Alternatively, one may plot the Gaussian-broadened file <code class="docutils literal notranslate"><span class="pre">result_static_ir.txt</span></code> produced by Vibrant with the desired FWHM value, for example using Python or Gnuplot. An example Python script is given in the <a class="reference internal" href="Quick_Start.html"><span class="std std-doc">Quick Start</span></a> section.</p>
+<p>The Raman calculation can be found in the directory <code class="docutils literal notranslate"><span class="pre">/scratch/ekin/Examples/Static/Raman</span></code>. This example uses again the atomic forces to calculate the normal mode frequencies and coordinates. It also uses the <code class="docutils literal notranslate"><span class="pre">polarizabilities.dat</span></code> file for the polarizability tensors. Details on the format of this file is given in the <a class="reference internal" href="file_formats.html#52-static-spectra-based-on-normal-modes"><span class="std std-ref">File Formats</span></a> section.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="p">&amp;</span>global
+<span class="w"> </span>spectra<span class="w"> </span>R
+<span class="w"> </span>temperature<span class="w"> </span><span class="m">300</span>
+<span class="w"> </span>fwhm<span class="w"> </span><span class="m">5</span>
+<span class="p">&amp;</span>end<span class="w"> </span>global
+<span class="p">&amp;</span>system
+<span class="w"> </span>filename<span class="w"> </span>water.xyz
+<span class="p">&amp;</span>end<span class="w"> </span>system
+<span class="p">&amp;</span>static
+<span class="w"> </span>diag_hessian<span class="w"> </span>y
+<span class="w"> </span><span class="p">&amp;</span>hessian
+<span class="w">  </span>force_file<span class="w"> </span>water-force.data
+<span class="w"> </span><span class="p">&amp;</span>end<span class="w"> </span>hessian
+<span class="w"> </span>displacement<span class="w"> </span><span class="m">0</span>.001
+<span class="w"> </span>write_mol_file
+<span class="p">&amp;</span>end<span class="w"> </span>static
+<span class="p">&amp;</span>dipoles
+<span class="w"> </span>type_dipole<span class="w"> </span>dfpt
+<span class="w"> </span>static_pol_file<span class="w"> </span>polarizabilities.dat
+<span class="p">&amp;</span>end<span class="w"> </span>dipoles
+<span class="p">&amp;</span>raman
+<span class="w"> </span>laser_in<span class="w"> </span><span class="m">2</span>.540639
+<span class="p">&amp;</span>end<span class="w"> </span>raman
+</pre></div>
+</div>
+<p>This calculation generates four files, again the normal mode frequency and normal mode coordinate files <code class="docutils literal notranslate"><span class="pre">normal_mode_freq.txt</span></code> and <code class="docutils literal notranslate"><span class="pre">normal_mode_displ.txt</span></code>, and also the <code class="docutils literal notranslate"><span class="pre">result_static_raman.txt</span></code> file which contains the broadened frequencies and the Raman spectrum and can be plotted with, for example, Python. Additionally, <code class="docutils literal notranslate"><span class="pre">Raman.mol</span></code> can again be opened with <a class="reference external" href="https://www.theochem.ru.nl/molden/">MOLDEN</a> to visualize the normal modes alongside the Raman spectrum.</p>
 </section>
 </section>
 
@@ -224,6 +253,9 @@ and normal mode coordinates (See <a class="reference internal" href="file_format
     <a class="float-left" href="Examples.html" title="Previous">
         <span aria-hidden="true">←&nbsp;</span>Examples
     </a>
+    <a class="float-right" href="examples_RR_and_absorption.html" title="Next">
+        Static resonance Raman and absorption spectra of <em>R</em>-methyloxirane <span aria-hidden="true">&nbsp;→</span>
+    </a>
 </nav>
                     </div>
                     
@@ -231,7 +263,7 @@ and normal mode coordinates (See <a class="reference internal" href="file_format
                         <div class="sticky-top toc page-toc" aria-labelledby="page-toc-heading">
                             <p class="font-weight-bold" id="page-toc-heading">Page contents</p>
                             <ul>
-<li><a class="reference internal" href="#">Static spectral calculations for the water molecule</a><ul>
+<li><a class="reference internal" href="#">Static spectral calculations for water molecule</a><ul>
 <li><a class="reference internal" href="#normal-mode-analysis">Normal mode analysis</a></li>
 <li><a class="reference internal" href="#static-ir-and-raman-spectra-for-water-molecule">Static IR and Raman spectra for water molecule</a></li>
 </ul>

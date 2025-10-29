@@ -6,7 +6,7 @@
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
-        <title>Overview &mdash; vibrant  documentation</title>
+        <title>MD-based Spectra of COF-1 &mdash; vibrant  documentation</title>
     
     <link rel="stylesheet" type="text/css" href="_static/dist/fontawesome.css" />
       <link rel="stylesheet" type="text/css" href="_static/dist/theme.css?v=310cf088" />
@@ -15,7 +15,9 @@
             <link rel="index" title="Index" href="genindex.html" />
             <link rel="search" title="Search" href="search.html" />
             <link rel="top" title="vibrant  documentation" href="#" />
-            <link rel="next" title="Quick Start" href="Quick_Start.html" />
+            <link rel="up" title="Examples" href="Examples.html" />
+            <link rel="next" title="Cite" href="Cite.html" />
+            <link rel="prev" title="Static resonance Raman and absorption spectra of R-methyloxirane" href="examples_RR_and_absorption.html" />
     </head>
 <body>
     <script type="text/javascript" src="_static/dist/blocking.js"></script>
@@ -58,7 +60,7 @@
     </form>
 </div><div class="site-toc">
     <nav class="toc mt-3" aria-label="Main menu">
-        <ul>
+        <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="Quick_Start.html">Quick Start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Usage.html">Usage</a><ul>
@@ -71,10 +73,10 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="Keyword_Glossary.html">Keyword Glossary</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Examples.html">Examples</a><ul>
+<li class="toctree-l1 current"><a class="reference internal" href="Examples.html">Examples</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="examples_static_water.html">Static spectral calculations for water molecule</a></li>
 <li class="toctree-l2"><a class="reference internal" href="examples_RR_and_absorption.html">Static resonance Raman and absorption spectra of <em>R</em>-methyloxirane</a></li>
-<li class="toctree-l2"><a class="reference internal" href="examples_MD_spectra.html">MD-based Spectra of COF-1</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">MD-based Spectra of COF-1</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="Cite.html">Cite</a></li>
@@ -98,8 +100,9 @@
                     <div class="col">
                         <nav aria-label="breadcrumb">
     <ol class="breadcrumb m-0 p-0 bg-transparent">
-        <li class="breadcrumb-item"><a href="#">Docs</a></li>
-        <li class="breadcrumb-item active" aria-current="page">Overview</li>
+        <li class="breadcrumb-item"><a href="index.html">Docs</a></li>
+            <li class="breadcrumb-item"><a href="Examples.html">Examples</a></li>
+        <li class="breadcrumb-item active" aria-current="page">MD-based Spectra of COF-1</li>
     </ol>
 </nav>
                     </div>
@@ -111,11 +114,11 @@
                             <span class="dark-only"><i class="fas fa-sun"></i> Light mode</span>
                             <span class="light-only"><i class="fas fa-moon"></i> Dark mode</span>
                         </button>
-    <a class="btn btn-sm btn-light text-decoration-none" href="https://github.com/lstsgroup/vibrant/tree/main/srcindex.rst" rel="nofollow">
+    <a class="btn btn-sm btn-light text-decoration-none" href="https://github.com/lstsgroup/vibrant/tree/main/srcexamples_MD_spectra.md" rel="nofollow">
         <span class="btn-icon"><span class="fab fa-github"></span></span>
         <span class="btn-text">Edit on GitHub</span>
     </a>
-    <a class="btn btn-sm btn-light text-decoration-none" href="_sources/index.rst.txt" rel="nofollow">
+    <a class="btn btn-sm btn-light text-decoration-none" href="_sources/examples_MD_spectra.md.txt" rel="nofollow">
         <span class="btn-icon"><span class="fas fa-code"></span></span>
         <span class="btn-text">View source</span>
     </a>
@@ -130,64 +133,38 @@
                 <div class="row">
                     <div class="col-12 col-lg-9 order-last order-lg-first rst-content">
                         <main role="main" id="main">
-    <section id="overview">
-<h1>Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h1>
-<p>The <code class="docutils literal notranslate"><span class="pre">vibrant</span></code> code is a post-processing tool for calculating vibrational spectra from ab initio data.</p>
-<div style="text-align: center; margin-bottom: 1em;">
-   <picture>
-      <img alt="Vibrant logo" src="_static/all_img/logo_vibrant.svg" style="height:140px; display: inline-block;">
-   </picture>
+    <section class="tex2jax_ignore mathjax_ignore" id="md-based-spectra-of-cof-1">
+<h1>MD-based Spectra of COF-1<a class="headerlink" href="#md-based-spectra-of-cof-1" title="Link to this heading">¶</a></h1>
+<p>In this example, we show how one can compute MD-based IR and Raman spectra for a covalent organic framework (COF), COF-1, a study we <a class="reference external" href="https://pubs.acs.org/doi/full/10.1021/acs.jctc.4c01021">previously published</a>, where one can find the results explained in more detail and direct comparison to experiment.</p>
+<p>We start with the IR calculations, the directory <code class="docutils literal notranslate"><span class="pre">/MD-based/IR_Berry/</span></code> contains the Berry phase dipole moments <code class="docutils literal notranslate"><span class="pre">berry_dipole_free_sc.xyz</span></code> for the COF-1 system for 5000 snapshots (12.5 ps) together with <code class="docutils literal notranslate"><span class="pre">input.txt</span></code>. The directory <code class="docutils literal notranslate"><span class="pre">/MD-based/IR_Wannier/</span></code> contains the nuclear and Wannier center coordinates given in <code class="docutils literal notranslate"><span class="pre">wannier.xyz</span></code>, instead of the Berry phases. Running either of these calculations produce the file <code class="docutils literal notranslate"><span class="pre">IR_spectrum.txt</span></code> which contains the frequencies and MD-based IR intensities, and it can be plotted with a Python script as shown in the <a class="reference internal" href="Quick_Start.html"><span class="std std-doc">Quick Start</span></a> section. Vibrant also produces the file <code class="docutils literal notranslate"><span class="pre">result_cvv.txt</span></code>, which contains the raw dipole autocorrelation data before the Fourier transformation.</p>
+<p>Raman calculations for the same system is given also in the directory <code class="docutils literal notranslate"><span class="pre">/MD-based/</span></code> under three subdirectories called <code class="docutils literal notranslate"><span class="pre">Raman_Berry</span></code>, <code class="docutils literal notranslate"><span class="pre">Raman_Wannier</span></code> and <code class="docutils literal notranslate"><span class="pre">Raman_Pol</span></code>, where the first two uses the induced dipole approach and the last one directly uses the polarizability tensors computed via density functional perturbation theory (DFPT), as explained in section <a class="reference internal" href="Raman_spec.html#c-different-polarizability-tensors"><span class="std std-ref">Raman spectra</span></a>. Running any of these calculations produce:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">raman_unpolarized.txt</span></code> → contains the total (unpolarized) intensities</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">result_cvv_iso.txt</span></code> → contains the isotropic polarizability time-autocorrelation data</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">result_cvv_aniso.txt</span></code> → contains the anisotropic polarizability time-autocorrelation data</p></li>
+</ul>
+<p>Additionally, invoked with setting the keyword <a href="Keyword_Glossary.html#spectra_verbosity">’’</a> to <code class="docutils literal notranslate"><span class="pre">high</span></code>, the <code class="docutils literal notranslate"><span class="pre">Raman_Berry</span></code> example produces extra spectrum files that contain the orthogonal (<code class="docutils literal notranslate"><span class="pre">raman_orthogonal.txt</span></code>) and parallel intensities (<code class="docutils literal notranslate"><span class="pre">raman_parallel.txt</span></code>), as well as the depolarization ratios (<code class="docutils literal notranslate"><span class="pre">raman_depolarization_ratio.txt</span></code>), as explained in section <a class="reference internal" href="Raman_spec.html#c-different-polarizability-tensors"><span class="std std-ref">Raman spectra</span></a>.</p>
+<p>The following figure shows the calculated IR and Raman spectra of COF-1 from each exercise:</p>
+<div style="display:flex; justify-content: center; align-items: center;">
+  <div style="width: 500px;">
+  <img src="./_static/JOSS_MD_spec.png">
+  <br>
+  <div style="display: block; padding: 20px; color: gray; text-align: justify;">
+<p>MD-based vibrational spectra of COF-1. The top panel shows the IR spectra computed using Berry phase dipole moments and Wannier centers. The bottom panel presents the corresponding Raman spectra, where the polarizabilities are obtained either from induced dipoles using the indicated methods or directly from DFPT polarizability files. The top view of the COF-1 supercell is also shown.</p>
+   </div>
+   </div>
 </div></section>
-<section id="features">
-<h1>Features<a class="headerlink" href="#features" title="Link to this heading">¶</a></h1>
-<blockquote>
-<div><ul class="simple">
-<li><p><strong>IR and Raman spectra</strong> from static calculations or <em>ab initio</em> molecular dynamics.</p></li>
-<li><p><strong>Resonance Raman spectra</strong> via efficient Padé approximation or explicit frequency sampling.</p></li>
-<li><p><strong>Absorption spectra</strong> computed alongside vibrational data for comprehensive analysis.</p></li>
-<li><p><strong>Fast and efficient</strong> post-processing of large systems and long trajectories.</p></li>
-</ul>
-</div></blockquote>
-</section>
-<section id="quick-start">
-<h1>Quick Start<a class="headerlink" href="#quick-start" title="Link to this heading">¶</a></h1>
-<p>To get started with <code class="docutils literal notranslate"><span class="pre">vibrant</span></code>, see the <a class="reference internal" href="Quick_Start.html"><span class="doc">Quick Start</span></a> section of the documentation.</p>
-</section>
-<section id="documentation">
-<h1>Documentation<a class="headerlink" href="#documentation" title="Link to this heading">¶</a></h1>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="Quick_Start.html">Quick Start</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Installation.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Usage.html">Usage</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Keyword_Glossary.html">Keyword Glossary</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Examples.html">Examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Cite.html">Cite</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Contribute.html">Contribute</a></li>
-</ul>
-</div>
-</section>
 
 </main>
                         <nav aria-label="Page navigation" class="py-4 my-5 clearfix font-weight-bold border-top">
-    <a class="float-right" href="Quick_Start.html" title="Next">
-        Quick Start <span aria-hidden="true">&nbsp;→</span>
+    <a class="float-left" href="examples_RR_and_absorption.html" title="Previous">
+        <span aria-hidden="true">←&nbsp;</span>Static resonance Raman and absorption spectra of <em>R</em>-methyloxirane
+    </a>
+    <a class="float-right" href="Cite.html" title="Next">
+        Cite <span aria-hidden="true">&nbsp;→</span>
     </a>
 </nav>
                     </div>
-                    
-                    <nav class="col-12 col-lg-3 pb-4">
-                        <div class="sticky-top toc page-toc" aria-labelledby="page-toc-heading">
-                            <p class="font-weight-bold" id="page-toc-heading">Page contents</p>
-                            <ul>
-<li><a class="reference internal" href="#">Overview</a></li>
-<li><a class="reference internal" href="#features">Features</a></li>
-<li><a class="reference internal" href="#quick-start">Quick Start</a></li>
-<li><a class="reference internal" href="#documentation">Documentation</a></li>
-</ul>
-
-                        </div>
-                    </nav>
                     
                 </div>
             </div>
