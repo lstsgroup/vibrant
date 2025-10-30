@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en" data-content_root="./">
+<head>
+    <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+        <title>Dissection of the vibrational spectra of COF-1 &mdash; vibrant  documentation</title>
+    
+    <link rel="stylesheet" type="text/css" href="_static/dist/fontawesome.css" />
+      <link rel="stylesheet" type="text/css" href="_static/dist/theme.css?v=310cf088" />
+      <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="_static/keyword.css?v=002e9df8" />
+            <link rel="index" title="Index" href="genindex.html" />
+            <link rel="search" title="Search" href="search.html" />
+            <link rel="top" title="vibrant  documentation" href="#" />
+            <link rel="up" title="Examples" href="Examples.html" />
+            <link rel="next" title="Cite" href="Cite.html" />
+            <link rel="prev" title="MD-based Spectra of COF-1" href="examples_MD_spectra.html" />
+    </head>
+<body>
+    <script type="text/javascript" src="_static/dist/blocking.js"></script>
+    <header class="container-fluid bg-primary">
+        <a class="btn btn-sm btn-light skip-to-content-link" href="#main">Skip to content</a>
+        <div class="container-fluid">
+            <div class="navbar navbar-expand-lg navbar-dark font-weight-bold">
+                    <a href="https://lstsgroup.github.io/vibrant/index.html"
+                        title="vibrant"
+                        class="logo navbar-brand"
+                    >
+                        <img src="_static/all_img/logo_vibrant_dark.svg" width="45" height="100" alt="vibrant"
+                            class="logo-img"
+                        />
+                        vibrant
+                    </a>
+                
+                
+                <button class="navbar-toggler btn btn-primary d-lg-none" type="button" data-toggle="collapse" data-target="#collapseSidebar" aria-expanded="false" aria-controls="collapseExample">
+                    <span class="navbar-toggler-icon"></span>
+                    <span class="sr-only">menu</span>
+                </button>
+            </div>
+        </div>
+    </header>
+    <div class="container-fluid">
+        <div class="row">
+            <aside class="col-12 col-lg-3 sidebar-container">
+                <div id="collapseSidebar" class="collapse sticky-top d-lg-block pt-5 pr-lg-4">
+<div id="searchbox" class="searchbox mb-6 px-1" role="search">
+    <form id="search-form" action="search.html" autocomplete="off" method="get" role="search">
+        <div class="input-group">
+            <div class="input-group-prepend">
+                <div class="input-group-text border-right-0 bg-white py-3 pl-3 pr-2"><span class="fas fa-search"></span></div>
+            </div>
+            <input class="form-control py-3 pr-3 pl-1 h-100 border-left-0" type="search" name="q" placeholder="Search documentation" aria-label="Search documentation" id="searchinput" />
+        </div>
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+    </form>
+</div><div class="site-toc">
+    <nav class="toc mt-3" aria-label="Main menu">
+        <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Quick_Start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Usage.html">Usage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="file_formats.html">File Formats</a></li>
+<li class="toctree-l2"><a class="reference internal" href="frequency.html">Frequencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="IR_spec.html">IR spectra</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Raman_spec.html">Raman spectra</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fragments.html">Subspectra for MD-based calculations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Resonance_Raman_spec.html">Resonance Raman (RR) and absorption spectra</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Keyword_Glossary.html">Keyword Glossary</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Examples.html">Examples</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="examples_static_water.html">Static spectral calculations for water molecule</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples_RR_and_absorption.html">Static resonance Raman and absorption spectra of <em>R</em>-methyloxirane</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples_MD_spectra.html">MD-based Spectra of COF-1</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Dissection of the vibrational spectra of COF-1</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Cite.html">Cite</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Contribute.html">Contribute</a></li>
+</ul>
+
+    </nav>
+    <template data-toggle-item-template>
+        <button class="btn btn-sm btn-link toctree-expand" type="button">
+            <span class="sr-only">Toggle menu contents</span>
+        </button>
+    </template>
+</div>
+                    <div class="d-lg-none border-bottom">
+                        
+                    </div>
+                </div>
+            </aside>
+            <div class="col-12 col-lg-9 pt-5">
+                <header class="row align-items-baseline">
+                    <div class="col">
+                        <nav aria-label="breadcrumb">
+    <ol class="breadcrumb m-0 p-0 bg-transparent">
+        <li class="breadcrumb-item"><a href="index.html">Docs</a></li>
+            <li class="breadcrumb-item"><a href="Examples.html">Examples</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Dissection of the vibrational spectra of COF-1</li>
+    </ol>
+</nav>
+                    </div>
+                    <div class="col-sm-12 col-lg-auto mt-3 mt-lg-3">
+                        <noscript>
+                            <p>JavaScript is required to toggle light/dark mode..</p>
+                        </noscript>
+                        <button id="wagtail-theme" class="btn btn-sm btn-light text-decoration-none" type="button">
+                            <span class="dark-only"><i class="fas fa-sun"></i> Light mode</span>
+                            <span class="light-only"><i class="fas fa-moon"></i> Dark mode</span>
+                        </button>
+    <a class="btn btn-sm btn-light text-decoration-none" href="https://github.com/lstsgroup/vibrant/tree/main/srcexamples_fragments.md" rel="nofollow">
+        <span class="btn-icon"><span class="fab fa-github"></span></span>
+        <span class="btn-text">Edit on GitHub</span>
+    </a>
+    <a class="btn btn-sm btn-light text-decoration-none" href="_sources/examples_fragments.md.txt" rel="nofollow">
+        <span class="btn-icon"><span class="fas fa-code"></span></span>
+        <span class="btn-text">View source</span>
+    </a>
+                        
+                    </div>
+                </header>
+                <div class="row" >
+                    <div class="col-12">
+                        <hr class="w-100 my-4">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12 col-lg-9 order-last order-lg-first rst-content">
+                        <main role="main" id="main">
+    <section class="tex2jax_ignore mathjax_ignore" id="dissection-of-the-vibrational-spectra-of-cof-1">
+<h1>Dissection of the vibrational spectra of COF-1<a class="headerlink" href="#dissection-of-the-vibrational-spectra-of-cof-1" title="Link to this heading">¶</a></h1>
+<p>In this example, we show how one can compute the spectra for the molecular fragments of a covalent organic framework (COF-1) system, COF-1, using <code class="docutils literal notranslate"><span class="pre">vibrant</span></code>. The system we chose also includes solvent molecules, 1,4-dioxane, inside the COF-1 pores. More specifically, we will compute the spectra for these solvent molecules, and also for the boroxine units of COF-1. The example calculations for the IR and Raman spectra are in the directories <code class="docutils literal notranslate"><span class="pre">/MD-based_Subspectra/IR/</span></code> and <code class="docutils literal notranslate"><span class="pre">/MD-based_Subspectra/Raman/</span></code>, respectively. This study is also available in <a class="reference external" href="https://pubs.acs.org/doi/full/10.1021/acs.jctc.4c01021">our previous publication</a>, where one can find the results explained in more detail and direct comparison to experiment.</p>
+<p>We start with the IR spectra. <code class="docutils literal notranslate"><span class="pre">COF-1_solv_wannier_free.xyz</span></code> contains the nuclear and Wannier positions for each MD frame. The input file <code class="docutils literal notranslate"><span class="pre">input.txt</span></code> contains:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="p">&amp;</span>global
+<span class="w"> </span>spectra<span class="w"> </span>MD-IR
+<span class="p">&amp;</span>end<span class="w"> </span>global
+<span class="p">&amp;</span>dipoles
+<span class="w"> </span>type_dipole<span class="w"> </span>wannier
+<span class="w"> </span>dip_file<span class="w"> </span>COF-1_solv_wannier_free.xyz
+<span class="p">&amp;</span>end<span class="w"> </span>dipoles
+<span class="p">&amp;</span>system
+<span class="w"> </span><span class="p">&amp;</span>cell
+<span class="w">  </span>box_x<span class="w"> </span><span class="m">15</span>.100<span class="w"> </span>
+<span class="w">  </span>box_y<span class="w"> </span><span class="m">15</span>.100
+<span class="w">  </span>box_z<span class="w"> </span><span class="m">20</span>.172
+<span class="w">  </span>angle_alpha<span class="w"> </span><span class="m">90</span>
+<span class="w">  </span>angle_beta<span class="w"> </span><span class="m">90</span>
+<span class="w">  </span>angle_gamma<span class="w"> </span><span class="m">120</span><span class="w"> </span>
+<span class="w"> </span><span class="p">&amp;</span>end<span class="w"> </span>cell
+<span class="w"> </span><span class="p">&amp;</span>fragment
+<span class="w">  </span>atom_list<span class="w"> </span><span class="m">237</span><span class="w"> </span><span class="m">239</span><span class="w"> </span><span class="m">241</span><span class="w"> </span><span class="m">243</span><span class="w"> </span><span class="m">245</span><span class="w"> </span><span class="m">247</span><span class="w"> </span>
+<span class="w">  </span>atom_list<span class="w"> </span><span class="m">265</span><span class="w"> </span><span class="m">226</span><span class="w"> </span><span class="m">228</span><span class="w"> </span><span class="m">230</span><span class="w"> </span><span class="m">261</span><span class="w"> </span><span class="m">263</span>
+<span class="w">  </span>atom_list<span class="w"> </span><span class="m">307</span><span class="w"> </span><span class="m">272</span><span class="w"> </span><span class="m">270</span><span class="w"> </span><span class="m">303</span><span class="w"> </span><span class="m">305</span><span class="w"> </span><span class="m">268</span>
+<span class="w">  </span>atom_list<span class="w"> </span><span class="m">285</span><span class="w"> </span><span class="m">279</span><span class="w"> </span><span class="m">281</span><span class="w"> </span><span class="m">283</span><span class="w"> </span><span class="m">289</span><span class="w"> </span><span class="m">287</span>
+<span class="w">  </span>atom_list<span class="w"> </span><span class="m">310</span><span class="w"> </span><span class="m">347</span><span class="w"> </span><span class="m">345</span><span class="w"> </span><span class="m">314</span><span class="w"> </span><span class="m">312</span><span class="w"> </span><span class="m">349</span>
+<span class="w">  </span>atom_list<span class="w"> </span><span class="m">329</span><span class="w"> </span><span class="m">327</span><span class="w"> </span><span class="m">325</span><span class="w"> </span><span class="m">323</span><span class="w"> </span><span class="m">321</span><span class="w"> </span><span class="m">331</span>
+<span class="w">  </span>atom_list<span class="w"> </span><span class="m">100</span><span class="w"> </span><span class="m">102</span><span class="w"> </span><span class="m">104</span><span class="w"> </span><span class="m">139</span><span class="w"> </span><span class="m">135</span><span class="w"> </span><span class="m">137</span>
+<span class="w">  </span>atom_list<span class="w"> </span><span class="m">117</span><span class="w"> </span><span class="m">115</span><span class="w"> </span><span class="m">113</span><span class="w"> </span><span class="m">119</span><span class="w"> </span><span class="m">111</span><span class="w"> </span><span class="m">121</span><span class="w"> </span>
+<span class="w">  </span>atom_list<span class="w"> </span><span class="m">161</span><span class="w"> </span><span class="m">155</span><span class="w"> </span><span class="m">157</span><span class="w"> </span><span class="m">159</span><span class="w"> </span><span class="m">153</span><span class="w"> </span><span class="m">163</span>
+<span class="w">  </span>atom_list<span class="w"> </span><span class="m">142</span><span class="w"> </span><span class="m">181</span><span class="w"> </span><span class="m">144</span><span class="w"> </span><span class="m">146</span><span class="w"> </span><span class="m">177</span><span class="w"> </span><span class="m">179</span>
+<span class="w">  </span>atom_list<span class="w"> </span><span class="m">184</span><span class="w"> </span><span class="m">223</span><span class="w"> </span><span class="m">221</span><span class="w"> </span><span class="m">219</span><span class="w"> </span><span class="m">188</span><span class="w"> </span><span class="m">186</span>
+<span class="w">  </span>atom_list<span class="w"> </span><span class="m">201</span><span class="w"> </span><span class="m">199</span><span class="w"> </span><span class="m">197</span><span class="w"> </span><span class="m">195</span><span class="w"> </span><span class="m">205</span><span class="w"> </span><span class="m">203</span>
+<span class="w"> </span>%end<span class="w"> </span>fragment
+<span class="w"> </span><span class="p">&amp;</span>fragment
+<span class="w">  </span>atom_list<span class="w"> </span><span class="m">43</span><span class="w"> </span><span class="m">56</span><span class="w"> </span><span class="m">50</span><span class="w"> </span><span class="m">44</span><span class="w"> </span><span class="m">47</span><span class="w"> </span><span class="m">53</span><span class="w"> </span><span class="m">46</span><span class="w"> </span><span class="m">52</span><span class="w"> </span><span class="m">45</span><span class="w"> </span><span class="m">55</span><span class="w"> </span><span class="m">48</span><span class="w"> </span><span class="m">49</span><span class="w"> </span><span class="m">54</span><span class="w"> </span><span class="m">51</span>
+<span class="w">  </span>atom_list<span class="w"> </span><span class="m">15</span><span class="w"> </span><span class="m">28</span><span class="w"> </span><span class="m">16</span><span class="w"> </span><span class="m">25</span><span class="w"> </span><span class="m">22</span><span class="w"> </span><span class="m">19</span><span class="w"> </span><span class="m">26</span><span class="w"> </span><span class="m">27</span><span class="w"> </span><span class="m">24</span><span class="w"> </span><span class="m">23</span><span class="w"> </span><span class="m">17</span><span class="w"> </span><span class="m">18</span><span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="m">21</span>
+<span class="w">  </span>atom_list<span class="w"> </span><span class="m">38</span><span class="w"> </span><span class="m">42</span><span class="w"> </span><span class="m">33</span><span class="w"> </span><span class="m">30</span><span class="w"> </span><span class="m">29</span><span class="w"> </span><span class="m">39</span><span class="w"> </span><span class="m">36</span><span class="w"> </span><span class="m">32</span><span class="w"> </span><span class="m">31</span><span class="w"> </span><span class="m">34</span><span class="w"> </span><span class="m">35</span><span class="w"> </span><span class="m">37</span><span class="w"> </span><span class="m">40</span><span class="w"> </span><span class="m">41</span>
+<span class="w">  </span>atom_list<span class="w"> </span><span class="m">14</span><span class="w"> </span><span class="m">11</span><span class="w"> </span><span class="m">12</span><span class="w"> </span><span class="m">8</span><span class="w"> </span><span class="m">9</span><span class="w"> </span><span class="m">10</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="m">7</span><span class="w"> </span><span class="m">6</span><span class="w"> </span><span class="m">5</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">3</span><span class="w"> </span><span class="m">13</span>
+<span class="w">  </span>atom_list<span class="w"> </span><span class="m">70</span><span class="w"> </span><span class="m">64</span><span class="w"> </span><span class="m">65</span><span class="w"> </span><span class="m">67</span><span class="w"> </span><span class="m">68</span><span class="w"> </span><span class="m">69</span><span class="w"> </span><span class="m">57</span><span class="w"> </span><span class="m">58</span><span class="w"> </span><span class="m">61</span><span class="w"> </span><span class="m">60</span><span class="w"> </span><span class="m">59</span><span class="w"> </span><span class="m">62</span><span class="w"> </span><span class="m">63</span><span class="w"> </span><span class="m">66</span>
+<span class="w">  </span>atom_list<span class="w"> </span><span class="m">98</span><span class="w"> </span><span class="m">97</span><span class="w"> </span><span class="m">93</span><span class="w"> </span><span class="m">94</span><span class="w"> </span><span class="m">92</span><span class="w"> </span><span class="m">95</span><span class="w"> </span><span class="m">96</span><span class="w"> </span><span class="m">89</span><span class="w"> </span><span class="m">90</span><span class="w"> </span><span class="m">85</span><span class="w"> </span><span class="m">86</span><span class="w"> </span><span class="m">88</span><span class="w"> </span><span class="m">91</span><span class="w"> </span><span class="m">87</span>
+<span class="w">  </span>atom_list<span class="w"> </span><span class="m">71</span><span class="w"> </span><span class="m">74</span><span class="w"> </span><span class="m">73</span><span class="w"> </span><span class="m">80</span><span class="w"> </span><span class="m">79</span><span class="w"> </span><span class="m">72</span><span class="w"> </span><span class="m">84</span><span class="w"> </span><span class="m">76</span><span class="w"> </span><span class="m">75</span><span class="w"> </span><span class="m">81</span><span class="w"> </span><span class="m">83</span><span class="w"> </span><span class="m">82</span><span class="w"> </span><span class="m">78</span><span class="w"> </span><span class="m">77</span>
+<span class="w"> </span>%end<span class="w"> </span>fragment
+%end<span class="w"> </span>system
+<span class="p">&amp;</span>md
+<span class="w"> </span>time_step<span class="w"> </span><span class="m">2</span>.5
+<span class="w"> </span>correlation_depth<span class="w"> </span><span class="m">1024</span>
+<span class="p">&amp;</span>end<span class="w"> </span>md
+</pre></div>
+</div>
+<p>where the first <code class="docutils literal notranslate"><span class="pre">fragment</span></code> section includes all the boroxine units, each of them being listed in each <code class="docutils literal notranslate"><span class="pre">atom_list</span></code> keyword. The second <code class="docutils literal notranslate"><span class="pre">fragment</span></code> section includes all the atomic indices for the seven solvent molecules in the system. Running this calculation generates two output files, which can be plotted with a Python script as shown in the <a class="reference internal" href="Quick_Start.html"><span class="std std-doc">Quick Start</span></a> section. These files include:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">IR_spectrum_fragment_1.txt</span></code> → includes the IR intensities for the boroxine fragments</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">IR_spectrum_fragment_2.txt</span></code> → includes the IR intensities for the solvent fragments</p></li>
+</ul>
+<p>Next, we proceed with the Raman calculation, which includes all MD Wannier trajectories both with and without the applied electric field. In the provided <code class="docutils literal notranslate"><span class="pre">input.txt</span></code>, only one fragment section is defined for the solvent molecules, so the calculation will yield the Raman spectrum exclusively for the solvent. The resulting file, <code class="docutils literal notranslate"><span class="pre">raman_unpolarized_fragment_1.txt</span></code>, can be plotted using a Python script in the same way as before.</p>
+<p>A complete dissection of the COF-1 system into molecular blocks is previously shown in the section <a class="reference internal" href="fragments.html"><span class="std std-doc">Subspectra for MD-based calculations</span></a>. Therefore, we will focus on the analysis of the solvent contribution in this exercise. The following figure shows the Raman spectrum of the solvent molecules. Additional spectra are included for comparison, as explained in the caption, and are taken from <a class="reference external" href="https://pubs.acs.org/doi/full/10.1021/acs.jctc.4c01021">our previous publication</a>.</p>
+<div style="display:flex; justify-content: center; align-items: center;">
+  <div style="width: 500px;">
+  <img src="./_static/fragment_solvent_spectrum.png">
+  <br>
+  <div style="display: block; padding: 20px; color: gray; text-align: justify;">
+<p>Upper plot shows the experimental Raman spectra of COF-1 before and after the material is dried. Lower plot shows the calculated Raman spectra from two MD simulations of COF-1, one containing the solvent molecules (1,4-dioxane) inside the pores and the other one being the pristine material. The extracted spectrum of the solvent molecules is also shown in blue. This method safely ensures that the peaks at around 2850 cm <span class="math notranslate nohighlight">\(^{-1}\)</span> and 3050 cm <span class="math notranslate nohighlight">\(^{-1}\)</span> are indeed resulting from the solvent residues and no other impurity. The molecular representation of the material is also given inside the lower plot, where COF-1 framework is higlighted in pink and the solvent molecules inside the pore are highlighted in blue.</p>
+   </div>
+   </div>
+</div></section>
+
+</main>
+                        <nav aria-label="Page navigation" class="py-4 my-5 clearfix font-weight-bold border-top">
+    <a class="float-left" href="examples_MD_spectra.html" title="Previous">
+        <span aria-hidden="true">←&nbsp;</span>MD-based Spectra of COF-1
+    </a>
+    <a class="float-right" href="Cite.html" title="Next">
+        Cite <span aria-hidden="true">&nbsp;→</span>
+    </a>
+</nav>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+    <footer class="container-fluid bg-primary text-light">
+        <div class="container">
+            <div class="row">
+        <div class="col p-4">
+            
+                <nav aria-label="Footer">
+                    <ul class="nav justify-content-center mb-2">
+                        
+                            
+                            
+                            <li class="nav-item"><a class="nav-link text-light"  href="https://golzegroup.org/">Golze Group</a></li>
+                        
+                            
+                            
+                            <li class="nav-item"><a class="nav-link text-light"  href="https://golzegroup.org/contact/">Contact</a></li>
+                        
+                    </ul>
+                </nav>
+            
+            <div class="text-center">
+                    &copy; Copyright 2024, Ekin Esme Winogradow, Golze Group
+            </div>
+            <div class="text-center text-white-50 font-italic mt-3">
+                <small>
+                    Created using
+                    <a class="text-white" href="https://github.com/wagtail/sphinx_wagtail_theme" rel="nofollow" target="_blank">
+                        Sphinx Wagtail Theme 6.5.0
+                    </a>
+                    and
+                    <a class="text-white" href="https://www.sphinx-doc.org/" rel="nofollow" target="_blank">
+                        Sphinx 8.2.3
+                    </a>
+                </small>
+            </div>
+        </div>
+    </div>
+        </div>
+    </footer>
+        <script src="_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="_static/doctools.js?v=9bcbadda"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+        <script src="_static/copybutton.js?v=f281be69"></script>
+        <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+        <script type="text/javascript" src="_static/dist/theme.js"></script>
+        <script type="text/javascript" src="_static/dist/vendor.js"></script>
+        <script type="text/javascript" src="_static/searchtools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+        <script type="text/javascript">
+            document.addEventListener('DOMContentLoaded', function() { Search.loadIndex("searchindex.js"); });
+        </script>
+        <script type="text/javascript" id="searchindexloader"></script>
+    </body>
+</html>

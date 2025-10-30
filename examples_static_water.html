@@ -77,6 +77,7 @@
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Static spectral calculations for water molecule</a></li>
 <li class="toctree-l2"><a class="reference internal" href="examples_RR_and_absorption.html">Static resonance Raman and absorption spectra of <em>R</em>-methyloxirane</a></li>
 <li class="toctree-l2"><a class="reference internal" href="examples_MD_spectra.html">MD-based Spectra of COF-1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples_fragments.html">Dissection of the vibrational spectra of COF-1</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="Cite.html">Cite</a></li>
@@ -217,7 +218,7 @@ and normal mode coordinates (See <a class="reference internal" href="file_format
     Visualization of the antisymmetric stretching mode of water, alongside the IR spectrum.
   </p>
 </div>
-<p>The IR spectrum can be obtained directly using the chosen broadening method and full width at half maximum (FWHM). Alternatively, one may plot the Gaussian-broadened file <code class="docutils literal notranslate"><span class="pre">result_static_ir.txt</span></code> produced by Vibrant with the desired FWHM value, for example using Python or Gnuplot. An example Python script is given in the <a class="reference internal" href="Quick_Start.html"><span class="std std-doc">Quick Start</span></a> section.</p>
+<p>The IR spectrum can be obtained directly using the chosen broadening method and full width at half maximum (FWHM). Alternatively, one may plot the Gaussian-broadened file <code class="docutils literal notranslate"><span class="pre">result_static_ir.txt</span></code> produced by <code class="docutils literal notranslate"><span class="pre">vibrant</span></code> with the desired FWHM value, for example using Python or Gnuplot. An example Python script is given in the <a class="reference internal" href="Quick_Start.html"><span class="std std-doc">Quick Start</span></a> section.</p>
 <p>The Raman calculation can be found in the directory <code class="docutils literal notranslate"><span class="pre">/scratch/ekin/Examples/Static/Raman</span></code>. This example uses again the atomic forces to calculate the normal mode frequencies and coordinates. It also uses the <code class="docutils literal notranslate"><span class="pre">polarizabilities.dat</span></code> file for the polarizability tensors. Details on the format of this file is given in the <a class="reference internal" href="file_formats.html#52-static-spectra-based-on-normal-modes"><span class="std std-ref">File Formats</span></a> section.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="p">&amp;</span>global
 <span class="w"> </span>spectra<span class="w"> </span>R
@@ -246,6 +247,24 @@ and normal mode coordinates (See <a class="reference internal" href="file_format
 </div>
 <p>This calculation generates four files, again the normal mode frequency and normal mode coordinate files <code class="docutils literal notranslate"><span class="pre">normal_mode_freq.txt</span></code> and <code class="docutils literal notranslate"><span class="pre">normal_mode_displ.txt</span></code>, and also the <code class="docutils literal notranslate"><span class="pre">result_static_raman.txt</span></code> file which contains the broadened frequencies and the Raman spectrum and can be plotted with, for example, Python. Additionally, <code class="docutils literal notranslate"><span class="pre">Raman.mol</span></code> can again be opened with <a class="reference external" href="https://www.theochem.ru.nl/molden/">MOLDEN</a> to visualize the normal modes alongside the Raman spectrum.</p>
 </section>
+<section id="bonus-power-spectrum-of-liquid-water">
+<h2>Bonus: Power spectrum of liquid water<a class="headerlink" href="#bonus-power-spectrum-of-liquid-water" title="Link to this heading">¶</a></h2>
+<p>After running the static calculations for the water molecule, one can also calculate the MD-based power spectrum of liquid water, as provided in the directory <code class="docutils literal notranslate"><span class="pre">/MD-based/Power_Spectrum/</span></code>.  The directory includes the <code class="docutils literal notranslate"><span class="pre">waterbulk-pos-1.xyz</span></code> file which contains the atomic positions of the water simulation box for several MD snapshots, and also the input file <code class="docutils literal notranslate"><span class="pre">input.txt</span></code>. Running the calculation produces two files:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">power_spec.txt</span></code> → contains the power spectrum</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">result_cvv.txt</span></code> → contains the velocity autocorrelation data</p></li>
+</ul>
+<p>The files can be visualized with a Python script as described above. The resulting power spectrum is shown below:</p>
+<div style="display:flex; justify-content: center; align-items: center;">
+  <div style="width: 500px;">
+  <img src="./_static/power_JOSS.png">
+  <br>
+  <div style="display: block; padding: 20px; color: gray; text-align: justify;">
+<p>Power spectrum of liquid water.</p>
+   </div>
+   </div>
+</div>
+</section>
 </section>
 
 </main>
@@ -266,6 +285,7 @@ and normal mode coordinates (See <a class="reference internal" href="file_format
 <li><a class="reference internal" href="#">Static spectral calculations for water molecule</a><ul>
 <li><a class="reference internal" href="#normal-mode-analysis">Normal mode analysis</a></li>
 <li><a class="reference internal" href="#static-ir-and-raman-spectra-for-water-molecule">Static IR and Raman spectra for water molecule</a></li>
+<li><a class="reference internal" href="#bonus-power-spectrum-of-liquid-water">Bonus: Power spectrum of liquid water</a></li>
 </ul>
 </li>
 </ul>

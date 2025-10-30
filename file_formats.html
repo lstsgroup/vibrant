@@ -77,6 +77,7 @@
 <li class="toctree-l2"><a class="reference internal" href="examples_static_water.html">Static spectral calculations for water molecule</a></li>
 <li class="toctree-l2"><a class="reference internal" href="examples_RR_and_absorption.html">Static resonance Raman and absorption spectra of <em>R</em>-methyloxirane</a></li>
 <li class="toctree-l2"><a class="reference internal" href="examples_MD_spectra.html">MD-based Spectra of COF-1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples_fragments.html">Dissection of the vibrational spectra of COF-1</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="Cite.html">Cite</a></li>
@@ -135,7 +136,7 @@
                         <main role="main" id="main">
     <section class="tex2jax_ignore mathjax_ignore" id="file-formats">
 <h1>File Formats<a class="headerlink" href="#file-formats" title="Link to this heading">¶</a></h1>
-<p>Vibrant processes multiple data files, such as the dipole moments, polarizabilities, and forces, in order to compute the desired vibrational spectrum. These files must follow specific formats which we describe in this section.</p>
+<p><code class="docutils literal notranslate"><span class="pre">vibrant</span></code> processes multiple data files, such as the dipole moments, polarizabilities, and forces, in order to compute the desired vibrational spectrum. These files must follow specific formats which we describe in this section.</p>
 <p>More information on all available keywords can be found on <a class="reference internal" href="Keyword_Glossary.html"><span class="std std-doc">Keyword Glossary</span></a> and all complete example input files are available on <a class="reference internal" href="Examples.html"><span class="std std-doc">Examples</span></a>.</p>
 <section id="coordinates-of-atomic-positions-xyz-files">
 <h2>1) Coordinates of atomic positions (.xyz files)<a class="headerlink" href="#coordinates-of-atomic-positions-xyz-files" title="Link to this heading">¶</a></h2>
@@ -336,7 +337,7 @@ xy,xz,yz<span class="w">       </span>-0.00000<span class="w">        </span><sp
 yx,zx,zy<span class="w">       </span>-0.00000<span class="w">        </span><span class="m">0</span>.00026<span class="w">       </span>-0.00017
 </pre></div>
 </div>
-<p>Vibrant only reads the polarizabilities in Å <span class="math notranslate nohighlight">\(^3\)</span>, ignoring the a.u. block.</p>
+<p><code class="docutils literal notranslate"><span class="pre">vibrant</span></code> only reads the polarizabilities in Å <span class="math notranslate nohighlight">\(^3\)</span>, ignoring the a.u. block.</p>
 </section>
 </section>
 <section id="time-dependent-berry-phase-dipole-moments-coming-from-rt-tddft">

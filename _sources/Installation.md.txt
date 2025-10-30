@@ -46,5 +46,5 @@ The compiled binary is now available in the build directory as `build/vibrant` a
 ```bash
 build/vibrant input.txt
 ```
-with `input.txt` as a input file with the vibrant settings.
+with `input.txt` as a input file with the `vibrant` settings.
 

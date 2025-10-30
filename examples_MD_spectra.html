@@ -16,7 +16,7 @@
             <link rel="search" title="Search" href="search.html" />
             <link rel="top" title="vibrant  documentation" href="#" />
             <link rel="up" title="Examples" href="Examples.html" />
-            <link rel="next" title="Cite" href="Cite.html" />
+            <link rel="next" title="Dissection of the vibrational spectra of COF-1" href="examples_fragments.html" />
             <link rel="prev" title="Static resonance Raman and absorption spectra of R-methyloxirane" href="examples_RR_and_absorption.html" />
     </head>
 <body>
@@ -77,6 +77,7 @@
 <li class="toctree-l2"><a class="reference internal" href="examples_static_water.html">Static spectral calculations for water molecule</a></li>
 <li class="toctree-l2"><a class="reference internal" href="examples_RR_and_absorption.html">Static resonance Raman and absorption spectra of <em>R</em>-methyloxirane</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">MD-based Spectra of COF-1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples_fragments.html">Dissection of the vibrational spectra of COF-1</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="Cite.html">Cite</a></li>
@@ -136,7 +137,7 @@
     <section class="tex2jax_ignore mathjax_ignore" id="md-based-spectra-of-cof-1">
 <h1>MD-based Spectra of COF-1<a class="headerlink" href="#md-based-spectra-of-cof-1" title="Link to this heading">¶</a></h1>
 <p>In this example, we show how one can compute MD-based IR and Raman spectra for a covalent organic framework (COF), COF-1, a study we <a class="reference external" href="https://pubs.acs.org/doi/full/10.1021/acs.jctc.4c01021">previously published</a>, where one can find the results explained in more detail and direct comparison to experiment.</p>
-<p>We start with the IR calculations, the directory <code class="docutils literal notranslate"><span class="pre">/MD-based/IR_Berry/</span></code> contains the Berry phase dipole moments <code class="docutils literal notranslate"><span class="pre">berry_dipole_free_sc.xyz</span></code> for the COF-1 system for 5000 snapshots (12.5 ps) together with <code class="docutils literal notranslate"><span class="pre">input.txt</span></code>. The directory <code class="docutils literal notranslate"><span class="pre">/MD-based/IR_Wannier/</span></code> contains the nuclear and Wannier center coordinates given in <code class="docutils literal notranslate"><span class="pre">wannier.xyz</span></code>, instead of the Berry phases. Running either of these calculations produce the file <code class="docutils literal notranslate"><span class="pre">IR_spectrum.txt</span></code> which contains the frequencies and MD-based IR intensities, and it can be plotted with a Python script as shown in the <a class="reference internal" href="Quick_Start.html"><span class="std std-doc">Quick Start</span></a> section. Vibrant also produces the file <code class="docutils literal notranslate"><span class="pre">result_cvv.txt</span></code>, which contains the raw dipole autocorrelation data before the Fourier transformation.</p>
+<p>We start with the IR calculations, the directory <code class="docutils literal notranslate"><span class="pre">/MD-based/IR_Berry/</span></code> contains the Berry phase dipole moments <code class="docutils literal notranslate"><span class="pre">berry_dipole_free_sc.xyz</span></code> for the COF-1 system for 5000 snapshots (12.5 ps) together with <code class="docutils literal notranslate"><span class="pre">input.txt</span></code>. The directory <code class="docutils literal notranslate"><span class="pre">/MD-based/IR_Wannier/</span></code> contains the nuclear and Wannier center coordinates given in <code class="docutils literal notranslate"><span class="pre">wannier.xyz</span></code>, instead of the Berry phases. Running either of these calculations produce the file <code class="docutils literal notranslate"><span class="pre">IR_spectrum.txt</span></code> which contains the frequencies and MD-based IR intensities, and it can be plotted with a Python script as shown in the <a class="reference internal" href="Quick_Start.html"><span class="std std-doc">Quick Start</span></a> section. <code class="docutils literal notranslate"><span class="pre">vibrant</span></code> also produces the file <code class="docutils literal notranslate"><span class="pre">result_cvv.txt</span></code>, which contains the raw dipole autocorrelation data before the Fourier transformation.</p>
 <p>Raman calculations for the same system is given also in the directory <code class="docutils literal notranslate"><span class="pre">/MD-based/</span></code> under three subdirectories called <code class="docutils literal notranslate"><span class="pre">Raman_Berry</span></code>, <code class="docutils literal notranslate"><span class="pre">Raman_Wannier</span></code> and <code class="docutils literal notranslate"><span class="pre">Raman_Pol</span></code>, where the first two uses the induced dipole approach and the last one directly uses the polarizability tensors computed via density functional perturbation theory (DFPT), as explained in section <a class="reference internal" href="Raman_spec.html#c-different-polarizability-tensors"><span class="std std-ref">Raman spectra</span></a>. Running any of these calculations produce:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">raman_unpolarized.txt</span></code> → contains the total (unpolarized) intensities</p></li>
@@ -160,8 +161,8 @@
     <a class="float-left" href="examples_RR_and_absorption.html" title="Previous">
         <span aria-hidden="true">←&nbsp;</span>Static resonance Raman and absorption spectra of <em>R</em>-methyloxirane
     </a>
-    <a class="float-right" href="Cite.html" title="Next">
-        Cite <span aria-hidden="true">&nbsp;→</span>
+    <a class="float-right" href="examples_fragments.html" title="Next">
+        Dissection of the vibrational spectra of COF-1 <span aria-hidden="true">&nbsp;→</span>
     </a>
 </nav>
                     </div>

@@ -77,6 +77,7 @@
 <li class="toctree-l2"><a class="reference internal" href="examples_static_water.html">Static spectral calculations for water molecule</a></li>
 <li class="toctree-l2"><a class="reference internal" href="examples_RR_and_absorption.html">Static resonance Raman and absorption spectra of <em>R</em>-methyloxirane</a></li>
 <li class="toctree-l2"><a class="reference internal" href="examples_MD_spectra.html">MD-based Spectra of COF-1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples_fragments.html">Dissection of the vibrational spectra of COF-1</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="Cite.html">Cite</a></li>
@@ -135,10 +136,10 @@
                         <main role="main" id="main">
     <section class="tex2jax_ignore mathjax_ignore" id="ir-spectra">
 <h1>IR spectra<a class="headerlink" href="#ir-spectra" title="Link to this heading">¶</a></h1>
-<p>The infrared (IR) spectrum calculation in Vibrant is based on the post-processing of either Berry-phase dipole moments or Wannier centers. In principle, Vibrant can compute both static or molecular-dynamics (MD)-based IR spectra. More details are provided in the following sections.</p>
+<p>The infrared (IR) spectrum calculation in <code class="docutils literal notranslate"><span class="pre">vibrant</span></code> is based on the post-processing of either Berry-phase dipole moments or Wannier centers. In principle, <code class="docutils literal notranslate"><span class="pre">vibrant</span></code> can compute both static or molecular-dynamics (MD)-based IR spectra. More details are provided in the following sections.</p>
 <section id="a-static-ir-intensities">
 <h2>a) Static IR intensities<a class="headerlink" href="#a-static-ir-intensities" title="Link to this heading">¶</a></h2>
-<p>The static IR calculation in Vibrant relies on the normal mode analysis within the harmonic approximation. The static IR intensities are computed from the derivatives of the dipole moments <span class="math notranslate nohighlight">\(\boldsymbol{\mu}\)</span> with respect to the mass-weighted normal mode coordinates <span class="math notranslate nohighlight">\(Q_{p}\)</span>. The following equation is used to generate the final static IR spectrum <a class="reference external" href="https://onlinelibrary.wiley.com/doi/full/10.1002/jcc.10089">static IR spectrum</a>:</p>
+<p>The static IR calculation in <code class="docutils literal notranslate"><span class="pre">vibrant</span></code> relies on the normal mode analysis within the harmonic approximation. The static IR intensities are computed from the derivatives of the dipole moments <span class="math notranslate nohighlight">\(\boldsymbol{\mu}\)</span> with respect to the mass-weighted normal mode coordinates <span class="math notranslate nohighlight">\(Q_{p}\)</span>. The following equation is used to generate the final static IR spectrum <a class="reference external" href="https://onlinelibrary.wiley.com/doi/full/10.1002/jcc.10089">static IR spectrum</a>:</p>
 <div class="math notranslate nohighlight">
 \[ 
 I_{\textnormal{IR}}(\tilde{\nu}_p) = \frac{N_{A} }{12\varepsilon _{0}c^{2}}\left ( \frac{\partial \boldsymbol{\mu} }{\partial Q_{p}} \right )^{2}
@@ -178,7 +179,7 @@ I_{\textnormal{IR}}(\tilde{\nu}_p) = \frac{N_{A} }{12\varepsilon _{0}c^{2}}\left
 <span class="p">&amp;</span>end<span class="w"> </span>static
 </pre></div>
 </div>
-<p>Vibrant applies Gaussian broadening to the final discrete set of frequencies and intensities. The <code class="docutils literal notranslate"><span class="pre">fwhm</span></code> keyword controls the full width at half-maximum (FWHM) value in cm <span class="math notranslate nohighlight">\({^{-1}}\)</span> and if not specified, it is set to 5 cm <span class="math notranslate nohighlight">\({^{-1}}\)</span>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">vibrant</span></code> applies Gaussian broadening to the final discrete set of frequencies and intensities. The <code class="docutils literal notranslate"><span class="pre">fwhm</span></code> keyword controls the full width at half-maximum (FWHM) value in cm <span class="math notranslate nohighlight">\({^{-1}}\)</span> and if not specified, it is set to 5 cm <span class="math notranslate nohighlight">\({^{-1}}\)</span>.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>The keyword <code class="docutils literal notranslate"><span class="pre">write_mol_file</span></code> is optional and it executes the printing of a <code class="docutils literal notranslate"><span class="pre">&lt;filename&gt;.mol</span></code> file, which includes the optimized geometry, normal mode frequencies, normal mode coordinates and the non-broadened IR intensities. The <code class="docutils literal notranslate"><span class="pre">&lt;filename&gt;.mol</span></code> file can be opened with <a class="reference external" href="https://www.theochem.ru.nl/molden/">MOLDEN</a> to visualize the normal modes alongside the IR spectrum.</p>
@@ -196,7 +197,7 @@ I_{\textnormal{IR}} (\tilde{\nu}) = \frac{2N_{A}}{12\varepsilon _{0}ck_{B}T}\int
 <p>The MD-based IR intensities can be computed either from the Berry phase dipole moments or Wannier centers. The latter can also be used to extract spectra of user-specified molecular blocks or fragments.</p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
-<p>The MD-based spectrum should contain the <code class="docutils literal notranslate"><span class="pre">cell</span></code> subsection alongside the <code class="docutils literal notranslate"><span class="pre">md</span></code> section. Because the dipole moment in periodic systems is <a class="reference external" href="https://www.cambridge.org/de/universitypress/subjects/physics/condensed-matter-physics-nanoscience-and-mesoscopic-physics/berry-phases-electronic-structure-theory-electric-polarization-orbital-magnetization-and-topological-insulators?format=HB&amp;amp;isbn=9781107157651">ill-defined</a> (i.e. only defined modulo a polarization quantum), it may exhibit discontinuous jumps. Vibrant automatically detects and corrects these jumps by subtracting the integer multiples of polarization quantum, ensuring continuous dipole trajectories. <code class="docutils literal notranslate"><span class="pre">cell</span></code> subsection provides the cell parameters which are necessary to calculate the polarization quantum.</p>
+<p>The MD-based spectrum should contain the <code class="docutils literal notranslate"><span class="pre">cell</span></code> subsection alongside the <code class="docutils literal notranslate"><span class="pre">md</span></code> section. Because the dipole moment in periodic systems is <a class="reference external" href="https://www.cambridge.org/de/universitypress/subjects/physics/condensed-matter-physics-nanoscience-and-mesoscopic-physics/berry-phases-electronic-structure-theory-electric-polarization-orbital-magnetization-and-topological-insulators?format=HB&amp;amp;isbn=9781107157651">ill-defined</a> (i.e. only defined modulo a polarization quantum), it may exhibit discontinuous jumps. <code class="docutils literal notranslate"><span class="pre">vibrant</span></code> automatically detects and corrects these jumps by subtracting the integer multiples of polarization quantum, ensuring continuous dipole trajectories. <code class="docutils literal notranslate"><span class="pre">cell</span></code> subsection provides the cell parameters which are necessary to calculate the polarization quantum.</p>
 </div>
 <p>An example input section may look like:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="p">&amp;</span>global
@@ -220,7 +221,7 @@ I_{\textnormal{IR}} (\tilde{\nu}) = \frac{2N_{A}}{12\varepsilon _{0}ck_{B}T}\int
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Vibrant applies the same post-processing to the final MD-based IR intensities as given in the subsection <a class="reference internal" href="frequency.html#spectral-refinement"><span class="std std-ref">Spectral refinement</span></a>, including the application of data mirroring and Hann Window function to the autocorrelation data and the application of the sinc function to the final intensities.</p>
+<p><code class="docutils literal notranslate"><span class="pre">vibrant</span></code> applies the same post-processing to the final MD-based IR intensities as given in the subsection <a class="reference internal" href="frequency.html#spectral-refinement"><span class="std std-ref">Spectral refinement</span></a>, including the application of data mirroring and Hann Window function to the autocorrelation data and the application of the sinc function to the final intensities.</p>
 </div>
 </section>
 <section id="c-dipole-moment-types">
@@ -231,7 +232,7 @@ I_{\textnormal{IR}} (\tilde{\nu}) = \frac{2N_{A}}{12\varepsilon _{0}ck_{B}T}\int
 \[
 \boldsymbol{\mu}^{\text{MLWF}}=-2e\sum_{i}^{}\mathbf{\tilde{r}}_{i}^{\mathrm{WC}} + e\sum_{i}Z_{i}\mathbf{\tilde{R}}_{i}
 \]</div>
-<p>where the distance vectors <span class="math notranslate nohighlight">\(\mathbf{\tilde{r}}_{i}^{\mathrm{WC}} = \mathbf{r}_i^{\mathrm{WC}}-\mathbf{r}_0\)</span> and <span class="math notranslate nohighlight">\(\mathbf{\tilde{R}}_{i} =  \mathbf{R}_i-\mathbf{r}_0\)</span> are implemented with periodic boundary conditions (PBCs) and <span class="math notranslate nohighlight">\(\mathbf{r}_0\)</span> is a reference point, which is the center of mass in Vibrant. <span class="math notranslate nohighlight">\(\mathbf{R}_{i}\)</span> and <span class="math notranslate nohighlight">\(Z_{i}\)</span> denote the atomic positions and charges, respectively.</p>
+<p>where the distance vectors <span class="math notranslate nohighlight">\(\mathbf{\tilde{r}}_{i}^{\mathrm{WC}} = \mathbf{r}_i^{\mathrm{WC}}-\mathbf{r}_0\)</span> and <span class="math notranslate nohighlight">\(\mathbf{\tilde{R}}_{i} =  \mathbf{R}_i-\mathbf{r}_0\)</span> are implemented with periodic boundary conditions (PBCs) and <span class="math notranslate nohighlight">\(\mathbf{r}_0\)</span> is a reference point, which is the center of mass in <code class="docutils literal notranslate"><span class="pre">vibrant</span></code>. <span class="math notranslate nohighlight">\(\mathbf{R}_{i}\)</span> and <span class="math notranslate nohighlight">\(Z_{i}\)</span> denote the atomic positions and charges, respectively.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>The static IR intensities currently can only be computed from the Berry phase dipole moments provided for the whole system.</p>
