@@ -1,4 +1,4 @@
-# Static spectral calculations for the water molecule
+# Static spectral calculations for water molecule
 
 ## Normal mode analysis
 
@@ -89,6 +89,55 @@ This example does not perform a normal mode analysis, and instead uses the user-
   </p>
 </div>
 
-The IR spectrum can be obtained directly using the chosen broadening method and full width at half maximum (FWHM). Alternatively, one may plot the Gaussian-broadened file `result_static_ir.txt` produced by Vibrant with the desired FWHM value, for example using Python or Gnuplot.
+The IR spectrum can be obtained directly using the chosen broadening method and full width at half maximum (FWHM). Alternatively, one may plot the Gaussian-broadened file `result_static_ir.txt` produced by `vibrant` with the desired FWHM value, for example using Python or Gnuplot. An example Python script is given in the [Quick Start](Quick_Start.rst) section.
 
-The Raman calculation can be found in the directory `/scratch/ekin/Examples/Static/Raman`
+The Raman calculation can be found in the directory `/scratch/ekin/Examples/Static/Raman`. This example uses again the atomic forces to calculate the normal mode frequencies and coordinates. It also uses the `polarizabilities.dat` file for the polarizability tensors. Details on the format of this file is given in the [File Formats](file_formats.md#52-static-spectra-based-on-normal-modes) section.
+
+```bash
+&global
+ spectra R
+ temperature 300
+ fwhm 5
+&end global
+&system
+ filename water.xyz
+&end system
+&static
+ diag_hessian y
+ &hessian
+  force_file water-force.data
+ &end hessian
+ displacement 0.001
+ write_mol_file
+&end static
+&dipoles
+ type_dipole dfpt
+ static_pol_file polarizabilities.dat
+&end dipoles
+&raman
+ laser_in 2.540639
+&end raman
+```
+
+This calculation generates four files, again the normal mode frequency and normal mode coordinate files `normal_mode_freq.txt` and `normal_mode_displ.txt`, and also the `result_static_raman.txt` file which contains the broadened frequencies and the Raman spectrum and can be plotted with, for example, Python. Additionally, `Raman.mol` can again be opened with [MOLDEN](https://www.theochem.ru.nl/molden/) to visualize the normal modes alongside the Raman spectrum.
+
+## Bonus: Power spectrum of liquid water 
+
+After running the static calculations for the water molecule, one can also calculate the MD-based power spectrum of liquid water, as provided in the directory `/MD-based/Power_Spectrum/`.  The directory includes the `waterbulk-pos-1.xyz` file which contains the atomic positions of the water simulation box for several MD snapshots, and also the input file `input.txt`. Running the calculation produces two files:
+
+- `power_spec.txt` → contains the power spectrum
+- `result_cvv.txt` → contains the velocity autocorrelation data
+
+The files can be visualized with a Python script as described above. The resulting power spectrum is shown below:
+
+<div style="display:flex; justify-content: center; align-items: center;">
+  <div style="width: 500px;">
+  <img src="./_static/power_JOSS.png">
+  <br>
+  <div style="display: block; padding: 20px; color: gray; text-align: justify;">
+
+Power spectrum of liquid water.
+
+   </div>
+   </div>
+</div>

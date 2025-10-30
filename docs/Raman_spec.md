@@ -1,14 +1,14 @@
 # Raman spectra
 
-The Raman spectrum calculation in Vibrant is based either on the post-processing of polarizability tensors, for example calculated by the density functional theory (DFPT), of through the induced dipole moments. The latter can process either Berry phase dipole moments or Wannier centers under applied electric field. In principle, Vibrant can compute both static or molecular-dynamics (MD)-based Raman spectra.
+The Raman spectrum calculation in `vibrant` is based either on the post-processing of polarizability tensors, for example calculated by the density functional theory (DFPT), of through the induced dipole moments. The latter can process either Berry phase dipole moments or Wannier centers under applied electric field. In principle, `vibrant` can compute both static or molecular-dynamics (MD)-based Raman spectra.
 
-Vibrant can calculate the Raman intensities for a range of incident laser wavelengths $\tilde{\nu}_{in}$ specified in the input file via the `laser_in` keyword in the `raman` section. Every Raman spectrum calculated for a different laser wavenumber are appended as additional columns.
+`vibrant` can calculate the Raman intensities for a range of incident laser wavelengths $\tilde{\nu}_{in}$ specified in the input file via the `laser_in` keyword in the `raman` section. Every Raman spectrum calculated for a different laser wavenumber are appended as additional columns.
 
 More details on the differences of static and MD-based Raman spectra are provided in the following sections.
 
 ## a) Static Raman intensities
 
-The static Raman calculation in Vibrant relies on the normal mode analysis within the harmonic approximation. The static Raman intensities are computed from the derivatives of the polarizability tensors $\boldsymbol{\alpha}$ with respect to the mass-weighted normal coordinates $Q_{p}$. Following [Placzek's polarization theory](https://onlinelibrary.wiley.com/doi/book/10.1002/0470845767), the [Raman intensity](https://link.springer.com/book/10.1007/978-3-319-49628-3?utm_medium=referral&utm_source=google_books&utm_campaign=3_pier05_buy_print&utm_content=en_08082017) for any normal mode $p$ is given by:
+The static Raman calculation in `vibrant` relies on the normal mode analysis within the harmonic approximation. The static Raman intensities are computed from the derivatives of the polarizability tensors $\boldsymbol{\alpha}$ with respect to the mass-weighted normal coordinates $Q_{p}$. Following [Placzek's polarization theory](https://onlinelibrary.wiley.com/doi/book/10.1002/0470845767), the [Raman intensity](https://link.springer.com/book/10.1007/978-3-319-49628-3?utm_medium=referral&utm_source=google_books&utm_campaign=3_pier05_buy_print&utm_content=en_08082017) for any normal mode $p$ is given by:
 
 $$
 I_{\textnormal{Raman}}(\tilde{\nu}_p)=\frac{h}{8\epsilon_{0}^{2}c} \frac{(\tilde{\nu}_{in}-\tilde{\nu}_{p})^{4}}{\tilde{\nu}_{p}} \frac{1}{1-\exp\left(-\frac{hc\tilde{\nu}_{p}}{k_{B}T}\right)}\frac{X\beta^{2}_{p}+Y\gamma^{2}_{p} }{45} 
@@ -41,7 +41,7 @@ Orthogonal ($I_{\perp }(\tilde{\nu})$) | 0 | 3 |
 Parallel ($I_{\parallel }(\tilde{\nu})$) | 45 | 4 | 
 Unpolarized ($I(\tilde{\nu}) = I_{\perp }(\tilde{\nu}) + I_{\parallel }(\tilde{\nu})$) | 45 | 7 |
 
-By default, Vibrant prints only the unpolarized (total) Raman intensities, but the other types of spectra, together with the depolarization ratio ($\rho (\tilde{\nu})=\frac{I_{\perp }(\tilde{\nu})}{I_{\parallel  }(\tilde{\nu})}$), can be printed out by setting the `spectra_verbosity` keyword to `high`.
+By default, `vibrant` prints only the unpolarized (total) Raman intensities, but the other types of spectra, together with the depolarization ratio ($\rho (\tilde{\nu})=\frac{I_{\perp }(\tilde{\nu})}{I_{\parallel  }(\tilde{\nu})}$), can be printed out by setting the `spectra_verbosity` keyword to `high`.
 
 For each displaced structure (see Section [Frequencies](frequency.md) for details) the user must provide the polarizability tensors appended in a single file (see [File Formats](file_formats.md#52-static-spectra-based-on-normal-modes) for more details.) For the derivatives along the normal modes, the user can either provide the normal mode coordinates or alternatively the forces for each displaced structure, together with the cartesian coordinates of the optimized geometry. An example input section for the static Raman calculation may look like:
 
@@ -79,16 +79,16 @@ or if the user want to skip the Hessian diagonalization and give the normal mode
 &end static
 ``` 
 
-Vibrant applies Gaussian broadening to the final discrete set of frequencies and intensities. The `fwhm` keyword controls the full width at half maximum (FWHM) value in cm ${^{-1}}$ and if not specified, it is set to 5 cm ${^{-1}}$. 
+`vibrant` applies Gaussian broadening to the final discrete set of frequencies and intensities. The `fwhm` keyword controls the full width at half maximum (FWHM) value in cm ${^{-1}}$ and if not specified, it is set to 5 cm ${^{-1}}$. 
 
  ```{note}
-  The keyword `write_mol_file` is optional and it executes the printing of a `<filename>.mol` file, which includes the optimized geometry, normal mode frequencies, normal mode coordinates and the non-broadened Raman intensities. The `<filename>.mol` file can be opened with [MOLDEN](https://www.theochem.ru.nl/molden/) to visualize the normal modes alongside the Raman spectrum. If multiple incident laser frequencies are requested, Vibrant generates a separate `<filename>.mol` file for each frequency.
+  The keyword `write_mol_file` is optional and it executes the printing of a `<filename>.mol` file, which includes the optimized geometry, normal mode frequencies, normal mode coordinates and the non-broadened Raman intensities. The `<filename>.mol` file can be opened with [MOLDEN](https://www.theochem.ru.nl/molden/) to visualize the normal modes alongside the Raman spectrum. If multiple incident laser frequencies are requested, `vibrant` generates a separate `<filename>.mol` file for each frequency.
 ```
 
 The final static Raman intensities are reported in 10 $^{-30}$ cm $^2$ /sr.
 
 ```{warning}
- Currently, Vibrant does not support the use of induced dipoles for calculating static Raman spectra, as the finite-difference error can be significant when using the limited number of structures available in a static calculation compared to an MD trajectory. Therefore, static Raman spectra can only be computed from the provided polarizabilities.
+ Currently, `vibrant` does not support the use of induced dipoles for calculating static Raman spectra, as the finite-difference error can be significant when using the limited number of structures available in a static calculation compared to an MD trajectory. Therefore, static Raman spectra can only be computed from the provided polarizabilities.
  ```
 
 ## b) MD-based Raman intensities
@@ -162,14 +162,14 @@ The `md` section should be included for the MD-based Raman calculation:
 ```
 
  ```{note}
-  Vibrant applies the same post-processing to the final MD-based Raman intensities as given in the subsection [Spectral refinement](frequency.md#spectral-refinement), including the application of data mirroring and Hann Window function to the autocorrelation data and the application of the sinc function to the final intensities. 
+  `vibrant` applies the same post-processing to the final MD-based Raman intensities as given in the subsection [Spectral refinement](frequency.md#spectral-refinement), including the application of data mirroring and Hann Window function to the autocorrelation data and the application of the sinc function to the final intensities. 
 ```
 
- The final MD-based Raman intensities are reported in m $^2$ K cm 10 $^{-30}$ . The polarizability/dipole moment types that can be processed by Vibrant for computing Raman spectra are discussed in the next section.
+ The final MD-based Raman intensities are reported in m $^2$ K cm 10 $^{-30}$ . The polarizability/dipole moment types that can be processed by `vibrant` for computing Raman spectra are discussed in the next section.
 
 ## c) Different polarizability tensors
 
-The MD-based Raman intensities can be computed either directly from the DFPT polarizabilities or from an induced dipole approach where Berry phase dipole moments or Wannier centers are processed. [CP2K](https://www.cp2k.org/) program package enables the [calculation of the polarizability tensors via DFPT](https://pubs.aip.org/aip/jcp/article/141/9/094503/193754), which can be processed by Vibrant. [DFPT](https://www.cambridge.org/core/books/berry-phases-in-electronic-structure-theory/DDD71CA4FE9AF5F3A2FB300E602F394A) analytically evaluates the response of a system to external electric or magnetic fields. The DFPT polarizabilities are obtained for the whole supercell, and are obtained directly from a single linear-response calculation, without any field adjustments. The DFPT polarizabilities are uniquely defined unlike the dipole moments, meaning no phase indeterminacy is involved. The DFPT polarizabilities can be specified in the Vibrant input file using the `type_dipole` keyword:
+The MD-based Raman intensities can be computed either directly from the DFPT polarizabilities or from an induced dipole approach where Berry phase dipole moments or Wannier centers are processed. [CP2K](https://www.cp2k.org/) program package enables the [calculation of the polarizability tensors via DFPT](https://pubs.aip.org/aip/jcp/article/141/9/094503/193754), which can be processed by `vibrant`. [DFPT](https://www.cambridge.org/core/books/berry-phases-in-electronic-structure-theory/DDD71CA4FE9AF5F3A2FB300E602F394A) analytically evaluates the response of a system to external electric or magnetic fields. The DFPT polarizabilities are obtained for the whole supercell, and are obtained directly from a single linear-response calculation, without any field adjustments. The DFPT polarizabilities are uniquely defined unlike the dipole moments, meaning no phase indeterminacy is involved. The DFPT polarizabilities can be specified in the `vibrant` input file using the `type_dipole` keyword:
 
 ```bash
 ...
@@ -219,4 +219,4 @@ More details on the format of the dipole moment and polarizability files can be 
  The Wannier centers can be used to compute the dipole moment and consequently the polarizability of the whole supercell, however they can also be used to extract the spectra of user-specified molecular blocks or fragments, which is discussed in Section [Subspectra for MD-based calculations](fragments.md).
 ```
 
-More information on the all available keywords can be found on [Keyword Glossary](Keyword_Glossary.rst) and all complete example input files are available on ....
+More information on the all available keywords can be found on [Keyword Glossary](Keyword_Glossary.rst) and all complete example input files are available on [Examples](Examples.md).

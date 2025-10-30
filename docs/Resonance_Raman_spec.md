@@ -1,14 +1,14 @@
 # Resonance Raman (RR) and absorption spectra
 
-Vibrant can compute static or molecular dynamics (MD)-based resonance Raman (RR) and absorption spectra processing the induced dipole moments calculated via real-time time-dependent density functional theory (RT-TDDFT). [RT-TDDFT](https://pubs.acs.org/doi/10.1021/acs.chemrev.0c00223) models resonance effects by propagating the electron density in real time under a small external perturbation, enabling the full excitation spectrum to be captured from a single simulation via Fourier transformation of the time-dependent polarizabilities. This is an important advantage when compared to the more commonly used linear-response TDDFT (LR-TDDFT), which requires specifying a subset of excitations. As a result, the RT-TDDFT-based approach is efficient and easily combinable with both static and MD-based simulations.
+`vibrant` can compute static or molecular dynamics (MD)-based resonance Raman (RR) and absorption spectra processing the induced dipole moments calculated via real-time time-dependent density functional theory (RT-TDDFT). [RT-TDDFT](https://pubs.acs.org/doi/10.1021/acs.chemrev.0c00223) models resonance effects by propagating the electron density in real time under a small external perturbation, enabling the full excitation spectrum to be captured from a single simulation via Fourier transformation of the time-dependent polarizabilities. This is an important advantage when compared to the more commonly used linear-response TDDFT (LR-TDDFT), which requires specifying a subset of excitations. As a result, the RT-TDDFT-based approach is efficient and easily combinable with both static and MD-based simulations.
 
-Vibrant calculates the RR intensities for a range of incident laser wavelengths $\tilde{\nu}_{in}$ specified in the input file via the `laser_in` keyword in the `raman` section. Every RR spectrum calculated for a different laser wavenumber are appended as additional columns.
+`vibrant` calculates the RR intensities for a range of incident laser wavelengths $\tilde{\nu}_{in}$ specified in the input file via the `laser_in` keyword in the `raman` section. Every RR spectrum calculated for a different laser wavenumber are appended as additional columns.
 
 More details on the differences of static and MD-based RR and absorption spectra are provided in the following sections, together with the details on the Padé post-processing which significantly enhances the spectral resolution.
 
 ## a) Static RR and absorption intensities
 
-The static RR calculation in Vibrant relies on the normal mode analysis within the harmonic approximation. The static RR intensities are computed from the derivatives of the frequency-dependent polarizability tensors $\boldsymbol{\alpha}$ with respect to the mass-weighted normal coordinates $Q_{p}$. Following [Placzek's polarization theory](https://onlinelibrary.wiley.com/doi/book/10.1002/0470845767), the [RR intensity](https://pubs.acs.org/doi/full/10.1021/acs.jctc.9b00512) at laser frequency $\omega$ for each normal mode frequency $\tilde{\nu}_{p}$ is given as:
+The static RR calculation in `vibrant` relies on the normal mode analysis within the harmonic approximation. The static RR intensities are computed from the derivatives of the frequency-dependent polarizability tensors $\boldsymbol{\alpha}$ with respect to the mass-weighted normal coordinates $Q_{p}$. Following [Placzek's polarization theory](https://onlinelibrary.wiley.com/doi/book/10.1002/0470845767), the [RR intensity](https://pubs.acs.org/doi/full/10.1021/acs.jctc.9b00512) at laser frequency $\omega$ for each normal mode frequency $\tilde{\nu}_{p}$ is given as:
 
 $$
 I_{\textnormal{RR}} (\tilde{\nu}_{p}, \omega) = \frac{h}{8\epsilon_{0}^{2}c} \frac{(\omega-\tilde{\nu}_{p})^{4}}{\tilde{\nu}_{p} \left(1-\exp\left(-\frac{hc\tilde{\nu}_{p}}{k_{B}T}\right)\right)}  \frac{45\beta^{2}_{p} (\omega)+7\gamma_{p}^{2}(\omega) }{45} 
@@ -90,12 +90,12 @@ To compute a static RR spectrum, the user must provide the time-dependent dipole
 ...
 ```
 
-`rtp` section provides the necessary information about the RT-TDDFT parameters. The `static` section should be given similar to the [static Raman](Raman_spec.md#a-static-raman-intensities) input. Complete input files can be found at ....
+`rtp` section provides the necessary information about the RT-TDDFT parameters. The `static` section should be given similar to the [static Raman](Raman_spec.md#a-static-raman-intensities) input. Complete input files can be found at [Examples](Examples.md).
 
-Vibrant applies Gaussian broadening to the final discrete set of frequencies and intensities. The `fwhm` keyword controls the full width at half-maximum (FWHM) value in cm ${^{-1}}$ and if not specified, it is set to 5 cm ${^{-1}}$.
+`vibrant` applies Gaussian broadening to the final discrete set of frequencies and intensities. The `fwhm` keyword controls the full width at half-maximum (FWHM) value in cm ${^{-1}}$ and if not specified, it is set to 5 cm ${^{-1}}$.
 
 ```{note}
-  The keyword `write_mol_file` is optional and it executes the printing of a `<filename>.mol` file, which includes the optimized geometry, normal mode frequencies, normal mode coordinates and the non-broadened Raman intensities. The `<filename>.mol` file can be opened with [MOLDEN](https://www.theochem.ru.nl/molden/) to visualize the normal modes alongside the Raman spectrum. If multiple incident laser frequencies are requested, Vibrant generates a separate `<filename>.mol` file for each frequency.
+  The keyword `write_mol_file` is optional and it executes the printing of a `<filename>.mol` file, which includes the optimized geometry, normal mode frequencies, normal mode coordinates and the non-broadened Raman intensities. The `<filename>.mol` file can be opened with [MOLDEN](https://www.theochem.ru.nl/molden/) to visualize the normal modes alongside the Raman spectrum. If multiple incident laser frequencies are requested, `vibrant` generates a separate `<filename>.mol` file for each frequency.
 ```
 
 The absorption spectrum calculation does not require the `static` section. An example input section is given below:
@@ -216,7 +216,7 @@ $$
 
 where $T$ is the total RT-TDDFT simulation time, $\tau$ is the RT-TDDFT time step, $t$ is the MD time step, ${\mu}^{j}_i(\tau, t)$ is the time-dependent dipole moment under the electric field applied in the $j$ direction, $\mu^{0}_{i}(\tau, t)$ denotes the initial static dipole moment of the unperturbed system, and $\Gamma$ is the damping factor.
 
-The MD-based RR calculation in Vibrant is not fully tested yet, and more tests are being performed. The current implementation requires that the user provides the time-dependent dipole moments for each MD snapshot, combined into a single file (see [File Formats](file_formats.md#61-md-based-spectra) for more details). There should be three files in total, each corresponding to calculations performed under electric fields applied along the x-, y-, and z-directions. An example input section for performing an MD-based RR calculation is shown below:
+The MD-based RR calculation in `vibrant` is not fully tested yet, and more tests are being performed. The current implementation requires that the user provides the time-dependent dipole moments for each MD snapshot, combined into a single file (see [File Formats](file_formats.md#61-md-based-spectra) for more details). There should be three files in total, each corresponding to calculations performed under electric fields applied along the x-, y-, and z-directions. An example input section for performing an MD-based RR calculation is shown below:
 
 ```bash
 &global
@@ -244,14 +244,14 @@ The MD-based RR calculation in Vibrant is not fully tested yet, and more tests a
 The MD-based absorption spectrum is computed in the same manner as the static absorption spectrum described above, except that the absorption intensities are averaged over all MD snapshots. The MD-based absorption spectrum does not require the specification of the `md` section.
 
 ```{note}
-  Vibrant applies the same post-processing to the final MD-based RR intensities as given in the subsection [Spectral refinement](frequency.md#spectral-refinement), including the application of data mirroring and Hann Window function to the autocorrelation data and the application of the sinc function to the final intensities. 
+  `vibrant` applies the same post-processing to the final MD-based RR intensities as given in the subsection [Spectral refinement](frequency.md#spectral-refinement), including the application of data mirroring and Hann Window function to the autocorrelation data and the application of the sinc function to the final intensities. 
 ```
 
  The final MD-based RR intensities are reported in m $^2$ K cm 10 $^{-30}$.
 
 ## c) Application of Padé interpolation
 
-The spectral resolution of the dynamic polarizability $\alpha(\omega)$ and the resulting absorption spectrum depends on the RT-TDDFT simulation length, which requires hundreds of thousands of time steps for fine energy resolution. To overcome the significant computational cost, Vibrant can optionally use rational Padé approximants to reconstruct $\alpha(\omega)$ analytically from discrete RT-TDDFT data.
+The spectral resolution of the dynamic polarizability $\alpha(\omega)$ and the resulting absorption spectrum depends on the RT-TDDFT simulation length, which requires hundreds of thousands of time steps for fine energy resolution. To overcome the significant computational cost, `vibrant` can optionally use rational Padé approximants to reconstruct $\alpha(\omega)$ analytically from discrete RT-TDDFT data.
 
 The complex-valued $\alpha(\omega)$ is approximated as:
 
@@ -294,7 +294,7 @@ The user can request the Padé post-processing for the static or MD-based RR or 
 The user must also specify the number of the final data points after the Padé fitting using the keyword `pade_framecount`. This parameter controls the resolution of the interpolated data.
 
 ```{tip}
-The Padé fitting usually takes time, but it is accelarated using OpenMP threads. To control the number of parallel threads you can export the environment variable `export OMP_NUM_THREADS=<num_threads>` before calling the vibrant code. Occasionally for large RTP steps you can run into a "out-of-memory" error. The amout of RAM memory vibrant needs can be computed roughly by $N_{RTP}^2\cdot 16 \cdot 10^{-9} \cdot N_{threads}$ (in GB).
+The Padé fitting usually takes time, but it is accelarated using OpenMP threads. To control the number of parallel threads you can export the environment variable `export OMP_NUM_THREADS=<num_threads>` before calling the `vibrant` code. Occasionally for large RTP steps you can run into a "out-of-memory" error. The amout of RAM memory `vibrant` needs can be computed roughly by $N_{RTP}^2\cdot 16 \cdot 10^{-9} \cdot N_{threads}$ (in GB).
 ```
 
-More information on the all available keywords can be found on [Keyword Glossary](Keyword_Glossary.rst) and all complete example input files are available on ....
+More information on the all available keywords can be found on [Keyword Glossary](Keyword_Glossary.rst) and all complete example input files are available on [Examples](Examples.md).

@@ -1,5 +1,5 @@
 # Contribute 
-Contributions to vibrant are highly appreciated! If you consider contributing [check out CONTRIBUTING.md](https://github.com/lstsgroup/vibrant/blob/main/CONTRIBUTING.md).
+Contributions to `vibrant` are highly appreciated! If you consider contributing [check out CONTRIBUTING.md](https://github.com/lstsgroup/vibrant/blob/main/CONTRIBUTING.md).
 
 ## Code style guideline 
 Please use `fprettify` with the following configuration if you want to submit code:
