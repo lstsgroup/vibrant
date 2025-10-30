@@ -1,6 +1,6 @@
 # File Formats
 
-Vibrant processes multiple data files, such as the dipole moments, polarizabilities, and forces, in order to compute the desired vibrational spectrum. These files must follow specific formats which we describe in this section.
+`vibrant` processes multiple data files, such as the dipole moments, polarizabilities, and forces, in order to compute the desired vibrational spectrum. These files must follow specific formats which we describe in this section.
 
 More information on all available keywords can be found on [Keyword Glossary](Keyword_Glossary.rst) and all complete example input files are available on [Examples](Examples.md).
 
@@ -220,7 +220,7 @@ yx,zx,zy       -0.00000        0.00026       -0.00017
 
 ```
 
-Vibrant only reads the polarizabilities in Å $^3$, ignoring the a.u. block.
+`vibrant` only reads the polarizabilities in Å $^3$, ignoring the a.u. block.
 
 ## 6) Time-dependent Berry phase dipole moments coming from RT-TDDFT
 
