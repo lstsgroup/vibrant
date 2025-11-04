@@ -27,7 +27,7 @@ MODULE output_io
 
     PRIVATE
 
-    PUBLIC :: write_spectra_data, write_mol_file, append_column, check_file_open
+    PUBLIC :: write_spectra_data, write_mol_file, append_column, check_file_open, skip_comments
 CONTAINS
 
     !> @brief Checks the status of a file open operation and aborts on failure.
@@ -36,19 +36,39 @@ CONTAINS
     !> @param[in] msg       -- Custom error message or context description
     !> @param[in] filename  -- Name of the file that failed to open
     !>
-    SUBROUTINE check_file_open(stat, msg, filename)
+    SUBROUTINE check_file_open(stat, msg, filename, runit)
 
         INTEGER, INTENT(IN) :: stat
         CHARACTER(*), INTENT(IN) :: msg
         CHARACTER(*), INTENT(IN) :: filename
+        INTEGER, INTENT(IN), OPTIONAL  :: runit           
+
+        INTEGER :: ios
 
         IF (stat/=0) THEN
             WRITE (error_unit, '(4X,"[ERROR] could not open file ",A)') TRIM(filename)
             WRITE (error_unit, '(4X,"I/O error message: ",A)') TRIM(msg)
             STOP
+        ELSEIF (PRESENT(runit)) THEN
+            CALL skip_comments(runit, ios)
         END IF
 
     END SUBROUTINE check_file_open
+
+    SUBROUTINE skip_comments(u, ios)
+        INTEGER, INTENT(IN)  :: u           ! FORTRAN-UNIT
+        INTEGER, INTENT(OUT) :: ios         ! I/O-STATUS (0 = OK, /=0 = EOF/FEHLER)
+        CHARACTER(LEN=512)   :: line
+      
+        ios = 0
+        DO
+          READ(u, '(A)', IOSTAT=ios) line
+          IF (ios /= 0) RETURN                  ! EOF ODER FEHLER -> ZURÜCK
+          IF (INDEX(line, '#') > 0) CYCLE       ! KOMMENTARZEILE (ODER ENTHÄLT #) -> WEITER
+          BACKSPACE(U)                          ! GÜLTIGE ZEILE WIEDER "VORLEGEN"
+          RETURN
+        END DO
+      END SUBROUTINE skip_comments
 
 !***************************************************************************************!
 !***************************************************************************************!

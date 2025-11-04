@@ -56,7 +56,7 @@ CONTAINS
         CHARACTER(LEN=40), INTENT(IN)                               :: filename
 
         CHARACTER(len=str_len)                                     :: msg  !store error message
-        INTEGER                                                   :: i, j, stat, runit
+        INTEGER                                                   :: i, j, stat, runit, ios
 
         !Initialize 
         sys%framecount = 0
@@ -65,7 +65,7 @@ CONTAINS
         IF (gs%spectral_type%read_function/='MD-RR' .AND. gs%spectral_type%read_function/='MD-ABS') THEN
             OPEN (FILE=filename, STATUS='old', ACTION='read', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
             !Check if file exists
-            CALL check_file_open(stat, msg, filename)
+            CALL check_file_open(stat, msg, filename, runit)
             READ (runit, *) sys%natom
             CLOSE (runit)
         !!If the file contains dynamic time-dependent dipole moments
@@ -80,7 +80,7 @@ CONTAINS
         !!Read the file to assign the coordinates and elements, determine the MD frame count
         OPEN (FILE=filename, STATUS='old', ACTION='read', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
         !Check if file exists
-        CALL check_file_open(stat, msg, filename)
+        CALL check_file_open(stat, msg, filename, runit)
         DO
             READ (runit, *, END=998)
             READ (runit, *)
@@ -125,14 +125,14 @@ CONTAINS
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(OUT)      :: coord_v
 
         CHARACTER(len=str_len)                                     :: msg  ! store error message
-        INTEGER                                                    :: i, j, stat, runit, buff
+        INTEGER                                                    :: i, j, stat, runit, buff, ios
 
         !!Allocate
         ALLOCATE (coord_v(sys%framecount, natom, 3))
         
         OPEN (FILE=filename, STATUS='old', ACTION='read', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
         !Check if file exists
-        CALL check_file_open(stat, msg, filename)
+        CALL check_file_open(stat, msg, filename, runit)
         !Start reading until the end of the file is reached
         DO
             DO j = 1, sys%framecount
@@ -175,7 +175,7 @@ CONTAINS
         TYPE(static), INTENT(INOUT)        :: stats
 
         CHARACTER(LEN=str_len)                                          :: chara, msg
-        INTEGER                                                    :: i, j, k, m, n, d, xyz
+        INTEGER                                                    :: i, j, k, m, n, d, xyz, ios
         INTEGER                                                    :: stat, runit
 
         !!If the user requested a normal mode analysis based on diagonalizing the hessian
@@ -185,7 +185,7 @@ CONTAINS
             
             OPEN (FILE=stats%force_file, STATUS='old', ACTION='read', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
             !Check if file exists
-            CALL check_file_open(stat, msg, stats%force_file)
+            CALL check_file_open(stat, msg, stats%force_file, runit)
             !Read forces
             DO i = 1, 2
                 DO j = 1, sys%natom
@@ -205,7 +205,7 @@ CONTAINS
             stats%nmodes = 0
             OPEN (FILE=stats%normal_freq_file, STATUS='old', ACTION='read', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit) !Reading normal freqs/coords
             !Check if file exists
-            CALL check_file_open(stat, msg, stats%normal_freq_file)
+            CALL check_file_open(stat, msg, stats%normal_freq_file, runit)
             !First determine the number of modes from the provided frequency file
             DO
                 READ (runit, *, END=998) chara
@@ -219,7 +219,7 @@ CONTAINS
             !!Read frequencies
             OPEN (FILE=stats%normal_freq_file, STATUS='old', ACTION='read', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit) !Reading normal freqs/coords
             !Check if file exists
-            CALL check_file_open(stat, msg, stats%normal_freq_file)
+            CALL check_file_open(stat, msg, stats%normal_freq_file, runit)
             DO i = 1, stats%nmodes
                 READ (runit, *, END=997) stats%freq(i)
             END DO
@@ -229,7 +229,7 @@ CONTAINS
             !!Read normal mode coordinates
             OPEN (FILE=stats%normal_displ_file, STATUS='old', ACTION='read', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit) !Reading normal freqs/coords
             !Check if file exists
-            CALL check_file_open(stat, msg, stats%normal_displ_file)
+            CALL check_file_open(stat, msg, stats%normal_displ_file, runit)
             DO i = 1, stats%nmodes
                 DO j = 1, sys%natom
                     READ (runit, *, END=996) stats%disp(i, j, 1), stats%disp(i, j, 2), stats%disp(i, j, 3)
@@ -270,7 +270,7 @@ CONTAINS
         IF (dips%type_dipole=='dfpt') THEN
             OPEN (FILE=rams%static_pol_file, STATUS='old', ACTION='read', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
             !Check if file exists
-            CALL check_file_open(stat, msg, rams%static_pol_file)
+            CALL check_file_open(stat, msg, rams%static_pol_file, runit)
             DO
                 DO k = 1, 2 !+/-
                     DO i = 1, sys%natom
@@ -298,7 +298,7 @@ CONTAINS
         ELSEIF (dips%type_dipole=='berry') THEN
             OPEN (FILE=dips%dip_file, STATUS='old', ACTION='read', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
             !Check if file exists
-            CALL check_file_open(stat, msg, dips%dip_file)
+            CALL check_file_open(stat, msg, dips%dip_file, runit)
             DO
                 DO k = 1, 2 !+/-
                     DO i = 1, sys%natom
@@ -350,7 +350,7 @@ CONTAINS
         !! Read the time-dependent dipoles for each displaced structure
         OPEN (FILE=static_dip_file, STATUS='old', ACTION='read', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit) !Reading polarizabilties
         !Check if file exists
-        CALL check_file_open(stat, msg, static_dip_file)
+        CALL check_file_open(stat, msg, static_dip_file, runit)
         DO
             DO k = 1, 2 !!+/- 
                 DO i = 1, sys%natom
