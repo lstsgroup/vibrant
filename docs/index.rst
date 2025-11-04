@@ -23,7 +23,8 @@ Features
    * **IR and Raman spectra** from static calculations or *ab initio* molecular dynamics.  
    * **Resonance Raman spectra** via efficient Padé approximation or explicit frequency sampling.  
    * **Absorption spectra** computed alongside vibrational data for comprehensive analysis.  
-   * **Fast and efficient** post-processing of large systems and long trajectories. 
+   * **Fast and efficient** post-processing of large systems and long trajectories.
+   * Applicable to **single molecules, liquids and materials**
 Quick Start
 ===========
 To get started with ``vibrant``, see the :doc:`Quick Start <Quick_Start>` section of the documentation.
