@@ -27,7 +27,7 @@ MODULE output_io
 
     PRIVATE
 
-    PUBLIC :: write_spectra_data, write_mol_file, append_column, check_file_open, skip_comments
+    PUBLIC :: write_spectra_data, write_mol_file, append_column, check_file_open
 CONTAINS
 
     !> @brief Checks the status of a file open operation and aborts on failure and check if first line is a comment
