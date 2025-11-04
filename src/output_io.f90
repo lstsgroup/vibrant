@@ -30,22 +30,33 @@ MODULE output_io
     PUBLIC :: write_spectra_data, write_mol_file, append_column, check_file_open
 CONTAINS
 
-    !> @brief Checks the status of a file open operation and aborts on failure.
+    !> @brief Checks the status of a file open operation and aborts on failure and check if first line is a comment
     !>
     !> @param[in] stat      -- I/O status flag returned by an OPEN statement
     !> @param[in] msg       -- Custom error message or context description
     !> @param[in] filename  -- Name of the file that failed to open
+    !> @param[in] runit     -- Unit to read from file to check if first line is a comment
     !>
-    SUBROUTINE check_file_open(stat, msg, filename)
+    SUBROUTINE check_file_open(stat, msg, filename, runit)
 
         INTEGER, INTENT(IN) :: stat
         CHARACTER(*), INTENT(IN) :: msg
         CHARACTER(*), INTENT(IN) :: filename
+        INTEGER, INTENT(IN), OPTIONAL  :: runit           
+
+        CHARACTER(LEN=512)   :: line
 
         IF (stat/=0) THEN
             WRITE (error_unit, '(4X,"[ERROR] could not open file ",A)') TRIM(filename)
             WRITE (error_unit, '(4X,"I/O error message: ",A)') TRIM(msg)
             STOP
+        ELSEIF (PRESENT(runit)) THEN
+            DO
+                READ(runit, '(A)') line   
+                IF (INDEX(line, '#') > 0) CYCLE       ! IF first line is comment indicated by '#' -> skip
+                BACKSPACE(runit)                      ! IF first line is not a comment backspace
+                RETURN
+            END DO
         END IF
 
     END SUBROUTINE check_file_open

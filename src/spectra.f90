@@ -26,7 +26,7 @@ MODULE calc_spectra
     USE constants, ONLY: pi, fs2s, debye, speed_light, const_planck, const_boltz, const_permit, cm2m, a3_to_debye_per_e, &
                          hartreebohr2evang, hessian_factor, bohr2ang, reccm2ev, am_u, debye2cm, avo_num, au2vm, ang, at_u, &
                          speed_light_au, debye, reccm2au, sinc_factor
-    USE read_traj, ONLY: read_coord_frame!, check_file_open
+    USE read_traj, ONLY: read_coord_frame
     USE fin_diff, ONLY: central_diff, forward_diff
     USE vel_cor, ONLY: cvv, cvv_iso, cvv_aniso, cvv_only_x, cvv_resraman
     USE dipole_calc!, ONLY: compute_dipole, check_jumps
