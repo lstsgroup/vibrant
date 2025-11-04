@@ -77,7 +77,7 @@ highlight_language = "bash"
 
 # Choose a Pygments theme with visible comments
 # Try one of: "friendly", "tango", "monokai", "xcode", "colorful"
-pygments_style = "friendly"
+pygments_style = "colorful"
 
 def setup(app):
     app.add_css_file('keyword.css')
