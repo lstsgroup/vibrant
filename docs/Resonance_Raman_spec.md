@@ -11,7 +11,7 @@ More details on the differences of static and MD-based RR and absorption spectra
 The static RR calculation in `vibrant` relies on the normal mode analysis within the harmonic approximation. The static RR intensities are computed from the derivatives of the frequency-dependent polarizability tensors $\boldsymbol{\alpha}$ with respect to the mass-weighted normal coordinates $Q_{p}$. Following [Placzek's polarization theory](https://onlinelibrary.wiley.com/doi/book/10.1002/0470845767), the [RR intensity](https://pubs.acs.org/doi/full/10.1021/acs.jctc.9b00512) at laser frequency $\omega$ for each normal mode frequency $\tilde{\nu}_{p}$ is given as:
 
 $$
-I_{\textnormal{RR}} (\tilde{\nu}_{p}, \omega) = \frac{h}{8\epsilon_{0}^{2}c} \frac{(\omega-\tilde{\nu}_{p})^{4}}{\tilde{\nu}_{p} \left(1-\exp\left(-\frac{hc\tilde{\nu}_{p}}{k_{B}T}\right)\right)}  \frac{45\beta^{2}_{p} (\omega)+7\gamma_{p}^{2}(\omega) }{45} 
+I_{\textnormal{RR}} (\tilde{\nu}_{p}, \omega) = \frac{h}{8\epsilon_{0}^{2}c} \frac{(\omega-\tilde{\nu}_{p})^{4}}{\tilde{\nu}_{p} \left(1-\exp\left(-\frac{hc\tilde{\nu}_{p}}{k_{B}T}\right)\right)}  \frac{X\beta^{2}_{p} (\omega)+Y\gamma_{p}^{2}(\omega) }{45} 
 $$
 
 where $h$ is the Planck’s constant, $\varepsilon_{0}$ is the vacuum permittivity, $c$ is speed of the light, $k_{B}$ is the Boltzmann constant, $T$ is the temperature. [$X$ and $Y$](https://onlinelibrary.wiley.com/doi/book/10.1002/0470845767) can take different values depending on the polarization configuration of the scattered light as explained in Section [Raman spectra](Raman_spec.md). $\beta^{2}_{p}(\omega)$ and $\gamma_{p}^{2}(\omega)$ correspond to the frequency-dependent isotropic and anisotropic contributions, respectively. They are computed from the derivatives of the dynamic polarizability tensor $\boldsymbol{\alpha}(\omega ,\tilde{\nu}_p)$ with respect to the normal mode coordinate $\boldsymbol{Q}_{p}$. $\beta^{2}_{p}(\omega)$ includes the diagonal components of $\boldsymbol{\alpha}(\omega ,\tilde{\nu}_p)$:
@@ -90,7 +90,7 @@ To compute a static RR spectrum, the user must provide the time-dependent dipole
 ...
 ```
 
-`rtp` section provides the necessary information about the RT-TDDFT parameters. The `static` section should be given similar to the [static Raman](Raman_spec.md#a-static-raman-intensities) input. Complete input files can be found at [Examples](Examples.md).
+The `rtp` section provides the necessary information about the RT-TDDFT parameters. The `static` section should be given similar to the [static Raman](Raman_spec.md#a-static-raman-intensities) input. Complete input files can be found at [Examples](Examples.md).
 
 `vibrant` applies Gaussian broadening to the final discrete set of frequencies and intensities. The `fwhm` keyword controls the full width at half-maximum (FWHM) value in cm ${^{-1}}$ and if not specified, it is set to 5 cm ${^{-1}}$.
 
@@ -125,7 +125,7 @@ The final static resonance Raman intensities are reported in 10 $^{-30}$ cm $^2$
 
 ## b) MD-based RR intensities
 
-In an MD-based RR calculation, the polarizability derivatives along the normal mode coordinates $Q_{p}$ are replaced with the [time derivatives of the polarizability autocorrelation functions](https://pubs.rsc.org/en/content/articlehtml/2013/cp/c3cp44302g) similarly to the MD-based Raman calculation. We applied fast Fourier transformations to the time-domain dynamic polarizability autocorrelations using the [FFTW](https://www.fftw.org/) library to convert them into the frequency-domain. The [MD-based RR intensities](https://pubs.acs.org/doi/full/10.1021/acs.jctc.9b00512) at laser frequency $\omega$ is expressed as a linear combination of isotropic and anisotropic polarizabilities:
+In an MD-based RR calculation, the polarizability derivatives along the normal mode coordinates $Q_{p}$ are replaced with the [time derivatives of the polarizability autocorrelation functions](https://pubs.rsc.org/en/content/articlehtml/2013/cp/c3cp44302g) similarly to the MD-based Raman calculation. We apply fast Fourier transformations to the time-domain dynamic polarizability autocorrelations using the [FFTW](https://www.fftw.org/) library to convert them into the frequency-domain. The [MD-based RR intensities](https://pubs.acs.org/doi/full/10.1021/acs.jctc.9b00512) at laser frequency $\omega$ is expressed as a linear combination of isotropic and anisotropic polarizabilities:
 
 $$
 I_{\textnormal{RR}} (\tilde{\nu}, \omega) = \frac{2h}{8\epsilon_{0}^{2}k_{B}T} \frac{(\omega-\tilde{\nu})^{4}}{\tilde{\nu}} \frac{1}{1-\exp\left(-\frac{hc\tilde{\nu}}{k_{B}T}\right)}\frac{X\delta^{2} (\tilde{\nu}, \omega)+Y\epsilon^{2} (\tilde{\nu}, \omega) }{45} 
@@ -135,7 +135,7 @@ where $h$ is the Planck’s constant, $\varepsilon_{0}$ is the vacuum permittivi
 
 $$
 \begin{aligned}
-\alpha(\tilde{\nu}, \omega) &=
+\delta^2(\tilde{\nu}, \omega) &=
  \int_{0}^{\hat{T}} 
  \left\langle 
  \frac{\dot{\alpha}_{xx}(\omega, \tau) + \dot{\alpha}_{yy}(\omega, \tau) + \dot{\alpha}_{zz}(\omega, \tau)}{3}
@@ -146,11 +146,11 @@ $$
 \end{aligned}
 $$
 
-where $\tau$ and $t$ refer to the times for two different snapshots, $\dot{\boldsymbol{\alpha}}$ denotes the time derivative of the polarizability tensor $\boldsymbol{\alpha}$. The anisotropic contribution $\epsilon^{2} (\tilde{\nu})$ is given by:
+where $\tau$ and $t$ refer to the times for two different MD snapshots and $\hat{T}$ is the total MD simulation time. $\dot{\boldsymbol{\alpha}}$ denotes the time derivative of the polarizability tensor $\boldsymbol{\alpha}$. The anisotropic contribution $\epsilon^{2} (\tilde{\nu})$ is given by:
 
 $$
 \begin{aligned}
-\gamma(\tilde{\nu}, \omega) = 
+\epsilon^²(\tilde{\nu}, \omega) = 
 \int_{-\infty}^{\infty} \Biggl[
 &\tfrac{1}{2}
 \left\langle 
@@ -187,7 +187,7 @@ $$
 \end{aligned}
 $$
 
-Since the dynamic polarizability tensor $\boldsymbol{\alpha}(\omega, t)$ is complex-valued, the above-autocorrelation functions require the handling of [complex autocorrelations](https://pubs.acs.org/doi/full/10.1021/acs.jctc.9b00512) of any function $f(t)$ as shown below:
+Since the dynamic polarizability tensor $\boldsymbol{\alpha}(\omega, t)$ is complex-valued (note that $t$ indicates here the MD time step), the above-autocorrelation functions require the handling of [complex autocorrelations](https://pubs.acs.org/doi/full/10.1021/acs.jctc.9b00512) of any function $f(t)$ as shown below:
 
 $$
 \begin{aligned}
@@ -211,10 +211,10 @@ $$
 where ${E}$ is an electric field applied along the $x$-, $y$-, or $z$-direction. ${\mu}^{j}_{i}(\omega, t)$ is obtained via applying a fast Fourier transform to the time-dependent induced dipoles using the [FFTW](https://www.fftw.org/) library:
 
 $$
-{\mu}^{j}_i(\omega, t) = \int_{0}^{T} \left( {\mu}^{j}_i(\tau, t)  - \mu^{0}_{i}(\tau, t) \right) e^{i \omega \tau} e^{- \Gamma \tau} \mathrm{d}\tau
+{\mu}^{j}_i(\omega, t) = \int_{0}^{T} \left( {\mu}^{j}_i(\tau, t)  - \mu^{0}_{i}( t) \right) e^{i \omega \tau} e^{- \Gamma \tau} \mathrm{d}\tau
 $$
 
-where $T$ is the total RT-TDDFT simulation time, $\tau$ is the RT-TDDFT time step, $t$ is the MD time step, ${\mu}^{j}_i(\tau, t)$ is the time-dependent dipole moment under the electric field applied in the $j$ direction, $\mu^{0}_{i}(\tau, t)$ denotes the initial static dipole moment of the unperturbed system, and $\Gamma$ is the damping factor.
+where $T$ is the total RT-TDDFT simulation time, $\tau$ is the RT-TDDFT time step, $t$ is the MD time step, ${\mu}^{j}_i(\tau, t)$ is the time-dependent dipole moment under the electric field applied in the $j$ direction, $\mu^{0}_{i}(t)$ denotes the initial static dipole moment of the unperturbed system, and $\Gamma$ is the damping factor.
 
 The MD-based RR calculation in `vibrant` is not fully tested yet, and more tests are being performed. The current implementation requires that the user provides the time-dependent dipole moments for each MD snapshot, combined into a single file (see [File Formats](file_formats.md#61-md-based-spectra) for more details). There should be three files in total, each corresponding to calculations performed under electric fields applied along the x-, y-, and z-directions. An example input section for performing an MD-based RR calculation is shown below:
 
