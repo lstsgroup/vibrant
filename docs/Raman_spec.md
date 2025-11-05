@@ -88,7 +88,7 @@ or if the user want to skip the Hessian diagonalization and give the normal mode
 The final static Raman intensities are reported in 10 $^{-30}$ cm $^2$ /sr.
 
 ```{warning}
- Currently, `vibrant` does not support the use of induced dipoles for calculating static Raman spectra, as the finite-difference error can be significant when using the limited number of structures available in a static calculation compared to an MD trajectory. Therefore, static Raman spectra can only be computed from the provided polarizabilities.
+ Currently, `vibrant` does not support the use of induced dipoles for calculating static Raman spectra, as the finite-difference error can be significant when using the limited number of structures available in a static calculation compared to an MD trajectory. Therefore, static Raman spectra can only be computed from the provided (DFPT) polarizabilities.
  ```
 
 ## b) MD-based Raman intensities
@@ -169,7 +169,7 @@ The `md` section should be included for the MD-based Raman calculation:
 
 ## c) Different polarizability tensors
 
-The MD-based Raman intensities can be computed either directly from the DFPT polarizabilities or from an induced dipole approach where Berry phase dipole moments or Wannier centers are processed. [CP2K](https://www.cp2k.org/) program package enables the [calculation of the polarizability tensors via DFPT](https://pubs.aip.org/aip/jcp/article/141/9/094503/193754), which can be processed by `vibrant`. [DFPT](https://www.cambridge.org/core/books/berry-phases-in-electronic-structure-theory/DDD71CA4FE9AF5F3A2FB300E602F394A) analytically evaluates the response of a system to external electric or magnetic fields. The DFPT polarizabilities are obtained for the whole supercell, and are obtained directly from a single linear-response calculation, without any field adjustments. The DFPT polarizabilities are uniquely defined unlike the dipole moments, meaning no phase indeterminacy is involved. The DFPT polarizabilities can be specified in the `vibrant` input file using the `type_dipole` keyword:
+The MD-based Raman intensities can be computed either directly from the DFPT polarizabilities or from an induced dipole approach where Berry phase dipole moments or Wannier centers are processed. For example, the [CP2K](https://www.cp2k.org/) program package enables the [calculation of the polarizability tensors via DFPT](https://pubs.aip.org/aip/jcp/article/141/9/094503/193754), which can be processed by `vibrant`. Another code, which provides DFPT polarizabilities for finite and periodic systems is, e.g., [FHI-aims](https://fhi-aims.org/). The [DFPT](https://www.cambridge.org/core/books/berry-phases-in-electronic-structure-theory/DDD71CA4FE9AF5F3A2FB300E602F394A) method analytically evaluates the response of a system to external electric or magnetic fields. The DFPT polarizabilities are obtained for the whole supercell, and are obtained directly from a single linear-response calculation, without any field adjustments. The DFPT polarizabilities are uniquely defined unlike the Berry-phase dipole moments, meaning no phase indeterminacy is involved. The DFPT polarizabilities can be specified in the `vibrant` input file using the `type_dipole` keyword:
 
 ```bash
 ...
