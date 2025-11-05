@@ -1,5 +1,5 @@
 ---
-title: 'Vibrant: A Post-Processing Tool for Static and MD-based Vibrational Spectroscopy Simulations'
+title: 'Vibrant: A Post-Processing Tool for Computational Vibrational Spectroscopy of Molecules, Liquids and Materials'
 tags:
   - Fortran
   - spectroscopy
@@ -51,7 +51,7 @@ In this work, we present Vibrant, a vibrational analysis program written in Fort
 
 # Statement of need
 
-Vibrational spectroscopy, particularly infrared (IR) and Raman techniques, provides valuable insight into the structure of gaseous, liquid, and solid materials. While in conventional Raman spectroscopy the excitation is non-resonant with electronic transitions, resonance Raman (RR) spectroscopy occurs when the excitation wavelength matches such a transition [@long2002raman]. The resulting enhancement of specific vibrational modes allows, for example, in-situ monitoring of reactants or products through characteristic marker bands during synthesis [@reichmayr2025].
+Vibrational spectroscopy, particularly IR and Raman techniques, provides valuable insight into the structure of gaseous, liquid, and solid materials. While in conventional Raman spectroscopy the excitation is non-resonant with electronic transitions, RR spectroscopy occurs when the excitation wavelength matches such a transition [@long2002raman]. The resulting enhancement of specific vibrational modes allows, for example, _in situ_ monitoring of reactants or products through characteristic marker bands during synthesis [@reichmayr2025].
 
 Computational simulation of vibrational spectroscopy is often not straightforward. Most quantum chemistry packages that perform electronic structure calculations provide only the dipole moments or polarizability tensors, rather than the final spectrum itself. The challenge becomes greater when one goes beyond the static regime to compute vibrational spectra, such as when performing MD simulations to capture anharmonic modes or solvent effects, or real-time time-dependent density functional theory (RT-TDDFT) simulations to access excited state dynamics, relevant for RR spectroscopy.
 
