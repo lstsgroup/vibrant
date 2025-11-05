@@ -141,7 +141,7 @@
 <section id="coordinates-of-atomic-positions-xyz-files">
 <h2>1) Coordinates of atomic positions (.xyz files)<a class="headerlink" href="#coordinates-of-atomic-positions-xyz-files" title="Link to this heading">¶</a></h2>
 <p>Static spectral calculations that are based on the normal mode analysis require the cartesian coordinates (in Å) of each atom in the system to be provided in a standard <code class="docutils literal notranslate"><span class="pre">.xyz</span></code> <a class="reference external" href="https://en.wikipedia.org/wiki/XYZ_file_format">format</a>.</p>
-<p>Similarly, the power spectrum calculations requires that the user provides the atomic position (in Å) or velocity vectors (in bohr/a.u. of time) for each MD snapshot in the form of an <code class="docutils literal notranslate"><span class="pre">.xyz</span></code> file format, such as:</p>
+<p>Similarly, the power spectrum calculations requires that the user provides the atomic position (in Å) or velocity vectors (in bohr/au_time, where au_time is the time given in a.u.) for each MD snapshot in the form of an <code class="docutils literal notranslate"><span class="pre">.xyz</span></code> file format:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>&lt;total_number_of_atoms&gt;<span class="w"> </span><span class="c1">#first MD frame</span>
 <span class="w">                       </span><span class="c1">#leave 1 blank line</span>
 &lt;element_symbol&gt;<span class="w"> </span>&lt;x_coord&gt;<span class="w"> </span>&lt;y_coord&gt;<span class="w"> </span>&lt;z_coord&gt;

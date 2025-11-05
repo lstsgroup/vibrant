@@ -66,7 +66,7 @@ $$
 I_{\textnormal{IR}} (\tilde{\nu}) = \frac{2N_{A}}{12\varepsilon _{0}ck_{B}T}\int_{-\infty }^{\infty }\left \langle \dot{\boldsymbol{\mu} }(\tau )\cdot \dot{\boldsymbol{\mu} }(\tau+t ) \right \rangle_{\tau}\exp(-2\pi c\tilde{\nu}t)dt 
 $$
 
-where $\tau$ and $t$ refer to the times for two different snapshots, $\varepsilon_{0}$ is the vacuum permittivity, $N_{A}$ is the Avogadro constant, $c$ is the speed of light, $k_{B}$ is the Boltzmann constant, $T$ is the temperature and $\tilde{\nu}$ is the wavenumber. The final MD-based IR intensities are reported in K.cm.km/mol.
+where $\tau$ and $t$ refer to the times for two different snapshots, $\varepsilon_{0}$ is the vacuum permittivity, $N_{A}$ is the Avogadro constant, $c$ is the speed of light, $k_{B}$ is the Boltzmann constant, $T$ is the temperature and $\tilde{\nu}$ is the wavenumber. The final MD-based IR intensities are reported in K cm km\mol.
 
 The MD-based IR intensities can be computed either from the Berry phase dipole moments or Wannier centers. The latter can also be used to extract spectra of user-specified molecular blocks or fragments.
 
