@@ -3,7 +3,7 @@ name: Deploy Documentation Website
 on:
   push:
     branches:
-      - bash_color
+      - main
   pull_request:
     branches:
       - main

@@ -67,8 +67,6 @@ html_theme_options = dict(
     dark_mode_switch = False,
     dark_mode = False,
 )
-html_static_path = ['_static']
-
 # Make sure MyST highlights fenced code blocks
 myst_highlight_code_blocks = True
 
@@ -77,7 +75,7 @@ highlight_language = "bash"
 
 # Choose a Pygments theme with visible comments
 # Try one of: "friendly", "tango", "monokai", "xcode", "colorful"
-pygments_style = "colorful"
-
+pygments_style = "friendly"
+html_static_path = ['_static']
 def setup(app):
     app.add_css_file('keyword.css')
