@@ -11,7 +11,7 @@
     <link rel="stylesheet" type="text/css" href="_static/dist/fontawesome.css" />
       <link rel="stylesheet" type="text/css" href="_static/dist/theme.css?v=310cf088" />
       <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
-      <link rel="stylesheet" type="text/css" href="_static/keyword.css?v=002e9df8" />
+      <link rel="stylesheet" type="text/css" href="_static/keyword.css?v=79994d85" />
             <link rel="index" title="Index" href="genindex.html" />
             <link rel="search" title="Search" href="search.html" />
             <link rel="top" title="vibrant  documentation" href="#" />
@@ -136,12 +136,12 @@
 <h1>Keyword Glossary<a class="headerlink" href="#keyword-glossary" title="Link to this heading">¶</a></h1>
 <section id="block-global">
 <h2>Block: global<a class="headerlink" href="#block-global" title="Link to this heading">¶</a></h2>
-<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&amp;global
-    spectra
-    temperature
-    fwhm
-    spectra_verbosity
-&amp;end global
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="p">&amp;</span>global
+<span class="w">    </span>spectra
+<span class="w">    </span>temperature
+<span class="w">    </span>fwhm
+<span class="w">    </span>spectra_verbosity
+<span class="p">&amp;</span>end<span class="w"> </span>global
 </pre></div>
 </div>
 <div class='keyword-entry' id='keyword-spectra'><div class='keyword-header'>global :: <strong>spectra</strong></div><ul class="simple">
@@ -182,20 +182,21 @@
 </div></section>
 <section id="block-system">
 <h2>Block: system<a class="headerlink" href="#block-system" title="Link to this heading">¶</a></h2>
-<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&amp;system
-    filename
-    type_traj
-    mass_weighting
-&amp;end system
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="p">&amp;</span>system
+<span class="w">    </span>filename
+<span class="w">    </span>type_traj
+<span class="w">    </span>mass_weighting
+<span class="p">&amp;</span>end<span class="w"> </span>system
 </pre></div>
 </div>
 <div class='keyword-entry' id='keyword-filename'><div class='keyword-header'>system :: <strong>filename</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: string</p></li>
 <li><p><strong>Default</strong>: —</p></li>
+<li><p><strong>Unit</strong>: Ang</p></li>
 <li><p>​</p></li>
 <li></li>
 </ul>
-<p>This is the path of the file containing the system coordinates.</p>
+<p>This is the path of the file containing the system coordinates. When velocities are provided, the unit Ang/fs is assumed.</p>
 </div><div class='keyword-entry' id='keyword-type_traj'><div class='keyword-header'>system :: <strong>type_traj</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: string</p></li>
 <li><p><strong>Default</strong>: —</p></li>
@@ -220,80 +221,38 @@
 </ul>
 </div><section id="subblock-cell">
 <h3>Subblock: cell<a class="headerlink" href="#subblock-cell" title="Link to this heading">¶</a></h3>
-<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&amp;cell
-    box_x
-    box_y
-    box_z
-    angle_alpha
-    angle_beta
-    angle_gamma
-    lattice_x
-    lattice_y
-    lattice_z
-&amp;end cell
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="p">&amp;</span>cell
+<span class="w">    </span><span class="c1"># Option 1</span>
+<span class="w">    </span>box_xyz
+<span class="w">    </span>angle_alpha_beta_gamma
+
+<span class="w">    </span><span class="c1"># Option 2</span>
+<span class="w">    </span>lattice_x
+<span class="w">    </span>lattice_y
+<span class="w">    </span>lattice_z
+<span class="p">&amp;</span>end<span class="w"> </span>cell
 </pre></div>
 </div>
-<div class='keyword-entry' id='keyword-cell_type'><div class='keyword-header'>system/cell :: <strong>cell_type</strong></div><ul class="simple">
-<li><p><strong>Type</strong>: string</p></li>
+<div class='keyword-entry' id='keyword-box_xyz'><div class='keyword-header'>system/cell :: <strong>box_xyz</strong></div><ul class="simple">
+<li><p><strong>Type</strong>: list[float]</p></li>
 <li><p><strong>Default</strong>: —</p></li>
+<li><p><strong>Unit</strong>: Ang</p></li>
 <li><p>​</p></li>
 <li></li>
 </ul>
-<p>Define type of the simulation cell. Possible values are:</p>
-<ul class="simple">
-<li><p><strong>orthorhombic</strong></p></li>
-<li><p><strong>hexagonal</strong></p></li>
-<li><p><strong>triclinic</strong></p></li>
-</ul>
-<p>CHECK AGAIN</p>
-</div><div class='keyword-entry' id='keyword-box_x'><div class='keyword-header'>system/cell :: <strong>box_x</strong></div><ul class="simple">
-<li><p><strong>Type</strong>: float</p></li>
-<li><p><strong>Default</strong>: —</p></li>
-<li><p>​</p></li>
-<li></li>
-</ul>
-<p>Length of the box lenght <span class="math notranslate nohighlight">\(\mathbf{a}\)</span>. Uses the same unit as coordinates.</p>
-</div><div class='keyword-entry' id='keyword-box_y'><div class='keyword-header'>system/cell :: <strong>box_y</strong></div><ul class="simple">
-<li><p><strong>Type</strong>: float</p></li>
-<li><p><strong>Default</strong>: —</p></li>
-<li><p>​</p></li>
-<li></li>
-</ul>
-<p>Length of the box lenght <span class="math notranslate nohighlight">\(\mathbf{b}\)</span>. Uses the same unit as coordinates.</p>
-</div><div class='keyword-entry' id='keyword-box_z'><div class='keyword-header'>system/cell :: <strong>box_z</strong></div><ul class="simple">
-<li><p><strong>Type</strong>: float</p></li>
-<li><p><strong>Default</strong>: —</p></li>
-<li><p>​</p></li>
-<li></li>
-</ul>
-<p>Length of the box lenght <span class="math notranslate nohighlight">\(\mathbf{c}\)</span>. Uses the same unit as coordinates.</p>
-</div><div class='keyword-entry' id='keyword-angle_alpha'><div class='keyword-header'>system/cell :: <strong>angle_alpha</strong></div><ul class="simple">
-<li><p><strong>Type</strong>: float</p></li>
+<p>Length of the box lenght <span class="math notranslate nohighlight">\(\mathbf{x}\)</span> <span class="math notranslate nohighlight">\(\mathbf{y}\)</span> <span class="math notranslate nohighlight">\(\mathbf{z}\)</span>. The box lengths can be specified individually using the keywords box_x, box_y, and box_z.</p>
+</div><div class='keyword-entry' id='keyword-angle_alpha_beta_gamma'><div class='keyword-header'>system/cell :: <strong>angle_alpha_beta_gamma</strong></div><ul class="simple">
+<li><p><strong>Type</strong>: list[float]</p></li>
 <li><p><strong>Default</strong>: —</p></li>
 <li><p><strong>Unit</strong>: deg</p></li>
 <li><p>​</p></li>
 <li></li>
 </ul>
-<p>Cell angle  <span class="math notranslate nohighlight">\(\alpha\)</span>.</p>
-</div><div class='keyword-entry' id='keyword-angle_beta'><div class='keyword-header'>system/cell :: <strong>angle_beta</strong></div><ul class="simple">
-<li><p><strong>Type</strong>: float</p></li>
-<li><p><strong>Default</strong>: —</p></li>
-<li><p><strong>Unit</strong>: deg</p></li>
-<li><p>​</p></li>
-<li></li>
-</ul>
-<p>Cell angle <span class="math notranslate nohighlight">\(\beta\)</span>.</p>
-</div><div class='keyword-entry' id='keyword-angle_gamma'><div class='keyword-header'>system/cell :: <strong>angle_gamma</strong></div><ul class="simple">
-<li><p><strong>Type</strong>: float</p></li>
-<li><p><strong>Default</strong>: —</p></li>
-<li><p><strong>Unit</strong>: deg</p></li>
-<li><p>​</p></li>
-<li></li>
-</ul>
-<p>Cell angle <span class="math notranslate nohighlight">\(\gamma\)</span>.</p>
+<p>Cell angle  <span class="math notranslate nohighlight">\(\alpha\)</span> <span class="math notranslate nohighlight">\(\beta\)</span> <span class="math notranslate nohighlight">\(\gamma\)</span>. The cell angle can be specified individually using the keywords angle_alpha, angle_beta, and angle_gamma.</p>
 </div><div class='keyword-entry' id='keyword-lattice_x'><div class='keyword-header'>system/cell :: <strong>lattice_x</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: list[float]</p></li>
 <li><p><strong>Default</strong>: —</p></li>
+<li><p><strong>Unit</strong>: Ang</p></li>
 <li><p>​</p></li>
 <li></li>
 </ul>
@@ -301,6 +260,7 @@
 </div><div class='keyword-entry' id='keyword-lattice_y'><div class='keyword-header'>system/cell :: <strong>lattice_y</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: list[float]</p></li>
 <li><p><strong>Default</strong>: —</p></li>
+<li><p><strong>Unit</strong>: Ang</p></li>
 <li><p>​</p></li>
 <li></li>
 </ul>
@@ -308,6 +268,7 @@
 </div><div class='keyword-entry' id='keyword-lattice_z'><div class='keyword-header'>system/cell :: <strong>lattice_z</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: list[float]</p></li>
 <li><p><strong>Default</strong>: —</p></li>
+<li><p><strong>Unit</strong>: Ang</p></li>
 <li><p>​</p></li>
 <li></li>
 </ul>
@@ -315,9 +276,9 @@
 </div></section>
 <section id="subblock-fragment">
 <h3>Subblock: fragment<a class="headerlink" href="#subblock-fragment" title="Link to this heading">¶</a></h3>
-<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&amp;fragment
-    atom_list
-&amp;end fragment
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="p">&amp;</span>fragment
+<span class="w">    </span>atom_list
+<span class="p">&amp;</span>end<span class="w"> </span>fragment
 </pre></div>
 </div>
 <div class='keyword-entry' id='keyword-atom_list'><div class='keyword-header'>fragment :: <strong>atom_list</strong></div><ul class="simple">
@@ -331,10 +292,10 @@
 </section>
 <section id="block-md">
 <h2>Block: md<a class="headerlink" href="#block-md" title="Link to this heading">¶</a></h2>
-<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&amp;md
-    time_step
-    correlation_depth
-&amp;end md
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="p">&amp;</span>md
+<span class="w">    </span>time_step
+<span class="w">    </span>correlation_depth
+<span class="p">&amp;</span>end<span class="w"> </span>md
 </pre></div>
 </div>
 <div class='keyword-entry' id='keyword-time_step'><div class='keyword-header'>md :: <strong>time_step</strong></div><ul class="simple">
@@ -355,19 +316,19 @@
 </div></section>
 <section id="block-static">
 <h2>Block: static<a class="headerlink" href="#block-static" title="Link to this heading">¶</a></h2>
-<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&amp;static
-    displacement
-    diag_hessian
-    normal_freq_file
-    normal_displ_file
-    write_mol_file
-&amp;end static
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="p">&amp;</span>static
+<span class="w">    </span>displacement
+<span class="w">    </span>diag_hessian
+<span class="w">    </span>normal_freq_file
+<span class="w">    </span>normal_displ_file
+<span class="w">    </span>write_mol_file
+<span class="p">&amp;</span>end<span class="w"> </span>static
 </pre></div>
 </div>
 <div class='keyword-entry' id='keyword-displacement'><div class='keyword-header'>static :: <strong>displacement</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: float</p></li>
 <li><p><strong>Default</strong>: —</p></li>
-<li><p><strong>Unit</strong>: Angstrom</p></li>
+<li><p><strong>Unit</strong>: Ang</p></li>
 <li><p>​</p></li>
 <li></li>
 </ul>
@@ -375,7 +336,6 @@
 </div><div class='keyword-entry' id='keyword-diag_hessian'><div class='keyword-header'>static :: <strong>diag_hessian</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: float</p></li>
 <li><p><strong>Default</strong>: —</p></li>
-<li><p><strong>Unit</strong>: Angstrom</p></li>
 <li><p>​</p></li>
 <li></li>
 </ul>
@@ -387,6 +347,7 @@
 </div><div class='keyword-entry' id='keyword-normal_freq_file'><div class='keyword-header'>static :: <strong>normal_freq_file</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: string</p></li>
 <li><p><strong>Default</strong>: —</p></li>
+<li><p><strong>Unit</strong>: <span class="math notranslate nohighlight">\(\mathrm{cm}^{-1}\)</span></p></li>
 <li><p>​</p></li>
 <li></li>
 </ul>
@@ -394,6 +355,7 @@
 </div><div class='keyword-entry' id='keyword-normal_displ_file'><div class='keyword-header'>static :: <strong>normal_displ_file</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: string</p></li>
 <li><p><strong>Default</strong>: —</p></li>
+<li><p><strong>Unit</strong>: Ang</p></li>
 <li><p>​</p></li>
 <li></li>
 </ul>
@@ -407,33 +369,32 @@
 <p>Flag for writing a Molden file for analyzing static spectra.</p>
 </div><section id="block-hessian">
 <h3>Block: hessian<a class="headerlink" href="#block-hessian" title="Link to this heading">¶</a></h3>
-<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&amp;hessian
-    force_file
-&amp;end hessian
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="p">&amp;</span>hessian
+<span class="w">    </span>force_file
+<span class="p">&amp;</span>end<span class="w"> </span>hessian
 </pre></div>
 </div>
 <div class='keyword-entry' id='keyword-force_file'><div class='keyword-header'>static :: <strong>force_file</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: string</p></li>
 <li><p><strong>Default</strong>: —</p></li>
+<li><p><strong>Unit</strong>: Hartree/Bohr (a.u.)</p></li>
 <li><p>​</p></li>
 <li></li>
 </ul>
-<blockquote>
-<div><p>This is the path of the file containing the system forces to build hessian.</p>
-</div></blockquote>
+<p>This is the path of the file containing the system forces to build hessian.</p>
 </div></section>
 </section>
 <section id="block-dipoles">
 <h2>Block: dipoles<a class="headerlink" href="#block-dipoles" title="Link to this heading">¶</a></h2>
-<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&amp;dipoles
-    type_dipole
-    field_strength
-    dip_file
-    dip_x_file
-    dip_y_fil
-    dip_z_file
-    static_pol_file
-&amp;end dipoles
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="p">&amp;</span>dipoles
+<span class="w">    </span>type_dipole
+<span class="w">    </span>field_strength
+<span class="w">    </span>dip_file
+<span class="w">    </span>dip_x_file
+<span class="w">    </span>dip_y_fil
+<span class="w">    </span>dip_z_file
+<span class="w">    </span>static_pol_file
+<span class="p">&amp;</span>end<span class="w"> </span>dipoles
 </pre></div>
 </div>
 <div class='keyword-entry' id='keyword-type_dipole'><div class='keyword-header'>dipoles :: <strong>type_dipole</strong></div><ul class="simple">
@@ -452,7 +413,7 @@
 </div><div class='keyword-entry' id='keyword-field_strength'><div class='keyword-header'>dipoles :: <strong>field_strength</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: float</p></li>
 <li><p><strong>Default</strong>: —</p></li>
-<li><p><strong>Unit</strong>: a.u.</p></li>
+<li><p><strong>Unit</strong>: Hartree/[<span class="math notranslate nohighlight">\(e\)</span> Bohr] (a.u.)</p></li>
 <li><p>​</p></li>
 <li></li>
 </ul>
@@ -460,6 +421,7 @@
 </div><div class='keyword-entry' id='keyword-dip_file'><div class='keyword-header'>dipoles :: <strong>dip_file</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: string</p></li>
 <li><p><strong>Default</strong>: —</p></li>
+<li><p><strong>Unit</strong>: Debye</p></li>
 <li><p>​</p></li>
 <li></li>
 </ul>
@@ -467,6 +429,7 @@
 </div><div class='keyword-entry' id='keyword-dip_x_file'><div class='keyword-header'>dipoles :: <strong>dip_x_file</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: string</p></li>
 <li><p><strong>Default</strong>: —</p></li>
+<li><p><strong>Unit</strong>: Debye</p></li>
 <li><p>​</p></li>
 <li></li>
 </ul>
@@ -474,6 +437,7 @@
 </div><div class='keyword-entry' id='keyword-dip_y_file'><div class='keyword-header'>dipoles :: <strong>dip_y_file</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: string</p></li>
 <li><p><strong>Default</strong>: —</p></li>
+<li><p><strong>Unit</strong>: Debye</p></li>
 <li><p>​</p></li>
 <li></li>
 </ul>
@@ -481,6 +445,7 @@
 </div><div class='keyword-entry' id='keyword-dip_z_file'><div class='keyword-header'>dipoles :: <strong>dip_z_file</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: string</p></li>
 <li><p><strong>Default</strong>: —</p></li>
+<li><p><strong>Unit</strong>: Debye</p></li>
 <li><p>​</p></li>
 <li></li>
 </ul>
@@ -488,6 +453,7 @@
 </div><div class='keyword-entry' id='keyword-static_pol_file'><div class='keyword-header'>dipoles :: <strong>static_pol_file</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: string</p></li>
 <li><p><strong>Default</strong>: —</p></li>
+<li><p><strong>Unit</strong>: <span class="math notranslate nohighlight">\(\mathrm{Ang}³\)</span></p></li>
 <li><p>​</p></li>
 <li></li>
 </ul>
@@ -495,13 +461,13 @@
 </div></section>
 <section id="block-rtp">
 <h2>Block: rtp<a class="headerlink" href="#block-rtp" title="Link to this heading">¶</a></h2>
-<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&amp;rtp
-    rtp_time_step
-    rtp_framecount
-    check_pade
-    pade_framecount
-    damping_constant
-&amp;end rtp
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="p">&amp;</span>rtp
+<span class="w">    </span>rtp_time_step
+<span class="w">    </span>rtp_framecount
+<span class="w">    </span>check_pade
+<span class="w">    </span>pade_framecount
+<span class="w">    </span>damping_constant
+<span class="p">&amp;</span>end<span class="w"> </span>rtp
 </pre></div>
 </div>
 <div class='keyword-entry' id='keyword-rtp_time_step'><div class='keyword-header'>rtp :: <strong>rtp_time_step</strong></div><ul class="simple">
@@ -548,15 +514,15 @@
 </div></section>
 <section id="block-raman">
 <h2>Block: raman<a class="headerlink" href="#block-raman" title="Link to this heading">¶</a></h2>
-<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&amp;raman
-    laser_in
-&amp;end raman
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="p">&amp;</span>raman
+<span class="w">    </span>laser_in
+<span class="p">&amp;</span>end<span class="w"> </span>raman
 </pre></div>
 </div>
 <div class='keyword-entry' id='keyword-laser_in'><div class='keyword-header'>raman :: <strong>laser_in</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: float or list[float]</p></li>
 <li><p><strong>Default</strong>: 0.5</p></li>
-<li><p><strong>Unit</strong>: eV or cm-1 ?? not clear from readinput. check</p></li>
+<li><p><strong>Unit</strong>: eV</p></li>
 <li><p>​</p></li>
 <li></li>
 </ul>

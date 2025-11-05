@@ -11,7 +11,7 @@
     <link rel="stylesheet" type="text/css" href="_static/dist/fontawesome.css" />
       <link rel="stylesheet" type="text/css" href="_static/dist/theme.css?v=310cf088" />
       <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
-      <link rel="stylesheet" type="text/css" href="_static/keyword.css?v=002e9df8" />
+      <link rel="stylesheet" type="text/css" href="_static/keyword.css?v=79994d85" />
             <link rel="index" title="Index" href="genindex.html" />
             <link rel="search" title="Search" href="search.html" />
             <link rel="top" title="vibrant  documentation" href="#" />
@@ -214,7 +214,7 @@ I_{\textnormal{abs}} (\omega) = \frac{1}{3}\textnormal{Tr}\left[ \boldsymbol{\si
 </pre></div>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">rtp</span></code> section provides the necessary information about the RT-TDDFT parameters. The <code class="docutils literal notranslate"><span class="pre">static</span></code> section should be given similar to the <a class="reference internal" href="Raman_spec.html#a-static-raman-intensities"><span class="std std-ref">static Raman</span></a> input. Complete input files can be found at <a class="reference internal" href="Examples.html"><span class="std std-doc">Examples</span></a>.</p>
-<p><code class="docutils literal notranslate"><span class="pre">vibrant</span></code> applies Gaussian broadening to the final discrete set of frequencies and intensities. The <code class="docutils literal notranslate"><span class="pre">fwhm</span></code> keyword controls the full width at half-maximum (FWHM) value in cm <span class="math notranslate nohighlight">\({^{-1}}\)</span> and if not specified, it is set to 5 cm <span class="math notranslate nohighlight">\({^{-1}}\)</span>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">vibrant</span></code> applies Gaussian broadening to the final discrete set of frequencies and intensities. The <code class="docutils literal notranslate"><span class="pre">fwhm</span></code> keyword controls the full width at half-maximum (FWHM) value in cm <span class="math notranslate nohighlight">\({^{-1}}\)</span> and if not specified, it is set to 10 cm <span class="math notranslate nohighlight">\({^{-1}}\)</span>.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>The keyword <code class="docutils literal notranslate"><span class="pre">write_mol_file</span></code> is optional and it executes the printing of a <code class="docutils literal notranslate"><span class="pre">&lt;filename&gt;.mol</span></code> file, which includes the optimized geometry, normal mode frequencies, normal mode coordinates and the non-broadened Raman intensities. The <code class="docutils literal notranslate"><span class="pre">&lt;filename&gt;.mol</span></code> file can be opened with <a class="reference external" href="https://www.theochem.ru.nl/molden/">MOLDEN</a> to visualize the normal modes alongside the Raman spectrum. If multiple incident laser frequencies are requested, <code class="docutils literal notranslate"><span class="pre">vibrant</span></code> generates a separate <code class="docutils literal notranslate"><span class="pre">&lt;filename&gt;.mol</span></code> file for each frequency.</p>

@@ -5,7 +5,7 @@ Keyword Glossary
 Block: global
 -------------
 
-.. code-block:: text
+.. code-block:: bash
 
     &global
         spectra 
@@ -53,7 +53,7 @@ Block: global
 Block: system
 -------------
 
-.. code-block:: text
+.. code-block:: bash
 
     &system
         filename 
@@ -63,9 +63,10 @@ Block: system
     
 .. keyword:: filename
     :section: system
+    :unit:  Ang
     :type: string
 
-    This is the path of the file containing the system coordinates.
+    This is the path of the file containing the system coordinates. When velocities are provided, the unit Ang/fs is assumed.
 
 .. keyword:: type_traj
     :section: system
@@ -87,79 +88,43 @@ Block: system
 
 Subblock: cell
 ~~~~~~~~~~~~~~~~
-.. code-block:: text
+.. code-block:: bash
 
     &cell
-        box_x 
-        box_y 
-        box_z 
-        angle_alpha 
-        angle_beta 
-        angle_gamma
+        # Option 1
+        box_xyz
+        angle_alpha_beta_gamma 
+
+        # Option 2
         lattice_x
         lattice_y
         lattice_z
     &end cell
 
-.. keyword:: cell_type
+.. keyword:: box_xyz
     :section: system/cell
-    :type: string
+    :unit: Ang
+    :type: list[float]
 
-    Define type of the simulation cell. Possible values are:
+    Length of the box lenght :math:`\mathbf{x}` :math:`\mathbf{y}` :math:`\mathbf{z}`. The box lengths can be specified individually using the keywords box_x, box_y, and box_z.
 
-    * **orthorhombic** 
-    * **hexagonal**
-    * **triclinic**
-    CHECK AGAIN
-
-.. keyword:: box_x
+.. keyword:: angle_alpha_beta_gamma
     :section: system/cell
-    :type: float
-
-    Length of the box lenght :math:`\mathbf{a}`. Uses the same unit as coordinates.
-
-.. keyword:: box_y
-    :section: system/cell
-    :type: float
-
-    Length of the box lenght :math:`\mathbf{b}`. Uses the same unit as coordinates.
-
-.. keyword:: box_z
-    :section: system/cell
-    :type: float
-
-    Length of the box lenght :math:`\mathbf{c}`. Uses the same unit as coordinates.
-
-.. keyword:: angle_alpha
-    :section: system/cell
-    :type: float
     :unit: deg
+    :type: list[float]
 
-    Cell angle  :math:`\alpha`.
-
-.. keyword:: angle_beta
-    :section: system/cell
-    :type: float
-    :unit: deg
-
-    Cell angle :math:`\beta`.
-
-.. keyword:: angle_gamma
-    :section: system/cell
-    :type: float
-    :unit: deg
-
-    Cell angle :math:`\gamma`.
+    Cell angle  :math:`\alpha` :math:`\beta` :math:`\gamma`. The cell angle can be specified individually using the keywords angle_alpha, angle_beta, and angle_gamma.
 
 .. keyword:: lattice_x
     :section: system/cell
+    :unit: Ang
     :type: list[float]
-
 
     Lattice vector in x direction of system.
 
 .. keyword:: lattice_y
     :section: system/cell
+    :unit: Ang
     :type: list[float]
 
 
@@ -167,6 +132,7 @@ Subblock: cell
 
 .. keyword:: lattice_z
     :section: system/cell
+    :unit: Ang
     :type: list[float]
 
 
@@ -174,7 +140,7 @@ Subblock: cell
 
 Subblock: fragment
 ~~~~~~~~~~~~~~~~
-.. code-block:: text
+.. code-block:: bash
 
     &fragment
         atom_list 
@@ -190,7 +156,7 @@ Subblock: fragment
 Block: md
 -------------
 
-.. code-block:: text
+.. code-block:: bash
 
     &md
         time_step 
@@ -213,7 +179,7 @@ Block: md
 Block: static
 -------------
 
-.. code-block:: text
+.. code-block:: bash
     
     &static
         displacement
@@ -227,14 +193,13 @@ Block: static
 .. keyword:: displacement
    :section: static
    :type: float
-   :unit: Angstrom
+   :unit: Ang
 
    This is the finite difference displacement.
 
 .. keyword:: diag_hessian
     :section: static
     :type: float
-    :unit: Angstrom
 
     Define if the Hessian should be diagonalized. Possible values are:
 
@@ -243,12 +208,14 @@ Block: static
 
 .. keyword:: normal_freq_file
     :section: static
+    :unit: :math:`\mathrm{cm}^{-1}`
     :type: string
 
     This is the path of the file containing the systems normal mode frequencies.
 
 .. keyword:: normal_displ_file
     :section: static
+    :unit: Ang
     :type: string
 
     This is the path of the file containing the systems normal mode displacements.
@@ -261,21 +228,23 @@ Block: static
 
 Block: hessian
 ~~~~~~~~~~~~~~~~
-.. code-block:: text
+.. code-block:: bash
     
     &hessian
         force_file
     &end hessian
+
 .. keyword:: force_file
-   :section: static
-   :type: string
+    :section: static
+    :unit: Hartree/Bohr (a.u.)
+    :type: string
 
     This is the path of the file containing the system forces to build hessian.
 
 Block: dipoles
 -------------
 
-.. code-block:: text
+.. code-block:: bash
     
     &dipoles
         type_dipole
@@ -302,36 +271,41 @@ Block: dipoles
 .. keyword:: field_strength
     :section: dipoles
     :type: float
-    :unit: a.u.
+    :unit: Hartree/[:math:`e` Bohr] (a.u.)
     
     Strength of the applied electric field in atomic units.
     
 .. keyword:: dip_file
     :section: dipoles
+    :unit:  Debye
     :type: string
     
     This is the path of the file containing the systems dipole moments (if only a single file is used).
     
 .. keyword:: dip_x_file
     :section: dipoles
+    :unit:  Debye
     :type: string
     
     This is the path of the file containing the systems dipole moments obtained under an electric field in the x-direction.
     
 .. keyword:: dip_y_file
     :section: dipoles
+    :unit:  Debye
     :type: string
     
     This is the path of the file containing the systems dipole moments obtained under an electric field in the y-direction.
     
 .. keyword:: dip_z_file
     :section: dipoles
+    :unit:  Debye
     :type: string
     
     This is the path of the file containing the systems dipole moments obtained under an electric field in the z-direction.
     
 .. keyword:: static_pol_file
     :section: dipoles
+    :unit:  :math:`\mathrm{Ang}³`
     :type: string
     
     This is the path of the file containing the systems static polarizabilities.
@@ -339,7 +313,7 @@ Block: dipoles
 Block: rtp
 -------------
 
-.. code-block:: text
+.. code-block:: bash
 
     &rtp
         rtp_time_step 
@@ -390,7 +364,7 @@ Block: rtp
 Block: raman
 -------------
 
-.. code-block:: text
+.. code-block:: bash
 
     &raman
         laser_in 
@@ -399,7 +373,7 @@ Block: raman
 .. keyword:: laser_in
     :section: raman
     :type: float or list[float]
-    :unit: eV or cm-1 ?? not clear from readinput. check
+    :unit: eV
     :default: 0.5
 
     Incoming laser energy in eV. Multiple values (max 4) may be specified.
