@@ -8,7 +8,7 @@ More information on all available keywords can be found on [Keyword Glossary](Ke
 
 Static spectral calculations that are based on the normal mode analysis require the cartesian coordinates (in Å) of each atom in the system to be provided in a standard `.xyz` [format](https://en.wikipedia.org/wiki/XYZ_file_format).
 
-Similarly, the power spectrum calculations requires that the user provides the atomic position (in Å) or velocity vectors (in bohr/a.u. of time) for each MD snapshot in the form of an `.xyz` file format, such as:
+Similarly, the power spectrum calculations requires that the user provides the atomic position (in Å) or velocity vectors (in bohr/au_time, where au_time is the time given in a.u.) for each MD snapshot in the form of an `.xyz` file format:
 
 ```bash
 <total_number_of_atoms> #first MD frame
