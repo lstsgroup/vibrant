@@ -23,3 +23,55 @@
 .keyword-entry li {
     list-style-type: none;
 }
+/* ──────────────────────────────────────────────────────────────
+   Comment highlighting in Bash, Shell, Text and generic code blocks
+   ────────────────────────────────────────────────────────────── */
+
+/* Bash / Shell / Console blocks */
+.highlight-bash .c,
+.highlight-sh .c,
+.highlight-console .c,
+.highlight-bash .c1,
+.highlight-sh .c1,
+.highlight-console .c1,
+.highlight-bash .cm,
+.highlight-sh .cm,
+.highlight-console .cm {
+  color: #a4f0a8 !important;                    /* green */
+  background-color: rgba(46,125,50,0.08) !important;
+  font-style: italic;
+}
+
+/* Text / code_block blocks (generic untyped blocks) */
+.highlight-text .c,
+.highlight-text .c1,
+.highlight-text .cm,
+.highlight-code_block .c,
+.highlight-code_block .c1,
+.highlight-code_block .cm {
+  color: #a4f0a8 !important;
+  background-color: rgba(56,142,60,0.07) !important;
+  font-style: italic;
+}
+
+/* Fallback for any other blocks (if Pygments doesn't add a suffix) */
+div.highlight .c,
+pre.highlight .c,
+code.highlight .c {
+  color: #a4f0a8  !important;
+  font-style: italic;
+}
+
+/* Optional: dark mode version */
+@media (prefers-color-scheme: dark) {
+  .highlight-bash .c,
+  .highlight-sh .c,
+  .highlight-console .c,
+  .highlight-text .c,
+  .highlight-code_block .c,
+  div.highlight .c {
+    color: #a4f0a8  !important;
+    background-color: rgba(128,226,126,0.10) !important;
+  }
+}
+
