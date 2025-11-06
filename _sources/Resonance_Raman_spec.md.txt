@@ -14,25 +14,25 @@ $$
 I_{\textnormal{RR}} (\tilde{\nu}_{p}, \omega) = \frac{h}{8\epsilon_{0}^{2}c} \frac{(\omega-\tilde{\nu}_{p})^{4}}{\tilde{\nu}_{p} \left(1-\exp\left(-\frac{hc\tilde{\nu}_{p}}{k_{B}T}\right)\right)}  \frac{X\beta^{2}_{p} (\omega)+Y\gamma_{p}^{2}(\omega) }{45} 
 $$
 
-where $h$ is the Planck’s constant, $\varepsilon_{0}$ is the vacuum permittivity, $c$ is speed of the light, $k_{B}$ is the Boltzmann constant, $T$ is the temperature. [$X$ and $Y$](https://onlinelibrary.wiley.com/doi/book/10.1002/0470845767) can take different values depending on the polarization configuration of the scattered light as explained in Section [Raman spectra](Raman_spec.md). $\beta^{2}_{p}(\omega)$ and $\gamma_{p}^{2}(\omega)$ correspond to the frequency-dependent isotropic and anisotropic contributions, respectively. They are computed from the derivatives of the dynamic polarizability tensor $\boldsymbol{\alpha}(\omega ,\tilde{\nu}_p)$ with respect to the normal mode coordinate $\boldsymbol{Q}_{p}$. $\beta^{2}_{p}(\omega)$ includes the diagonal components of $\boldsymbol{\alpha}(\omega ,\tilde{\nu}_p)$:
+where $h$ is the Planck’s constant, $\varepsilon_{0}$ is the vacuum permittivity, $c$ is speed of the light, $k_{B}$ is the Boltzmann constant, $T$ is the temperature. [$X$ and $Y$](https://onlinelibrary.wiley.com/doi/book/10.1002/0470845767) can take different values depending on the polarization configuration of the scattered light as explained in Section [Raman spectra](Raman_spec.md). $\beta^{2}_{p}(\omega)$ and $\gamma_{p}^{2}(\omega)$ correspond to the frequency-dependent isotropic and anisotropic contributions, respectively. They are computed from the derivatives of the dynamic polarizability tensor $\boldsymbol{\alpha}(\omega ,\tilde{\nu}_p)$ with respect to the normal mode coordinate $Q_{p}$. $\beta^{2}_{p}(\omega)$ includes the diagonal components of $\boldsymbol{\alpha}(\omega ,\tilde{\nu}_p)$:
 
 $$
-\beta^{2}_{p}(\omega)=\frac{1}{9}\left ( \frac{\partial \alpha _{xx}(\omega)}{\partial \boldsymbol{Q}_{p}}+\frac{\partial\alpha _{yy}(\omega) }{\partial \boldsymbol{Q}_{p}} +\frac{\partial \alpha _{zz}(\omega)}{\partial \boldsymbol{Q}_{p}}\right )^{2}
+\beta^{2}_{p}(\omega)=\frac{1}{9}\left ( \frac{\partial \alpha _{xx}(\omega)}{\partial Q_{p}}+\frac{\partial\alpha _{yy}(\omega) }{\partial Q_{p}} +\frac{\partial \alpha _{zz}(\omega)}{\partial Q_{p}}\right )^{2}
 $$
 
 And $\gamma_{p}^{2}(\omega)$ includes also the off-diagonal terms:
 
 $$
 \gamma_{p}^{2}(\omega) =
- \frac{1}{2}\left(\frac{\partial \alpha_{xx}}{\partial \mathbf{Q}_{p}}
- - \frac{\partial \alpha_{yy}}{\partial \mathbf{Q}_{p}}\right)^{2}
- + \frac{1}{2}\left(\frac{\partial \alpha_{yy}}{\partial \mathbf{Q}_{p}}
- - \frac{\partial \alpha_{zz}}{\partial \mathbf{Q}_{p}}\right)^{2}
- + \frac{1}{2}\left(\frac{\partial \alpha_{zz}}{\partial \mathbf{Q}_{p}}
- - \frac{\partial \alpha_{xx}}{\partial \mathbf{Q}_{p}}\right)^{2}
- + 3\left(\frac{\partial \alpha_{xy}}{\partial \mathbf{Q}_{p}}\right)^{2}
- + 3\left(\frac{\partial \alpha_{yz}}{\partial \mathbf{Q}_{p}}\right)^{2}
- + 3\left(\frac{\partial \alpha_{zx}}{\partial \mathbf{Q}_{p}}\right)^{2}
+ \frac{1}{2}\left(\frac{\partial \alpha_{xx}}{\partial Q_{p}}
+ - \frac{\partial \alpha_{yy}}{\partial Q_{p}}\right)^{2}
+ + \frac{1}{2}\left(\frac{\partial \alpha_{yy}}{\partial Q_{p}}
+ - \frac{\partial \alpha_{zz}}{\partial Q_{p}}\right)^{2}
+ + \frac{1}{2}\left(\frac{\partial \alpha_{zz}}{\partial Q_{p}}
+ - \frac{\partial \alpha_{xx}}{\partial Q_{p}}\right)^{2}
+ + 3\left(\frac{\partial \alpha_{xy}}{\partial Q_{p}}\right)^{2}
+ + 3\left(\frac{\partial \alpha_{yz}}{\partial Q_{p}}\right)^{2}
+ + 3\left(\frac{\partial \alpha_{zx}}{\partial Q_{p}}\right)^{2}
 $$
 
 The [absorption intensities](https://pubs.aip.org/aip/jcp/article/149/17/174108/197213) are computed from the trace of the frequency-dependent absorption cross-section tensor $\boldsymbol{\sigma}(\omega)$:

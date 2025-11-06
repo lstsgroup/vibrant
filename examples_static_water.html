@@ -171,7 +171,7 @@
 </div>
 <p>where the last 3 frequencies correspond to the bending, symmetric stretching and asymmetric stretching modes of water. The first 6 modes correspond to the translational and rotational mode frequencies and can be disregarded by the user. The reason some of them show negative frequencies is because the molecular structure used for the normal mode analysis is not tightly optimized.</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">normal_mode_displ.txt</span></code> → contains normal mode coordinates</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">normal_mode_displ.txt</span></code> → contains normal mode displacements. Note that we simply  print the mass-weighted eigenvectors <span class="math notranslate nohighlight">\(\tilde{\mathbf{u}}_p\)</span> here.</p></li>
 </ul>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># first atom in first vibrational mode</span>
 <span class="w">  </span><span class="m">0</span>.94616809213469699<span class="w">        </span><span class="m">2</span>.7946421871026641E-005<span class="w">  </span>-2.9767288434384802E-002
@@ -340,6 +340,8 @@ and normal mode coordinates (See <a class="reference internal" href="file_format
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
         <script src="_static/clipboard.min.js?v=a7894cd8"></script>
         <script src="_static/copybutton.js?v=f281be69"></script>
+        <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
         <script type="text/javascript" src="_static/dist/theme.js"></script>
         <script type="text/javascript" src="_static/dist/vendor.js"></script>
         <script type="text/javascript" src="_static/searchtools.js"></script>
