@@ -38,7 +38,7 @@ This calculation generates three output files named:
 
 where the last 3 frequencies correspond to the bending, symmetric stretching and asymmetric stretching modes of water. The first 6 modes correspond to the translational and rotational mode frequencies and can be disregarded by the user. The reason some of them show negative frequencies is because the molecular structure used for the normal mode analysis is not tightly optimized.
 
-- `normal_mode_displ.txt` → contains normal mode displacements
+- `normal_mode_displ.txt` → contains normal mode displacements. Note that we simply  print the mass-weighted eigenvectors $\tilde{\mathbf{u}}_p$ here.
 
 ```bash
 # first atom in first vibrational mode
