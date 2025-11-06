@@ -20,7 +20,7 @@ $$
 
 where $\omega$ is the angular frequency  (measured in radians per second), and $\nu$ is the ordinary frequency measured in hertz. `vibrant` prints all the normal mode frequencies, meaning that the first 6 (or 5 if the molecule is linear) normal modes belong to the rotational and translational modes, and the rest are the vibrational modes. The unit of the frequencies are cm $^{-1}$.
 
-The eigenvectors $\mathbf{\tilde{u}}_ {p}$ provide the amplitude of the normal mode vibrations, and eventually provide the normal mode coordinates $Q_{p} = \mathbf{\tilde{u}}_ {p}^{T} \mathbf {u}_ {p}$. The normal mode coordinates are also printed by `vibrant`. Their mass-weighted versions can later be used in computing static IR, Raman or resonance Raman intensities.
+The eigenvectors $\mathbf{\tilde{u}}_ {p}$ provide the amplitude of the normal mode vibrations, and are related to the normal mode coordinates $Q_{p}$ by $Q_p = \mathbf{\tilde{u}}_ {p}^{T} \mathbf {u}$. The eigenvectors $\mathbf{\tilde{u}}_ {p}$  are also printed by `vibrant`. Their mass-weighted versions can later be used in computing static IR, Raman or resonance Raman intensities.
 
 For each displaced structure, the user must provide the atomic forces appended in a single file (see [File Formats](file_formats.md#21-atomic-forces) for more details). Hessian diagonalization is performed using the [LAPACK](https://www.netlib.org/lapack/) library.
 

@@ -10,7 +10,13 @@ $$
 I_{\textnormal{IR}}(\tilde{\nu}_p) = \frac{N_{A} }{12\varepsilon _{0}c^{2}}\left ( \frac{\partial \boldsymbol{\mu} }{\partial Q_{p}} \right )^{2}
 $$
 
-where $\varepsilon_{0}$ is the vacuum permittivity, $N_{A}$ is the Avogadro constant and $c$ is the speed of light. $\tilde{\nu_{p}}$ is the wavenumber defined as $\tilde{\nu_{p}}=\nu_{p}/c$.
+where $\varepsilon_{0}$ is the vacuum permittivity, $N_{A}$ is the Avogadro constant and $c$ is the speed of light. $\tilde{\nu_{p}}$ is the wavenumber defined as $\tilde{\nu_{p}}=\nu_{p}/c$. The derivative is in practice calculated for dipole moment component $\alpha \in {x,y,z}$
+
+$$
+\frac{\partial\mu_{\alpha}}{\partial Q_p} = \sum_{k=1}^{N_{\text{atom}}} \sum_{l\in {x,y,z}} \frac{\partial \mu_{\alpha}}{\partial r_{kl}} \frac{\tilde{u}_{kl}^{(p)}}{\sqrt{m}_k}
+$$
+
+where $\tilde{u}_p(kl)$ is the mass-weighted, orthonormal eigenvector component for atom $k$ along Cartesian coordinate $l$ and $m_k$ is the atomic mass. 
 
 For each displaced structure (see Section [Frequencies](frequency.md#a-normal-mode-analysis) for details) the user must provide the dipole moments appended in a single file (see [File Formats](file_formats.md#32-static-spectra-based-on-normal-modes) for more details.) For the derivatives along the normal modes, the user can either provide the normal mode coordinates or alternatively the forces for each displaced structure, together with the cartesian coordinates of the optimized geometry. An example input for the `static` section may look like:
 
