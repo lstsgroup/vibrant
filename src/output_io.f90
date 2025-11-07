@@ -42,7 +42,7 @@ CONTAINS
         INTEGER, INTENT(IN) :: stat
         CHARACTER(*), INTENT(IN) :: msg
         CHARACTER(*), INTENT(IN) :: filename
-        INTEGER, INTENT(IN), OPTIONAL  :: runit           
+        INTEGER, INTENT(IN), OPTIONAL  :: runit
 
         CHARACTER(LEN=512)   :: line
 
@@ -52,9 +52,9 @@ CONTAINS
             STOP
         ELSEIF (PRESENT(runit)) THEN
             DO
-                READ(runit, '(A)') line   
-                IF (INDEX(line, '#') > 0) CYCLE       ! IF first line is comment indicated by '#' -> skip
-                BACKSPACE(runit)                      ! IF first line is not a comment backspace
+                READ (runit, '(A)') line
+                IF (INDEX(line, '#')>0) CYCLE       ! IF first line is comment indicated by '#' -> skip
+                BACKSPACE (runit)                      ! IF first line is not a comment backspace
                 RETURN
             END DO
         END IF
@@ -67,15 +67,16 @@ CONTAINS
     !> @brief Writes spectral data (frequency and intensity) to a text file.
     !>
     !> @param[in] outfile               --  Name of the output file
-    !> @param[in] header                --  Header label for the intensity column
+    !> @param[in] header_1              --  Header label for the first column
+    !> @param[in] header_2              --  Header label for the second column
     !> @param[in] freq                  --  Array of frequencies
     !> @param[in] intensities           --  Array of intensities corresponding to each
     !>                                      frequency
     !> @param[in, optional] freq_cutoff --  Optional upper frequency limit for output
     !>
-    SUBROUTINE write_spectra_data(outfile, header, freq, intensities, freq_cutoff)
+    SUBROUTINE write_spectra_data(outfile, header_1, header_2, freq, intensities, freq_cutoff)
         CHARACTER(*), INTENT(in) :: outfile
-        CHARACTER(*), INTENT(in) :: header
+        CHARACTER(*), INTENT(in) :: header_1, header_2
         REAL(dp), INTENT(in) :: freq(:)
         REAL(dp), INTENT(in) :: intensities(:)
         REAL(dp), INTENT(in), OPTIONAL :: freq_cutoff
@@ -86,7 +87,7 @@ CONTAINS
         OPEN (file=outfile, status='replace', action='write', iostat=stat, iomsg=msg, newunit=runit)
         CALL check_file_open(stat, msg, outfile)
 
-        WRITE (runit, '(A22,1X,A25)') 'FREQ', TRIM(header)
+        WRITE (runit, '(A22,1X,A25)') TRIM(header_1), TRIM(header_2)
         !WRITE (runit, '(A6,6X,A20)') 'FREQ', TRIM(header)
         IF (PRESENT(freq_cutoff)) THEN
 
@@ -107,7 +108,7 @@ CONTAINS
 !***************************************************************************************!
 
     !> @brief Writes a Molden-compatible .mol file containing molecular geometry,
-    !>        vibrational frequencies, and optionally intensities.
+    !>        vibrational frequencies and displacements, and optionally intensities.
     !>
     !> @param[inout] sys         -- System data (atomic elements and coordinates)
     !> @param[inout] stats       -- Vibrational analysis data (frequencies, displacements)
@@ -150,13 +151,16 @@ CONTAINS
         WRITE (runit, *) sys%natom
         WRITE (runit, *)
         DO i = 1, sys%natom
+            !! Should be in bohr
             WRITE (runit, *) sys%element(i), sys%coord(i, 1)/bohr2ang, sys%coord(i, 2)/bohr2ang, sys%coord(i, 3)/bohr2ang
         END DO
         WRITE (runit, *) "[FR-NORM-COORD]"
         DO i = 1, stats%nmodes
             WRITE (runit, *) "vibration", i
             DO j = 1, sys%natom
-                WRITE (runit, *) stats%disp(i, j, 1), stats%disp(i, j, 2), stats%disp(i, j, 3)
+                !!Use non-mass-weighted displacements in bohr
+                WRITE (runit, *) stats%disp(i, j, 1)*sys%atom_mass_inv_sqrt(j)/bohr2ang, stats%disp(i, j, 2) &
+                    *sys%atom_mass_inv_sqrt(j)/bohr2ang, stats%disp(i, j, 3)*sys%atom_mass_inv_sqrt(j)/bohr2ang
             END DO
         END DO
         CLOSE (runit)

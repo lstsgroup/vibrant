@@ -94,7 +94,7 @@ CONTAINS
 
         !!If dipole moment of the whole system is considered (no fragment approach or molecules defined)
         IF (gs%spectral_type%read_function/='P') THEN
-            IF (dips%type_dipole=='berry' .OR. dips%type_dipole=='dfpt' .OR. dips%type_dipole=='wannier') THEN !!gas phase
+            IF (dips%type_dipole=='berry' .OR. rams%type_pol=='analytical' .OR. dips%type_dipole=='wannier') THEN !!gas phase
                 sys%mol_num = 1
             END IF
         END IF
@@ -266,8 +266,8 @@ CONTAINS
         IF (PRESENT(dips)) CALL dips%init_dip(sys%natom, 1)
         IF (PRESENT(rams)) CALL rams%init_pol(sys%natom, 1)
 
-        !!If the user provided DFPT polarizabilities given in a specific CP2K style:
-        IF (dips%type_dipole=='dfpt') THEN
+        !!If the user provided direct polarizabilities given in a specific style:
+        IF (rams%type_pol=='analytical') THEN
             OPEN (FILE=rams%static_pol_file, STATUS='old', ACTION='read', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
             !Check if file exists
             CALL check_file_open(stat, msg, rams%static_pol_file, runit)

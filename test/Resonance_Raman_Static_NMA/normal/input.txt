@@ -13,9 +13,12 @@
  &end hessian
  displacement 0.00265
 &end static
+&polarizabilities 
+ type_pol induced
+ field_strength 0.001
+&end polarizabilities
 &dipoles
  type_dipole berry
- field_strength 0.001
  dip_x_file r-met_RTP_dipoles_static_X_10000.xyz
  dip_y_file r-met_RTP_dipoles_static_Y_10000.xyz
  dip_z_file r-met_RTP_dipoles_static_Z_10000.xyz

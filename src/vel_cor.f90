@@ -51,7 +51,7 @@ CONTAINS
         TYPE(global_settings), INTENT(INOUT)                :: gs
         TYPE(molecular_dynamics), INTENT(INOUT)     :: md
         INTEGER, INTENT(INOUT)                                    :: natom
-        REAL(kind=dp), DIMENSION(:, :, :),  INTENT(INOUT)  :: coord_v
+        REAL(kind=dp), DIMENSION(:, :, :), INTENT(INOUT)  :: coord_v
 
         CHARACTER(LEN=40)                                        :: chara, msg
         INTEGER                                                  :: stat, i, j, k, m, t0, t1, l, runit
@@ -60,20 +60,20 @@ CONTAINS
 
         !! Allocate
         ALLOCATE (md%z(0:2*md%t_cor - 1), norm(0:2*md%t_cor - 1))
-      
+
         !! Initialize
         norm = 0
         md%z = 0.0_dp
         k = 0
         j = 0
- 
+
         !! Start the time autocorrelations for power of IR spectra
         DO t0 = 1, sys%framecount - 2
             t1 = MIN(sys%framecount - 2, t0 + md%t_cor)
             DO j = 1, natom
                 k = j
                 !! If mass-weighting is selected for power spectrum
-                IF (sys%input_mass=='y') THEN 
+                IF (sys%input_mass=='y') THEN
                     md%z(0:t1 - t0) = md%z(0:t1 - t0) + (coord_v(t0, k, 1)*coord_v(t0:t1, j, 1) + coord_v(t0, j, 2)* &
                                                          coord_v(t0:t1, j, 2) + coord_v(t0, j, 3)*coord_v(t0:t1, j, 3))*sys%mass_atom(j)
                 !! If mass-weighting is not selected for power spectrum
@@ -87,7 +87,7 @@ CONTAINS
         END DO
 
         !! Normalization
-        md%z(:) = md%z(:)/norm(:) 
+        md%z(:) = md%z(:)/norm(:)
 
       !! Unit conversion of dipole autocorrelation function to debye^2/s^2
         IF (gs%spectral_type%read_function=='MD-IR') THEN
@@ -106,20 +106,11 @@ CONTAINS
         DO i = 1, md%t_cor - 1
             md%z(md%t_cor + i) = md%z(md%t_cor - i)
         END DO
- 
+
         !! Hann Window function
         DO i = 0, 2*md%t_cor - 1
             md%z(i) = md%z(i)*((COS(i/(md%t_cor - 1.0_dp)/2.0_dp*pi))**2)
         END DO
-  
-        !! Write the autocorrelation data to a file
-        OPEN (FILE='result_cvv.txt', STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
-        !Check if file exists
-        CALL check_file_open(stat, msg, 'result_cvv.txt')
-        DO i = 0, 2*md%t_cor - 1
-            WRITE (runit, *) md%z(i)
-        END DO
-        CLOSE (runit)
 
         DEALLOCATE (norm)
 
@@ -132,7 +123,7 @@ CONTAINS
     !>
     !> This routine evaluates the time autocorrelation of the isotropic part of the
     !> polarizability tensor using the time-dependent differences of polarizabilities
-    !> along the x, y, and z directions. The resulting correlation function `z_iso` is normalized, 
+    !> along the x, y, and z directions. The resulting correlation function `z_iso` is normalized,
     !> windowed, and later Fourier transformed to be used for computing the Raman intensities.
     !>
     !> @param[in,out] sys          -- System information (provides framecount, etc.).
@@ -162,11 +153,11 @@ CONTAINS
 
         !! Allocate
         ALLOCATE (z_iso(0:2*md%t_cor - 1), norm(0:2*md%t_cor - 1))
-        
+
         !! Initialize
         norm = 0
         z_iso = 0.0_dp
-       
+
         !! Start the time autocorrelations for the isotropic Raman polarizabilities
         DO t0 = 1, sys%framecount - 2
             t1 = MIN(sys%framecount - 2, t0 + md%t_cor)
@@ -179,7 +170,7 @@ CONTAINS
         END DO
 
         !! Normalization
-        z_iso(:) = z_iso(:)/(norm(:)*9._dp) 
+        z_iso(:) = z_iso(:)/(norm(:)*9._dp)
 
       !!Unit conversion of Debye^2/(E^2*fs^2) into Debye^2/(E^2*s^2)
         z_iso(:) = z_iso(:)/(fs2s*fs2s)
@@ -192,7 +183,7 @@ CONTAINS
         !! Data mirroring
         z_iso(md%t_cor) = 0.0_dp
         DO i = 1, md%t_cor - 1
-            z_iso(md%t_cor + i) = z_iso(md%t_cor - i) 
+            z_iso(md%t_cor + i) = z_iso(md%t_cor - i)
         END DO
 
         !! Write the autocorrelation data to a file
@@ -203,7 +194,7 @@ CONTAINS
             WRITE (runit, *) z_iso(i)
         END DO
         CLOSE (runit)
-        
+
         DEALLOCATE (norm)
 
     END SUBROUTINE cvv_iso
@@ -215,7 +206,7 @@ CONTAINS
     !>
     !> This routine evaluates the time autocorrelation of the anisotropic part of the
     !> polarizability tensor using the time-dependent differences of polarizabilities
-    !> along the x, y, and z directions. The resulting correlation function `z_aniso` is normalized, 
+    !> along the x, y, and z directions. The resulting correlation function `z_aniso` is normalized,
     !> windowed, and later Fourier transformed to be used for computing the Raman intensities.
     !>
     !> @param[in,out] sys          -- System information (provides framecount, etc.).
@@ -279,13 +270,13 @@ CONTAINS
 
         !! Hann Window function
         DO i = 0, md%t_cor - 1
-            z_aniso(i) = z_aniso(i)*((COS(i/(md%t_cor - 1.0_dp)/2.0_dp*pi))**2) 
+            z_aniso(i) = z_aniso(i)*((COS(i/(md%t_cor - 1.0_dp)/2.0_dp*pi))**2)
         END DO
 
         !! Data mirroring
         z_aniso(md%t_cor) = 0.0_dp
         DO i = 1, md%t_cor - 1
-            z_aniso(md%t_cor + i) = z_aniso(md%t_cor - i) 
+            z_aniso(md%t_cor + i) = z_aniso(md%t_cor - i)
         END DO
 
         !! Write the autocorrelation data to a file
@@ -296,7 +287,7 @@ CONTAINS
             WRITE (runit, *) z_aniso(i)
         END DO
         CLOSE (runit)
-        
+
         DEALLOCATE (norm)
 
     END SUBROUTINE cvv_aniso
@@ -309,16 +300,16 @@ CONTAINS
     !>
     !> This routine constructs both the isotropic (`z_iso_resraman`) and anisotropic
     !> (`z_aniso_resraman`) time autocorrelation functions of the real-time
-    !> polarizability response functions obtained from RT-TDDFT simulations. The calculated 
-    !> isotropic and anisotropic polarizabilities are later Fourier transformed to yield 
-    !> the resonance Raman spectra. 
+    !> polarizability response functions obtained from RT-TDDFT simulations. The calculated
+    !> isotropic and anisotropic polarizabilities are later Fourier transformed to yield
+    !> the resonance Raman spectra.
     !>
     !> @param[in,out] sys  -- System information (natom, framecount, etc.).
     !> @param[in,out] md   -- Molecular dynamics data (provides correlation time `t_cor`).
     !> @param[in,out] rams -- Raman data structure containing:
     !>                        - `rams%RR%alpha_resraman_[xyz]_diff_re/im`:
     !>                           real and imaginary polarizability derivatives,
-    !>                        - `rams%RR%z_iso_resraman`, `z_aniso_resraman`: 
+    !>                        - `rams%RR%z_iso_resraman`, `z_aniso_resraman`:
     !>                           output complex correlation functions,
     !>                        - `rams%RR%check_pade`: flag for Padé interpolation,
     !>                           used to determine frequency grid size `Nw`.
@@ -333,7 +324,7 @@ CONTAINS
         INTEGER                                                  :: stat, i, j, k, m, t0, t1, runit, Nw
         INTEGER, DIMENSION(:, :), ALLOCATABLE                       :: norm_iso, norm_aniso
         COMPLEX(kind=dp)                                          :: im_unit
- 
+
         !! Determine Nw based on the flag for Padé interpolation
         IF (rams%RR%check_pade=='n') THEN
             Nw = rams%RR%framecount_rtp - 1
@@ -344,8 +335,8 @@ CONTAINS
         !! Allocate
         ALLOCATE (rams%RR%z_iso_resraman(0:2*md%t_cor, Nw), norm_iso(0:2*md%t_cor, Nw))
         ALLOCATE (rams%RR%z_aniso_resraman(0:2*md%t_cor, Nw), norm_aniso(0:2*md%t_cor, Nw))
-        
-        !! Initialize 
+
+        !! Initialize
         im_unit = (0.0_dp, 1.0_dp)
         rams%RR%z_iso_resraman = (0.0_dp, 0.0_dp)
         rams%RR%z_aniso_resraman = (0.0_dp, 0.0_dp)
@@ -386,7 +377,7 @@ CONTAINS
                 norm_iso(0:t1 - t0, k) = norm_iso(0:t1 - t0, k) + 1.0_dp
             END DO
         END DO
-       
+
         !! Normalize
         rams%RR%z_iso_resraman(:, :) = rams%RR%z_iso_resraman(:, :)/REAL(norm_iso(:, :), kind=dp)
         rams%RR%z_iso_resraman(:, :) = rams%RR%z_iso_resraman(:, :)/9._dp
@@ -410,7 +401,7 @@ CONTAINS
                 rams%RR%z_iso_resraman(md%t_cor + i, j) = CONJG(rams%RR%z_iso_resraman(md%t_cor - i, j))
             END DO
         END DO
-      
+
         !! Write the autocorrelation data to a file
         OPEN (FILE='result_cvv_iso_resraman.txt', STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
         !Check if file exists
@@ -434,33 +425,33 @@ CONTAINS
                                                                                                    - rams%RR%alpha_resraman_y_diff_re(t0, k, 2)) &
                                                          *(rams%RR%alpha_resraman_x_diff_re(t0:t1, k, 1) &
                                                            - rams%RR%alpha_resraman_y_diff_re(t0:t1, k, 2))/2.0_dp
-         
+
                !! (alpha_yy - alpha_zz)
-               rams%RR%z_aniso_resraman(0:t1 - t0, k) = rams%RR%z_aniso_resraman(0:t1 - t0, k) + (rams%RR%alpha_resraman_y_diff_re(t0, k, 2) &
+                rams%RR%z_aniso_resraman(0:t1 - t0, k) = rams%RR%z_aniso_resraman(0:t1 - t0, k) + (rams%RR%alpha_resraman_y_diff_re(t0, k, 2) &
                                                                                                    - rams%RR%alpha_resraman_z_diff_re(t0, k, 3)) &
                                                          *(rams%RR%alpha_resraman_y_diff_re(t0:t1, k, 2) &
                                                            - rams%RR%alpha_resraman_z_diff_re(t0:t1, k, 3))/2.0_dp
                !! (alpha_zz - alpha_xx)
-               rams%RR%z_aniso_resraman(0:t1 - t0, k) = rams%RR%z_aniso_resraman(0:t1 - t0, k) + (rams%RR%alpha_resraman_z_diff_re(t0, k, 3) &
+                rams%RR%z_aniso_resraman(0:t1 - t0, k) = rams%RR%z_aniso_resraman(0:t1 - t0, k) + (rams%RR%alpha_resraman_z_diff_re(t0, k, 3) &
                                                                                                    - rams%RR%alpha_resraman_x_diff_re(t0, k, 1)) &
                                                          *(rams%RR%alpha_resraman_z_diff_re(t0:t1, k, 3) &
                                                            - rams%RR%alpha_resraman_x_diff_re(t0:t1, k, 1))/2.0_dp
                !! (alpha_xy + alpha yx)/2
-               rams%RR%z_aniso_resraman(0:t1 - t0, k) = rams%RR%z_aniso_resraman(0:t1 - t0, k) &
+                rams%RR%z_aniso_resraman(0:t1 - t0, k) = rams%RR%z_aniso_resraman(0:t1 - t0, k) &
                                                          + (rams%RR%alpha_resraman_x_diff_re(t0, k, 2)*0.50_dp + &
                                                             rams%RR%alpha_resraman_y_diff_re(t0, k, 1)*0.50_dp) &
                                                          *(rams%RR%alpha_resraman_x_diff_re(t0:t1, k, 2)*0.50_dp + &
                                                            rams%RR%alpha_resraman_y_diff_re(t0:t1, k, 1)*0.50_dp)*3.0_dp
 
                !! (alpha_yz + alpha_zy)/2
-               rams%RR%z_aniso_resraman(0:t1 - t0, k) = rams%RR%z_aniso_resraman(0:t1 - t0, k) &
+                rams%RR%z_aniso_resraman(0:t1 - t0, k) = rams%RR%z_aniso_resraman(0:t1 - t0, k) &
                                                          + (rams%RR%alpha_resraman_y_diff_re(t0, k, 3)*0.50_dp + &
                                                             rams%RR%alpha_resraman_z_diff_re(t0, k, 2)*0.50_dp) &
                                                          *(rams%RR%alpha_resraman_y_diff_re(t0:t1, k, 3)*0.50_dp + &
                                                            rams%RR%alpha_resraman_z_diff_re(t0:t1, k, 2)*0.50_dp)*3.0_dp
 
                !! (alpha_zx + alpha_xz)/2
-               rams%RR%z_aniso_resraman(0:t1 - t0, k) = rams%RR%z_aniso_resraman(0:t1 - t0, k) &
+                rams%RR%z_aniso_resraman(0:t1 - t0, k) = rams%RR%z_aniso_resraman(0:t1 - t0, k) &
                                                          + (rams%RR%alpha_resraman_z_diff_re(t0, k, 1)*0.50_dp + &
                                                             rams%RR%alpha_resraman_x_diff_re(t0, k, 3)*0.50_dp) &
                                                          *(rams%RR%alpha_resraman_z_diff_re(t0:t1, k, 1)*0.50_dp + &

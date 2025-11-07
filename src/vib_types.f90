@@ -45,7 +45,7 @@ MODULE vib_types
         LOGICAL                                          ::  frag !yes/no for fragments
         INTEGER                                          :: ngroup !number of fragment sections
         INTEGER                                             :: max_frag !Maximum number of fragments in a fragment group
-        INTEGER                                             :: nfrag !Number of fragments in a fragment group 
+        INTEGER                                             :: nfrag !Number of fragments in a fragment group
         INTEGER                                             :: natom_frag !Number of atoms in a fragment
         INTEGER, DIMENSION(:), ALLOCATABLE               :: frag_atoms !Atom list of the fragment
         TYPE(fragment_type), ALLOCATABLE                  :: fragment(:) !(frag)
@@ -72,7 +72,7 @@ MODULE vib_types
         CHARACTER(LEN=40)                                   :: wannier_xyz !wannier file
         CHARACTER(LEN=40)                                   :: static_dip_file_xyz !dipole file
         INTEGER, DIMENSION(:), ALLOCATABLE                         :: natom_frag_xyz !number of atoms in fragments
-        INTEGER, DIMENSION(:, :, :), ALLOCATABLE                     :: fragment_xyz 
+        INTEGER, DIMENSION(:, :, :), ALLOCATABLE                     :: fragment_xyz
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                :: alpha_xyz !polarizability
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                :: dip_xyz !dipole
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE                :: alpha_diff_xyz !time derivatives of alphas
@@ -91,7 +91,7 @@ MODULE vib_types
         INTEGER                                             :: framecount_rtp_pade !framecount after Pade interpolation
         REAL(kind=dp)                                       :: dt_rtp !RTP time step in fs
         REAL(kind=dp)                                       :: freq_range_rtp ! RTP freq range
-        REAL(kind=dp)                                       :: damping_constant !damping constant 
+        REAL(kind=dp)                                       :: damping_constant !damping constant
         TYPE(static_property), DIMENSION(3)  ::  static_dip_rtp ! static field-free dipoles
         TYPE(static_property), DIMENSION(3)  ::  static_dip_x_rtp !static dipoles under electric field in x-direction
         TYPE(static_property), DIMENSION(3)  ::  static_dip_y_rtp !static dipoles under electric field in y-direction
@@ -148,19 +148,20 @@ MODULE vib_types
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE            :: mass_atom            ! ALLOCATE sys%mass_atom(sys%natom)
         REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE         :: coord                ! ALLOCATE sys%coord(sys%natom, 3)
         REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE         :: mass_mat             ! ALLOCATE sys%mass_mat(sys%natom, sys%natom)
-        TYPE(CELL)                                          :: cell        
+        TYPE(CELL)                                          :: cell
         TYPE(fragments)                                     :: fragments
     END TYPE systems
 
     !***************************************************************************
     TYPE molecular_dynamics
+        LOGICAL                                             :: write_acf !yes/no
         INTEGER                                             :: t_cor               ! correlation depth
         CHARACTER(LEN=40)                                   :: trajectory_file !maybe not needed should be in system type
         CHARACTER(LEN=40)                                   :: velocity_file   !maybe not needed should be in system type
         REAL(kind=dp)                                       :: snapshot_time_step ! snapshots_time_step equal to md%dt ?
         REAL(kind=dp)                                       :: dt   ! MD time step in fs
         REAL(kind=dp)                                       :: freq_range ! maximum frequency range based on dt
-        REAL(kind=dp)                                       :: freq_res ! frequency resolution 
+        REAL(kind=dp)                                       :: freq_res ! frequency resolution
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE            :: z       ! autocorrelation function ALLOCATE z(2*md%t_cor-1)
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE      :: v ! coordinates vector ALLOCATE coord_v(sys%framecount, natom, 3)
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE      :: coord_v ! coordinates vector ALLOCATE coord_v(sys%framecount, natom, 3)
@@ -187,13 +188,13 @@ MODULE vib_types
     !***************************************************************************
     TYPE dipoles
         CHARACTER(LEN=40)                                   :: dip_file   !file
-        CHARACTER(LEN=40)                                   :: dip_x_file !file 
+        CHARACTER(LEN=40)                                   :: dip_x_file !file
         CHARACTER(LEN=40)                                   :: dip_y_file !file
-        CHARACTER(LEN=40)                                   :: dip_z_file !file ! Dipolemoments mybe move to dipole class differenes static_dip_free_file and dip_file
-        CHARACTER(LEN=40)                                   :: type_dipole !berry/wannier/dfpt  ! From IR calc what are those`? !!we can add these to static and dipoles
+        CHARACTER(LEN=40)                                   :: dip_z_file !file
+        CHARACTER(LEN=40)                                   :: type_dipole !berry/wannier
         REAL(kind=dp)                                       :: e_field !electric field
         REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE         :: dip_dq  ! derivatives of the dipoles wrt normal coordinates
-        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE      :: dipole   ! ALLOCATE static_dip(sys%natom, 3, 2, 3) is this neeeded?
+        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE      :: dipole   ! ALLOCATE static_dip(sys%natom, 3, 2, 3)
         TYPE(static_property), DIMENSION(3)  ::  static_dip
         TYPE(fragment_group), ALLOCATABLE :: type_frag(:)
     CONTAINS
@@ -201,11 +202,11 @@ MODULE vib_types
         PROCEDURE :: dealloc_dip
     END TYPE dipoles
     !***************************************************************************
-TYPE fragment_group
-    INTEGER :: nfrag = 0
-    TYPE(fragment_type), ALLOCATABLE :: fragment(:)
-    TYPE(fragment_frame_type), ALLOCATABLE :: fragment_frame(:, :)
-END TYPE fragment_group
+    TYPE fragment_group
+        INTEGER :: nfrag = 0
+        TYPE(fragment_type), ALLOCATABLE :: fragment(:)
+        TYPE(fragment_frame_type), ALLOCATABLE :: fragment_frame(:, :)
+    END TYPE fragment_group
     !***************************************************************************
 
     TYPE displacement_type
@@ -218,11 +219,15 @@ END TYPE fragment_group
     END TYPE atom_information
     !***************************************************************************
     TYPE raman
+        CHARACTER(LEN=40)                                   :: type_pol !induced/analytic
         CHARACTER(LEN=40)                                   :: static_dip_free_file !file
         CHARACTER(LEN=40)                                   :: static_pol_file !file
-        CHARACTER(LEN=40)                                   :: wannier_free !file 
+        CHARACTER(LEN=40)                                   :: pol_x_file !alpha_xx, alpha_xy, alpha_xz
+        CHARACTER(LEN=40)                                   :: pol_y_file !alpha_yx, alpha_yy, alpha_yz
+        CHARACTER(LEN=40)                                   :: pol_z_file !alpha_zx, alpha_zy, alpha_zz
+        CHARACTER(LEN=40)                                   :: wannier_free !file
         CHARACTER(LEN=40)                                   :: wannier_x !file
-        CHARACTER(LEN=40)                                   :: wannier_y !file 
+        CHARACTER(LEN=40)                                   :: wannier_y !file
         CHARACTER(LEN=40)                                   :: wannier_z !file
         CHARACTER(LEN=40)                                   :: averaging !isotropic/orientational
         CHARACTER(LEN=40)                                   :: direction !direction for isotropic averaging
@@ -231,11 +236,11 @@ END TYPE fragment_group
         REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE   :: static_dip_x !Dipolemoments mybe move to dipole class
         REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE   :: static_dip_y  ! Dipolemoments mybe move to dipole class
         REAL(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE   :: static_dip_z  ! Dipolemoments mybe move to dipole class
-        REAL(kind=dp), DIMENSION(:), ALLOCATABLE            :: z_iso !isotropic  
+        REAL(kind=dp), DIMENSION(:), ALLOCATABLE            :: z_iso !isotropic
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE            :: z_aniso !anisotropic
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE            :: z_ortho !orthogonal
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE            :: z_para !parallel
-        REAL(kind=dp), DIMENSION(:), ALLOCATABLE            :: raman_int 
+        REAL(kind=dp), DIMENSION(:), ALLOCATABLE            :: raman_int
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE      :: pol_dq !pol derivative wrt normal modes  !ALLOCATE (rams%pol_dq(stats%nmodes, 3, 3))
         TYPE(static_property), DIMENSION(3, 3)              :: pol
         TYPE(resonant_raman)                                :: RR
@@ -244,7 +249,6 @@ END TYPE fragment_group
         PROCEDURE :: init_pol
         PROCEDURE :: dealloc_pol
     END TYPE raman
-
 
 CONTAINS
 
@@ -316,7 +320,7 @@ CONTAINS
     !> @param[inout] this    -- Force object to initialize
     !> @param[in]    natoms  -- Number of atoms in the system
     !> @param[in]    nframes -- Number of frames to allocate
-    !> 
+    !>
     SUBROUTINE init_force(this, natoms, nframes)
         CLASS(static), INTENT(INOUT) :: this
         INTEGER, INTENT(IN) :: natoms, nframes
@@ -332,7 +336,7 @@ CONTAINS
 
     !**************************************************************************************!
     !**************************************************************************************!
- 
+
     !> @brief Deallocates all memory associated with the force container.
     !>
     !> Calls `dealloc_staticp` for each atom and Cartesian component,
@@ -466,7 +470,7 @@ CONTAINS
     !**************************************************************************************!
     !**************************************************************************************!
 
-    !> @brief Initializes and allocates the polarizability tensor components for resonance 
+    !> @brief Initializes and allocates the polarizability tensor components for resonance
     !>        Raman (RR) calculations.
     !> @param[inout] this    -- RR object to initialize
     !> @param[in]    natoms  -- Number of atoms in the system
@@ -544,14 +548,14 @@ CONTAINS
         sys%cell%box_y = -1.0_dp
         sys%cell%box_z = -1.0_dp
 
-        sys%cell%angle_alpha    = -1.0_dp
-        sys%cell%angle_beta     = -1.0_dp
-        sys%cell%angle_gamma    = -1.0_dp
+        sys%cell%angle_alpha = -1.0_dp
+        sys%cell%angle_beta = -1.0_dp
+        sys%cell%angle_gamma = -1.0_dp
     END SUBROUTINE init_systems
 
     !**************************************************************************************!
     !**************************************************************************************!
- 
+
     !> @brief Initializes molecular dynamics control parameters with default values.
     !>
     !> @param[out] md  -- MD control structure to initialize
@@ -603,10 +607,11 @@ CONTAINS
     !> @brief Initializes the Raman calculation structure with default values.
     !>
     !> @param[out] ram  Raman data structure to initialize
-    !> 
+    !>
     SUBROUTINE init_raman(ram)
         TYPE(raman), INTENT(out) :: ram
         !numeric
+        ram%type_pol = ''
         ram%static_dip_free_file = ''
         ram%static_pol_file = ''
         !analytic
@@ -625,11 +630,11 @@ CONTAINS
 
     !> @brief Deallocates all major data structures used in the simulation framework.
     !>
-    !> @param[inout, optional] gs    -- Global settings structure to deallocate  
-    !> @param[inout, optional] sys   -- System data structure to deallocate  
-    !> @param[inout, optional] md    -- Molecular dynamics structure to deallocate  
-    !> @param[inout, optional] stats -- Static calculation structure to deallocate  
-    !> @param[inout, optional] ram   -- Raman structure to deallocate  
+    !> @param[inout, optional] gs    -- Global settings structure to deallocate
+    !> @param[inout, optional] sys   -- System data structure to deallocate
+    !> @param[inout, optional] md    -- Molecular dynamics structure to deallocate
+    !> @param[inout, optional] stats -- Static calculation structure to deallocate
+    !> @param[inout, optional] ram   -- Raman structure to deallocate
     !> @param[inout, optional] dip   -- Dipole structure to deallocate
     !>
     SUBROUTINE deallocate_types(gs, sys, md, stats, ram, dip)
@@ -670,7 +675,7 @@ CONTAINS
     !>
     !> @param[inout] sys -- System data structure to deallocate
     !>
-     SUBROUTINE deallocate_system(sys)
+    SUBROUTINE deallocate_system(sys)
         TYPE(systems), INTENT(INOUT) :: sys
 
         IF (ALLOCATED(sys%element)) DEALLOCATE (sys%element)
@@ -769,7 +774,6 @@ CONTAINS
         IF (ALLOCATED(rams%z_para)) DEALLOCATE (rams%z_para)
         IF (ALLOCATED(rams%raman_int)) DEALLOCATE (rams%raman_int)
         IF (ALLOCATED(rams%pol_dq)) DEALLOCATE (rams%pol_dq)
-
 
         CALL rams%rr%dealloc_rr_all()
         IF (ALLOCATED(rams%RR%zhat_pol_rtp)) DEALLOCATE (rams%RR%zhat_pol_rtp)

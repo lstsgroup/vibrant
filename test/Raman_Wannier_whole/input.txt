@@ -2,9 +2,12 @@
  spectra MD-R
  temperature 300
 &end global
+&polarizabilities
+ type_pol induced
+ field_strength 0.005
+&end polarizabilities
 &dipoles
  type_dipole wannier
- field_strength 0.005
  dip_file wannier_free_COF-1_sc_1250.xyz
  dip_x_file wannier_X_COF-1_sc_1250.xyz
  dip_y_file wannier_Y_COF-1_sc_1250.xyz

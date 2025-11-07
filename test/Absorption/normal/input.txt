@@ -4,9 +4,12 @@
 &system
  filename r-met.xyz
 &end system
+&polarizabilities 
+ type_pol induced
+ field_strength 0.001
+&end polarizabilities
 &dipoles
  type_dipole berry
- field_strength 0.001
  dip_x_file r-met_RTP_dipoles_static_X_1000.xyz
  dip_y_file r-met_RTP_dipoles_static_Y_1000.xyz
  dip_z_file r-met_RTP_dipoles_static_Z_1000.xyz

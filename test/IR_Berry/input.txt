@@ -19,4 +19,5 @@
 &md
  time_step 2.5
  correlation_depth 1024
+ write_acf_file
 &end md
