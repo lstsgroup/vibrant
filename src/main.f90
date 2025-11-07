@@ -127,9 +127,10 @@ PROGRAM vib2d
         IF (dips%type_dipole=='berry' .OR. dips%type_dipole=='wannier') THEN
             CALL timings%register("reading coordinates")
             CALL read_coord(dips%dip_file, gs, sys, dips)
-        ELSEIF (dips%type_dipole=='dfpt') THEN
+        END IF
+        IF (rams%type_pol=='analytical') THEN
             CALL timings%register("reading coordinates")
-            CALL read_coord(dips%dip_x_file, gs, sys, dips)
+            CALL read_coord(rams%pol_x_file, gs, sys, dips, rams)
         END IF
         CALL timings%register("calculating charges")
         CALL masses_charges(sys) !THIS FUNCTION IS NOT NEEDED HERE ?!

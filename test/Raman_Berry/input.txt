@@ -2,9 +2,12 @@
  spectra MD-R
  temperature 300
 &end global
+&polarizabilities
+ type_pol induced
+ field_strength 0.005
+&end polarizabilities
 &dipoles
  type_dipole berry
- field_strength 0.005
  dip_file berry_dipole_free_5000_sc.xyz
  dip_x_file berry_dipole_X_5000_sc.xyz
  dip_y_file berry_dipole_Y_5000_sc.xyz

@@ -12,10 +12,10 @@
  normal_displ_file normal_mode_water_displ.txt
  displacement 0.001
 &end static
-&dipoles
- type_dipole dfpt
+&polarizabilities
+ type_pol analytical
  static_pol_file polarizabilities_water.dat
-&end dipoles
+&end polarizabilities
 &raman
  laser_in 2.540639
 &end raman

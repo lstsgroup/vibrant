@@ -52,8 +52,8 @@ CONTAINS
         REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(OUT)    ::  diff
 
         INTEGER                                                  :: stat, i, j, k, m
-       
-        !! Allocate 
+
+        !! Allocate
         IF (.NOT. ALLOCATED(diff)) THEN
             ALLOCATE (diff(sys%framecount, natom, 3))
         END IF
@@ -156,7 +156,7 @@ CONTAINS
 
         INTEGER :: i_pol, j_pol, k, l, j, xyz
         REAL(kind=dp) :: delta, coeff, fin_diff_factor
-        
+
         fin_diff_factor = 1.0_dp/(2.0_dp*stats%dx)
         !! Calculation of static Raman derivatives based on derivatives of polarizabilites wrt normal mode coordinates
 
@@ -209,7 +209,7 @@ CONTAINS
 
 !**************************************************************************************************************!
 !**************************************************************************************************************!
-    !> @brief Constructs time-dependent polarizability responses for RR spectra using 
+    !> @brief Constructs time-dependent polarizability responses for RR spectra using
     !>        finite differences of static dipole moments.
     !>
     !> This routine computes the time-dependent polarizability tensor `pol_rtp` by taking
@@ -219,7 +219,7 @@ CONTAINS
     !>
     !> @param[in,out] sys  -- System information (provides `natom`, inverse mass factors, etc.).
     !> @param[in,out] rams -- Raman data structure (provides static time-dependent dipole moments,
-    !>                        resulting polarizabilities, RTP time step `rams%RR%dt_rtp`, and 
+    !>                        resulting polarizabilities, RTP time step `rams%RR%dt_rtp`, and
     !>                          RTP framecount `rams%RR%framecount_rtp`)
     !>
     SUBROUTINE finite_diff_static_resraman(sys, rams)
@@ -245,14 +245,14 @@ CONTAINS
                     DO j_pol = 1, 3
                         DO l = 2, rams%RR%framecount_rtp + 1
                             rams%RR%pol_rtp(1, j_pol)%atom(i)%displacement(k)%XYZ(j)%frame(l - 1) = &
-                            (rams%RR%static_dip_x_rtp(j_pol)%atom(i)%displacement(k)%XYZ(j)%frame(l) - &
-                            rams%RR%static_dip_x_rtp(j_pol)%atom(i)%displacement(k)%XYZ(j)%frame(1))
+                                (rams%RR%static_dip_x_rtp(j_pol)%atom(i)%displacement(k)%XYZ(j)%frame(l) - &
+                                 rams%RR%static_dip_x_rtp(j_pol)%atom(i)%displacement(k)%XYZ(j)%frame(1))
                             rams%RR%pol_rtp(2, j_pol)%atom(i)%displacement(k)%XYZ(j)%frame(l - 1) = &
-                            (rams%RR%static_dip_y_rtp(j_pol)%atom(i)%displacement(k)%XYZ(j)%frame(l) - &
-                            rams%RR%static_dip_y_rtp(j_pol)%atom(i)%displacement(k)%XYZ(j)%frame(1))
+                                (rams%RR%static_dip_y_rtp(j_pol)%atom(i)%displacement(k)%XYZ(j)%frame(l) - &
+                                 rams%RR%static_dip_y_rtp(j_pol)%atom(i)%displacement(k)%XYZ(j)%frame(1))
                             rams%RR%pol_rtp(3, j_pol)%atom(i)%displacement(k)%XYZ(j)%frame(l - 1) = &
-                            (rams%RR%static_dip_z_rtp(j_pol)%atom(i)%displacement(k)%XYZ(j)%frame(l) - &
-                            rams%RR%static_dip_z_rtp(j_pol)%atom(i)%displacement(k)%XYZ(j)%frame(1))
+                                (rams%RR%static_dip_z_rtp(j_pol)%atom(i)%displacement(k)%XYZ(j)%frame(l) - &
+                                 rams%RR%static_dip_z_rtp(j_pol)%atom(i)%displacement(k)%XYZ(j)%frame(1))
                         END DO
                     END DO
                 END DO
@@ -266,11 +266,11 @@ CONTAINS
                     DO j_pol = 1, 3
                         DO l = 1, rams%RR%framecount_rtp
                             rams%RR%pol_rtp(1, j_pol)%atom(i)%displacement(k)%XYZ(j)%frame(l) = &
-                            rams%RR%pol_rtp(1, j_pol)%atom(i)%displacement(k)%XYZ(j)%frame(l)*EXP(-1.0_dp*damping_factor*l)
+                                rams%RR%pol_rtp(1, j_pol)%atom(i)%displacement(k)%XYZ(j)%frame(l)*EXP(-1.0_dp*damping_factor*l)
                             rams%RR%pol_rtp(2, j_pol)%atom(i)%displacement(k)%XYZ(j)%frame(l) = &
-                            rams%RR%pol_rtp(2, j_pol)%atom(i)%displacement(k)%XYZ(j)%frame(l)*EXP(-1.0_dp*damping_factor*l)
+                                rams%RR%pol_rtp(2, j_pol)%atom(i)%displacement(k)%XYZ(j)%frame(l)*EXP(-1.0_dp*damping_factor*l)
                             rams%RR%pol_rtp(3, j_pol)%atom(i)%displacement(k)%XYZ(j)%frame(l) = &
-                            rams%RR%pol_rtp(3, j_pol)%atom(i)%displacement(k)%XYZ(j)%frame(l)*EXP(-1.0_dp*damping_factor*l)
+                                rams%RR%pol_rtp(3, j_pol)%atom(i)%displacement(k)%XYZ(j)%frame(l)*EXP(-1.0_dp*damping_factor*l)
                         END DO
                     END DO
                 END DO

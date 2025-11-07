@@ -5,7 +5,7 @@
 &system
  type_traj pos
  filename trajectory_shorter.xyz
- mass_weighting y
+ mass_weighting n
 &end system
 &md
  time_step 0.5

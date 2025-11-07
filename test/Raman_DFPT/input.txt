@@ -2,12 +2,12 @@
  spectra MD-R
  temperature 300
 &end global
-&dipoles
- type_dipole dfpt
- dip_x_file alpha_x_solv_5000_new.xyz
- dip_y_file alpha_y_solv_5000_new.xyz
- dip_z_file alpha_z_solv_5000_new.xyz
-&end dipoles 
+&polarizabilities
+ type_pol analytical
+ pol_x_file alpha_x_solv_5000_new.xyz
+ pol_y_file alpha_y_solv_5000_new.xyz
+ pol_z_file alpha_z_solv_5000_new.xyz
+&end polarizabilities
 &md
  time_step 2.5
  correlation_depth 1024
