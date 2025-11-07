@@ -696,7 +696,7 @@ CONTAINS
             END IF
             !check for the incident laser frequency
             IF (.NOT. ALLOCATED(rams%laser_in)) THEN
-                WRITE (error_unit, '(4X,"[WARN]  ",A)') 'Incident laser frequency not defined, setting it to 1 0.5 cm⁻1'
+                WRITE (error_unit, '(4X,"[WARN]  ",A)') 'Incident laser frequency not defined, setting it to 1 0.5 eV'
                 ALLOCATE (rams%laser_in(1))
                 rams%laser_in(1) = 0.5
             END IF
@@ -854,10 +854,10 @@ CONTAINS
             END IF
             !check for the incident laser frequency
             IF (.NOT. ALLOCATED(rams%laser_in)) THEN
-                WRITE (error_unit, '(4X,"[WARN]  ",A)') 'Incident laser frequency not defined, setting it to 1 0.5 cm⁻1'
+                WRITE (error_unit, '(4X,"[WARN]  ",A)') 'Incident laser frequency not defined, setting it to 1 0.5 eV'
                 ALLOCATE (rams%laser_in(1))
                 IF (.NOT. ALLOCATED(rams%laser_in)) THEN
-                    WRITE (error_unit, '(4X,"[WARN]  ",A)') 'Incident laser frequency not defined, setting it to 1 0.5 cm⁻1'
+                    WRITE (error_unit, '(4X,"[WARN]  ",A)') 'Incident laser frequency not defined, setting it to 1 0.5 eV'
                     ALLOCATE (rams%laser_in(1))
                     rams%laser_in(1) = 0.5
                 END IF
@@ -949,7 +949,7 @@ CONTAINS
                 END IF
                 !check for incident laser wavelength
                 IF (.NOT. ALLOCATED(rams%laser_in)) THEN
-                    WRITE (error_unit, '(4X,"[WARN]  ",A)') 'Incident laser frequency not defined, setting it to 1 0.5 cm⁻1'
+                    WRITE (error_unit, '(4X,"[WARN]  ",A)') 'Incident laser frequency not defined, setting it to 1 0.5 eV'
                     ALLOCATE (rams%laser_in(1))
                     rams%laser_in(1) = 0.5
                 END IF
@@ -1056,7 +1056,7 @@ CONTAINS
                 END IF
                 !check for incident laser wavelength
                 IF (.NOT. ALLOCATED(rams%laser_in)) THEN
-                    WRITE (error_unit, '(4X,"[WARN]  ",A)') 'Incident laser frequency not defined, setting it to 1 0.5 cm⁻1'
+                    WRITE (error_unit, '(4X,"[WARN]  ",A)') 'Incident laser frequency not defined, setting it to 1 0.5 eV'
                     ALLOCATE (rams%laser_in(1))
                     rams%laser_in(1) = 0.5
                 END IF
