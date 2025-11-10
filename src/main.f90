@@ -49,7 +49,7 @@ PROGRAM vib2d
     USE cell_types, ONLY: build_hmat, pbc, invert3x3, determinant3x3
     USE read_traj, ONLY: read_coord, read_coord_frame, read_normal_modes, read_static, read_static_resraman
     USE dipole_calc, ONLY: compute_dipole
-    USE vel_cor, ONLY: cvv, cvv_iso, cvv_aniso, cvv_only_x, cvv_resraman
+    USE vel_cor, ONLY: cvv, cvv_iso, cvv_aniso, cvv_resraman
     USE fin_diff, ONLY: central_diff, forward_diff, finite_diff_static, finite_diff_static_resraman
     USE calc_spectra, ONLY: spec_power, normal_mode_analysis, spec_static_ir, spec_static_raman, &
                             spec_ir, spec_raman, spec_abs, spec_static_resraman, spec_abs_md, spec_resraman

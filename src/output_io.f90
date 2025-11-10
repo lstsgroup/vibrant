@@ -27,7 +27,7 @@ MODULE output_io
 
     PRIVATE
 
-    PUBLIC :: write_spectra_data, write_mol_file, append_column, check_file_open
+    PUBLIC :: write_spectra_data, write_acf_data, write_mol_file, append_column, check_file_open
 CONTAINS
 
     !> @brief Checks the status of a file open operation and aborts on failure and check if first line is a comment
@@ -87,22 +87,55 @@ CONTAINS
         OPEN (file=outfile, status='replace', action='write', iostat=stat, iomsg=msg, newunit=runit)
         CALL check_file_open(stat, msg, outfile)
 
-        WRITE (runit, '(A22,1X,A25)') TRIM(header_1), TRIM(header_2)
-        !WRITE (runit, '(A6,6X,A20)') 'FREQ', TRIM(header)
-        IF (PRESENT(freq_cutoff)) THEN
+        WRITE (runit, '(A22,1X,A45)') TRIM(header_1), TRIM(header_2)
 
+        IF (PRESENT(freq_cutoff)) THEN
             DO i = 1, SIZE(freq)
                 IF (freq(i).GE.freq_cutoff) EXIT
-                WRITE (runit, '(F22.16,1X,ES25.16E3)') freq(i), intensities(i)
+                WRITE (runit, '(F22.16,1X,ES45.16E3)') freq(i), intensities(i)
             END DO
         ELSE
             DO i = 1, SIZE(freq)
-                WRITE (runit, '(I22,1X,ES25.16E3)') i, intensities(i)
+                WRITE (runit, '(I22,1X,ES45.16E3)') i, intensities(i)
             END DO
         END IF
 
         CLOSE (runit)
     END SUBROUTINE write_spectra_data
+
+
+!***************************************************************************************!
+!***************************************************************************************!
+
+    !> @brief Writes time-autocorrelation data (time steps and intensity) to a text file.
+    !>
+    !> @param[in] outfile               --  Name of the output file
+    !> @param[in] header_1              --  Header label for the first column
+    !> @param[in] header_2              --  Header label for the second column
+    !> @param[in] time                  --  time array
+    !> @param[in] intensities           --  Array of intensities corresponding to each
+    !>                                      frequency
+    !>
+    SUBROUTINE write_acf_data(outfile, header_1, header_2, time, intensities)
+        CHARACTER(*), INTENT(in) :: outfile
+        CHARACTER(*), INTENT(in) :: header_1, header_2
+        REAL(dp), INTENT(in) :: time(:)
+        REAL(dp), INTENT(in) :: intensities(:)
+
+        INTEGER :: runit, stat, i
+        CHARACTER(len=256) :: msg
+
+        OPEN (file=outfile, status='replace', action='write', iostat=stat, iomsg=msg, newunit=runit)
+        CALL check_file_open(stat, msg, outfile)
+
+        WRITE (runit, '(A22,1X,A45)') TRIM(header_1), TRIM(header_2)
+
+        DO i = 1, SIZE(time)
+            WRITE (runit, '(F22.16,1X,ES45.16E3)') time(i), intensities(i)
+        END DO
+
+        CLOSE (runit)
+    END SUBROUTINE write_acf_data
 
 !***************************************************************************************!
 !***************************************************************************************!
@@ -224,13 +257,12 @@ CONTAINS
         REWIND (runit)
 
         ! ---------- loop 2: write the updated file ----------
-        WRITE (runit, '(A,1X,A25)') TRIM(lines(1)), TRIM(header)
-        IF (PRESENT(cutoff)) THEN
+        WRITE (runit, '(A,1X,A300)') TRIM(lines(1)), TRIM(header)
+       IF (PRESENT(cutoff)) THEN
             DO i = 1, SIZE(lines) - 1
                 IF (freq(i).GE.cutoff) EXIT
                 IF (freq_in_file(i)==freq(i)) THEN
-                    !PRINT *,freq(i)!, TRIM(lines(i+1))
-                    WRITE (runit, '(A,1X,ES25.16E3)') TRIM(lines(i + 1)), intensities(i)
+                    WRITE (runit, '(A,1X,ES55.16E3)') TRIM(lines(i + 1)), intensities(i)
                 ELSE
                     WRITE (error_unit, '(4X,"[ERROR] ",A)') "append_column: freq in file not equal to given freq."
                     RETURN
@@ -239,13 +271,11 @@ CONTAINS
         ELSE
             DO i = 1, SIZE(freq)
                 IF (freq_in_file(i)==freq(i)) THEN
-                    !PRINT *,freq(i)!, TRIM(lines(i+1))
-                    WRITE (runit, '(A,1X,ES25.16E3)') TRIM(lines(i + 1)), intensities(i)
+                    WRITE (runit, '(A,1X,ES55.16E3)') TRIM(lines(i + 1)), intensities(i)
                 ELSE
                     WRITE (error_unit, '(4X,"[ERROR] ",A)') "append_column: freq in file not equal to given freq."
                     RETURN
                 END IF
-                !WRITE (runit, '(A,1X,ES25.16E3)') TRIM(lines(i+1)), intensities(i)
             END DO
         END IF
         CLOSE (runit)

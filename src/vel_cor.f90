@@ -19,12 +19,12 @@ MODULE vel_cor
 
     USE kinds, ONLY: dp, str_len
     USE ISO_FORTRAN_ENV, ONLY: output_unit, error_unit
-    USE constants, ONLY: pi, ang, fs2s, at_u, bohr2ang
+    USE constants, ONLY: pi, am_u, ang, fs2s, at_u, bohr2ang
     USE vib_types, ONLY: global_settings, systems, molecular_dynamics, static, dipoles, raman
     USE output_io, ONLY: check_file_open
 
     IMPLICIT NONE
-    PUBLIC :: cvv, cvv_iso, cvv_aniso, cvv_only_x, cvv_resraman
+    PUBLIC :: cvv, cvv_iso, cvv_aniso, cvv_resraman
 
 CONTAINS
 
@@ -92,12 +92,15 @@ CONTAINS
       !! Unit conversion of dipole autocorrelation function to debye^2/s^2
         IF (gs%spectral_type%read_function=='MD-IR') THEN
             md%z(:) = md%z(:)/(fs2s*fs2s)
-      !! Unit conversion of velocity autocorrelation function to m^2/s^2
+      !! Unit conversion of velocity autocorrelation function to m^2/s^2, or m^2 /(s^2 kg) if not mass-weighted
         ELSE IF (gs%spectral_type%read_function=='P') THEN
             IF (sys%type_traj=='pos') THEN
                 md%z(:) = md%z(:)*ang*ang/(fs2s*fs2s)
             ELSE IF (sys%type_traj=='vel') THEN
                 md%z(:) = md%z(:)*ang*ang*bohr2ang*bohr2ang/(at_u*at_u)
+            END IF
+            IF (sys%input_mass=='y') THEN
+                md%z(:) = md%z(:)*am_u
             END IF
         END IF
 
@@ -186,15 +189,6 @@ CONTAINS
             z_iso(md%t_cor + i) = z_iso(md%t_cor - i)
         END DO
 
-        !! Write the autocorrelation data to a file
-        OPEN (FILE='result_cvv_iso.txt', STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
-        !Check if file exists
-        CALL check_file_open(stat, msg, 'result_cvv_iso.txt')
-        DO i = 0, 2*md%t_cor - 1
-            WRITE (runit, *) z_iso(i)
-        END DO
-        CLOSE (runit)
-
         DEALLOCATE (norm)
 
     END SUBROUTINE cvv_iso
@@ -278,15 +272,6 @@ CONTAINS
         DO i = 1, md%t_cor - 1
             z_aniso(md%t_cor + i) = z_aniso(md%t_cor - i)
         END DO
-
-        !! Write the autocorrelation data to a file
-        OPEN (FILE='result_cvv_aniso.txt', STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
-        !Check if file exists
-        CALL check_file_open(stat, msg, 'result_cvv_aniso.txt')
-        DO i = 0, 2*md%t_cor - 1
-            WRITE (runit, *) z_aniso(i)
-        END DO
-        CLOSE (runit)
 
         DEALLOCATE (norm)
 
@@ -402,16 +387,6 @@ CONTAINS
             END DO
         END DO
 
-        !! Write the autocorrelation data to a file
-        OPEN (FILE='result_cvv_iso_resraman.txt', STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
-        !Check if file exists
-        CALL check_file_open(stat, msg, 'result_cvv_iso_resraman.txt')
-        DO i = 0, 2*md%t_cor - 1
-            DO j = 1, Nw
-                WRITE (runit, *) rams%RR%z_iso_resraman(i, j)
-            END DO
-        END DO
-        CLOSE (runit)
         DEALLOCATE (norm_iso)
 
         !! Start complex autocorrelations for the anisotropic part
@@ -593,102 +568,6 @@ CONTAINS
             END DO
         END DO
 
-        !! Write the autocorrelation data to a file
-        OPEN (FILE='result_cvv_aniso_resraman.txt', STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
-        !Check if file exists
-        CALL check_file_open(stat, msg, 'result_cvv_aniso_resraman.txt')
-        DO i = 0, 2*md%t_cor - 1
-            DO j = 1, Nw
-                WRITE (runit, *) rams%RR%z_aniso_resraman(i, j)
-            END DO
-        END DO
-        CLOSE (runit)
-        DEALLOCATE (norm_aniso)
-
     END SUBROUTINE cvv_resraman
-
-!***********************************************************************************
-!***********************************************************************************
-
-    SUBROUTINE cvv_only_x(mol_num, framecount, z_para, z_ortho, alpha_diff_x, &
-                          alpha_diff_y, alpha_diff_z, direction, md)
-
-        TYPE(molecular_dynamics), INTENT(INOUT)     :: md
-        CHARACTER(LEN=40), INTENT(IN)                             :: direction
-        INTEGER, INTENT(INOUT)                                    :: framecount, mol_num
-        REAL(kind=dp), DIMENSION(:), ALLOCATABLE, INTENT(OUT)        :: z_para, z_ortho
-        REAL(kind=dp), DIMENSION(:, :, :), ALLOCATABLE, INTENT(INOUT)  :: alpha_diff_x, alpha_diff_y, alpha_diff_z
-
-        CHARACTER(LEN=40)                                        :: chara, msg
-        CHARACTER(LEN=2), DIMENSION(:), ALLOCATABLE                :: element
-        INTEGER, DIMENSION(:), ALLOCATABLE                         :: norm
-        INTEGER                                                  :: stat, i, j, k, m, t0, t1, runit
-
-        ALLOCATE (z_para(0:md%t_cor*2), norm(0:md%t_cor*2))
-        ALLOCATE (z_ortho(0:md%t_cor*2))
-
-        framecount = framecount - 2
-
-        norm = 0.0_dp
-        z_para = 0.0_dp
-        z_ortho = 0.0_dp
-        DO t0 = 1, framecount
-            t1 = MIN(framecount, t0 + md%t_cor)
-            DO k = 1, mol_num
-
-                IF (direction=='1') THEN
-                    z_para(0:t1 - t0) = z_para(0:t1 - t0) + alpha_diff_x(t0, k, 1)*alpha_diff_x(t0:t1, k, 1)!*18.01468_dp
-                    z_ortho(0:t1 - t0) = z_ortho(0:t1 - t0) + alpha_diff_x(t0, k, 2)*alpha_diff_x(t0:t1, k, 2)!*18.01468_dp
-                ELSE IF (direction=='2') THEN
-                    z_para(0:t1 - t0) = z_para(0:t1 - t0) + alpha_diff_y(t0, k, 2)*alpha_diff_y(t0:t1, k, 2)
-                    z_ortho(0:t1 - t0) = z_ortho(0:t1 - t0) + alpha_diff_y(t0, k, 3)*alpha_diff_y(t0:t1, k, 3)
-                ELSEIF (direction=='3') THEN
-                    z_para(0:t1 - t0) = z_para(0:t1 - t0) + alpha_diff_z(t0, k, 3)*alpha_diff_z(t0:t1, k, 3)
-                    z_ortho(0:t1 - t0) = z_ortho(0:t1 - t0) + alpha_diff_z(t0, k, 1)*alpha_diff_z(t0:t1, k, 1)
-                END IF
-
-            END DO
-            norm(0:t1 - t0) = norm(0:t1 - t0) + 1.0_dp
-        END DO
-
-        z_para(:) = z_para(:)/norm(:)
-        z_para(:) = z_para(:)/mol_num
-        z_para(:) = z_para(:)/(2.0_dp*pi)
-        z_ortho(:) = z_ortho(:)/norm(:)
-        z_ortho(:) = z_ortho(:)/mol_num
-        z_ortho(:) = z_ortho(:)/(2.0_dp*pi)
-
-        DO i = 0, md%t_cor - 1
-            z_para(i) = z_para(i)*0.5_dp*(1 + COS(2.0_dp*3.14_dp*i/(2.0_dp*(md%t_cor - 1))))
-            z_ortho(i) = z_ortho(i)*0.5_dp*(1 + COS(2.0_dp*3.14_dp*i/(2.0_dp*(md%t_cor - 1))))
-        END DO
-
-        z_para(md%t_cor) = 0.0_dp
-        z_ortho(md%t_cor) = 0.0_dp
-
-        DO i = 1, md%t_cor - 1
-            z_para(md%t_cor + i) = z_para(md%t_cor - i)
-            z_ortho(md%t_cor + i) = z_ortho(md%t_cor - i)
-        END DO
-
-        !OPEN (UNIT=60, FILE='result_cvv_para.txt', STATUS='unknown', IOSTAT=stat)
-        OPEN (FILE='result_cvv_para.txt', STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
-        !Check if file exists
-        CALL check_file_open(stat, msg, 'result_cvv_para.txt')
-        DO i = 0, 2*md%t_cor - 1
-            WRITE (runit, *) z_para(i)
-        END DO
-        CLOSE (runit)
-
-        !OPEN (UNIT=61, FILE='result_cvv_ortho.txt', STATUS='unknown', IOSTAT=stat)
-        OPEN (FILE='result_cvv_ortho.txt', STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
-        !Check if file exists
-        CALL check_file_open(stat, msg, 'result_cvv_ortho.txt')
-        DO i = 0, 2*md%t_cor - 1
-            WRITE (runit, *) z_ortho(i)
-        END DO
-        CLOSE (runit)
-        DEALLOCATE (norm)
-    END SUBROUTINE cvv_only_x
 
 END MODULE vel_cor

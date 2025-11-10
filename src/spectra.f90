@@ -19,7 +19,7 @@
 MODULE calc_spectra
 
     USE kinds, ONLY: dp, str_len
-    USE output_io, ONLY: write_spectra_data, write_mol_file, append_column, check_file_open
+    USE output_io, ONLY: write_spectra_data, write_acf_data, write_mol_file, append_column, check_file_open
     USE ISO_FORTRAN_ENV, ONLY: output_unit, error_unit
     USE vib_types, ONLY: global_settings, systems, molecular_dynamics, static, dipoles, raman
 
@@ -28,7 +28,7 @@ MODULE calc_spectra
                          speed_light_au, debye, reccm2au, sinc_factor
     USE read_traj, ONLY: read_coord_frame
     USE fin_diff, ONLY: central_diff, forward_diff
-    USE vel_cor, ONLY: cvv, cvv_iso, cvv_aniso, cvv_only_x, cvv_resraman
+    USE vel_cor, ONLY: cvv, cvv_iso, cvv_aniso, cvv_resraman
     USE dipole_calc!, ONLY: compute_dipole, check_jumps
     USE pade, ONLY: interpolate
 
@@ -96,13 +96,8 @@ CONTAINS
         CALL dfftw_execute_dft_r2c(plan, md%z, md%zhat)
         CALL dfftw_destroy_plan(plan)
 
-        !!Unit conversion to K cm if mass-weighted
-        IF (sys%input_mass=='y') THEN
-            power_const = (md%dt*fs2s*am_u*speed_light/const_boltz)*2.0_dp/(sys%natom*3.0_dp)
-        !!Unit conversion to K cm kg^{-1} if not mass-weighted
-        ELSEIF (sys%input_mass=='n') THEN
-            power_const = (md%dt*fs2s*speed_light/const_boltz)*2.0_dp/(sys%natom*3.0_dp)
-        END IF
+        !!Unit conversion to K cm, or K cm kg^{-1} if not mass-weighted
+        power_const = (md%dt*fs2s*speed_light/const_boltz)*2.0_dp/(sys%natom*3.0_dp)
 
         !Generate power spectrum
         DO i = 0, 2*md%t_cor - 1
@@ -112,19 +107,28 @@ CONTAINS
         END DO
 
         !!Write the results to a file
-        c_label_1 = "Freq."
-        c_label_2 = "INT"
+        c_label_1 = "# Freq. (cm^{-1})"
+        IF (sys%input_mass=='y') THEN
+            c_label_2 = "Int. (K cm)"
+        ELSE IF (sys%input_mass=='n') THEN
+            c_label_2 = "Int. (K cm kg^{-1})"
+        END IF
+
         spectra_file_name = "power_spec.txt"
         CALL write_spectra_data(spectra_file_name, c_label_1, c_label_2, freq, power_int, 5000.0_dp)
 
         IF (md%write_acf) THEN
             !!Write the ACF results to a file
             ALLOCATE (time_step(0:md%t_cor*2 - 1))
-            time_step = freq/freq_res
-            c_label_1 = "Time step"
-            c_label_2 = "Velocity autocorrelation"
+            time_step = (freq/freq_res)*md%dt !in fs
+            c_label_1 = "# Time (fs)"
+            IF (sys%input_mass=='y') THEN
+                c_label_2 = "VACF (m^{2} s^{-2})"
+            ELSE IF (sys%input_mass=='n') THEN
+                c_label_2 = "VACF (m^{2} s^{-2} kg^{-1}))"
+            END IF
             spectra_file_name = "result_acf_velocities.txt"
-            CALL write_spectra_data(spectra_file_name, c_label_1, c_label_2, time_step, md%z)
+            CALL write_acf_data(spectra_file_name, c_label_1, c_label_2, time_step, md%z)
             DEALLOCATE (time_step)
         END IF
         DEALLOCATE (power_int, freq)
@@ -222,8 +226,8 @@ CONTAINS
             END DO
 
             !!Write the results to a file
-            c_label_1 = "Freq."
-            c_label_2 = "INT"
+            c_label_1 = "# Freq. (cm^{-1})"
+            c_label_2 = "Int. (K cm km mol^{-1})"
             !!If there are no fragments
             IF (.NOT. sys%fragments%frag) THEN
                 spectra_file_name = "IR_spectrum.txt"
@@ -236,9 +240,9 @@ CONTAINS
             IF (md%write_acf) THEN
             !!Write the ACF results to a file
                 ALLOCATE (time_step(0:2*md%t_cor - 1))
-                time_step = freq/freq_res
-                c_label_1 = "Time step"
-                c_label_2 = "Dipole autocorrelation"
+                time_step = (freq/freq_res)*md%dt !time in fs
+                c_label_1 = "# Time (fs)"
+                c_label_2 = "Dipole ACF (D^{2} s^{-2})"
             !!If there are no fragments
                 IF (.NOT. sys%fragments%frag) THEN
                     spectra_file_name = "result_acf_dipoles.txt"
@@ -246,7 +250,7 @@ CONTAINS
                 ELSE
                     WRITE (spectra_file_name, '(A,I0,A)') "result_acf_dipoles_fragment_", i_group, ".txt"
                 END IF
-                CALL write_spectra_data(spectra_file_name, c_label_1, c_label_2, time_step, md%z)
+                CALL write_acf_data(spectra_file_name, c_label_1, c_label_2, time_step, md%z)
                 DEALLOCATE (time_step)
             END IF
             DEALLOCATE (md%z)
@@ -278,7 +282,7 @@ CONTAINS
         TYPE(raman), INTENT(INOUT)        :: rams
 
         CHARACTER(LEN=str_len)                               :: output_fname, f_name, idx, outfile, c_label_1, c_label_2
-        CHARACTER(LEN=str_len)                               :: msg, fname, spectra_file_name
+        CHARACTER(LEN=str_len)                               :: msg, fname, spectra_file_name, c_label_3
         INTEGER                                                  :: stat, i, j, xyz, runit, i_laser, i_group
         INTEGER(kind=dp)                                          :: plan
         INTEGER, DIMENSION(:), ALLOCATABLE                         :: natom_frag_free
@@ -409,7 +413,8 @@ CONTAINS
                                                            (const_boltz*gs%temp))))*2.0_dp
                 END DO
 
-                c_label_1 = "Freq."
+                c_label_1 = "# Freq. (cm^{-1})"
+
                 !!!Orthogonal Raman intensities, written out only if the user requested!!!
 
                 DO i = 0, 2*md%t_cor - 2
@@ -426,7 +431,7 @@ CONTAINS
                     ELSE
                         WRITE (outfile, '(A,I0,A)') "raman_orthogonal_fragment_", i_group, ".txt"
                     END IF
-                    WRITE (c_label_2, '("INT ",F10.6, " eV")') rams%laser_in(i_laser)
+                    WRITE (c_label_2, '("Int. (10^{-30} K m^{2} cm) @",F10.6, " eV")') rams%laser_in(i_laser)
                     IF (i_laser==1) THEN
                         CALL write_spectra_data(outfile, c_label_1, c_label_2, freq, raman_ortho(:), 5000.0_dp)
                     ELSE
@@ -443,7 +448,6 @@ CONTAINS
                     raman_para(i) = (zhat_iso(i) + (zhat_aniso(i)*4.0_dp/45.0_dp))*raman_const(i)
                     raman_para(0) = 0.0_dp
                     IF (freq(i).GE.5000.0_dp) CYCLE
-                    !WRITE (runit, *) freq(i), raman_para(i)
                 END DO
                 IF (gs%spectra_verbosity=='high') THEN
                     IF (.NOT. sys%fragments%frag) THEN
@@ -451,7 +455,7 @@ CONTAINS
                     ELSE
                         WRITE (outfile, '(A,I0,A)') "raman_parallel_fragment_", i_group, ".txt"
                     END IF
-                    WRITE (c_label_2, '("INT ",F10.6, " eV")') rams%laser_in(i_laser)
+                    WRITE (c_label_2, '("Int. (10^{-30} K m^{2} cm) @",F10.6, " eV")') rams%laser_in(i_laser)
                     IF (i_laser==1) THEN
                         CALL write_spectra_data(outfile, c_label_1, c_label_2, freq, raman_para(:), 5000.0_dp)
                     ELSE
@@ -464,7 +468,6 @@ CONTAINS
                     raman_unpol(i) = raman_ortho(i) + raman_para(i)
                     raman_unpol(0) = 0.00_dp
                     IF (freq(i).GE.5000.0_dp) CYCLE
-                    !WRITE (runit, *) freq(i), raman_unpol(i)
                 END DO
                 IF (gs%spectra_verbosity=='high' .OR. gs%spectra_verbosity=='normal') THEN
                     IF (.NOT. sys%fragments%frag) THEN
@@ -472,7 +475,7 @@ CONTAINS
                     ELSE
                         WRITE (outfile, '(A,I0,A)') "raman_unpolarized_fragment_", i_group, ".txt"
                     END IF
-                    WRITE (c_label_2, '("INT ",F10.6, " eV")') rams%laser_in(i_laser)
+                    WRITE (c_label_2, '("Int. (10^{-30} K m^{2} cm) @",F10.6, " eV")') rams%laser_in(i_laser)
                     IF (i_laser==1) THEN
                         CALL write_spectra_data(outfile, c_label_1, c_label_2, freq, raman_unpol(:), 5000.0_dp)
                     ELSE
@@ -485,7 +488,6 @@ CONTAINS
                     raman_depol(i) = REAL(raman_ortho(i), kind=dp)/REAL(raman_para(i), kind=dp)
                     raman_depol(0) = 0.00_dp
                     IF (freq(i).GE.5000.0_dp) CYCLE
-                    !WRITE (runit, *) freq(i), raman_depol(i)
                 END DO
                 IF (gs%spectra_verbosity=='high') THEN
                     IF (.NOT. sys%fragments%frag) THEN
@@ -493,7 +495,7 @@ CONTAINS
                     ELSE
                         WRITE (outfile, '(A,I0,A)') "raman_depolarization_ratio_fragment_", i_group, ".txt"
                     END IF
-                    WRITE (c_label_2, '("INT ",F10.6, " eV")') rams%laser_in(i_laser)
+                    WRITE (c_label_2, '("Int. (10^{-30} K m^{2} cm) @",F10.6, " eV")') rams%laser_in(i_laser)
                     IF (i_laser==1) THEN
                         CALL write_spectra_data(outfile, c_label_1, c_label_2, freq, raman_depol(:), 5000.0_dp)
                     ELSE
@@ -507,10 +509,11 @@ CONTAINS
             !!Write the ACF results to a file
                 ALLOCATE (time_step(1:md%t_cor*2))
                 DO i = 1, md%t_cor*2
-                    time_step(i) = i
+                    time_step(i) = i*md%dt
                 END DO
-                c_label_1 = "Time step"
-                c_label_2 = "Polarizability autocorrelation"
+                c_label_1 = "# Time (fs)"
+                c_label_2 = "Iso. pol. ACF (D^2 m^2 V^{-2} s^{-2})"
+                c_label_3 = "Aniso. pol. ACF (D^2 m^2 V^{-2} s^{-2})"
             !!If there are no fragments
                 IF (.NOT. sys%fragments%frag) THEN
                     spectra_file_name = "result_acf_polarizabilities.txt"
@@ -518,8 +521,8 @@ CONTAINS
                 ELSE
                     WRITE (spectra_file_name, '(A,I0,A)') "result_acf_polarizabilities_fragment_", i_group, ".txt"
                 END IF
-                CALL write_spectra_data(spectra_file_name, c_label_1, c_label_2, time_step, rams%z_iso)
-                CALL append_column(spectra_file_name, c_label_2, rams%z_aniso, time_step)
+                CALL write_acf_data(spectra_file_name, c_label_1, c_label_2, time_step, rams%z_iso)
+                CALL append_column(spectra_file_name, c_label_3, rams%z_aniso, time_step)
                 DEALLOCATE (time_step)
             END IF
             DEALLOCATE (rams%z_iso, rams%z_aniso)
@@ -613,6 +616,7 @@ CONTAINS
         OPEN (FILE='normal_mode_freq.txt', STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
         !Check if file exists
         CALL check_file_open(stat, msg, 'normal_mode_freq.txt')
+        WRITE (runit, *) "# Normal mode freq. (cm^{-1})"
         DO i = 1, stats%nmodes
             WRITE (runit, *) stats%freq(i)
         END DO
@@ -622,11 +626,13 @@ CONTAINS
         OPEN (FILE='normal_mode_displ.txt', STATUS='unknown', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
         !Check if file exists
         CALL check_file_open(stat, msg, 'normal_mode_displ.txt')
+        WRITE (runit, *) "# Mass weighted eigenvectors"
         DO i = 1, stats%nmodes
             DO j = 1, sys%natom
                 WRITE (runit, *) stats%disp(i, j, 1:3)
             END DO
         END DO
+
         !!Write .mol output
         IF (gs%spectral_type%read_function=='NMA') THEN
             IF (stats%write_mol) THEN
@@ -702,8 +708,8 @@ CONTAINS
         END DO
 
         !!Write the results to a file
-        c_label_1 = "Freq."
-        c_label_2 = "INT"
+        c_label_1 = "# Freq. (cm^{-1})"
+        c_label_2 = "Int. (km mol^{-1})"
         spectra_file_name = "result_static_ir.txt"
         CALL write_spectra_data(spectra_file_name, c_label_1, c_label_2, freq, data2(:))
 
@@ -740,7 +746,8 @@ CONTAINS
         TYPE(dipoles), INTENT(INOUT)        :: dips
         TYPE(raman), INTENT(INOUT)        :: rams
 
-        CHARACTER(len=str_len)                                      :: msg, fname, outfile, c_label_1, c_label_2
+        CHARACTER(len=str_len)                                      :: msg, fname, outfile, c_label_1
+        CHARACTER(len=250)                                      :: c_label_2
         LOGICAL                                                   :: first_column
         INTEGER                                                  :: stat, i, j, x, freq_res, runit, i_laser
         INTEGER                                                  :: start_freq, end_freq!, recl
@@ -823,9 +830,10 @@ CONTAINS
             END DO
 
             !!Write the results to a file
-            c_label_1 = 'Freq.'
+            c_label_1 = '# Freq. (cm^{-1})'
             outfile = 'result_static_raman.txt'
-            WRITE (c_label_2, '("INT ",F10.6, " eV")') rams%laser_in(i_laser)
+            c_label_2 = "Int. (10^{-30} cm^2/(mol./system)) @"
+            WRITE(c_label_2(LEN_TRIM(c_label_2)+1:), '(F10.6, " eV")') rams%laser_in(i_laser)
             IF (i_laser==1) THEN
                 CALL write_spectra_data(outfile, c_label_1, c_label_2, freq, data2(:))
                 IF (gs%spectra_verbosity=='high') THEN
@@ -981,8 +989,8 @@ CONTAINS
             abs_int(o) = abs_intens(1, 1, 1, o)*o*freq_au
         END DO
         !!Write the results to a file
-        c_label_1 = "Energy (eV)"
-        c_label_2 = "INT"
+        c_label_1 = "# Energy (eV)"
+        c_label_2 = "Int. (a.u.)"
         spectra_file_name = "absorption_spectrum.txt"
         CALL write_spectra_data(spectra_file_name, c_label_1, c_label_2, freq, abs_int, MAXVAL(freq) + 1)
 
@@ -1017,7 +1025,8 @@ CONTAINS
         INTEGER                                                       :: stat, i, j, k, m, x, freq_res, l, o, n, r, runit, i_laser
         INTEGER                                                       :: start_freq, end_freq, rtp_point
         INTEGER(kind=dp)                                               :: plan
-        CHARACTER(len=str_len)                                         :: msg, fname, outfile, c_label_1, c_label_2
+        CHARACTER(len=str_len)                                         :: msg, fname, outfile, c_label_1
+        CHARACTER(len=200)                                         :: c_label_2
         REAL(kind=dp)                                                  :: rtp_freq_res, pade_freq_res, fin_diff_factor, broad, broad_para, broad_ortho
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE                         :: data2, spec_broad_para, spec_broad_ortho, ram_const, freq
         REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE                       :: iso_sq, aniso_sq, raman_int, r_int_para, r_int_ortho
@@ -1139,8 +1148,9 @@ CONTAINS
 
             !!Writing out the results
             outfile = 'result_static_resraman.txt'
-            c_label_1 = 'Freq.'
-            WRITE (c_label_2, '("INT ",F10.6, " eV")') rams%laser_in(i_laser)
+            c_label_1 = '# Freq. (cm^{-1})'
+            c_label_2 = "Int. (10^{-30} cm^2/(mol./system)) @"
+            WRITE(c_label_2(LEN_TRIM(c_label_2)+1:), '(F10.6, " eV")') rams%laser_in(i_laser)
             IF (i_laser==1) THEN
                 CALL write_spectra_data(outfile, c_label_1, c_label_2, freq, data2(:))
                 IF (gs%spectra_verbosity=='high') THEN
@@ -1150,7 +1160,6 @@ CONTAINS
                     CALL write_spectra_data(outfile, c_label_1, c_label_2, freq, spec_broad_ortho(:))
                 END IF
             ELSE
-                !WRITE(c_label,'("INT ",F10.6, " eV")') rams%laser_in(i_laser)
                 CALL append_column(outfile, c_label_2, data2(:), freq)
                 IF (gs%spectra_verbosity=='high') THEN
                     outfile = 'result_static_resraman_para.txt'
@@ -1349,8 +1358,8 @@ CONTAINS
             abs_intens(i) = abs_intens(i)*i*freq_au
             freq(i) = i*rtp_freq_res*reccm2ev
         END DO
-        c_label_1 = "Energy (eV)"
-        c_label_2 = "Intensity"
+        c_label_1 = "# Energy (eV)"
+        c_label_2 = "Int. (a.u.)"
         spectra_file_name = "absorption_spectrum_md.txt"
         CALL write_spectra_data(spectra_file_name, c_label_1, c_label_2, freq, abs_intens, MAXVAL(freq) + 1)
 
@@ -1395,6 +1404,9 @@ CONTAINS
         REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE                  :: zhat_unpol_resraman, zhat_para_resraman, zhat_ortho_resraman
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE                     :: raman_const, sinc_func, freq, time_step
         COMPLEX(kind=dp), DIMENSION(:, :), ALLOCATABLE               :: zhat_iso_resraman, zhat_aniso_resraman
+        ! Define a consistent format for headers and data
+        CHARACTER(len=*), PARAMETER :: fmt_header = '(A20,3X,A55,3X,A55,3X,A55,3X,A55)'
+        CHARACTER(len=*), PARAMETER :: fmt_data = '(F20.10,3X,ES23.14E3,3X,ES23.14E3,3X,ES23.14E3,3X,ES23.14E3)'
 
         IF (rams%RR%check_pade=='n') THEN
             Nw = rams%RR%framecount_rtp - 1
@@ -1462,7 +1474,8 @@ CONTAINS
         !!Sinc factor
         f = freq_res*md%dt*sinc_factor
 
-        c_label_1 = "Freq."
+        c_label_1 = "# Freq. (cm^{-1})"
+
 !!!!!Unpolarized Raman intensities
 !Unit conversion of Debye^2/(E^2*s^2) into C^4*s^2/kg^2
         zhat_iso_resraman(:, :) = zhat_iso_resraman(:, :)*debye2cm*debye2cm/(au2vm*au2vm)
@@ -1499,7 +1512,7 @@ CONTAINS
 
             !!Writing out the files
             outfile = "resonance_raman_unpol.txt"
-            WRITE (c_label_2, '("INT ",F10.6, " eV")') rams%laser_in(i_laser)
+            WRITE (c_label_2, '("Int. (10^{-30} K m^{2} cm) @",F10.6, " eV")') rams%laser_in(i_laser)
             IF (i_laser==1) THEN
                 CALL write_spectra_data(outfile, c_label_1, c_label_2, freq, zhat_unpol_resraman(:, rtp_point), 5000.0_dp)
                 IF (gs%spectra_verbosity=='high') THEN
@@ -1519,24 +1532,33 @@ CONTAINS
             END IF
 
             IF (md%write_acf) THEN
-            !!Write the ACF results to a file
+                 !! Write the ACF results to a single, well-aligned file
                 ALLOCATE (time_step(1:md%t_cor*2))
                 DO i = 1, md%t_cor*2
-                    time_step(i) = i
+                    time_step(i) = i*md%dt  ! fs
                 END DO
-                c_label_1 = "Time step"
+
                 WRITE (outfile, '(A,I0,A)') "result_acf_td-polarizabilities_laser_", i_laser, ".txt"
-                c_label_2 = "Re(\alpha_{iso})"
-                CALL write_spectra_data(outfile, c_label_1, c_label_2, time_step, REAL(rams%RR%z_iso_resraman(:, rtp_point), KIND=dp))
-                c_label_2 = "Im(\alpha_{iso})"
-                CALL append_column(outfile, c_label_2, DIMAG(rams%RR%z_iso_resraman(:, rtp_point)), time_step)
-                c_label_2 = "Re(\alpha_{aniso})"
-                CALL append_column(outfile, c_label_2, REAL(rams%RR%z_aniso_resraman(:, rtp_point), KIND=dp), time_step)
-                c_label_2 = "Im(\alpha_{aniso})"
-                CALL append_column(outfile, c_label_2, DIMAG(rams%RR%z_aniso_resraman(:, rtp_point)), time_step)
+
+                OPEN (NEWUNIT=runit, FILE=outfile, STATUS='REPLACE', ACTION='WRITE')
+
+                WRITE (runit, fmt_header) '# Time (fs)', &
+                    'Re(alpha(omega)_{iso}) (D^2 m^2 V^-2 s^-2)', &
+                    'Im(alpha(omega)_{iso}) (D^2 m^2 V^-2 s^-2)', &
+                    'Re(alpha(omega)_{aniso}) (D^2 m^2 V^-2 s^-2)', &
+                    'Im(alpha(omega)_{aniso}) (D^2 m^2 V^-2 s^-2)'
+
+                DO i = 1, md%t_cor*2
+                    WRITE (runit, fmt_data) time_step(i), &
+                        REAL(rams%RR%z_iso_resraman(i, rtp_point), KIND=dp), &
+                        DIMAG(rams%RR%z_iso_resraman(i, rtp_point)), &
+                        REAL(rams%RR%z_aniso_resraman(i, rtp_point), KIND=dp), &
+                        DIMAG(rams%RR%z_aniso_resraman(i, rtp_point))
+                END DO
+
+                CLOSE (runit)
                 DEALLOCATE (time_step)
             END IF
-
         END DO
 
         DEALLOCATE (zhat_iso_resraman, zhat_aniso_resraman, zhat_unpol_resraman, freq, raman_const)
