@@ -59,7 +59,7 @@ or if the user wants to skip the Hessian diagonalization and give the normal mod
 `vibrant` applies Gaussian broadening to the final discrete set of frequencies and intensities. The `fwhm` keyword controls the full width at half-maximum (FWHM) value in cm ${^{-1}}$ and if not specified, it is set to 5 cm ${^{-1}}$. 
 
 ```{note}
-  The keyword `write_mol_file` is optional and it executes the printing of a `<filename>.mol` file, which includes the optimized geometry, normal mode frequencies, normal mode coordinates and the non-broadened IR intensities. The `<filename>.mol` file can be opened with [MOLDEN](https://www.theochem.ru.nl/molden/) to visualize the normal modes alongside the IR spectrum.
+  The keyword `write_mol_file` is optional and it executes the printing of a `<filename>.mol` file, which includes the optimized geometry (Å), normal mode frequencies (cm$^{-1}$), non-mass-weighted eigenvectors in atomic units (Bohr) and the non-broadened IR intensities. The `<filename>.mol` file can be opened with [MOLDEN](https://www.theochem.ru.nl/molden/) to visualize the normal modes alongside the IR spectrum.
 ```
 
 The final static IR intensities are reported in km/mol.
@@ -141,5 +141,9 @@ And for the Wannier centers, it would be:
 ```
 
 The Wannier centers can be used to compute the dipole moment of the whole supercell, however they can also be used to extract spectra of user-specified molecular blocks or fragments, which is discussed in Section [Subspectra for MD-based calculations](fragments.md).
+
+ ```{note}
+ The `write_acf_file` keyword can optionally be used in the `md` section and it executes the printing of a file which contains the time-autocorrelation data. In the case of IR spectrum calculation, this would be the dipole-autocorrelation data.
+ ```
 
 More information on the all available keywords can be found on [Keyword Glossary](Keyword_Glossary.rst) and all complete example input files are available on [Examples](Examples.md).
