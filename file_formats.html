@@ -152,6 +152,7 @@
 ...
 </pre></div>
 </div>
+<p>An example file can be downloaded from <a class="reference download internal" download="" href="_downloads/ee06a7be8370684ea018849866623d3d/force.data"><span class="xref download myst">here</span></a>.</p>
 </section>
 <section id="files-for-normal-mode-analysis">
 <h2>2) Files for normal mode analysis<a class="headerlink" href="#files-for-normal-mode-analysis" title="Link to this heading">¶</a></h2>
@@ -184,18 +185,19 @@
 &lt;force_x&gt;<span class="w"> </span>&lt;force_y&gt;<span class="w"> </span>&lt;force_z&gt;<span class="w"> </span><span class="c1">#last atom</span>
 </pre></div>
 </div>
-<p>As an example, <a class="reference download internal" download="" href="_downloads/f106bfe1bda9347625ebe0f8c0aa09c6/force.sh"><span class="xref download myst">this bash script</span></a> enters the directories of each displaced structure and appends the <a class="reference download internal" download="" href="_downloads/3287c454638d3f5397d4b7ae1ef57b84/force.xyz"><span class="xref download myst">CP2K force files</span></a> accordingly.</p>
+<p>As an example, <a class="reference download internal" download="" href="_downloads/f106bfe1bda9347625ebe0f8c0aa09c6/force.sh"><span class="xref download myst">this bash script</span></a> enters the directories of each displaced structure and for example, appends the <a class="reference download internal" download="" href="_downloads/3287c454638d3f5397d4b7ae1ef57b84/force.xyz"><span class="xref download myst">CP2K force files</span></a> accordingly.</p>
 </section>
 <section id="normal-mode-frequencies-and-coordinates">
 <h3>2.2 Normal mode frequencies and coordinates<a class="headerlink" href="#normal-mode-frequencies-and-coordinates" title="Link to this heading">¶</a></h3>
-<p>The user can provide the normal mode frequencies and coordinates instead of forces. In that case, the normal mode frequencies should be given as:</p>
+<p>The user can provide the normal mode frequencies and mass-weighted eigenvectors instead of forces. In that case, the normal mode frequencies should be given as:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>&lt;frequency&gt;<span class="w"> </span><span class="c1">#for the first normal mode</span>
 &lt;frequency&gt;<span class="w"> </span><span class="c1">#for the second normal mode</span>
 ...
 &lt;frequency&gt;<span class="w"> </span><span class="c1">#for the last normal mode</span>
 </pre></div>
 </div>
-<p>And the normal mode coordinates should be given as the atomic cartesian coordinates (in. a.u.) for each vibrational mode, such as:</p>
+<p>An example file can be downloaded from <span class="xref myst">here</span>.</p>
+<p>And the mass-weighted eigenvectors should be given as the atomic coordinates for each vibrational mode, such as:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>&lt;x_coord&gt;<span class="w"> </span>&lt;y_coord&gt;<span class="w"> </span>&lt;z_coord&gt;<span class="w"> </span><span class="c1"># coordinates of Atom 1 for normal mode 1</span>
 &lt;x_coord&gt;<span class="w"> </span>&lt;y_coord&gt;<span class="w"> </span>&lt;z_coord&gt;<span class="w"> </span><span class="c1"># coordinates of Atom 2 for normal mode 1</span>
 ...
@@ -206,6 +208,7 @@
 &lt;x_coord&gt;<span class="w"> </span>&lt;y_coord&gt;<span class="w"> </span>&lt;z_coord&gt;<span class="w"> </span><span class="c1"># coordinates of the last atom for the last normal mode</span>
 </pre></div>
 </div>
+<p>An example file can be downloaded from <span class="xref myst">here</span>.</p>
 </section>
 </section>
 <section id="berry-phase-dipole-moments">
@@ -220,11 +223,12 @@
 <span class="w">                       </span><span class="c1">#leave 1 blank line</span>
 &lt;dummy_value&gt;<span class="w"> </span>&lt;dipole_x&gt;<span class="w"> </span>&lt;dipole_y&gt;<span class="w"> </span>&lt;dipole_z&gt;<span class="w"> </span><span class="c1">#second MD frame</span>
 ...
-<span class="m">1</span><span class="w"> </span>
+
 <span class="w">                       </span><span class="c1">#leave 1 blank line</span>
 &lt;dummy_value&gt;<span class="w"> </span>&lt;dipole_x&gt;<span class="w"> </span>&lt;dipole_y&gt;<span class="w"> </span>&lt;dipole_z&gt;<span class="w"> </span><span class="c1">#last MD frame</span>
 </pre></div>
 </div>
+<p>An example file can be downloaded from <a class="reference download internal" download="" href="_downloads/3a05e6e5280afec52a82724fca2a3f1d/berry_dipole.xyz"><span class="xref download myst">here</span></a>.</p>
 </section>
 <section id="static-spectra-based-on-normal-modes">
 <h3>3.2 Static spectra based on normal modes<a class="headerlink" href="#static-spectra-based-on-normal-modes" title="Link to this heading">¶</a></h3>
@@ -263,11 +267,13 @@
 &lt;dummy_value&gt;<span class="w"> </span>&lt;dipole_x&gt;<span class="w"> </span>&lt;dipole_y&gt;<span class="w"> </span>&lt;dipole_z&gt;<span class="w"> </span>
 </pre></div>
 </div>
+<p>An example file can be downloaded from <a class="reference download internal" download="" href="_downloads/43f165a916b641a7897d28e135e35b12/dipoles_water.xyz"><span class="xref download myst">here</span></a>.</p>
 </section>
 </section>
 <section id="wannier-centers">
 <h2>4) Wannier centers<a class="headerlink" href="#wannier-centers" title="Link to this heading">¶</a></h2>
-<p>If any MD-based spectrum is being calculated from Wannier centers, then the <code class="docutils literal notranslate"><span class="pre">wannier.xyz</span></code> for the whole system (atoms + Wannier centers labeled as “X”) should be given for each MD frame in the <code class="docutils literal notranslate"><span class="pre">.xyz</span></code> file format. An example could be seen <a class="reference download internal" download="" href="_downloads/7d4be304ca33cee9f055250963aef337/COF-1_solv_wannier_free.xyz"><span class="xref download myst">here</span></a>.</p>
+<p>If any MD-based spectrum is being calculated from Wannier centers, then the <code class="docutils literal notranslate"><span class="pre">wannier.xyz</span></code> for the whole system (atoms + Wannier centers labeled as “X”) should be given for each MD frame in the <code class="docutils literal notranslate"><span class="pre">.xyz</span></code> file format.</p>
+<p>An example could be seen <a class="reference download internal" download="" href="_downloads/7d4be304ca33cee9f055250963aef337/COF-1_solv_wannier_free.xyz"><span class="xref download myst">here</span></a>.</p>
 </section>
 <section id="dfpt-polarizabilities">
 <h2>5) DFPT polarizabilities<a class="headerlink" href="#dfpt-polarizabilities" title="Link to this heading">¶</a></h2>
@@ -287,6 +293,7 @@
 </pre></div>
 </div>
 <p>where <span class="math notranslate nohighlight">\(i\)</span> is <span class="math notranslate nohighlight">\(x\)</span>, <span class="math notranslate nohighlight">\(y\)</span>, or <span class="math notranslate nohighlight">\(z\)</span>.</p>
+<p>An example file can be downloaded from <a class="reference download internal" download="" href="_downloads/3a503704a798a8af1044db35ad35ec39/alpha.xyz"><span class="xref download myst">here</span></a>.</p>
 </section>
 <section id="id2">
 <h3>5.2 Static spectra based on normal modes<a class="headerlink" href="#id2" title="Link to this heading">¶</a></h3>
@@ -326,7 +333,7 @@
 &lt;dummy_value&gt;<span class="w"> </span>&lt;alpha_yx&gt;<span class="w"> </span>&lt;alpha_zx&gt;<span class="w"> </span>&lt;alpha_zy&gt;<span class="w"> </span>
 </pre></div>
 </div>
-<p>The reason for leaving six blank spaces is because the user can directly append the <a class="reference external" href="https://manual.cp2k.org/trunk/CP2K_INPUT/FORCE_EVAL/PROPERTIES/LINRES/POLAR.html#CP2K_INPUT.FORCE_EVAL.PROPERTIES.LINRES.POLAR.DO_RAMAN">CP2K DFPT polarizabilities</a>, an example is shown below:</p>
+<p>The reason for leaving six blank spaces is because, for example, the user can directly append the <a class="reference external" href="https://manual.cp2k.org/trunk/CP2K_INPUT/FORCE_EVAL/PROPERTIES/LINRES/POLAR.html#CP2K_INPUT.FORCE_EVAL.PROPERTIES.LINRES.POLAR.DO_RAMAN">CP2K DFPT polarizabilities</a>. An example is shown below:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>POLARIZABILITY<span class="w"> </span>TENSOR<span class="w"> </span><span class="o">(</span>atomic<span class="w"> </span>units<span class="o">)</span>:
 xx,yy,zz<span class="w">        </span><span class="m">8</span>.25528<span class="w">        </span><span class="m">6</span>.66403<span class="w">        </span><span class="m">5</span>.31055
 xy,xz,yz<span class="w">       </span>-0.00001<span class="w">        </span><span class="m">0</span>.00194<span class="w">       </span>-0.00116
@@ -338,6 +345,7 @@ yx,zx,zy<span class="w">       </span>-0.00000<span class="w">        </span><sp
 </pre></div>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">vibrant</span></code> only reads the polarizabilities in Å <span class="math notranslate nohighlight">\(^3\)</span>, ignoring the a.u. block.</p>
+<p>An example file can be downloaded from <a class="reference download internal" download="" href="_downloads/2a44a0f43b1e48d744bc3c1946d8a012/polarizabilities.dat"><span class="xref download myst">here</span></a>.</p>
 </section>
 </section>
 <section id="time-dependent-berry-phase-dipole-moments-coming-from-rt-tddft">
@@ -367,6 +375,7 @@ yx,zx,zy<span class="w">       </span>-0.00000<span class="w">        </span><sp
 </pre></div>
 </div>
 <p>Here the unperturbed dipole moments refer to <span class="math notranslate nohighlight">\(\mu^{0}_{i}\)</span> described in Section <a class="reference internal" href="Resonance_Raman_spec.html"><span class="std std-doc">Resonance Raman (RR) and absorption spectra</span></a>. Three files should be given in total, each containing the unperturbed dipole moments + time-dependent dipole moments perturbed under electric field applied in <span class="math notranslate nohighlight">\(x\)</span>, <span class="math notranslate nohighlight">\(y\)</span> or <span class="math notranslate nohighlight">\(z\)</span> direction.</p>
+<p>An example file can be downloaded from <a class="reference download internal" download="" href="_downloads/b144fce99442ce0b2f970c87aad5adb7/RTP_dipoles_MD.xyz"><span class="xref download myst">here</span></a>.</p>
 </section>
 <section id="id4">
 <h3>6.2 Static spectra based on normal modes<a class="headerlink" href="#id4" title="Link to this heading">¶</a></h3>
@@ -415,6 +424,11 @@ yx,zx,zy<span class="w">       </span>-0.00000<span class="w">        </span><sp
 </pre></div>
 </div>
 <p>Similarly to the MD-based spectra, here the unperturbed dipole moments refer to <span class="math notranslate nohighlight">\(\mu^{0}_{i}\)</span> described in Section <a class="reference internal" href="Resonance_Raman_spec.html"><span class="std std-doc">Resonance Raman (RR) and absorption spectra</span></a>. Three files should be given in total, each containing the unperturbed dipole moments + time-dependent dipole moments perturbed under electric field applied in <span class="math notranslate nohighlight">\(x\)</span>, <span class="math notranslate nohighlight">\(y\)</span> or <span class="math notranslate nohighlight">\(z\)</span> direction.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If the user only wants to calculate an absorption spectrum, then it is sufficient to provide the time-dependent dipole moments of only one geometry.</p>
+<p>An example file for only one geometry can be downloaded from <a class="reference download internal" download="" href="_downloads/61ad92c0f6b7cb97f3b5a1422cc91a94/RTP_dipoles_static.xyz"><span class="xref download myst">here</span></a>.</p>
+</div>
 </section>
 </section>
 </section>

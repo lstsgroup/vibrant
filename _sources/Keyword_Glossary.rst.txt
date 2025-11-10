@@ -160,7 +160,8 @@ Block: md
 
     &md
         time_step 
-        correlation_depth 
+        correlation_depth
+        write_acf_file 
     &end md
 
 .. keyword:: time_step
@@ -175,6 +176,12 @@ Block: md
     :type: int
 
     Correlation depth used in autocorrelation function.
+
+.. keyword:: write_acf_file
+    :section: md
+    :type: string
+
+    Flag for writing the time-autocorrelation data.
 
 Block: static
 -------------
@@ -215,7 +222,7 @@ Block: static
 
 .. keyword:: normal_displ_file
     :section: static
-    :unit: Ang
+    :unit: -
     :type: string
 
     This is the path of the file containing the systems normal mode displacements.
@@ -248,12 +255,10 @@ Block: dipoles
     
     &dipoles
         type_dipole
-        field_strength
         dip_file 
         dip_x_file
         dip_y_fil
         dip_z_file
-        static_pol_file
     &end dipoles
 
 .. keyword:: type_dipole
@@ -261,19 +266,10 @@ Block: dipoles
     :type: string
     :default: berry
 
-    Define type of provided dipole moments. Possible values are: 
+    Defines type of the provided dipole moments. Possible values are: 
 
-    * **berry** — for berry phase dipolemoments
-    * **wannier** — for wannier dipolemoments
-    * **dfpt** — for density functional perturbation theory
-    check again
-
-.. keyword:: field_strength
-    :section: dipoles
-    :type: float
-    :unit: Hartree/[:math:`e` Bohr] (a.u.)
-    
-    Strength of the applied electric field in atomic units.
+    * **berry** — for Berry phase dipole moments
+    * **wannier** — for Wannier centers
     
 .. keyword:: dip_file
     :section: dipoles
@@ -303,6 +299,36 @@ Block: dipoles
     
     This is the path of the file containing the systems dipole moments obtained under an electric field in the z-direction.
     
+
+
+Block: polarizabilities
+-------------
+
+.. code-block:: bash
+    
+    &dipoles
+        type_pol
+        field_strength
+        static_pol_file
+    &end dipoles
+
+.. keyword:: type_pol
+    :section: polarizabilities
+    :type: string
+    :default: -
+
+    Defines type of the provided polarizabilities. Possible values are: 
+
+    * **induced** — induced dipole moments 
+    * **analytical** — direct polarizabilities
+
+.. keyword:: field_strength
+    :section: dipoles
+    :type: float
+    :unit: Hartree/[:math:`e` Bohr] (a.u.)
+    
+    Strength of the applied electric field in atomic units.
+
 .. keyword:: static_pol_file
     :section: dipoles
     :unit:  :math:`\mathrm{Ang}³`

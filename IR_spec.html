@@ -187,7 +187,7 @@ I_{\textnormal{IR}}(\tilde{\nu}_p) = \frac{N_{A} }{12\varepsilon _{0}c^{2}}\left
 <p><code class="docutils literal notranslate"><span class="pre">vibrant</span></code> applies Gaussian broadening to the final discrete set of frequencies and intensities. The <code class="docutils literal notranslate"><span class="pre">fwhm</span></code> keyword controls the full width at half-maximum (FWHM) value in cm <span class="math notranslate nohighlight">\({^{-1}}\)</span> and if not specified, it is set to 5 cm <span class="math notranslate nohighlight">\({^{-1}}\)</span>.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>The keyword <code class="docutils literal notranslate"><span class="pre">write_mol_file</span></code> is optional and it executes the printing of a <code class="docutils literal notranslate"><span class="pre">&lt;filename&gt;.mol</span></code> file, which includes the optimized geometry, normal mode frequencies, normal mode coordinates and the non-broadened IR intensities. The <code class="docutils literal notranslate"><span class="pre">&lt;filename&gt;.mol</span></code> file can be opened with <a class="reference external" href="https://www.theochem.ru.nl/molden/">MOLDEN</a> to visualize the normal modes alongside the IR spectrum.</p>
+<p>The keyword <code class="docutils literal notranslate"><span class="pre">write_mol_file</span></code> is optional and it executes the printing of a <code class="docutils literal notranslate"><span class="pre">&lt;filename&gt;.mol</span></code> file, which includes the optimized geometry (Å), normal mode frequencies (cm<span class="math notranslate nohighlight">\(^{-1}\)</span>), non-mass-weighted eigenvectors in atomic units (Bohr) and the non-broadened IR intensities. The <code class="docutils literal notranslate"><span class="pre">&lt;filename&gt;.mol</span></code> file can be opened with <a class="reference external" href="https://www.theochem.ru.nl/molden/">MOLDEN</a> to visualize the normal modes alongside the IR spectrum.</p>
 </div>
 <p>The final static IR intensities are reported in km/mol.</p>
 </section>
@@ -257,6 +257,10 @@ I_{\textnormal{IR}} (\tilde{\nu}) = \frac{2N_{A}}{12\varepsilon _{0}ck_{B}T}\int
 </pre></div>
 </div>
 <p>The Wannier centers can be used to compute the dipole moment of the whole supercell, however they can also be used to extract spectra of user-specified molecular blocks or fragments, which is discussed in Section <a class="reference internal" href="fragments.html"><span class="std std-doc">Subspectra for MD-based calculations</span></a>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">write_acf_file</span></code> keyword can optionally be used in the <code class="docutils literal notranslate"><span class="pre">md</span></code> section and it executes the printing of a file which contains the time-autocorrelation data. In the case of IR spectrum calculation, this would be the dipole-autocorrelation data.</p>
+</div>
 <p>More information on the all available keywords can be found on <a class="reference internal" href="Keyword_Glossary.html"><span class="std std-doc">Keyword Glossary</span></a> and all complete example input files are available on <a class="reference internal" href="Examples.html"><span class="std std-doc">Examples</span></a>.</p>
 </section>
 </section>

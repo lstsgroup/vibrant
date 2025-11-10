@@ -45,7 +45,7 @@ An example input section for performing the normal mode analysis is shown below:
 where the `hessian` section invokes the Hessian diagonalization, and the `displacement` refers to the displacement between the shifted geometries (given in Å).
 
  ```{note}
- The `write_mol_file` keyword is optional and it executes the printing of a `<filename>.mol` file, which includes the optimized geometry, normal mode frequencies and normal mode coordinates. The `<filename>.mol` file can be opened with [MOLDEN](https://www.theochem.ru.nl/molden/) to visualize the normal modes.  
+ The `write_mol_file` keyword is optional and it executes the printing of a `<filename>.mol` file, which includes the optimized geometry (Å), normal mode frequencies (cm$^{-1}$) and the non-mass-weighted eigenvectors in atomic units (Bohr). The `<filename>.mol` file can be opened with [MOLDEN](https://www.theochem.ru.nl/molden/) to visualize the normal modes.  
  ```
 
 ## b) Power spectrum
@@ -89,12 +89,18 @@ Power spectrum calculation in `vibrant` can be invoked by adding the section:
 &end system
 &md
 ...
+write_acf_file
 &end md
 ```
 
-where `type_traj` can be specified by user as `pos` or `vel` standing for "positions" or "velocities". Upon request, `vibrant` can compute the mass-weighted power spectrum as well, which is controlled by the keyword `mass_weighting`, which be specified as `y` or `n` standing for "yes" or "no".
+where `type_traj` can be specified by user as `pos` or `vel` standing for "positions" or "velocities". Upon request, `vibrant` can compute the mass-weighted power spectrum as well, which is controlled by the keyword `mass_weighting`, which be specified as `y` or `n` standing for "yes" or "no". Mass-weighting means multiplying the velocity autocorrelation data with atomic masses. This approach can be useful as shown in [this study](https://pubs.aip.org/aip/jcp/article/152/16/164105/198859): When appropriate units and mass weighting are used, the area under a peak in the power spectrum directly corresponds to the temperature of the associated degree of freedom. This way, one can determine if the simulation reached equilibration.
 
-The final power intensities are given in K cm .
+The final power intensities are given in K cm.
+
+
+ ```{note}
+ The `write_acf_file` keyword is optional and it executes the printing of a file which contains the time-autocorrelation data. In the case of power spectrum calculation, this would be the velocity-autocorrelation data.
+ ```
 
 ### Spectral refinement
 

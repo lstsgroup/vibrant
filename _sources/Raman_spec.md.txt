@@ -82,10 +82,10 @@ or if the user want to skip the Hessian diagonalization and give the normal mode
 `vibrant` applies Gaussian broadening to the final discrete set of frequencies and intensities. The `fwhm` keyword controls the full width at half maximum (FWHM) value in cm ${^{-1}}$ and if not specified, it is set to 10 cm ${^{-1}}$. 
 
  ```{note}
-  The keyword `write_mol_file` is optional and it executes the printing of a `<filename>.mol` file, which includes the optimized geometry, normal mode frequencies, normal mode coordinates and the non-broadened Raman intensities. The `<filename>.mol` file can be opened with [MOLDEN](https://www.theochem.ru.nl/molden/) to visualize the normal modes alongside the Raman spectrum. If multiple incident laser frequencies are requested, `vibrant` generates a separate `<filename>.mol` file for each frequency.
+  The keyword `write_mol_file` is optional and it executes the printing of a `<filename>.mol` file, which includes the optimized geometry (Å), normal mode frequencies (cm$^{-1}$), the non-mass-weighted eigenvectors in atomic units (Bohr) and the non-broadened Raman intensities. The `<filename>.mol` file can be opened with [MOLDEN](https://www.theochem.ru.nl/molden/) to visualize the normal modes alongside the Raman spectrum. If multiple incident laser frequencies are requested, `vibrant` generates a separate `<filename>.mol` file for each frequency.
 ```
 
-The final static Raman intensities are reported in 10 $^{-30}$ cm $^2$ /sr.
+The final static Raman intensities are reported in 10 $^{-30}$ cm $^2$ per molecule/system.
 
 ```{warning}
  Currently, `vibrant` does not support the use of induced dipoles for calculating static Raman spectra, as the finite-difference error can be significant when using the limited number of structures available in a static calculation compared to an MD trajectory. Therefore, static Raman spectra can only be computed from the provided (DFPT) polarizabilities.
@@ -167,18 +167,34 @@ The `md` section should be included for the MD-based Raman calculation:
 
  The final MD-based Raman intensities are reported in m $^2$ K cm 10 $^{-30}$ . The polarizability/dipole moment types that can be processed by `vibrant` for computing Raman spectra are discussed in the next section.
 
+ ```{note}
+ The `write_acf_file` keyword can optionally be used in the `md` section and it executes the printing of a file which contains the time-autocorrelation data. In the case of Raman spectrum calculation, this would be the isotropic and anisotropic polarizability-autocorrelation data.
+ ```
+
 ## c) Different polarizability tensors
 
-The MD-based Raman intensities can be computed either directly from the DFPT polarizabilities or from an induced dipole approach where Berry phase dipole moments or Wannier centers are processed. For example, the [CP2K](https://www.cp2k.org/) program package enables the [calculation of the polarizability tensors via DFPT](https://pubs.aip.org/aip/jcp/article/141/9/094503/193754), which can be processed by `vibrant`. Another code, which provides DFPT polarizabilities for finite and periodic systems is, e.g., [FHI-aims](https://fhi-aims.org/). The [DFPT](https://www.cambridge.org/core/books/berry-phases-in-electronic-structure-theory/DDD71CA4FE9AF5F3A2FB300E602F394A) method analytically evaluates the response of a system to external electric or magnetic fields. The DFPT polarizabilities are obtained for the whole supercell, and are obtained directly from a single linear-response calculation, without any field adjustments. The DFPT polarizabilities are uniquely defined unlike the Berry-phase dipole moments, meaning no phase indeterminacy is involved. The DFPT polarizabilities can be specified in the `vibrant` input file using the `type_dipole` keyword:
+The MD-based Raman intensities can be computed either directly from the DFPT polarizabilities or from an induced dipole approach where Berry phase dipole moments or Wannier centers are processed. For example, the [CP2K](https://www.cp2k.org/) program package enables the [calculation of the polarizability tensors via DFPT](https://pubs.aip.org/aip/jcp/article/141/9/094503/193754), which can be processed by `vibrant`. Another code, which provides DFPT polarizabilities for finite and periodic systems is, e.g., [FHI-aims](https://fhi-aims.org/). The [DFPT](https://www.cambridge.org/core/books/berry-phases-in-electronic-structure-theory/DDD71CA4FE9AF5F3A2FB300E602F394A) method analytically evaluates the response of a system to external electric or magnetic fields. The DFPT polarizabilities are obtained for the whole supercell, and are obtained directly from a single linear-response calculation, without any field adjustments. The DFPT polarizabilities are uniquely defined unlike the Berry-phase dipole moments, meaning no phase indeterminacy is involved. 
+
+For an MD-based Raman calculation, the DFPT polarizabilities can be specified in the `vibrant` input file by setting the `type_pol` keyword to `analytical` inside the `polarizabilities` section:
 
 ```bash
 ...
-&dipoles
- type_dipole dfpt
- dip_x_file <dipole_file_name_x_field>
- dip_y_file <dipole_file_name_y_field>
- dip_z_file <dipole_file_name_z_field>
-&end dipoles 
+&polarizabilities
+ type_pol analytical
+ pol_x_file <polarizability_file_name> #contains alpha_xx, alpha_xy, alpha_xz
+ pol_y_file <polarizability_file_name> #contains alpha_yx, alpha_yy, alpha_yz
+ pol_z_file <polarizability_file_name> #contains alpha_zx, alpha_zy, alpha_zz
+&end polarizabilities
+```
+
+For a static Raman calculation, the user should provide only one file which contains the whole polarizability tensors, appended for all displaced structures as explained in [File Formats](file_formats.md#52-static-spectra-based-on-normal-modes). The input section would look as follows:
+
+```bash
+...
+&polarizabilities
+ type_pol analytical
+ static_pol_file <polarizability_file_name> 
+&end polarizabilities
 ```
 
 Polarizabilities can be also calculated numerically through [induced dipole moments](https://pubs.rsc.org/en/content/articlehtml/2013/cp/c3cp44302g) $\boldsymbol{\mu}_{\text{ind}}$. The polarizability tensor $\boldsymbol{\alpha}$ is related to the change in the dipole moment under the applied external electric field $\mathbf{E}=(E_x, E_y, E_z)$ by:
@@ -195,13 +211,15 @@ $$
 
 where $\boldsymbol{\mu}^{0}$ is the dipole moment vector obtained from the field-free calculations. The components $\alpha_{\alpha\beta}$ of the polarizability tensor are then given by $ \alpha_{\alpha,\beta=k} = \mu^k_{\textnormal{ind},\alpha}/E$ .
 
-Dipoles can be computed using the Berry-phase or MLWF formalism, enabling consistent treatment of IR and Raman spectra and local Raman analyses. The field strength must be optimized to balance finite-difference accuracy and noise. More details on the Berry phase method and maximally localized Wannier functions (MLWFs) are provided in the IR section under the subsection ["Dipole moment types"](IR_spec.md#c-dipole-moment-types). The induced dipole section must also include the file that contains the field-free dipole moments and the `field_strength` keyword:
+Dipoles can be computed using the Berry-phase or MLWF formalism, enabling consistent treatment of IR and Raman spectra and local Raman analyses. The field strength must be optimized to balance finite-difference accuracy and noise. More details on the Berry phase method and maximally localized Wannier functions (MLWFs) are provided in the IR section under the subsection ["Dipole moment types"](IR_spec.md#c-dipole-moment-types). The `type_pol` keyword must be set to `induced` and the `field_strength` keyword should be specified as well. The induced dipole section must also include the file that contains the field-free dipole moments:
 
 ```bash
 ...
+&polarizabilities
+ type_pol induced
+ field_strength <field_strength_in_au>
 &dipoles
  type_dipole berry #or `wannier`
- field_strength <field_strength_in_au>
  dip_file <dipole_file_name_field_free>
  dip_x_file <dipole_file_name_x_field>
  dip_y_file <dipole_file_name_y_field>

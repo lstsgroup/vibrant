@@ -158,7 +158,8 @@
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">normal_mode_freq.txt</span></code> → contains normal mode frequencies</p></li>
 </ul>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="w">  </span>-176.97535653970249<span class="w">     </span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="w"> </span><span class="c1"># Normal mode freq. (cm^{-1})</span>
+<span class="w">  </span>-176.97535653970249<span class="w">     </span>
 <span class="w">  </span>-176.42583329045769<span class="w">     </span>
 <span class="w">   </span><span class="m">105</span>.51923823199118<span class="w">     </span>
 <span class="w">   </span><span class="m">193</span>.50471510887877<span class="w">     </span>
@@ -199,7 +200,7 @@ d_{k\alpha}^{(p)}
 </ul>
 <p>The following screenshot shows how one can use the <code class="docutils literal notranslate"><span class="pre">vibrations.mol</span></code> file to visualize the normal modes via <a class="reference external" href="https://www.theochem.ru.nl/molden/">MOLDEN</a>:</p>
 <div style="display:flex; justify-content:center; align-items:center; flex-direction:column;">
-  <img src="./_static/vibrations.gif" alt="Vibrational mode of water" style="max-width:500px; width:100%; border-radius:8px;">
+  <img src="./_static/water_bending.gif" alt="Vibrational mode of water" style="max-width:500px; width:100%; border-radius:8px;">
   <p style="color:gray; font-size:0.9em; text-align:center; margin-top:10px;">
     Visualization of the bending mode of water.
   </p>
@@ -219,7 +220,7 @@ and normal mode coordinates (See <a class="reference internal" href="file_format
 <li><p><code class="docutils literal notranslate"><span class="pre">IR.mol</span></code> → can be opened with <a class="reference external" href="https://www.theochem.ru.nl/molden/">MOLDEN</a> to visualize the normal mode vibrations, but this time also the IR spectrum, as shown in the following gif:</p></li>
 </ul>
 <div style="display:flex; justify-content:center; align-items:center; flex-direction:column;">
-  <img src="./_static/IR.gif" alt="Vibrational mode of water" style="max-width:500px; width:100%; border-radius:8px;">
+  <img src="./_static/water_str.gif" alt="Vibrational mode of water" style="max-width:500px; width:100%; border-radius:8px;">
   <p style="color:gray; font-size:0.9em; text-align:center; margin-top:10px;">
     Visualization of the antisymmetric stretching mode of water, alongside the IR spectrum.
   </p>
@@ -242,10 +243,10 @@ and normal mode coordinates (See <a class="reference internal" href="file_format
 <span class="w"> </span>displacement<span class="w"> </span><span class="m">0</span>.001
 <span class="w"> </span>write_mol_file
 <span class="p">&amp;</span>end<span class="w"> </span>static
-<span class="p">&amp;</span>dipoles
-<span class="w"> </span>type_dipole<span class="w"> </span>dfpt
+<span class="p">&amp;</span>polarizabilities
+<span class="w"> </span>type_pol<span class="w"> </span>analytical
 <span class="w"> </span>static_pol_file<span class="w"> </span>polarizabilities.dat
-<span class="p">&amp;</span>end<span class="w"> </span>dipoles
+<span class="p">&amp;</span>end<span class="w"> </span>polarizabilities
 <span class="p">&amp;</span>raman
 <span class="w"> </span>laser_in<span class="w"> </span><span class="m">2</span>.540639
 <span class="p">&amp;</span>end<span class="w"> </span>raman
@@ -258,7 +259,7 @@ and normal mode coordinates (See <a class="reference internal" href="file_format
 <p>After running the static calculations for the water molecule, one can also calculate the MD-based power spectrum of liquid water, as provided in the directory <code class="docutils literal notranslate"><span class="pre">/MD-based/Power_Spectrum/</span></code>.  The directory includes the <code class="docutils literal notranslate"><span class="pre">waterbulk-pos-1.xyz</span></code> file which contains the atomic positions of the water simulation box for several MD snapshots, and also the input file <code class="docutils literal notranslate"><span class="pre">input.txt</span></code>. Running the calculation produces two files:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">power_spec.txt</span></code> → contains the power spectrum</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">result_cvv.txt</span></code> → contains the velocity autocorrelation data</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">result_acf_velocities.txt</span></code> → contains the velocity autocorrelation data</p></li>
 </ul>
 <p>The files can be visualized with a Python script as described above. The resulting power spectrum is shown below:</p>
 <div style="display:flex; justify-content: center; align-items: center;">

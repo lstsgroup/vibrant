@@ -95,7 +95,7 @@ The `rtp` section provides the necessary information about the RT-TDDFT paramete
 `vibrant` applies Gaussian broadening to the final discrete set of frequencies and intensities. The `fwhm` keyword controls the full width at half-maximum (FWHM) value in cm ${^{-1}}$ and if not specified, it is set to 10 cm ${^{-1}}$.
 
 ```{note}
-  The keyword `write_mol_file` is optional and it executes the printing of a `<filename>.mol` file, which includes the optimized geometry, normal mode frequencies, normal mode coordinates and the non-broadened Raman intensities. The `<filename>.mol` file can be opened with [MOLDEN](https://www.theochem.ru.nl/molden/) to visualize the normal modes alongside the Raman spectrum. If multiple incident laser frequencies are requested, `vibrant` generates a separate `<filename>.mol` file for each frequency.
+  The keyword `write_mol_file` is optional and it executes the printing of a `<filename>.mol` file,  which includes the optimized geometry (Å), normal mode frequencies (cm$^{-1}$), the non-mass-weighted eigenvectors in atomic units (Bohr) and the non-broadened Raman intensities. The `<filename>.mol` file can be opened with [MOLDEN](https://www.theochem.ru.nl/molden/) to visualize the normal modes alongside the Raman spectrum. If multiple incident laser frequencies are requested, `vibrant` generates a separate `<filename>.mol` file for each frequency.
 ```
 
 The absorption spectrum calculation does not require the `static` section. An example input section is given below:
@@ -107,9 +107,12 @@ The absorption spectrum calculation does not require the `static` section. An ex
 &system
  ...
 &end system
+&polarizabilities 
+ type_pol induced
+ field_strength <electric_field_strength_in_au>
+&end polarizabilities
 &dipoles
  type_dipole berry
- field_strength <electric_field_strength_in_au>
  dip_x_file <time_dependent_dipole_file_under_x_field>
  dip_y_file <time_dependent_dipole_file_under_y_field>
  dip_z_file <time_dependent_dipole_file_under_z_field>
@@ -121,7 +124,7 @@ The absorption spectrum calculation does not require the `static` section. An ex
 &end rtp
 ```
 
-The final static resonance Raman intensities are reported in 10 $^{-30}$ cm $^2$ /sr. The absorption spectrum frequencies are reported in eV and the intensities are reported in atomic units.
+The final static resonance Raman intensities are reported in 10 $^{-30}$ cm $^2$ per molecule/system. The absorption spectrum frequencies are reported in eV and the intensities are reported in atomic units.
 
 ## b) MD-based RR intensities
 
@@ -223,9 +226,12 @@ The MD-based RR calculation in `vibrant` is not fully tested yet, and more tests
  spectra MD-RR
  temperature <temperature_in_K>
 &end global
+&polarizabilities 
+ type_pol induced
+ field_strength <electric_field_strength_in_au>
+&end polarizabilities
 &dipoles
  type_dipole berry
- field_strength <electric_field_strength_in_au>
  dip_x_file <time_dependent_dipole_file_under_x_field>
  dip_y_file <time_dependent_dipole_file_under_y_field>
  dip_z_file <time_dependent_dipole_file_under_z_field>
@@ -248,6 +254,10 @@ The MD-based absorption spectrum is computed in the same manner as the static ab
 ```
 
  The final MD-based RR intensities are reported in m $^2$ K cm 10 $^{-30}$.
+
+  ```{note}
+ The `write_acf_file` keyword can optionally be used in the `md` section and it executes the printing of a file which contains the time-autocorrelation data. In the case of RR spectrum calculation, this would be the real and imaginary components of the isotropic and anisotropic polarizability-autocorrelation data.
+ ```
 
 ## c) Application of Padé interpolation
 

@@ -295,6 +295,7 @@
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="p">&amp;</span>md
 <span class="w">    </span>time_step
 <span class="w">    </span>correlation_depth
+<span class="w">    </span>write_acf_file
 <span class="p">&amp;</span>end<span class="w"> </span>md
 </pre></div>
 </div>
@@ -313,6 +314,13 @@
 <li></li>
 </ul>
 <p>Correlation depth used in autocorrelation function.</p>
+</div><div class='keyword-entry' id='keyword-write_acf_file'><div class='keyword-header'>md :: <strong>write_acf_file</strong></div><ul class="simple">
+<li><p><strong>Type</strong>: string</p></li>
+<li><p><strong>Default</strong>: —</p></li>
+<li><p>​</p></li>
+<li></li>
+</ul>
+<p>Flag for writing the time-autocorrelation data.</p>
 </div></section>
 <section id="block-static">
 <h2>Block: static<a class="headerlink" href="#block-static" title="Link to this heading">¶</a></h2>
@@ -355,7 +363,7 @@
 </div><div class='keyword-entry' id='keyword-normal_displ_file'><div class='keyword-header'>static :: <strong>normal_displ_file</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: string</p></li>
 <li><p><strong>Default</strong>: —</p></li>
-<li><p><strong>Unit</strong>: Ang</p></li>
+<li><p><strong>Unit</strong>: -</p></li>
 <li><p>​</p></li>
 <li></li>
 </ul>
@@ -388,12 +396,10 @@
 <h2>Block: dipoles<a class="headerlink" href="#block-dipoles" title="Link to this heading">¶</a></h2>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="p">&amp;</span>dipoles
 <span class="w">    </span>type_dipole
-<span class="w">    </span>field_strength
 <span class="w">    </span>dip_file
 <span class="w">    </span>dip_x_file
 <span class="w">    </span>dip_y_fil
 <span class="w">    </span>dip_z_file
-<span class="w">    </span>static_pol_file
 <span class="p">&amp;</span>end<span class="w"> </span>dipoles
 </pre></div>
 </div>
@@ -403,21 +409,11 @@
 <li><p>​</p></li>
 <li></li>
 </ul>
-<p>Define type of provided dipole moments. Possible values are:</p>
+<p>Defines type of the provided dipole moments. Possible values are:</p>
 <ul class="simple">
-<li><p><strong>berry</strong> — for berry phase dipolemoments</p></li>
-<li><p><strong>wannier</strong> — for wannier dipolemoments</p></li>
-<li><p><strong>dfpt</strong> — for density functional perturbation theory</p></li>
+<li><p><strong>berry</strong> — for Berry phase dipole moments</p></li>
+<li><p><strong>wannier</strong> — for Wannier centers</p></li>
 </ul>
-<p>check again</p>
-</div><div class='keyword-entry' id='keyword-field_strength'><div class='keyword-header'>dipoles :: <strong>field_strength</strong></div><ul class="simple">
-<li><p><strong>Type</strong>: float</p></li>
-<li><p><strong>Default</strong>: —</p></li>
-<li><p><strong>Unit</strong>: Hartree/[<span class="math notranslate nohighlight">\(e\)</span> Bohr] (a.u.)</p></li>
-<li><p>​</p></li>
-<li></li>
-</ul>
-<p>Strength of the applied electric field in atomic units.</p>
 </div><div class='keyword-entry' id='keyword-dip_file'><div class='keyword-header'>dipoles :: <strong>dip_file</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: string</p></li>
 <li><p><strong>Default</strong>: —</p></li>
@@ -450,6 +446,35 @@
 <li></li>
 </ul>
 <p>This is the path of the file containing the systems dipole moments obtained under an electric field in the z-direction.</p>
+</div></section>
+<section id="block-polarizabilities">
+<h2>Block: polarizabilities<a class="headerlink" href="#block-polarizabilities" title="Link to this heading">¶</a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="p">&amp;</span>dipoles
+<span class="w">    </span>type_pol
+<span class="w">    </span>field_strength
+<span class="w">    </span>static_pol_file
+<span class="p">&amp;</span>end<span class="w"> </span>dipoles
+</pre></div>
+</div>
+<div class='keyword-entry' id='keyword-type_pol'><div class='keyword-header'>polarizabilities :: <strong>type_pol</strong></div><ul class="simple">
+<li><p><strong>Type</strong>: string</p></li>
+<li><p><strong>Default</strong>: -</p></li>
+<li><p>​</p></li>
+<li></li>
+</ul>
+<p>Defines type of the provided polarizabilities. Possible values are:</p>
+<ul class="simple">
+<li><p><strong>induced</strong> — induced dipole moments</p></li>
+<li><p><strong>analytical</strong> — direct polarizabilities</p></li>
+</ul>
+</div><div class='keyword-entry' id='keyword-field_strength'><div class='keyword-header'>dipoles :: <strong>field_strength</strong></div><ul class="simple">
+<li><p><strong>Type</strong>: float</p></li>
+<li><p><strong>Default</strong>: —</p></li>
+<li><p><strong>Unit</strong>: Hartree/[<span class="math notranslate nohighlight">\(e\)</span> Bohr] (a.u.)</p></li>
+<li><p>​</p></li>
+<li></li>
+</ul>
+<p>Strength of the applied electric field in atomic units.</p>
 </div><div class='keyword-entry' id='keyword-static_pol_file'><div class='keyword-header'>dipoles :: <strong>static_pol_file</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: string</p></li>
 <li><p><strong>Default</strong>: —</p></li>
@@ -558,6 +583,7 @@
 </ul>
 </li>
 <li><a class="reference internal" href="#block-dipoles">Block: dipoles</a></li>
+<li><a class="reference internal" href="#block-polarizabilities">Block: polarizabilities</a></li>
 <li><a class="reference internal" href="#block-rtp">Block: rtp</a></li>
 <li><a class="reference internal" href="#block-raman">Block: raman</a></li>
 </ul>
