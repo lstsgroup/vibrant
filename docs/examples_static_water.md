@@ -25,6 +25,7 @@ This calculation generates three output files named:
 - `normal_mode_freq.txt` → contains normal mode frequencies
 
 ```bash
+ # Normal mode freq. (cm^{-1})
   -176.97535653970249     
   -176.42583329045769     
    105.51923823199118     
@@ -69,7 +70,7 @@ where $\tilde{\mathbf{u}}_p$ are the mass-weighted eigenvectors and $m_k$ is the
 The following screenshot shows how one can use the `vibrations.mol` file to visualize the normal modes via [MOLDEN](https://www.theochem.ru.nl/molden/):
 
 <div style="display:flex; justify-content:center; align-items:center; flex-direction:column;">
-  <img src="./_static/vibrations.gif" alt="Vibrational mode of water" style="max-width:500px; width:100%; border-radius:8px;">
+  <img src="./_static/water_bending.gif" alt="Vibrational mode of water" style="max-width:500px; width:100%; border-radius:8px;">
   <p style="color:gray; font-size:0.9em; text-align:center; margin-top:10px;">
     Visualization of the bending mode of water.
   </p>
@@ -90,7 +91,7 @@ This example does not perform a normal mode analysis, and instead uses the user-
 - `IR.mol` → can be opened with [MOLDEN](https://www.theochem.ru.nl/molden/) to visualize the normal mode vibrations, but this time also the IR spectrum, as shown in the following gif:
 
 <div style="display:flex; justify-content:center; align-items:center; flex-direction:column;">
-  <img src="./_static/IR.gif" alt="Vibrational mode of water" style="max-width:500px; width:100%; border-radius:8px;">
+  <img src="./_static/water_str.gif" alt="Vibrational mode of water" style="max-width:500px; width:100%; border-radius:8px;">
   <p style="color:gray; font-size:0.9em; text-align:center; margin-top:10px;">
     Visualization of the antisymmetric stretching mode of water, alongside the IR spectrum.
   </p>
@@ -117,10 +118,10 @@ The Raman calculation can be found in the directory `/scratch/ekin/Examples/Stat
  displacement 0.001
  write_mol_file
 &end static
-&dipoles
- type_dipole dfpt
+&polarizabilities
+ type_pol analytical
  static_pol_file polarizabilities.dat
-&end dipoles
+&end polarizabilities
 &raman
  laser_in 2.540639
 &end raman
@@ -133,7 +134,7 @@ This calculation generates four files, again the normal mode frequency and norma
 After running the static calculations for the water molecule, one can also calculate the MD-based power spectrum of liquid water, as provided in the directory `/MD-based/Power_Spectrum/`.  The directory includes the `waterbulk-pos-1.xyz` file which contains the atomic positions of the water simulation box for several MD snapshots, and also the input file `input.txt`. Running the calculation produces two files:
 
 - `power_spec.txt` → contains the power spectrum
-- `result_cvv.txt` → contains the velocity autocorrelation data
+- `result_acf_velocities.txt` → contains the velocity autocorrelation data
 
 The files can be visualized with a Python script as described above. The resulting power spectrum is shown below:
 

@@ -22,6 +22,8 @@ Similarly, the power spectrum calculations requires that the user provides the a
 
 ```
 
+An example file can be downloaded from [here](_static/force.data).
+
 ## 2) Files for normal mode analysis
 
 ### 2.1 Atomic forces
@@ -55,11 +57,11 @@ To carry out a normal mode analysis, the user must provide the atomic force vect
 <force_x> <force_y> <force_z> #last atom
 ```
 
-As an example, [this bash script](_static/force.sh) enters the directories of each displaced structure and appends the [CP2K force files](_static/force.xyz) accordingly.
+As an example, [this bash script](_static/force.sh) enters the directories of each displaced structure and for example, appends the [CP2K force files](_static/force.xyz) accordingly.
 
 ### 2.2 Normal mode frequencies and coordinates
 
-The user can provide the normal mode frequencies and coordinates instead of forces. In that case, the normal mode frequencies should be given as:
+The user can provide the normal mode frequencies and mass-weighted eigenvectors instead of forces. In that case, the normal mode frequencies should be given as:
 
 ```bash
 <frequency> #for the first normal mode
@@ -67,8 +69,9 @@ The user can provide the normal mode frequencies and coordinates instead of forc
 ...
 <frequency> #for the last normal mode
 ```
+An example file can be downloaded from [here](_static/normal_mode_freq.txt).
 
-And the normal mode coordinates should be given as the atomic cartesian coordinates (in. a.u.) for each vibrational mode, such as:
+And the mass-weighted eigenvectors should be given as the atomic coordinates for each vibrational mode, such as:
 
 ```bash
 <x_coord> <y_coord> <z_coord> # coordinates of Atom 1 for normal mode 1
@@ -80,6 +83,8 @@ And the normal mode coordinates should be given as the atomic cartesian coordina
 ...
 <x_coord> <y_coord> <z_coord> # coordinates of the last atom for the last normal mode
 ```
+
+An example file can be downloaded from [here](_static/normal_mode_displ.txt).
 
 ## 3) Berry-phase dipole moments
 
@@ -95,10 +100,12 @@ The Berry phase dipole moment vectors for the MD-based spectra should be given i
                        #leave 1 blank line
 <dummy_value> <dipole_x> <dipole_y> <dipole_z> #second MD frame
 ...
-1 
+
                        #leave 1 blank line
 <dummy_value> <dipole_x> <dipole_y> <dipole_z> #last MD frame
 ```
+
+An example file can be downloaded from [here](_static/berry_dipole.xyz).
 
 ### 3.2 Static spectra based on normal modes
 
@@ -139,9 +146,13 @@ The Berry phase dipole moment vectors for a static calculation should be given i
 <dummy_value> <dipole_x> <dipole_y> <dipole_z> 
 ```
 
+An example file can be downloaded from [here](_static/dipoles_water.xyz).
+
 ## 4) Wannier centers
 
-If any MD-based spectrum is being calculated from Wannier centers, then the `wannier.xyz` for the whole system (atoms + Wannier centers labeled as "X") should be given for each MD frame in the `.xyz` file format. An example could be seen [here](_static/COF-1_solv_wannier_free.xyz).
+If any MD-based spectrum is being calculated from Wannier centers, then the `wannier.xyz` for the whole system (atoms + Wannier centers labeled as "X") should be given for each MD frame in the `.xyz` file format. 
+
+An example could be seen [here](_static/COF-1_solv_wannier_free.xyz).
 
 ## 5) DFPT polarizabilities
 
@@ -164,6 +175,8 @@ The DFPT polarizabilities for the MD-based spectra should be given in Å $^3$ in
 ```
 
 where $i$ is $x$, $y$, or $z$.
+
+An example file can be downloaded from [here](_static/alpha.xyz).
 
 ### 5.2 Static spectra based on normal modes
 
@@ -205,7 +218,7 @@ The DFPT polarizabilities for a static calculation should be given in Å $^3$ fo
 <dummy_value> <alpha_yx> <alpha_zx> <alpha_zy> 
 ```
 
-The reason for leaving six blank spaces is because the user can directly append the [CP2K DFPT polarizabilities](https://manual.cp2k.org/trunk/CP2K_INPUT/FORCE_EVAL/PROPERTIES/LINRES/POLAR.html#CP2K_INPUT.FORCE_EVAL.PROPERTIES.LINRES.POLAR.DO_RAMAN), an example is shown below:
+The reason for leaving six blank spaces is because, for example, the user can directly append the [CP2K DFPT polarizabilities](https://manual.cp2k.org/trunk/CP2K_INPUT/FORCE_EVAL/PROPERTIES/LINRES/POLAR.html#CP2K_INPUT.FORCE_EVAL.PROPERTIES.LINRES.POLAR.DO_RAMAN). An example is shown below:
 
 ```bash
 
@@ -221,6 +234,8 @@ yx,zx,zy       -0.00000        0.00026       -0.00017
 ```
 
 `vibrant` only reads the polarizabilities in Å $^3$, ignoring the a.u. block.
+
+An example file can be downloaded from [here](_static/polarizabilities.dat).
 
 ## 6) Time-dependent Berry phase dipole moments coming from RT-TDDFT
 
@@ -251,6 +266,8 @@ The time-dependent Berry phase dipole moment vectors for the MD-based resonance 
 ```
 
 Here the unperturbed dipole moments refer to $\mu^{0}_{i}$ described in Section [Resonance Raman (RR) and absorption spectra](Resonance_Raman_spec.md). Three files should be given in total, each containing the unperturbed dipole moments + time-dependent dipole moments perturbed under electric field applied in $x$, $y$ or $z$ direction.
+
+An example file can be downloaded from [here](_static/RTP_dipoles_MD.xyz).
 
 ### 6.2 Static spectra based on normal modes
 
@@ -301,3 +318,9 @@ The time-dependent Berry phase dipole moment vectors for a static RR or absorpti
 ```
 
 Similarly to the MD-based spectra, here the unperturbed dipole moments refer to $\mu^{0}_{i}$ described in Section [Resonance Raman (RR) and absorption spectra](Resonance_Raman_spec.md). Three files should be given in total, each containing the unperturbed dipole moments + time-dependent dipole moments perturbed under electric field applied in $x$, $y$ or $z$ direction.
+
+ ```{note}
+If the user only wants to calculate an absorption spectrum, then it is sufficient to provide the time-dependent dipole moments of only one geometry.
+
+An example file for only one geometry can be downloaded from [here](_static/RTP_dipoles_static.xyz).
+ ```
