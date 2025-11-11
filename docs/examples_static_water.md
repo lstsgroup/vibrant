@@ -40,11 +40,11 @@ This calculation generates three output files named:
 where the last 3 frequencies correspond to the bending, symmetric stretching and asymmetric stretching modes of water. The first 6 modes correspond to the translational and rotational mode frequencies and can be disregarded by the user. The reason some of them show negative frequencies is because the molecular structure used for the normal mode analysis is not tightly optimized.
 
 - `normal_mode_displ.txt` → contains normal mode displacements, i.e., we print for each mode $p$ and each atom $k$, the Cartesian displacement vector:
-$$
+$
 d_{k\alpha}^{(p)}
 = q_{\text{vis}}^{(p)} \,\frac{\tilde u_{k\alpha}^{(p)}}{\sqrt{m_k}},
 \qquad \alpha \in \{x,y,z\}.
-$$
+$
 
 where $\tilde{\mathbf{u}}_p$ are the mass-weighted eigenvectors and $m_k$ is the mass of atom $k$ in atomic units. $q_{\text{vis}}^{(p)}$ is a parameter for the visualization with the unit $\sqrt{\textnormal{mass}} \cdot \textnormal{length}$. We simply set this parameter to 1 $\sqrt{\textnormal{u}}\cdot$ bohr, so that the total unit of $\mathbf{d}_k^p$ is in bohr.  
 
