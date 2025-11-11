@@ -32,7 +32,7 @@ Block: global
     :default: 300.0
     :unit: K
 
-    This is the Temperature.
+    Temperature
 
 .. keyword:: fwhm
     :section: global
@@ -47,7 +47,7 @@ Block: global
     :type: string
     :default: normal
 
-    This is a verbosity setting for writing raman spectra files.
+    Verbosity setting for writing raman spectra files.
 
 
 Block: system
@@ -66,13 +66,13 @@ Block: system
     :unit:  Ang
     :type: string
 
-    This is the path of the file containing the system coordinates. When velocities are provided, the unit Ang/fs is assumed.
+   The file containing the system coordinates. When velocities are provided, the unit of bohr/au_time is assumed.
 
 .. keyword:: type_traj
     :section: system
     :type: string
 
-    Define type of provided trajectory. Possible values are: 
+    Defines type of the provided trajectory. Possible values are: 
 
     * **pos** — for a trajectory of positions
     * **vel** — for a trajectory of velocities
@@ -81,10 +81,10 @@ Block: system
     :section: system
     :type: string
 
-    Define if mass weighting should be applied for spectra computation. Possible values are: 
+    Defines if mass weighting should be applied for spectra computation. Possible values are: 
 
     * **y** — yes, apply mass weighting 
-    * **n** — no, dont apply mass weighting 
+    * **n** — no, do not apply mass weighting 
 
 Subblock: cell
 ~~~~~~~~~~~~~~~~
@@ -106,21 +106,21 @@ Subblock: cell
     :unit: Ang
     :type: list[float]
 
-    Length of the box lenght :math:`\mathbf{x}` :math:`\mathbf{y}` :math:`\mathbf{z}`. The box lengths can be specified individually using the keywords box_x, box_y, and box_z.
+    Length of the box length :math:`\mathbf{x}` :math:`\mathbf{y}` :math:`\mathbf{z}`. The box lengths can be specified individually using the keywords `box_x`, `box_y`, and `box_z`.
 
 .. keyword:: angle_alpha_beta_gamma
     :section: system/cell
     :unit: deg
     :type: list[float]
 
-    Cell angle  :math:`\alpha` :math:`\beta` :math:`\gamma`. The cell angle can be specified individually using the keywords angle_alpha, angle_beta, and angle_gamma.
+    Cell angle  :math:`\alpha` :math:`\beta` :math:`\gamma`. The cell angle can be specified individually using the keywords `angle_alpha`, `angle_beta`, and `angle_gamma`.
 
 .. keyword:: lattice_x
     :section: system/cell
     :unit: Ang
     :type: list[float]
 
-    Lattice vector in x direction of system.
+    Lattice vector in the x-direction of system.
 
 .. keyword:: lattice_y
     :section: system/cell
@@ -128,7 +128,7 @@ Subblock: cell
     :type: list[float]
 
 
-    Lattice vector in y direction of system.
+    Lattice vector in the y-direction of system.
 
 .. keyword:: lattice_z
     :section: system/cell
@@ -136,7 +136,7 @@ Subblock: cell
     :type: list[float]
 
 
-    Lattice vector in z direction of system.
+    Lattice vector in the z-direction of system.
 
 Subblock: fragment
 ~~~~~~~~~~~~~~~~
@@ -202,13 +202,13 @@ Block: static
    :type: float
    :unit: Ang
 
-   This is the finite difference displacement.
+   Finite difference displacement.
 
 .. keyword:: diag_hessian
     :section: static
     :type: float
 
-    Define if the Hessian should be diagonalized. Possible values are:
+    Defines if the Hessian should be diagonalized. Possible values are:
 
     * **y** — yes, diagonalize the Hessian --> provide `force_file <#keyword-force_file>`__
     * **n** — no, load existing data --> provide `normal_freq_file <#keyword-normal_freq_file>`__ and `normal_displ_file <#keyword-normal_displ_file>`__
@@ -218,14 +218,14 @@ Block: static
     :unit: :math:`\mathrm{cm}^{-1}`
     :type: string
 
-    This is the path of the file containing the systems normal mode frequencies.
+    The file containing the system's normal mode frequencies.
 
 .. keyword:: normal_displ_file
     :section: static
     :unit: -
     :type: string
 
-    This is the path of the file containing the systems normal mode displacements.
+    File containing the system's normal mode displacements.
 
 .. keyword:: write_mol_file
     :section: static
@@ -246,7 +246,7 @@ Block: hessian
     :unit: Hartree/Bohr (a.u.)
     :type: string
 
-    This is the path of the file containing the system forces to build hessian.
+    File containing the system's forces to build the Hessian matrix.
 
 Block: dipoles
 -------------
@@ -276,28 +276,28 @@ Block: dipoles
     :unit:  Debye
     :type: string
     
-    This is the path of the file containing the systems dipole moments (if only a single file is used).
+    File containing the system's dipole moments (if only a single file is used).
     
 .. keyword:: dip_x_file
     :section: dipoles
     :unit:  Debye
     :type: string
     
-    This is the path of the file containing the systems dipole moments obtained under an electric field in the x-direction.
+    File containing the system's dipole moments obtained under an electric field in the x-direction.
     
 .. keyword:: dip_y_file
     :section: dipoles
     :unit:  Debye
     :type: string
     
-    This is the path of the file containing the systems dipole moments obtained under an electric field in the y-direction.
+    File containing the system's dipole moments obtained under an electric field in the y-direction.
     
 .. keyword:: dip_z_file
     :section: dipoles
     :unit:  Debye
     :type: string
     
-    This is the path of the file containing the systems dipole moments obtained under an electric field in the z-direction.
+    File containing the system's dipole moments obtained under an electric field in the z-direction.
     
 
 
@@ -325,7 +325,7 @@ Block: polarizabilities
 .. keyword:: field_strength
     :section: dipoles
     :type: float
-    :unit: Hartree/[:math:`e` Bohr] (a.u.)
+    :unit: Hartree/Bohr (a.u.)
     
     Strength of the applied electric field in atomic units.
 
@@ -334,7 +334,7 @@ Block: polarizabilities
     :unit:  :math:`\mathrm{Ang}³`
     :type: string
     
-    This is the path of the file containing the systems static polarizabilities.
+    File containing the system's static polarizabilities.
 
 Block: rtp
 -------------
@@ -370,7 +370,7 @@ Block: rtp
     Define if Padé interpolation should be used. Possible values are:
 
     * **y** — yes, apply Padé interpolation
-    * **n** — no, dont apply Padé interpolation
+    * **n** — no, do not apply Padé interpolation
 
 .. keyword:: pade_framecount
     :section: rtp
@@ -402,4 +402,4 @@ Block: raman
     :unit: eV
     :default: 0.5
 
-    Incoming laser energy in eV. Multiple values (max 4) may be specified.
+    Incoming laser energy for Raman calculations. Multiple values (max 4) may be specified.

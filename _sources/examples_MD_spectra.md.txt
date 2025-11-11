@@ -8,7 +8,7 @@ Raman calculations for the same system is given also in the directory `/MD-based
 
 - `raman_unpolarized.txt` → contains the total (unpolarized) intensities
 
-Additionally, invoked with setting the keyword <a href="Keyword_Glossary.rst#spectra_verbosity">spectra_verbosity</a> to `high`, the `Raman_Berry` example produces extra spectrum files that contain the orthogonal (`raman_orthogonal.txt`) and parallel intensities (`raman_parallel.txt`), as well as the depolarization ratios (`raman_depolarization_ratio.txt`), as explained in section [Raman spectra](Raman_spec.md#c-different-polarizability-tensors).
+Additionally, invoked by setting the keyword `spectra_verbosity` to `high`, the `Raman_Berry` example produces extra spectrum files that contain the orthogonal (`raman_orthogonal.txt`) and parallel intensities (`raman_parallel.txt`), as well as the depolarization ratios (`raman_depolarization_ratio.txt`), as explained in section [Raman spectra](Raman_spec.md#c-different-polarizability-tensors).
 
 The following figure shows the calculated IR and Raman spectra of COF-1 from each exercise:
 

@@ -163,7 +163,7 @@
 <li><p>​</p></li>
 <li></li>
 </ul>
-<p>This is the Temperature.</p>
+<p>Temperature</p>
 </div><div class='keyword-entry' id='keyword-fwhm'><div class='keyword-header'>global :: <strong>fwhm</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: float</p></li>
 <li><p><strong>Default</strong>: 10</p></li>
@@ -178,7 +178,7 @@
 <li><p>​</p></li>
 <li></li>
 </ul>
-<p>This is a verbosity setting for writing raman spectra files.</p>
+<p>Verbosity setting for writing raman spectra files.</p>
 </div></section>
 <section id="block-system">
 <h2>Block: system<a class="headerlink" href="#block-system" title="Link to this heading">¶</a></h2>
@@ -189,21 +189,13 @@
 <span class="p">&amp;</span>end<span class="w"> </span>system
 </pre></div>
 </div>
-<div class='keyword-entry' id='keyword-filename'><div class='keyword-header'>system :: <strong>filename</strong></div><ul class="simple">
-<li><p><strong>Type</strong>: string</p></li>
-<li><p><strong>Default</strong>: —</p></li>
-<li><p><strong>Unit</strong>: Ang</p></li>
-<li><p>​</p></li>
-<li></li>
-</ul>
-<p>This is the path of the file containing the system coordinates. When velocities are provided, the unit Ang/fs is assumed.</p>
-</div><div class='keyword-entry' id='keyword-type_traj'><div class='keyword-header'>system :: <strong>type_traj</strong></div><ul class="simple">
+<div class='keyword-entry' id='keyword-type_traj'><div class='keyword-header'>system :: <strong>type_traj</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: string</p></li>
 <li><p><strong>Default</strong>: —</p></li>
 <li><p>​</p></li>
 <li></li>
 </ul>
-<p>Define type of provided trajectory. Possible values are:</p>
+<p>Defines type of the provided trajectory. Possible values are:</p>
 <ul class="simple">
 <li><p><strong>pos</strong> — for a trajectory of positions</p></li>
 <li><p><strong>vel</strong> — for a trajectory of velocities</p></li>
@@ -214,10 +206,10 @@
 <li><p>​</p></li>
 <li></li>
 </ul>
-<p>Define if mass weighting should be applied for spectra computation. Possible values are:</p>
+<p>Defines if mass weighting should be applied for spectra computation. Possible values are:</p>
 <ul class="simple">
 <li><p><strong>y</strong> — yes, apply mass weighting</p></li>
-<li><p><strong>n</strong> — no, dont apply mass weighting</p></li>
+<li><p><strong>n</strong> — no, do not apply mass weighting</p></li>
 </ul>
 </div><section id="subblock-cell">
 <h3>Subblock: cell<a class="headerlink" href="#subblock-cell" title="Link to this heading">¶</a></h3>
@@ -240,7 +232,7 @@
 <li><p>​</p></li>
 <li></li>
 </ul>
-<p>Length of the box lenght <span class="math notranslate nohighlight">\(\mathbf{x}\)</span> <span class="math notranslate nohighlight">\(\mathbf{y}\)</span> <span class="math notranslate nohighlight">\(\mathbf{z}\)</span>. The box lengths can be specified individually using the keywords box_x, box_y, and box_z.</p>
+<p>Length of the box length <span class="math notranslate nohighlight">\(\mathbf{x}\)</span> <span class="math notranslate nohighlight">\(\mathbf{y}\)</span> <span class="math notranslate nohighlight">\(\mathbf{z}\)</span>. The box lengths can be specified individually using the keywords <cite>box_x</cite>, <cite>box_y</cite>, and <cite>box_z</cite>.</p>
 </div><div class='keyword-entry' id='keyword-angle_alpha_beta_gamma'><div class='keyword-header'>system/cell :: <strong>angle_alpha_beta_gamma</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: list[float]</p></li>
 <li><p><strong>Default</strong>: —</p></li>
@@ -248,7 +240,7 @@
 <li><p>​</p></li>
 <li></li>
 </ul>
-<p>Cell angle  <span class="math notranslate nohighlight">\(\alpha\)</span> <span class="math notranslate nohighlight">\(\beta\)</span> <span class="math notranslate nohighlight">\(\gamma\)</span>. The cell angle can be specified individually using the keywords angle_alpha, angle_beta, and angle_gamma.</p>
+<p>Cell angle  <span class="math notranslate nohighlight">\(\alpha\)</span> <span class="math notranslate nohighlight">\(\beta\)</span> <span class="math notranslate nohighlight">\(\gamma\)</span>. The cell angle can be specified individually using the keywords <cite>angle_alpha</cite>, <cite>angle_beta</cite>, and <cite>angle_gamma</cite>.</p>
 </div><div class='keyword-entry' id='keyword-lattice_x'><div class='keyword-header'>system/cell :: <strong>lattice_x</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: list[float]</p></li>
 <li><p><strong>Default</strong>: —</p></li>
@@ -256,7 +248,7 @@
 <li><p>​</p></li>
 <li></li>
 </ul>
-<p>Lattice vector in x direction of system.</p>
+<p>Lattice vector in the x-direction of system.</p>
 </div><div class='keyword-entry' id='keyword-lattice_y'><div class='keyword-header'>system/cell :: <strong>lattice_y</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: list[float]</p></li>
 <li><p><strong>Default</strong>: —</p></li>
@@ -264,7 +256,7 @@
 <li><p>​</p></li>
 <li></li>
 </ul>
-<p>Lattice vector in y direction of system.</p>
+<p>Lattice vector in the y-direction of system.</p>
 </div><div class='keyword-entry' id='keyword-lattice_z'><div class='keyword-header'>system/cell :: <strong>lattice_z</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: list[float]</p></li>
 <li><p><strong>Default</strong>: —</p></li>
@@ -272,7 +264,7 @@
 <li><p>​</p></li>
 <li></li>
 </ul>
-<p>Lattice vector in z direction of system.</p>
+<p>Lattice vector in the z-direction of system.</p>
 </div></section>
 <section id="subblock-fragment">
 <h3>Subblock: fragment<a class="headerlink" href="#subblock-fragment" title="Link to this heading">¶</a></h3>
@@ -340,14 +332,14 @@
 <li><p>​</p></li>
 <li></li>
 </ul>
-<p>This is the finite difference displacement.</p>
+<p>Finite difference displacement.</p>
 </div><div class='keyword-entry' id='keyword-diag_hessian'><div class='keyword-header'>static :: <strong>diag_hessian</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: float</p></li>
 <li><p><strong>Default</strong>: —</p></li>
 <li><p>​</p></li>
 <li></li>
 </ul>
-<p>Define if the Hessian should be diagonalized. Possible values are:</p>
+<p>Defines if the Hessian should be diagonalized. Possible values are:</p>
 <ul class="simple">
 <li><p><strong>y</strong> — yes, diagonalize the Hessian –&gt; provide <a class="reference external" href="#keyword-force_file">force_file</a></p></li>
 <li><p><strong>n</strong> — no, load existing data –&gt; provide <a class="reference external" href="#keyword-normal_freq_file">normal_freq_file</a> and <a class="reference external" href="#keyword-normal_displ_file">normal_displ_file</a></p></li>
@@ -359,7 +351,7 @@
 <li><p>​</p></li>
 <li></li>
 </ul>
-<p>This is the path of the file containing the systems normal mode frequencies.</p>
+<p>The file containing the system’s normal mode frequencies.</p>
 </div><div class='keyword-entry' id='keyword-normal_displ_file'><div class='keyword-header'>static :: <strong>normal_displ_file</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: string</p></li>
 <li><p><strong>Default</strong>: —</p></li>
@@ -367,7 +359,7 @@
 <li><p>​</p></li>
 <li></li>
 </ul>
-<p>This is the path of the file containing the systems normal mode displacements.</p>
+<p>File containing the system’s normal mode displacements.</p>
 </div><div class='keyword-entry' id='keyword-write_mol_file'><div class='keyword-header'>static :: <strong>write_mol_file</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: string</p></li>
 <li><p><strong>Default</strong>: —</p></li>
@@ -389,7 +381,7 @@
 <li><p>​</p></li>
 <li></li>
 </ul>
-<p>This is the path of the file containing the system forces to build hessian.</p>
+<p>File containing the system’s forces to build the Hessian matrix.</p>
 </div></section>
 </section>
 <section id="block-dipoles">
@@ -421,7 +413,7 @@
 <li><p>​</p></li>
 <li></li>
 </ul>
-<p>This is the path of the file containing the systems dipole moments (if only a single file is used).</p>
+<p>File containing the system’s dipole moments (if only a single file is used).</p>
 </div><div class='keyword-entry' id='keyword-dip_x_file'><div class='keyword-header'>dipoles :: <strong>dip_x_file</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: string</p></li>
 <li><p><strong>Default</strong>: —</p></li>
@@ -429,7 +421,7 @@
 <li><p>​</p></li>
 <li></li>
 </ul>
-<p>This is the path of the file containing the systems dipole moments obtained under an electric field in the x-direction.</p>
+<p>File containing the system’s dipole moments obtained under an electric field in the x-direction.</p>
 </div><div class='keyword-entry' id='keyword-dip_y_file'><div class='keyword-header'>dipoles :: <strong>dip_y_file</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: string</p></li>
 <li><p><strong>Default</strong>: —</p></li>
@@ -437,7 +429,7 @@
 <li><p>​</p></li>
 <li></li>
 </ul>
-<p>This is the path of the file containing the systems dipole moments obtained under an electric field in the y-direction.</p>
+<p>File containing the system’s dipole moments obtained under an electric field in the y-direction.</p>
 </div><div class='keyword-entry' id='keyword-dip_z_file'><div class='keyword-header'>dipoles :: <strong>dip_z_file</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: string</p></li>
 <li><p><strong>Default</strong>: —</p></li>
@@ -445,7 +437,7 @@
 <li><p>​</p></li>
 <li></li>
 </ul>
-<p>This is the path of the file containing the systems dipole moments obtained under an electric field in the z-direction.</p>
+<p>File containing the system’s dipole moments obtained under an electric field in the z-direction.</p>
 </div></section>
 <section id="block-polarizabilities">
 <h2>Block: polarizabilities<a class="headerlink" href="#block-polarizabilities" title="Link to this heading">¶</a></h2>
@@ -470,7 +462,7 @@
 </div><div class='keyword-entry' id='keyword-field_strength'><div class='keyword-header'>dipoles :: <strong>field_strength</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: float</p></li>
 <li><p><strong>Default</strong>: —</p></li>
-<li><p><strong>Unit</strong>: Hartree/[<span class="math notranslate nohighlight">\(e\)</span> Bohr] (a.u.)</p></li>
+<li><p><strong>Unit</strong>: Hartree/Bohr (a.u.)</p></li>
 <li><p>​</p></li>
 <li></li>
 </ul>
@@ -482,7 +474,7 @@
 <li><p>​</p></li>
 <li></li>
 </ul>
-<p>This is the path of the file containing the systems static polarizabilities.</p>
+<p>File containing the system’s static polarizabilities.</p>
 </div></section>
 <section id="block-rtp">
 <h2>Block: rtp<a class="headerlink" href="#block-rtp" title="Link to this heading">¶</a></h2>
@@ -519,7 +511,7 @@
 <p>Define if Padé interpolation should be used. Possible values are:</p>
 <ul class="simple">
 <li><p><strong>y</strong> — yes, apply Padé interpolation</p></li>
-<li><p><strong>n</strong> — no, dont apply Padé interpolation</p></li>
+<li><p><strong>n</strong> — no, do not apply Padé interpolation</p></li>
 </ul>
 </div><div class='keyword-entry' id='keyword-pade_framecount'><div class='keyword-header'>rtp :: <strong>pade_framecount</strong></div><ul class="simple">
 <li><p><strong>Type</strong>: int</p></li>
@@ -551,7 +543,7 @@
 <li><p>​</p></li>
 <li></li>
 </ul>
-<p>Incoming laser energy in eV. Multiple values (max 4) may be specified.</p>
+<p>Incoming laser energy for Raman calculations. Multiple values (max 4) may be specified.</p>
 </div></section>
 </section>
 
