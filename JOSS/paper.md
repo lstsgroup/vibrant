@@ -67,7 +67,7 @@ The last panel (bottom-right) demonstrates the use of Padé approximants in abso
 
  ![Overview of Vibrant's functionalities. The top-left panel illustrates its ability to perform both static and MD-based vibrational spectroscopy calculations, where the vibrational frequencies are calculated from the position autocorrelation functions or the energy derivatives along displaced coordinates. The top-right panel summarizes the available corresponding spectral intensities. The bottom-left panel highlights Vibrant's feature of calculating subspectra for user-defined molecular fragments. The bottom-right panel demonstrates its integration with Padé approximants to achieve finer frequency resolution from time-dependent dipole data. More information about the theoretical background and calculation procedures are available on the [Vibrant website](https://lstsgroup.github.io/vibrant/index.html).](flowchart.png){label="overview"}
 
-# Software Design
+# Software design
 
 Vibrant is an open-source post-processing tool for vibrational spectroscopy distributed under the Apache 2.0 license, and is designed to support both static and MD-based spectral calculations within a single and practical framework. The routines in the code are implemented in Fortran 2008 to improve performance and achieve maximized efficiency. These routines integrate established numerical libraries such as FFTW and GreenX (GX-AC), as well as OpenMP parallelization to enable efficient calculations for large systems. In addition, Vibrant is complemented by Python-based regression testing and systematic Github integration to enhance its usability and facilitate its further development.
 
@@ -75,13 +75,13 @@ A limited number of computational programs are available for calculating MD-base
 
 To the best of our knowledge, no existing computational tool provides the same level of flexibility as Vibrant, which supports a wide range of vibrational spectra, both static and MD-based methodologies, diverse dipole and polarizability types, and applicability across gaseous, liquid, and solid-state systems.
 
-# Research Impact Statement
+# Research impact statement
 
 Over the course of its development, we used Vibrant in several publications to calculate and analyze vibrational spectra. The most prominent example is its application to the MD-based and static IR and Raman spectra of the layered framework material COF-1, processing different types of dipole moments and polarizabilities [@bas2024robust]. In the same study, we also used Vibrant to investigate solvent contributions by decomposing the MD-based spectra into contributions from the framework building blocks and solvent molecules, thereby facilitating spectral analysis. In addition, we used Vibrant to generate static Raman spectra for nitrile-containing molecular C~2~N frameworks [@feuerstein2025nitrile] and to compute Padé-interpolated RT-TDDFT-based absorption spectra for gas-phase naphthalene as part of the GreenX library documentation [@leucke2025analytic]. In all these studies, the results were compared against other available computational tools when applicable and showed excellent agreement with them, and also with experiment.
 
 Apart from its documented applications, Vibrant provides extensive documentation covering its functionalities, implementation details, and underlying theory on the [Vibrant website](https://lstsgroup.github.io/vibrant/index.html) Provided tutorials and input/output repositories [@winogradow2025] enable user-friendly testing, while its open-source nature and regression testing promotes possible development and extension of its features.
 
-# AI Usage Disclosure
+# AI usage disclosure
 
 No generative AI tools were used for developing the Vibrant software package and preparing its documentation, authoring this manuscript, or producing the supplementary materials.
 
