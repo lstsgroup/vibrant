@@ -22,7 +22,7 @@ After installation, the compiled binary should be available in the build directo
    build/vibrant input.txt
 
 For more details on the ``input.txt`` format, see the :doc:`Usage <Usage>` section and the :doc:`Keyword Glossary <Keyword_Glossary>`.
-Information about the required data and file formats can be found on the :doc:`File Formats <file_formats>` (in Usage).
+Information about the required data and file formats can be found on the :doc:`File Formats <file_formats>`.
 
 Example Static IR Spectrum of o-Nitrophenol
 -------------

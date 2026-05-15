@@ -29,9 +29,9 @@ Features
 Compatibility and Applications
 ===========
 
-Provided that the required quantities (e.g., forces, dipole moments, polarizabilities) are available in the expected format (see [File Formats](file_formats.md)) , Vibrant is compatible with outputs from multiple electronic structure packages.
+Provided that the required quantities (e.g., forces, dipole moments, polarizabilities) are available in the expected format (see :doc:`File Formats <file_formats>`) , Vibrant is compatible with outputs from multiple electronic structure packages.
 
-One example of a popular electronic structure package is [CP2K](https://www.cp2k.org/about). For users performing calculations with CP2K, tutorials and documentation for setting up the required electronic structure calculations can be found in the official CP2K [manual](https://manual.cp2k.org/trunk/) and [exercises](https://www.cp2k.org/exercises).
+One example of a popular electronic structure package is `CP2K <https://www.cp2k.org/about>`_. For users performing calculations with CP2K, tutorials and documentation for setting up the required electronic structure calculations can be found in the official CP2K `manual <https://manual.cp2k.org/trunk/>`_ and `exercises <https://www.cp2k.org/exercises>`_.
 
 So far, Vibrant has been used in several publications to generate vibrational or electronic spectra, where the underlying electronic structure calculations were carried out using either the CP2K or FHI-aims program packages. Examples include:
 
@@ -39,8 +39,7 @@ So far, Vibrant has been used in several publications to generate vibrational or
 2. Feuerstein, L., Bas, E. E., Golze, D., Heine, T., Oschatz, M., & Weidinger, I. M. (2025). *Nitrile groups as build-in molecular sensors for interfacial effects at electrocatalytically active carbon–nitrogen materials*. ACS Applied Materials & Interfaces, 17(16), 23996–24004. https://doi.org/10.1021/acsami.5c02366
 3. Leucke, M., Panadés-Barrueta, R. L., Bas, E. E., & Golze, D. (2025). *Analytic continuation component of the GreenX library: Robust padé approximants with symmetry constraints*. Journal of Open Software, 10(109), 7859. https://doi.org/10.21105/joss.07859
 
-For publication 1, the input and output files of the electronic structure calculations carried out with CP2K/FHI-aims are available in the corresponding [Zenodo repository](https://zenodo.org/records/11065943).
-
+For publication 1, the input and output files of the electronic structure calculations carried out with CP2K/FHI-aims are available in the corresponding `Zenodo repository <https://zenodo.org/records/11065943>`_.
 
 Quick Start
 ===========
