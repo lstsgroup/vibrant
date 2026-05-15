@@ -4,6 +4,11 @@
 #       mkdir build && cd build
 #       cmake -C initial_cache.example.cmake ..
 
+################################################################################
+#  LINUX
+################################################################################
+
+
 # specifying the fortran compiler
 #   set(CMAKE_Fortran_COMPILER "gfortran" CACHE FILEPATH "Fortran compiler")
 
@@ -20,3 +25,18 @@
 #   set(FFTW_LIBRARY_DIR "/path/to/fftw/install/lib" CACHE PATH "Path to FFTW library directory")
 #   set(GREENX_INCLUDE_DIR "/path/to/greenx/install/include/modules" CACHE PATH "Path to GreenX include directory")
 #   set(GREENX_LIBRARY_DIR "/path/to/greenx/install/lib" CACHE PATH "Path to GreenX library directory")
+
+
+################################################################################
+#  MacOS + Homebrew (gfortran + OpenBLAS + fftw)
+################################################################################
+
+# specifying the fortran compiler
+set(CMAKE_Fortran_COMPILER "gfortran" CACHE FILEPATH "Fortran compiler")
+
+# specifying library paths installed with Homebrew:
+#       $ brew install gcc openblas fftw
+set(FFTW_LIBRARY_DIR "/opt/homebrew/opt/fftw/lib/" CACHE PATH "Path to FFTW library directory")
+set(FFTW_INCLUDE_DIR "/opt/homebrew/opt/fftw/include/" CACHE PATH "Path to FFTW include directory")
+set(BLA_VENDOR "OpenBLAS" CACHE STRING "BLAS vendor")
+set(CMAKE_PREFIX_PATH "/opt/homebrew/opt/openblas" CACHE PATH "Path to OpenBLAS installation")
