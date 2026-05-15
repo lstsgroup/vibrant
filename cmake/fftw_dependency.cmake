@@ -14,9 +14,13 @@ else()
     message(STATUS "FFTW paths not provided. Building FFTW as an external project.")
     ExternalProject_Add(fftw
         URL https://www.fftw.org/fftw-3.3.10.tar.gz
+        DOWNLOAD_EXTRACT_TIMESTAMP TRUE
         PREFIX ${CMAKE_BINARY_DIR}/external/fftw
-        CONFIGURE_COMMAND ./configure --prefix=${CMAKE_BINARY_DIR}/external/fftw/install
-        BUILD_COMMAND make -j 
+        CONFIGURE_COMMAND ./configure 
+            --prefix=${CMAKE_BINARY_DIR}/external/fftw/install
+            CC=${CMAKE_C_COMPILER}
+            FC=${CMAKE_Fortran_COMPILER}
+        BUILD_COMMAND make -j${CMAKE_BUILD_PARALLEL_LEVEL}
         INSTALL_COMMAND make install
         BUILD_IN_SOURCE 1
     )

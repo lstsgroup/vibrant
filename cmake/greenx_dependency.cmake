@@ -21,6 +21,7 @@ else()
                    -DLBASIS_COMPONENT=OFF
                    -DPAW_COMPONENT=OFF
                    -DCOMPILE_SUBMODULES=OFF
+                   -DENABLE_GNU_GMP=OFF
         BUILD_COMMAND make -j 
         INSTALL_COMMAND make install && rm -rf ${CMAKE_BINARY_DIR}/external/greenx/src/greenx/.git/
         GIT_SUBMODULES ""
