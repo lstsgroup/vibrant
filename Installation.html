@@ -202,6 +202,37 @@ make<span class="w"> </span>-j<span class="w"> </span><span class="m">5</span>
 </div>
 <p>with <code class="docutils literal notranslate"><span class="pre">input.txt</span></code> as a input file with the <code class="docutils literal notranslate"><span class="pre">vibrant</span></code> settings.</p>
 </section>
+<section id="installing-on-macos">
+<h2>Installing on macOS<a class="headerlink" href="#installing-on-macos" title="Link to this heading">¶</a></h2>
+<blockquote>
+<div><p>This was tested on macOS Tahoe 26.2 (M4 Chip), Homebrew 5.1.11, GCC 15.2.0_1, OpenBLAS 0.3.33, FFTW 3.3.11, CMake 4.3.2</p>
+</div></blockquote>
+<p>Use paket manager <code class="docutils literal notranslate"><span class="pre">homebrew</span></code> to install GCC (including the <code class="docutils literal notranslate"><span class="pre">gfortran</span></code> compiler), OpenBLAS, FFTW and cmake:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>brew<span class="w"> </span>install<span class="w"> </span>gcc<span class="w"> </span>openblas<span class="w"> </span>fftw<span class="w"> </span>cmake
+</pre></div>
+</div>
+<p>Uncomment the following lines in the file <code class="docutils literal notranslate"><span class="pre">initial_cache.example.cmake</span></code> to let the build system know where the libraries are:</p>
+<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="c"># specifying the fortran compiler</span>
+<span class="nb">set</span><span class="p">(</span><span class="s">CMAKE_Fortran_COMPILER</span><span class="w"> </span><span class="s2">&quot;gfortran&quot;</span><span class="w"> </span><span class="s">CACHE</span><span class="w"> </span><span class="s">FILEPATH</span><span class="w"> </span><span class="s2">&quot;Fortran compiler&quot;</span><span class="p">)</span>
+
+<span class="c"># specifying library paths installed with Homebrew:</span>
+<span class="nb">set</span><span class="p">(</span><span class="s">FFTW_LIBRARY_DIR</span><span class="w"> </span><span class="s2">&quot;/opt/homebrew/opt/fftw/lib/&quot;</span><span class="w"> </span><span class="s">CACHE</span><span class="w"> </span><span class="s">PATH</span><span class="w"> </span><span class="s2">&quot;Path to FFTW library directory&quot;</span><span class="p">)</span>
+<span class="nb">set</span><span class="p">(</span><span class="s">FFTW_INCLUDE_DIR</span><span class="w"> </span><span class="s2">&quot;/opt/homebrew/opt/fftw/include/&quot;</span><span class="w"> </span><span class="s">CACHE</span><span class="w"> </span><span class="s">PATH</span><span class="w"> </span><span class="s2">&quot;Path to FFTW include directory&quot;</span><span class="p">)</span>
+<span class="nb">set</span><span class="p">(</span><span class="s">BLA_VENDOR</span><span class="w"> </span><span class="s2">&quot;OpenBLAS&quot;</span><span class="w"> </span><span class="s">CACHE</span><span class="w"> </span><span class="s">STRING</span><span class="w"> </span><span class="s2">&quot;BLAS vendor&quot;</span><span class="p">)</span>
+<span class="nb">set</span><span class="p">(</span><span class="s">CMAKE_PREFIX_PATH</span><span class="w"> </span><span class="s2">&quot;/opt/homebrew/opt/openblas&quot;</span><span class="w"> </span><span class="s">CACHE</span><span class="w"> </span><span class="s">PATH</span><span class="w"> </span><span class="s2">&quot;Path to OpenBLAS installation&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now you can install vibrant with the following commands:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mkdir<span class="w"> </span>build<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>build
+cmake<span class="w"> </span>-C<span class="w"> </span>../initial_cache.example.cmake<span class="w"> </span>..
+make<span class="w"> </span>-j<span class="w"> </span><span class="m">5</span>
+</pre></div>
+</div>
+<p>Optionally you can run the application tests to verify a successfull installation:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>ctest
+</pre></div>
+</div>
+</section>
 </section>
 
 </main>
@@ -224,6 +255,7 @@ make<span class="w"> </span>-j<span class="w"> </span><span class="m">5</span>
 <li><a class="reference internal" href="#dependencies">Dependencies</a></li>
 <li><a class="reference internal" href="#regression-test">Regression test</a></li>
 <li><a class="reference internal" href="#usage">Usage</a></li>
+<li><a class="reference internal" href="#installing-on-macos">Installing on macOS</a></li>
 </ul>
 </li>
 </ul>
