@@ -48,3 +48,36 @@ build/vibrant input.txt
 ```
 with `input.txt` as a input file with the `vibrant` settings.
 
+
+
+
+## Installing on macOS
+> This was tested on macOS Tahoe 26.2 (M4 Chip), Homebrew 5.1.11, GCC 15.2.0_1, OpenBLAS 0.3.33, FFTW 3.3.11, CMake 4.3.2
+
+Use paket manager `homebrew` to install GCC (including the `gfortran` compiler), OpenBLAS, FFTW and cmake:
+```bash
+brew install gcc openblas fftw cmake
+```
+Uncomment the following lines in the file `initial_cache.example.cmake` to let the build system know where the libraries are:
+```cmake
+# specifying the fortran compiler
+set(CMAKE_Fortran_COMPILER "gfortran" CACHE FILEPATH "Fortran compiler")
+
+# specifying library paths installed with Homebrew:
+set(FFTW_LIBRARY_DIR "/opt/homebrew/opt/fftw/lib/" CACHE PATH "Path to FFTW library directory")
+set(FFTW_INCLUDE_DIR "/opt/homebrew/opt/fftw/include/" CACHE PATH "Path to FFTW include directory")
+set(BLA_VENDOR "OpenBLAS" CACHE STRING "BLAS vendor")
+set(CMAKE_PREFIX_PATH "/opt/homebrew/opt/openblas" CACHE PATH "Path to OpenBLAS installation")
+```
+Now you can install vibrant with the following commands:
+```bash
+mkdir build && cd build
+cmake -C ../initial_cache.example.cmake ..
+make -j 5
+```
+Optionally you can run the application tests to verify a successfull installation:
+```
+ctest
+``` 
+
+
