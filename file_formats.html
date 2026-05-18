@@ -6,7 +6,7 @@
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
-        <title>File Formats &mdash; vibrant  documentation</title>
+        <title>File Formats and Example Scripts &mdash; vibrant  documentation</title>
     
     <link rel="stylesheet" type="text/css" href="_static/dist/fontawesome.css" />
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d75fae25" />
@@ -65,7 +65,7 @@
 <li class="toctree-l1"><a class="reference internal" href="Quick_Start.html">Quick Start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Installation.html">Installation</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="Usage.html">Usage</a><ul class="current">
-<li class="toctree-l2 current"><a class="current reference internal" href="#">File Formats</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">File Formats and Example Scripts</a></li>
 <li class="toctree-l2"><a class="reference internal" href="frequency.html">Frequencies</a></li>
 <li class="toctree-l2"><a class="reference internal" href="IR_spec.html">IR spectra</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Raman_spec.html">Raman spectra</a></li>
@@ -104,7 +104,7 @@
     <ol class="breadcrumb m-0 p-0 bg-transparent">
         <li class="breadcrumb-item"><a href="index.html">Docs</a></li>
             <li class="breadcrumb-item"><a href="Usage.html">Usage</a></li>
-        <li class="breadcrumb-item active" aria-current="page">File Formats</li>
+        <li class="breadcrumb-item active" aria-current="page">File Formats and Example Scripts</li>
     </ol>
 </nav>
                     </div>
@@ -135,12 +135,24 @@
                 <div class="row">
                     <div class="col-12 col-lg-9 order-last order-lg-first rst-content">
                         <main role="main" id="main">
-    <section class="tex2jax_ignore mathjax_ignore" id="file-formats">
-<h1>File Formats<a class="headerlink" href="#file-formats" title="Link to this heading">¶</a></h1>
-<p><code class="docutils literal notranslate"><span class="pre">vibrant</span></code> processes multiple data files, such as the dipole moments, polarizabilities, and forces, in order to compute the desired vibrational spectrum. These files must follow specific formats which we describe in this section.</p>
+    <section class="tex2jax_ignore mathjax_ignore" id="file-formats-and-example-scripts">
+<h1>File Formats and Example Scripts<a class="headerlink" href="#file-formats-and-example-scripts" title="Link to this heading">¶</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">vibrant</span></code> processes multiple data files, such as the dipole moments, polarizabilities, and forces, in order to compute the desired vibrational spectrum. In principle, these data can be obtained from any quantum chemistry package, provided that the appended data files follow the input formats expected by <code class="docutils literal notranslate"><span class="pre">vibrant</span></code>, which are described in this section.</p>
 <p>More information on all available keywords can be found on <a class="reference internal" href="Keyword_Glossary.html"><span class="std std-doc">Keyword Glossary</span></a> and all complete example input files are available on <a class="reference internal" href="Examples.html"><span class="std std-doc">Examples</span></a>.</p>
+<section id="example-scripts">
+<h2>Example scripts<a class="headerlink" href="#example-scripts" title="Link to this heading">¶</a></h2>
+<p>Although the ab initio data can, in principle, be obtained using various quantum chemistry packages, most of our DFT calculations are performed with CP2K or FHI-aims. Therefore, we provide a set of utility Bash scripts that can read selected CP2K and FHI-aims output files and append the required data in the appropriate format for <code class="docutils literal notranslate"><span class="pre">vibrant</span></code>. These scripts are intended both to assist users of these packages and to serve as example starting points for users working with other electronic structure codes. The folder containing the example scripts and data files can be downloaded <a class="reference download internal" download="" href="_downloads/39b613d2f48e3cf18d3d881694ec7cf5/example_scripts_vibrant.tar.gz"><span class="xref download myst">here</span></a>.</p>
+<p>The folder contains three directories:</p>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">static_calculations</span></code> → Contains four Bash scripts for static spectrum calculations: one for appending CP2K forces, one for FHI-aims forces, one for CP2K dipole moments, and one for CP2K DFPT polarizabilities.  Additionally, directories containing CP2K and FHI-aims outputs for finite-displaced structures of the water molecule are provided to demonstrate how the data can be correctly appended by looping over these structures. In practice, these directories would also contain the corresponding displaced geometries required to perform the DFT calculations. Such directory structures can either be created manually by the user or generated automatically, for example, using the <code class="docutils literal notranslate"><span class="pre">get_vibrations.py</span></code> utility of <a class="reference external" href="https://fhi-aims.org/uploads/manual/Ch4/S6.html">FHI-aims</a>, prior to the DFT calculations.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">md_append</span></code> → Contains two subdirectories that provide Bash scripts for reading MD-based Berry-phase dipole moments and DFPT polarizability data from CP2K outputs, along with example CP2K output files.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rt-tddft_dipoles</span></code> → Contains a Bash script for reading and appending dipole moments from a CP2K RT-TDDFT output file. The provided script loops over MD frames; however, it can easily be adapted to loop over displaced structures for static calculations, following a similar structure to that described in Step 1 in this list. An example CP2K RT-TDDFT output file is also provided.</p></li>
+</ol>
+</section>
+<section id="formatting-of-the-input-data-files">
+<h2>Formatting of the input data files<a class="headerlink" href="#formatting-of-the-input-data-files" title="Link to this heading">¶</a></h2>
 <section id="coordinates-of-atomic-positions-xyz-files">
-<h2>1) Coordinates of atomic positions (.xyz files)<a class="headerlink" href="#coordinates-of-atomic-positions-xyz-files" title="Link to this heading">¶</a></h2>
+<h3>1) Coordinates of atomic positions (.xyz files)<a class="headerlink" href="#coordinates-of-atomic-positions-xyz-files" title="Link to this heading">¶</a></h3>
 <p>Static spectral calculations that are based on the normal mode analysis require the cartesian coordinates (in Å) of each atom in the system to be provided in a standard <code class="docutils literal notranslate"><span class="pre">.xyz</span></code> <a class="reference external" href="https://en.wikipedia.org/wiki/XYZ_file_format">format</a>.</p>
 <p>Similarly, the power spectrum calculations requires that the user provides the atomic position (in Å) or velocity vectors (in bohr/au_time, where au_time is the time given in a.u.) for each MD snapshot in the form of an <code class="docutils literal notranslate"><span class="pre">.xyz</span></code> file format:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>&lt;total_number_of_atoms&gt;<span class="w"> </span><span class="c1">#first MD frame</span>
@@ -156,9 +168,9 @@
 <p>An example file can be downloaded from <a class="reference download internal" download="" href="_downloads/ee06a7be8370684ea018849866623d3d/force.data"><span class="xref download myst">here</span></a>.</p>
 </section>
 <section id="files-for-normal-mode-analysis">
-<h2>2) Files for normal mode analysis<a class="headerlink" href="#files-for-normal-mode-analysis" title="Link to this heading">¶</a></h2>
+<h3>2) Files for normal mode analysis<a class="headerlink" href="#files-for-normal-mode-analysis" title="Link to this heading">¶</a></h3>
 <section id="atomic-forces">
-<h3>2.1 Atomic forces<a class="headerlink" href="#atomic-forces" title="Link to this heading">¶</a></h3>
+<h4>2.1 Atomic forces<a class="headerlink" href="#atomic-forces" title="Link to this heading">¶</a></h4>
 <p>To carry out a normal mode analysis, the user must provide the atomic force vectors in a.u. for each <span class="math notranslate nohighlight">\(6N\)</span> displaced structure (for more information, see Section <a class="reference internal" href="frequency.html#a-normal-mode-analysis"><span class="std std-ref">Frequencies</span></a>. The file should have the format (ignoring the comment lines):</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1">#start with forces coming from Atom 1 displaced in +x direction</span>
 &lt;force_x<span class="w"> </span>&lt;force_y&gt;<span class="w"> </span>&lt;force_z&gt;<span class="w"> </span><span class="c1">#first atom</span>
@@ -189,7 +201,7 @@
 <p>As an example, <a class="reference download internal" download="" href="_downloads/f106bfe1bda9347625ebe0f8c0aa09c6/force.sh"><span class="xref download myst">this bash script</span></a> enters the directories of each displaced structure and for example, appends the <a class="reference download internal" download="" href="_downloads/3287c454638d3f5397d4b7ae1ef57b84/force.xyz"><span class="xref download myst">CP2K force files</span></a> accordingly.</p>
 </section>
 <section id="normal-mode-frequencies-and-coordinates">
-<h3>2.2 Normal mode frequencies and coordinates<a class="headerlink" href="#normal-mode-frequencies-and-coordinates" title="Link to this heading">¶</a></h3>
+<h4>2.2 Normal mode frequencies and coordinates<a class="headerlink" href="#normal-mode-frequencies-and-coordinates" title="Link to this heading">¶</a></h4>
 <p>The user can provide the normal mode frequencies and mass-weighted eigenvectors instead of forces. In that case, the normal mode frequencies should be given as:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>&lt;frequency&gt;<span class="w"> </span><span class="c1">#for the first normal mode</span>
 &lt;frequency&gt;<span class="w"> </span><span class="c1">#for the second normal mode</span>
@@ -213,9 +225,9 @@
 </section>
 </section>
 <section id="berry-phase-dipole-moments">
-<h2>3) Berry-phase dipole moments<a class="headerlink" href="#berry-phase-dipole-moments" title="Link to this heading">¶</a></h2>
+<h3>3) Berry-phase dipole moments<a class="headerlink" href="#berry-phase-dipole-moments" title="Link to this heading">¶</a></h3>
 <section id="md-based-spectra">
-<h3>3.1 MD-based spectra<a class="headerlink" href="#md-based-spectra" title="Link to this heading">¶</a></h3>
+<h4>3.1 MD-based spectra<a class="headerlink" href="#md-based-spectra" title="Link to this heading">¶</a></h4>
 <p>The Berry phase dipole moment vectors for the MD-based spectra should be given in Debye in the <code class="docutils literal notranslate"><span class="pre">.xyz</span></code> format, combined for all MD snapshots in a single file such as:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="m">1</span><span class="w"> </span><span class="c1"># because there is only 1 dipole vector for the whole system</span>
 <span class="w">                       </span><span class="c1">#leave 1 blank line</span>
@@ -232,7 +244,7 @@
 <p>An example file can be downloaded from <a class="reference download internal" download="" href="_downloads/3a05e6e5280afec52a82724fca2a3f1d/berry_dipole.xyz"><span class="xref download myst">here</span></a>.</p>
 </section>
 <section id="static-spectra-based-on-normal-modes">
-<h3>3.2 Static spectra based on normal modes<a class="headerlink" href="#static-spectra-based-on-normal-modes" title="Link to this heading">¶</a></h3>
+<h4>3.2 Static spectra based on normal modes<a class="headerlink" href="#static-spectra-based-on-normal-modes" title="Link to this heading">¶</a></h4>
 <p>The Berry phase dipole moment vectors for a static calculation should be given in Debye for each <span class="math notranslate nohighlight">\(6N\)</span> displaced structure (for more information, see Section <a class="reference internal" href="frequency.html#a-normal-mode-analysis"><span class="std std-ref">Frequencies</span></a> combined in a single file, such as (ignoring the comment lines):</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1">#dipoles coming from Atom 1 displaced in +x direction</span>
 <span class="m">1</span><span class="w"> </span><span class="c1"># because there is only 1 dipole vector for the whole system</span>
@@ -272,14 +284,14 @@
 </section>
 </section>
 <section id="wannier-centers">
-<h2>4) Wannier centers<a class="headerlink" href="#wannier-centers" title="Link to this heading">¶</a></h2>
+<h3>4) Wannier centers<a class="headerlink" href="#wannier-centers" title="Link to this heading">¶</a></h3>
 <p>If any MD-based spectrum is being calculated from Wannier centers, then the <code class="docutils literal notranslate"><span class="pre">wannier.xyz</span></code> for the whole system (atoms + Wannier centers labeled as “X”) should be given for each MD frame in the <code class="docutils literal notranslate"><span class="pre">.xyz</span></code> file format.</p>
 <p>An example could be seen <a class="reference download internal" download="" href="_downloads/7d4be304ca33cee9f055250963aef337/COF-1_solv_wannier_free.xyz"><span class="xref download myst">here</span></a>.</p>
 </section>
 <section id="dfpt-polarizabilities">
-<h2>5) DFPT polarizabilities<a class="headerlink" href="#dfpt-polarizabilities" title="Link to this heading">¶</a></h2>
+<h3>5) DFPT polarizabilities<a class="headerlink" href="#dfpt-polarizabilities" title="Link to this heading">¶</a></h3>
 <section id="id1">
-<h3>5.1 MD-based spectra<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h3>
+<h4>5.1 MD-based spectra<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h4>
 <p>The DFPT polarizabilities for the MD-based spectra should be given in Å <span class="math notranslate nohighlight">\(^3\)</span> in the <code class="docutils literal notranslate"><span class="pre">.xyz</span></code> format. There should be three separate files in total, such that the first file contains <span class="math notranslate nohighlight">\(\alpha_{xx}\)</span>, <span class="math notranslate nohighlight">\(\alpha_{xy}\)</span>, <span class="math notranslate nohighlight">\(\alpha_{xz}\)</span>; the second file contains <span class="math notranslate nohighlight">\(\alpha_{yx}\)</span>, <span class="math notranslate nohighlight">\(\alpha_{yy}\)</span>, <span class="math notranslate nohighlight">\(\alpha_{yz}\)</span>; and the third file contains <span class="math notranslate nohighlight">\(\alpha_{zx}\)</span>, <span class="math notranslate nohighlight">\(\alpha_{zy}\)</span>, <span class="math notranslate nohighlight">\(\alpha_{zz}\)</span>. Each file should have the format:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="m">1</span><span class="w"> </span><span class="c1"># because there is only 1 polarizability tensor for the whole system</span>
 <span class="w">                       </span><span class="c1">#leave 1 blank line</span>
@@ -297,7 +309,7 @@
 <p>An example file can be downloaded from <a class="reference download internal" download="" href="_downloads/3a503704a798a8af1044db35ad35ec39/alpha.xyz"><span class="xref download myst">here</span></a>.</p>
 </section>
 <section id="id2">
-<h3>5.2 Static spectra based on normal modes<a class="headerlink" href="#id2" title="Link to this heading">¶</a></h3>
+<h4>5.2 Static spectra based on normal modes<a class="headerlink" href="#id2" title="Link to this heading">¶</a></h4>
 <p>The DFPT polarizabilities for a static calculation should be given in Å <span class="math notranslate nohighlight">\(^3\)</span> for each <span class="math notranslate nohighlight">\(6N\)</span> displaced structure (for more information, see Section <a class="reference internal" href="frequency.html#a-normal-mode-analysis"><span class="std std-ref">Frequencies</span></a> combined in a single file, such as (ignoring the comment lines):</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1">#leave 6 blank lines</span>
 <span class="c1">#Atom 1 displaced in +x direction</span>
@@ -350,9 +362,9 @@ yx,zx,zy<span class="w">       </span>-0.00000<span class="w">        </span><sp
 </section>
 </section>
 <section id="time-dependent-berry-phase-dipole-moments-coming-from-rt-tddft">
-<h2>6) Time-dependent Berry phase dipole moments coming from RT-TDDFT<a class="headerlink" href="#time-dependent-berry-phase-dipole-moments-coming-from-rt-tddft" title="Link to this heading">¶</a></h2>
+<h3>6) Time-dependent Berry phase dipole moments coming from RT-TDDFT<a class="headerlink" href="#time-dependent-berry-phase-dipole-moments-coming-from-rt-tddft" title="Link to this heading">¶</a></h3>
 <section id="id3">
-<h3>6.1 MD-based spectra<a class="headerlink" href="#id3" title="Link to this heading">¶</a></h3>
+<h4>6.1 MD-based spectra<a class="headerlink" href="#id3" title="Link to this heading">¶</a></h4>
 <p>The time-dependent Berry phase dipole moment vectors for the MD-based resonance Raman (RR) or absorption spectra should be given in Debye in the <code class="docutils literal notranslate"><span class="pre">.xyz</span></code> format, combined for all MD snapshots in a single file such as:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>&lt;dummy_value&gt;<span class="w"> </span><span class="c1">#first MD frame</span>
 <span class="w">                       </span><span class="c1">#leave 1 blank line</span>
@@ -379,7 +391,7 @@ yx,zx,zy<span class="w">       </span>-0.00000<span class="w">        </span><sp
 <p>An example file can be downloaded from <a class="reference download internal" download="" href="_downloads/b144fce99442ce0b2f970c87aad5adb7/RTP_dipoles_MD.xyz"><span class="xref download myst">here</span></a>.</p>
 </section>
 <section id="id4">
-<h3>6.2 Static spectra based on normal modes<a class="headerlink" href="#id4" title="Link to this heading">¶</a></h3>
+<h4>6.2 Static spectra based on normal modes<a class="headerlink" href="#id4" title="Link to this heading">¶</a></h4>
 <p>The time-dependent Berry phase dipole moment vectors for a static RR or absorption spectrum calculation should be given in Debye for each <span class="math notranslate nohighlight">\(6N\)</span> displaced structure (for more information, see Section <a class="reference internal" href="frequency.html#a-normal-mode-analysis"><span class="std std-ref">Frequencies</span></a> combined in a single file, such as (ignoring the comment lines):</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1">#dipoles coming from Atom 1 displaced in +x direction</span>
 &lt;dummy_value&gt;
@@ -433,6 +445,7 @@ yx,zx,zy<span class="w">       </span>-0.00000<span class="w">        </span><sp
 </section>
 </section>
 </section>
+</section>
 
 </main>
                         <nav aria-label="Page navigation" class="py-4 my-5 clearfix font-weight-bold border-top">
@@ -449,7 +462,9 @@ yx,zx,zy<span class="w">       </span>-0.00000<span class="w">        </span><sp
                         <div class="sticky-top toc page-toc" aria-labelledby="page-toc-heading">
                             <p class="font-weight-bold" id="page-toc-heading">Page contents</p>
                             <ul>
-<li><a class="reference internal" href="#">File Formats</a><ul>
+<li><a class="reference internal" href="#">File Formats and Example Scripts</a><ul>
+<li><a class="reference internal" href="#example-scripts">Example scripts</a></li>
+<li><a class="reference internal" href="#formatting-of-the-input-data-files">Formatting of the input data files</a><ul>
 <li><a class="reference internal" href="#coordinates-of-atomic-positions-xyz-files">1) Coordinates of atomic positions (.xyz files)</a></li>
 <li><a class="reference internal" href="#files-for-normal-mode-analysis">2) Files for normal mode analysis</a><ul>
 <li><a class="reference internal" href="#atomic-forces">2.1 Atomic forces</a></li>
@@ -470,6 +485,8 @@ yx,zx,zy<span class="w">       </span>-0.00000<span class="w">        </span><sp
 <li><a class="reference internal" href="#time-dependent-berry-phase-dipole-moments-coming-from-rt-tddft">6) Time-dependent Berry phase dipole moments coming from RT-TDDFT</a><ul>
 <li><a class="reference internal" href="#id3">6.1 MD-based spectra</a></li>
 <li><a class="reference internal" href="#id4">6.2 Static spectra based on normal modes</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
