@@ -6,9 +6,7 @@ More information on all available keywords can be found on [Keyword Glossary](Ke
 
 ## Example scripts
 
-Although the ab initio data can, in principle, be obtained using various quantum chemistry packages, most of our DFT calculations are performed with CP2K or FHI-aims. Therefore, we provide a set of utility Bash scripts that can read selected CP2K and FHI-aims output files and append the required data in the appropriate format for `vibrant`. These scripts are intended both to assist users of these packages and to serve as example starting points for users working with other electronic structure codes. The folder containing the example scripts and data files can be downloaded [here](_static/example_scripts_vibrant.tar.gz).
-
-The folder contains three directories:
+Although the _ab initio_ data can, in principle, be obtained using various quantum chemistry packages, most of our DFT calculations are performed with CP2K or FHI-aims. Therefore, we provide a set of utility Bash scripts that can read selected CP2K and FHI-aims output files and append the required data in the appropriate format for `vibrant`. These scripts are intended both to assist users of these packages and to serve as example starting points for users working with other electronic structure codes. The folder containing the example scripts and data files can be downloaded [here](_static/example_scripts_vibrant.tar.gz). The folder contains three directories:
 
 1. `static_calculations` → Contains four Bash scripts for static spectrum calculations: one for appending CP2K forces, one for FHI-aims forces, one for CP2K dipole moments, and one for CP2K DFPT polarizabilities.  Additionally, directories containing CP2K and FHI-aims outputs for finite-displaced structures of the water molecule are provided to demonstrate how the data can be correctly appended by looping over these structures. In practice, these directories would also contain the corresponding displaced geometries required to perform the DFT calculations. Such directory structures can either be created manually by the user or generated automatically, for example, using the `get_vibrations.py` utility of [FHI-aims](https://fhi-aims.org/uploads/manual/Ch4/S6.html), prior to the DFT calculations. 
 2. `md_append` → Contains two subdirectories that provide Bash scripts for reading MD-based Berry-phase dipole moments and DFPT polarizability data from CP2K outputs, along with example CP2K output files.
@@ -82,7 +80,7 @@ The user can provide the normal mode frequencies and mass-weighted eigenvectors 
 <frequency> #for the last normal mode
 ```
 
-An example file can be downloaded from [here](_static/normal_mode_freq.txt).
+An example file can be downloaded from [here](_static/normal_mode_freq.dat).
 
 And the mass-weighted eigenvectors should be given as the atomic coordinates for each vibrational mode, such as:
 
@@ -97,7 +95,7 @@ And the mass-weighted eigenvectors should be given as the atomic coordinates for
 <x_coord> <y_coord> <z_coord> # coordinates of the last atom for the last normal mode
 ```
 
-An example file can be downloaded from [here](_static/normal_mode_displ.txt).
+An example file can be downloaded from [here](_static/normal_mode_displ.dat).
 
 ### 3) Berry-phase dipole moments
 
