@@ -141,8 +141,7 @@
 <p>More information on all available keywords can be found on <a class="reference internal" href="Keyword_Glossary.html"><span class="std std-doc">Keyword Glossary</span></a> and all complete example input files are available on <a class="reference internal" href="Examples.html"><span class="std std-doc">Examples</span></a>.</p>
 <section id="example-scripts">
 <h2>Example scripts<a class="headerlink" href="#example-scripts" title="Link to this heading">¶</a></h2>
-<p>Although the ab initio data can, in principle, be obtained using various quantum chemistry packages, most of our DFT calculations are performed with CP2K or FHI-aims. Therefore, we provide a set of utility Bash scripts that can read selected CP2K and FHI-aims output files and append the required data in the appropriate format for <code class="docutils literal notranslate"><span class="pre">vibrant</span></code>. These scripts are intended both to assist users of these packages and to serve as example starting points for users working with other electronic structure codes. The folder containing the example scripts and data files can be downloaded <a class="reference download internal" download="" href="_downloads/39b613d2f48e3cf18d3d881694ec7cf5/example_scripts_vibrant.tar.gz"><span class="xref download myst">here</span></a>.</p>
-<p>The folder contains three directories:</p>
+<p>Although the <em>ab initio</em> data can, in principle, be obtained using various quantum chemistry packages, most of our DFT calculations are performed with CP2K or FHI-aims. Therefore, we provide a set of utility Bash scripts that can read selected CP2K and FHI-aims output files and append the required data in the appropriate format for <code class="docutils literal notranslate"><span class="pre">vibrant</span></code>. These scripts are intended both to assist users of these packages and to serve as example starting points for users working with other electronic structure codes. The folder containing the example scripts and data files can be downloaded <a class="reference download internal" download="" href="_downloads/39b613d2f48e3cf18d3d881694ec7cf5/example_scripts_vibrant.tar.gz"><span class="xref download myst">here</span></a>. The folder contains three directories:</p>
 <ol class="arabic simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">static_calculations</span></code> → Contains four Bash scripts for static spectrum calculations: one for appending CP2K forces, one for FHI-aims forces, one for CP2K dipole moments, and one for CP2K DFPT polarizabilities.  Additionally, directories containing CP2K and FHI-aims outputs for finite-displaced structures of the water molecule are provided to demonstrate how the data can be correctly appended by looping over these structures. In practice, these directories would also contain the corresponding displaced geometries required to perform the DFT calculations. Such directory structures can either be created manually by the user or generated automatically, for example, using the <code class="docutils literal notranslate"><span class="pre">get_vibrations.py</span></code> utility of <a class="reference external" href="https://fhi-aims.org/uploads/manual/Ch4/S6.html">FHI-aims</a>, prior to the DFT calculations.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">md_append</span></code> → Contains two subdirectories that provide Bash scripts for reading MD-based Berry-phase dipole moments and DFPT polarizability data from CP2K outputs, along with example CP2K output files.</p></li>
@@ -209,7 +208,7 @@
 &lt;frequency&gt;<span class="w"> </span><span class="c1">#for the last normal mode</span>
 </pre></div>
 </div>
-<p>An example file can be downloaded from <span class="xref myst">here</span>.</p>
+<p>An example file can be downloaded from <a class="reference internal" href="#_static/normal_mode_freq.dat"><span class="xref myst">here</span></a>.</p>
 <p>And the mass-weighted eigenvectors should be given as the atomic coordinates for each vibrational mode, such as:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>&lt;x_coord&gt;<span class="w"> </span>&lt;y_coord&gt;<span class="w"> </span>&lt;z_coord&gt;<span class="w"> </span><span class="c1"># coordinates of Atom 1 for normal mode 1</span>
 &lt;x_coord&gt;<span class="w"> </span>&lt;y_coord&gt;<span class="w"> </span>&lt;z_coord&gt;<span class="w"> </span><span class="c1"># coordinates of Atom 2 for normal mode 1</span>
@@ -221,7 +220,7 @@
 &lt;x_coord&gt;<span class="w"> </span>&lt;y_coord&gt;<span class="w"> </span>&lt;z_coord&gt;<span class="w"> </span><span class="c1"># coordinates of the last atom for the last normal mode</span>
 </pre></div>
 </div>
-<p>An example file can be downloaded from <span class="xref myst">here</span>.</p>
+<p>An example file can be downloaded from <a class="reference internal" href="#_static/normal_mode_displ.dat"><span class="xref myst">here</span></a>.</p>
 </section>
 </section>
 <section id="berry-phase-dipole-moments">
