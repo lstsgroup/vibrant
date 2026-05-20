@@ -23,6 +23,7 @@ else()
                    -DCOMPILE_SUBMODULES=OFF
                    -DENABLE_GNU_GMP=OFF
                    -DENABLE_GREENX_CTEST=OFF
+                   -DCMAKE_Fortran_COMPILER=${CMAKE_Fortran_COMPILER}
         BUILD_COMMAND make -j 
         INSTALL_COMMAND make install && rm -rf ${CMAKE_BINARY_DIR}/external/greenx/src/greenx/.git/
         GIT_SUBMODULES ""
