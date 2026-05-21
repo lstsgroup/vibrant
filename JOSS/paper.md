@@ -46,7 +46,7 @@ affiliations:
     name: Center for Advanced Systems Understanding — CASUS, Helmholtz-Zentrum Dresden-Rossendorf, 02826 Görlitz, Germany
     ror: 042b69396
   - index: 4
-    name: Department of Chemistry, Yonsei University and ibs-cnm, Seodaemun-gu, Seoul 120-749, Republic of Korea
+    name: Department of Chemistry, Yonsei University and IBS Center for Nanomedicine, Seodaemun-gu, Seoul 120-749, Republic of Korea
     ror: 01wjejq96 
 date: 15 September 2025
 bibliography: paper.bib
