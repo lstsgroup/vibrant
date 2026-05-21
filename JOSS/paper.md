@@ -2,45 +2,52 @@
 title: 'Vibrant: A Post-Processing Tool for Computational Vibrational Spectroscopy of Molecules, Liquids and Materials'
 tags:
   - Fortran
-  - spectroscopy
+  - Spectroscopy
   - Raman
   - IR
 authors:
   - name:
       given-names: Ekin
       surname: Winogradow
+      orcid: 0000-0002-0110-4691
     affiliation: '1'
 
   - name: 
       given-names: Johannes
       surname: Scheffler
-    affiliation: '1'
+      orcid: 0009-0004-9236-1707
+    affiliation: '1, 2'
 
   - name: 
       given-names: Moritz
       surname: Leucke
-    affiliation: '1'
+      orcid: 0009-0003-4381-0935
+    affiliation: '1, 2'
 
   - name: 
       given-names: Thomas
       surname: Heine
+      orcid: 0000-0003-2379-6251
     affiliation: '1, 3, 4'
 
   - name: 
       given-names: Dorothea
       surname: Golze
+      orcid: 0000-0002-2196-9350
     affiliation: '1, 2'
 affiliations:
   - index: 1
-    name: Technische Universität Dresden, Germany
+    name: Chair of Theoretical Chemistry, Technische Universität Dresden, 01062 Dresden, Germany
     ror: 042aqky30
   - index: 2
-    name: Julius-Maximilians-Universität Würzburg, Germany
+    name: Institute of Physical and Theoretical Chemistry, Julius-Maximilians-Universität Würzburg, 97074 Würzburg, Germany
     ror: 00fbnyb24
   - index: 3
-    name: Helmholtz-Zentrum Dresden-Rossendorf, Centrum for Advanced Systems Understanding, CASUS, Germany
+    name: Center for Advanced Systems Understanding — CASUS, Helmholtz-Zentrum Dresden-Rossendorf, 02826 Görlitz, Germany
+    ror: 042b69396
   - index: 4
-    name: Yonsei University and IBS center for nanomedicine, Republic of Korea
+    name: Department of Chemistry, Yonsei University and ibs-cnm, Seodaemun-gu, Seoul 120-749, Republic of Korea
+    ror: 01wjejq96 
 date: 15 September 2025
 bibliography: paper.bib
 ---
