@@ -2,45 +2,52 @@
 title: 'Vibrant: A Post-Processing Tool for Computational Vibrational Spectroscopy of Molecules, Liquids and Materials'
 tags:
   - Fortran
-  - spectroscopy
+  - Spectroscopy
   - Raman
   - IR
 authors:
   - name:
       given-names: Ekin
       surname: Winogradow
+      orcid: 0000-0002-0110-4691
     affiliation: '1'
 
   - name: 
       given-names: Johannes
       surname: Scheffler
-    affiliation: '1'
+      orcid: 0009-0004-9236-1707
+    affiliation: '1, 2'
 
   - name: 
       given-names: Moritz
       surname: Leucke
-    affiliation: '1'
+      orcid: 0009-0003-4381-0935
+    affiliation: '1, 2'
 
   - name: 
       given-names: Thomas
       surname: Heine
+      orcid: 0000-0003-2379-6251
     affiliation: '1, 3, 4'
 
   - name: 
       given-names: Dorothea
       surname: Golze
+      orcid: 0000-0002-2196-9350
     affiliation: '1, 2'
 affiliations:
   - index: 1
-    name: Technische Universität Dresden, Germany
+    name: Chair of Theoretical Chemistry, Technische Universität Dresden, 01062 Dresden, Germany
     ror: 042aqky30
   - index: 2
-    name: Julius-Maximilians-Universität Würzburg, Germany
+    name: Institute of Physical and Theoretical Chemistry, Julius-Maximilians-Universität Würzburg, 97074 Würzburg, Germany
     ror: 00fbnyb24
   - index: 3
-    name: Helmholtz-Zentrum Dresden-Rossendorf, Centrum for Advanced Systems Understanding, CASUS, Germany
+    name: Center for Advanced Systems Understanding — CASUS, Helmholtz-Zentrum Dresden-Rossendorf, 02826 Görlitz, Germany
+    ror: 042b69396
   - index: 4
-    name: Yonsei University and IBS center for nanomedicine, Republic of Korea
+    name: Department of Chemistry, Yonsei University and IBS Center for Nanomedicine, Seodaemun-gu, Seoul 120-749, Republic of Korea
+    ror: 01wjejq96 
 date: 15 September 2025
 bibliography: paper.bib
 ---
@@ -72,7 +79,7 @@ The last panel (bottom-right) demonstrates the use of Padé approximants in abso
 A limited number of computational programs are available for calculating MD-based and static vibrational spectra. A prominent example is TRAVIS [@brehm2020travis; @brehm2011travis], which processes various properties obtained from MD simulations to compute different types of vibrational spectra, although it is mainly designed for liquids. There are also Python-based tools for vibrational analysis, including the scripts that process CP2K [@kuhne2020cp2k] polarizabilities [@mattiat2018efficient] to generate static Raman spectra [@beat_hubmann_2020_4026342], the scripts distributed with FHI-aims [@blum2009ab; @abbott2025roadmap] for normal mode analysis and static IR and Raman calculations, and VibIR-Parallel-Compute, which focuses on efficient static IR spectra [@rojas2025vibir]. For materials, a popular tool is Phonopy [@phonopy-phono3py-JPCM; @phonopy-phono3py-JPSJ], which calculates phonon dispersion relations and vibrational densities of state; however, it is not designed for MD-based spectral analysis. Related tools include FHI-vibes [@knoop2020fhi], which integrates Phonopy to automate vibrational and MD workflows for FHI-aims, and THeSeuSS [@boziki2025journey], which computes static IR and Raman spectra interfacing with FHI-aims.
 
 To the best of our knowledge, no existing computational tool provides the same level of flexibility as Vibrant, which supports a wide range of vibrational spectra, both static and MD-based methodologies, diverse dipole and polarizability types, and applicability across gaseous, liquid, and solid-state systems. In this context, extending existing tools such as TRAVIS was not feasible due to their limited support for community-driven development, while other mentioned packages are either much smaller in scope or not designed for broad extensibility. The need to interface with external libraries such as GreenX for computationally demanding tasks further motivated the development of Vibrant as an independent package.
-
+ 
 # Software design
 
 Vibrant is an open-source post-processing tool for vibrational spectroscopy distributed under the Apache 2.0 license, and is designed to support both static and MD-based spectral calculations within a single and practical framework. The routines in the code are implemented in Fortran 2008 to improve performance and achieve maximized efficiency. These routines integrate established numerical libraries such as FFTW and GreenX (GX-AC), as well as OpenMP parallelization to enable efficient calculations for large systems. In addition, Vibrant is complemented by Python-based regression testing and systematic Github integration to enhance its usability and facilitate its further development.
