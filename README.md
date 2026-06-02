@@ -8,8 +8,12 @@
 
 ---
 
+# Vibrant: A Post-Processing Tool for Computational Vibrational Spectroscopy of Molecules, Liquids and Materials
+
+[![DOI](https://joss.theoj.org/papers/10.21105/joss.10136/status.svg)](https://doi.org/10.21105/joss.10136)
 [![Regression Tests](https://github.com/lstsgroup/vibrant/actions/workflows/action.yml/badge.svg?branch=main)](https://github.com/lstsgroup/vibrant/actions/workflows/action.yml)
 
+Vibrant is an open-source Fortran post-processing package for vibrational analysis and spectroscopy, enabling the calculation of vibrational frequencies and IR, Raman, resonance Raman, and absorption spectra from static and molecular dynamics data.
 
 ## Quick install
 
