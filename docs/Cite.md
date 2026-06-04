@@ -1,6 +1,6 @@
 # Cite 
 
-Our paper on `vibrant`, "Vibrant: A Post-Processing Tool for Computational Vibrational Spectroscopy of Molecules, Liquids and Materials" was published in _Journal of Open Source Software_. You can access the paper [here](https://joss.theoj.org/papers/10.21105/joss.10136).  
+Our paper on `vibrant`, "Vibrant: A Post-Processing Tool for Computational Vibrational Spectroscopy of Molecules, Liquids and Materials" was published in the _Journal of Open Source Software_. You can access the paper [here](https://joss.theoj.org/papers/10.21105/joss.10136).  
 
 If you use `vibrant` in your research, please cite the following reference: 
 
