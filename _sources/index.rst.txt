@@ -20,9 +20,10 @@ The ``vibrant`` code is a post-processing tool for calculating vibrational spect
    </div>
 Features
 ===========
-   * **IR and Raman spectra** from static calculations or *ab initio* molecular dynamics.  
+   * **IR and Raman spectra** from static calculations or *ab initio* molecular dynamics (MD).  
    * **Resonance Raman spectra** via efficient Padé approximation or explicit frequency sampling.  
-   * **Absorption spectra** computed alongside vibrational data for comprehensive analysis.  
+   * **Absorption spectra** computed alongside vibrational data for comprehensive analysis. 
+   * **Dissection of MD-based spectra** into user-defined molecular fragments.
    * **Fast and efficient** post-processing of large systems and long trajectories.
    * Applicable to **single molecules, liquids and materials**
 
