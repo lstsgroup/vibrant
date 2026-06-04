@@ -22,7 +22,7 @@ Features
 ===========
    * **Vibrational frequencies, IR and Raman spectra** from static calculations or molecular dynamics (MD) simulations.  
    * **Resonance Raman spectra** via efficient Padé approximation or explicit frequency sampling.  
-   * Calculation of **Absorption spectra** alongside vibrational data for comprehensive analysis. 
+   * Calculation of **absorption spectra** alongside vibrational data for comprehensive analysis. 
    * **Dissection of MD-based spectra** into user-defined molecular fragments.
    * **Fast and efficient** post-processing of large systems and long trajectories.
    * Applicable to **single molecules, liquids and materials**.
