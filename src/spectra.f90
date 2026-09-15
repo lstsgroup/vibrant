@@ -409,7 +409,7 @@ CONTAINS
             !!conversion of the Raman intensities into m^2*K*cm*10^-30!!
                     raman_const(i) = const_planck/(8.0_dp*const_boltz*const_permit*const_permit) &
                                      *1.e+30*md%dt*fs2s*((((rams%laser_in(i_laser)/reccm2ev - freq(i))/cm2m)**4)/freq(i))* &
-                                     (1.0_dp/(1.0_dp - EXP(-1._dp*const_planck*speed_light*cm2m*freq(i)/ &
+                                     (1.0_dp/(1.0_dp - EXP(-1._dp*const_planck*speed_light*freq(i)/ &
                                                            (const_boltz*gs%temp))))*2.0_dp
                 END DO
 
@@ -790,7 +790,7 @@ CONTAINS
             !!! Conversion of static Raman units into 10^{-30}*cm^2/sr
             ram_const(:) = (const_planck/(8.0_dp*speed_light*cm2m*const_permit*const_permit)*1.e+30* &
                             REAL(((rams%laser_in(i_laser)/reccm2ev - stats%freq(:))**4.0_dp)/(stats%freq(:)*cm2m**3.0_dp), kind=dp)* &
-                            (1.0_dp/(1.0_dp - EXP(-1._dp*const_planck*speed_light*cm2m*stats%freq(:)/ &
+                            (1.0_dp/(1.0_dp - EXP(-1._dp*const_planck*speed_light*stats%freq(:)/ &
                                                   (const_boltz*gs%temp)))))/(cm2m**2._dp)
 
             !!! Unpolarized Raman intensities
@@ -1492,7 +1492,7 @@ CONTAINS
          !!conversion of the Raman intensities into m^2*K*cm*10^-30!!
                     raman_const(i) = const_planck/(8.0_dp*const_boltz*const_permit*const_permit) &
                                      *1.e+30*md%dt*fs2s*((((rams%laser_in(i_laser)/reccm2ev - freq(i))/cm2m)**4)/freq(i))* &
-                                     (1.0_dp/(1.0_dp - EXP(-1._dp*const_planck*speed_light*cm2m*freq(i)/ &
+                                     (1.0_dp/(1.0_dp - EXP(-1._dp*const_planck*speed_light*freq(i)/ &
                                                            (const_boltz*gs%temp))))*2.0_dp
                 END IF
                 !!Apply sinc functions
