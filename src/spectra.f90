@@ -409,7 +409,7 @@ CONTAINS
             !!conversion of the Raman intensities into m^2*K*cm*10^-30!!
                     raman_const(i) = const_planck/(8.0_dp*const_boltz*const_permit*const_permit) &
                                      *1.e+30*md%dt*fs2s*((((rams%laser_in(i_laser)/reccm2ev - freq(i))/cm2m)**4)/freq(i))* &
-                                     (1.0_dp/(1.0_dp - EXP(-1._dp*const_planck*speed_light*cm2m*freq(i)/ &
+                                     (1.0_dp/(1.0_dp - EXP(-1._dp*const_planck*speed_light*freq(i)/ &
                                                            (const_boltz*gs%temp))))*2.0_dp
                 END DO
 
@@ -749,7 +749,7 @@ CONTAINS
         CHARACTER(len=str_len)                                      :: msg, fname, outfile, c_label_1
         CHARACTER(len=250)                                      :: c_label_2
         LOGICAL                                                   :: first_column
-        INTEGER                                                  :: stat, i, j, x, freq_res, runit, i_laser
+        INTEGER                                                  :: stat, i, j, x, freq_res, runit, i_laser 
         INTEGER                                                  :: start_freq, end_freq!, recl
         REAL(kind=dp)                                             :: broad, broad_para, broad_ortho
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE                    :: r_int_para, r_int_ortho, iso_sq, aniso_sq, ram_const, data2, spec_broad_para, spec_broad_ortho, freq!,broad
@@ -782,15 +782,16 @@ CONTAINS
                       + (3.0_dp*((rams%pol_dq(:, 1, 2)**2.0_dp) + (rams%pol_dq(:, 2, 3)**2.0_dp) &
                                  + (rams%pol_dq(:, 3, 1)**2.0_dp)))
 
-        !!!Conversion from angstrom^4 amu⁻¹ to m^4 kg -1
-        iso_sq = iso_sq*(ang**4._dp)/am_u
-        aniso_sq = aniso_sq*(ang**4._dp)/am_u
+        !!! Conversion from (∂α_vol/∂Q)² in Å⁴ amu⁻¹ to (∂α_SI/∂Q)² in C⁴ m² J⁻² kg⁻¹
+        !!! the Raman prefactor h/(8ε₀²c) expects the SI polarizability: α_SI = 4πε₀·α_vol.
+        iso_sq = iso_sq*(4.0_dp*pi*const_permit)**2*(ang**4._dp)/am_u
+        aniso_sq = aniso_sq*(4.0_dp*pi*const_permit)**2*(ang**4._dp)/am_u
         !!Different laser wavelengths
         DO i_laser = 1, SIZE(rams%laser_in)
             !!! Conversion of static Raman units into 10^{-30}*cm^2/sr
             ram_const(:) = (const_planck/(8.0_dp*speed_light*cm2m*const_permit*const_permit)*1.e+30* &
                             REAL(((rams%laser_in(i_laser)/reccm2ev - stats%freq(:))**4.0_dp)/(stats%freq(:)*cm2m**3.0_dp), kind=dp)* &
-                            (1.0_dp/(1.0_dp - EXP(-1._dp*const_planck*speed_light*cm2m*stats%freq(:)/ &
+                            (1.0_dp/(1.0_dp - EXP(-1._dp*const_planck*speed_light*stats%freq(:)/ &
                                                   (const_boltz*gs%temp)))))/(cm2m**2._dp)
 
             !!! Unpolarized Raman intensities
@@ -890,7 +891,7 @@ CONTAINS
         TYPE(raman), INTENT(INOUT)        :: rams
 
         CHARACTER(LEN=256)                          :: filename, msg, c_label_1, c_label_2, spectra_file_name
-        INTEGER                                                       :: stat, i, j, k, m, x, o, dims, dir, runit
+        INTEGER                                                       :: stat, i, j, k, m, x, o, dims, dir, runit, i_freq
         INTEGER(KIND=dp)                                               :: plan
         REAL(KIND=dp)                                                  :: rtp_freq_res, freq_au
         REAL(KIND=dp), DIMENSION(:), ALLOCATABLE                            :: freq, abs_int
@@ -909,7 +910,7 @@ CONTAINS
         END IF
 
         !Allocate
-        ALLOCATE (rams%RR%zhat_pol_rtp(sys%natom, dims, dir, 3, 3, rams%RR%framecount_rtp))
+        ALLOCATE (rams%RR%zhat_pol_rtp(sys%natom, dims, dir, 3, 3, 0:rams%RR%framecount_rtp-1))
         !Initialize
         rams%RR%zhat_pol_rtp = COMPLEX(0._dp, 0.0_dp)
 
@@ -921,10 +922,10 @@ CONTAINS
                         DO o = 1, 3
                             CALL dfftw_plan_dft_r2c_1d(plan, rams%RR%framecount_rtp, &
                                                        rams%RR%pol_rtp(m, o)%atom(j)%displacement(k)%XYZ(i)%frame(1:rams%RR%framecount_rtp), &
-                                                       rams%RR%zhat_pol_rtp(j, i, k, m, o, 1:rams%RR%framecount_rtp), FFTW_ESTIMATE)
+                                                       rams%RR%zhat_pol_rtp(j, i, k, m, o, 0:rams%RR%framecount_rtp-1), FFTW_ESTIMATE)
                             CALL dfftw_execute_dft_r2c(plan, &
                                                        rams%RR%pol_rtp(m, o)%atom(j)%displacement(k)%XYZ(i)%frame(1:rams%RR%framecount_rtp), &
-                                                       rams%RR%zhat_pol_rtp(j, i, k, m, o, 1:rams%RR%framecount_rtp))
+                                                       rams%RR%zhat_pol_rtp(j, i, k, m, o, 0:rams%RR%framecount_rtp-1))
                             CALL dfftw_destroy_plan(plan)
                         END DO
                     END DO
@@ -935,7 +936,7 @@ CONTAINS
         !!If Pade interpolation is requested
         IF (rams%RR%check_pade=='y') THEN
 
-            ALLOCATE (y_out(sys%natom, dims, dir, 3, 3, rams%RR%framecount_rtp_pade))
+            ALLOCATE (y_out(sys%natom, dims, dir, 3, 3, 0:rams%RR%framecount_rtp_pade-1))
         !!Call Pade
 !$OMP PARALLEL DO COLLAPSE(5)
             DO j = 1, sys%natom
@@ -943,7 +944,7 @@ CONTAINS
                     DO k = 1, dir
                         DO m = 1, 3
                             DO o = 1, 3
-                                CALL interpolate(rams%RR%framecount_rtp, rams%RR%zhat_pol_rtp(j, i, k, m, o, 1:rams%RR%framecount_rtp), &
+                                CALL interpolate(rams%RR%framecount_rtp, rams%RR%zhat_pol_rtp(j, i, k, m, o, 0:rams%RR%framecount_rtp-1), &
                                                  rams%RR%framecount_rtp_pade, y_out(j, i, k, m, o, :))
                             END DO
                         END DO
@@ -958,7 +959,7 @@ CONTAINS
         END IF
 
 !!!Dividing by electric field and multiplying by rams%RR%dt_rtp which is coming from FFT
-        rams%RR%zhat_pol_rtp = rams%RR%zhat_pol_rtp*(rams%RR%dt_rtp*fs2s)/dips%e_field
+        rams%RR%zhat_pol_rtp = rams%RR%zhat_pol_rtp*(rams%RR%dt_rtp*fs2s/at_u)/dips%e_field
 
         !!Find the maximum frequency range in cm^{-1} based on rams%RR%dt_rtp
         rams%RR%freq_range_rtp = REAL((1.0_dp/(rams%RR%dt_rtp*fs2s))/speed_light, kind=dp)
@@ -967,26 +968,26 @@ CONTAINS
 
 !!!Calculate absorption spectra
 
-        ALLOCATE (trace(sys%natom, dims, dir, rams%RR%framecount_rtp))
-        ALLOCATE (abs_intens(sys%natom, dims, dir, rams%RR%framecount_rtp))
+        ALLOCATE (trace(sys%natom, dims, dir,  0:rams%RR%framecount_rtp - 1))
+        ALLOCATE (abs_intens(sys%natom, dims, dir,  0:rams%RR%framecount_rtp - 1))
         trace = 0.0_dp
         trace(:, :, :, :) = DIMAG(rams%RR%zhat_pol_rtp(:, :, :, 1, 1, :)) + DIMAG(rams%RR%zhat_pol_rtp(:, :, :, 2, 2, :)) &
                             + DIMAG(rams%RR%zhat_pol_rtp(:, :, :, 3, 3, :))
 
       !!Conversion of absorption spectrum units into a.u.
-        abs_intens(:, :, :, :) = (4.0_dp*pi*debye*trace(:, :, :, :))/(3.0_dp*speed_light_au*at_u)
+        abs_intens(:, :, :, :) = (4.0_dp*pi*debye*trace(:, :, :, :))/(3.0_dp*speed_light_au)
 
       !! Conversion from cm-1 to a.u.
         freq_au = rtp_freq_res*(-1.0_dp)*reccm2au
 
-        ALLOCATE (freq(rams%RR%framecount_rtp))
-        ALLOCATE (abs_int(rams%RR%framecount_rtp))
+        ALLOCATE (freq( 0:rams%RR%framecount_rtp - 1))
+        ALLOCATE (abs_int( 0:rams%RR%framecount_rtp - 1))
 
         freq = 0.0_dp; abs_int = 0.0_dp
         !!Generate the absorption spectrum
-        DO o = 1, rams%RR%framecount_rtp
-            freq(o) = o*rtp_freq_res*reccm2ev
-            abs_int(o) = abs_intens(1, 1, 1, o)*o*freq_au
+        DO i_freq = 0, rams%RR%framecount_rtp - 1 
+            freq(i_freq) =i_freq*rtp_freq_res*reccm2ev
+            abs_int(i_freq) = abs_intens(1, 1, 1, i_freq)*i_freq*freq_au
         END DO
         !!Write the results to a file
         c_label_1 = "# Energy (eV)"
@@ -1041,12 +1042,12 @@ CONTAINS
         !!Allocate
         ALLOCATE (data2(freq_res*stats%nmodes))
         ALLOCATE (freq(freq_res + 1))
-        ALLOCATE (zhat_pol_dxyz_rtp(sys%natom, 3, 3, 3, rams%RR%framecount_rtp))
-        ALLOCATE (zhat_pol_dq_rtp(stats%nmodes, 3, 3, rams%RR%framecount_rtp))
-        ALLOCATE (iso_sq(stats%nmodes, rams%RR%framecount_rtp), aniso_sq(stats%nmodes, rams%RR%framecount_rtp))
-        ALLOCATE (raman_int(stats%nmodes, rams%RR%framecount_rtp), ram_const(stats%nmodes))
+        ALLOCATE (zhat_pol_dxyz_rtp(sys%natom, 3, 3, 3, 0:rams%RR%framecount_rtp-1))
+        ALLOCATE (zhat_pol_dq_rtp(stats%nmodes, 3, 3, 0:rams%RR%framecount_rtp-1))
+        ALLOCATE (iso_sq(stats%nmodes, 0:rams%RR%framecount_rtp-1), aniso_sq(stats%nmodes, 0:rams%RR%framecount_rtp-1))
+        ALLOCATE (raman_int(stats%nmodes, 0:rams%RR%framecount_rtp-1), ram_const(stats%nmodes))
         IF (gs%spectra_verbosity=='high') THEN
-            ALLOCATE (r_int_para(stats%nmodes, rams%RR%framecount_rtp), r_int_ortho(stats%nmodes, rams%RR%framecount_rtp))
+            ALLOCATE (r_int_para(stats%nmodes, 0:rams%RR%framecount_rtp-1), r_int_ortho(stats%nmodes, 0:rams%RR%framecount_rtp-1))
             ALLOCATE (spec_broad_para(freq_res*stats%nmodes))
             ALLOCATE (spec_broad_ortho(freq_res*stats%nmodes))
         END IF
@@ -1068,7 +1069,7 @@ CONTAINS
 
 !!!Derivatives w.r.t. mass weighted normal coordinates
         DO i = 1, stats%nmodes
-            DO o = 1, rams%RR%framecount_rtp
+            DO o = 0, rams%RR%framecount_rtp - 1
                 DO j = 1, sys%natom
                     zhat_pol_dq_rtp(i, :, :, o) = zhat_pol_dq_rtp(i, :, :, o) &
                                                   + (zhat_pol_dxyz_rtp(j, 1, :, :, o)*stats%disp(i, j, 1)*sys%atom_mass_inv_sqrt(j)) &
@@ -1091,9 +1092,10 @@ CONTAINS
         iso_sq = iso_sq/(a3_to_debye_per_e*a3_to_debye_per_e)
         aniso_sq = aniso_sq/(a3_to_debye_per_e*a3_to_debye_per_e)
 
-        !!!Conversion from angstrom^4 amu⁻¹ to m^4 kg^-1
-        iso_sq = iso_sq*(ang**4._dp)/am_u
-        aniso_sq = aniso_sq*(ang**4._dp)/am_u
+        !!! Conversion from (∂α_vol/∂Q)² in Å⁴ amu⁻¹ to (∂α_SI/∂Q)² in C⁴ m² J⁻² kg⁻¹
+        !!! the Raman prefactor h/(8ε₀²c) expects the SI polarizability: α_SI = 4πε₀·α_vol.
+        iso_sq = iso_sq*(4.0_dp*pi*const_permit)**2*(ang**4._dp)/am_u
+        aniso_sq = aniso_sq*(4.0_dp*pi*const_permit)**2*(ang**4._dp)/am_u
 
         !!!Finding laser frequency
         rtp_freq_res = REAL(rams%RR%freq_range_rtp/rams%RR%framecount_rtp, kind=dp)
@@ -1102,11 +1104,22 @@ CONTAINS
 
             rtp_point = ANINT(rams%laser_in(i_laser)/(rtp_freq_res*reccm2ev), kind=dp)
 
-            WRITE (*, '(4X,"rams%laser_in", T60, G0)') rams%laser_in(i_laser)
+            IF (rtp_point < 1 .OR. rtp_point > rams%RR%framecount_rtp/2) THEN
+                WRITE (error_unit, '(4X,"[ERROR] ",A)') 'laser_in lies outside the RT-TDDFT energy range'
+                WRITE (error_unit, '(6X,A,F12.4," eV")') 'requested: ', rams%laser_in(i_laser)
+                WRITE (error_unit, '(6X,A,F12.4," eV ... ",F12.4," eV")') 'available: ', &
+                    rtp_freq_res*reccm2ev, (rams%RR%framecount_rtp/2)*rtp_freq_res*reccm2ev
+                WRITE (error_unit, '(6X,A)') 'decrease rtp_time_step to reach higher energies'
+                STOP
+            END IF
+
+            WRITE (*, '(4X,"Laser energy requested (eV)", T60, G0)') rams%laser_in(i_laser)
+            WRITE (*, '(4X,"Laser energy used (RTP grid point, eV)", T60, G0)') rtp_point*rtp_freq_res*reccm2ev
+            WRITE (*, '(4X,"RTP energy resolution (eV)", T60, G0)') rtp_freq_res*reccm2ev
             !!! Conversion of static resonance Raman units into 10^{-30}*cm^2/sr
             ram_const(:) = (const_planck/(8.0_dp*speed_light*cm2m*const_permit*const_permit)*1.e+30* &
                             REAL(((rams%laser_in(i_laser)/reccm2ev - stats%freq(:))**4.0_dp)/(stats%freq(:)*cm2m**3.0_dp), kind=dp)* &
-                            (1.0_dp/(1.0_dp - EXP(-1._dp*const_planck*speed_light*cm2m*stats%freq(:)/ &
+                            (1.0_dp/(1.0_dp - EXP(-1._dp*const_planck*speed_light*stats%freq(:)/ &
                                                   (const_boltz*gs%temp)))))/(cm2m**2._dp)
 
             !!!Calculation of the unpolarized resonance Raman intensities!!
@@ -1492,7 +1505,7 @@ CONTAINS
          !!conversion of the Raman intensities into m^2*K*cm*10^-30!!
                     raman_const(i) = const_planck/(8.0_dp*const_boltz*const_permit*const_permit) &
                                      *1.e+30*md%dt*fs2s*((((rams%laser_in(i_laser)/reccm2ev - freq(i))/cm2m)**4)/freq(i))* &
-                                     (1.0_dp/(1.0_dp - EXP(-1._dp*const_planck*speed_light*cm2m*freq(i)/ &
+                                     (1.0_dp/(1.0_dp - EXP(-1._dp*const_planck*speed_light*freq(i)/ &
                                                            (const_boltz*gs%temp))))*2.0_dp
                 END IF
                 !!Apply sinc functions
