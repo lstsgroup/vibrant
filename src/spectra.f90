@@ -959,7 +959,7 @@ CONTAINS
         END IF
 
 !!!Dividing by electric field and multiplying by rams%RR%dt_rtp which is coming from FFT
-        rams%RR%zhat_pol_rtp = rams%RR%zhat_pol_rtp*(rams%RR%dt_rtp*fs2s)/dips%e_field
+        rams%RR%zhat_pol_rtp = rams%RR%zhat_pol_rtp*(rams%RR%dt_rtp*fs2s/at_u)/dips%e_field
 
         !!Find the maximum frequency range in cm^{-1} based on rams%RR%dt_rtp
         rams%RR%freq_range_rtp = REAL((1.0_dp/(rams%RR%dt_rtp*fs2s))/speed_light, kind=dp)
@@ -975,7 +975,7 @@ CONTAINS
                             + DIMAG(rams%RR%zhat_pol_rtp(:, :, :, 3, 3, :))
 
       !!Conversion of absorption spectrum units into a.u.
-        abs_intens(:, :, :, :) = (4.0_dp*pi*debye*trace(:, :, :, :))/(3.0_dp*speed_light_au*at_u)
+        abs_intens(:, :, :, :) = (4.0_dp*pi*debye*trace(:, :, :, :))/(3.0_dp*speed_light_au)
 
       !! Conversion from cm-1 to a.u.
         freq_au = rtp_freq_res*(-1.0_dp)*reccm2au
@@ -1104,7 +1104,18 @@ CONTAINS
 
             rtp_point = ANINT(rams%laser_in(i_laser)/(rtp_freq_res*reccm2ev), kind=dp)
 
-            WRITE (*, '(4X,"rams%laser_in", T60, G0)') rams%laser_in(i_laser)
+            IF (rtp_point < 1 .OR. rtp_point > rams%RR%framecount_rtp/2) THEN
+                WRITE (error_unit, '(4X,"[ERROR] ",A)') 'laser_in lies outside the RT-TDDFT energy range'
+                WRITE (error_unit, '(6X,A,F12.4," eV")') 'requested: ', rams%laser_in(i_laser)
+                WRITE (error_unit, '(6X,A,F12.4," eV ... ",F12.4," eV")') 'available: ', &
+                    rtp_freq_res*reccm2ev, (rams%RR%framecount_rtp/2)*rtp_freq_res*reccm2ev
+                WRITE (error_unit, '(6X,A)') 'decrease rtp_time_step to reach higher energies'
+                STOP
+            END IF
+
+            WRITE (*, '(4X,"Laser energy requested (eV)", T60, G0)') rams%laser_in(i_laser)
+            WRITE (*, '(4X,"Laser energy used (RTP grid point, eV)", T60, G0)') rtp_point*rtp_freq_res*reccm2ev
+            WRITE (*, '(4X,"RTP energy resolution (eV)", T60, G0)') rtp_freq_res*reccm2ev
             !!! Conversion of static resonance Raman units into 10^{-30}*cm^2/sr
             ram_const(:) = (const_planck/(8.0_dp*speed_light*cm2m*const_permit*const_permit)*1.e+30* &
                             REAL(((rams%laser_in(i_laser)/reccm2ev - stats%freq(:))**4.0_dp)/(stats%freq(:)*cm2m**3.0_dp), kind=dp)* &
