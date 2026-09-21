@@ -105,7 +105,7 @@ MODULE constants
     REAL(kind=dp), PARAMETER                            :: au2vm = 5.14220675112e+11_dp
 
     ! [A^3] -> [Debye/E (a.u.)]
-    REAL(kind=dp), PARAMETER                            :: a3_to_debye_per_e = 1.713005_dp
+    REAL(kind=dp), PARAMETER                            :: a3_to_debye_per_e = 17.1526_dp
 
     ! [a.u.] -> [eV]
     REAL(kind=dp), PARAMETER                            :: ev_unit = 27.211386_dp
