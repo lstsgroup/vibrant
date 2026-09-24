@@ -965,7 +965,7 @@ CONTAINS
         rams%RR%freq_range_rtp = REAL((1.0_dp/(rams%RR%dt_rtp*fs2s))/speed_light, kind=dp)
 !!!Finding frequency range
         rtp_freq_res = REAL(rams%RR%freq_range_rtp/rams%RR%framecount_rtp, kind=dp)
-
+        WRITE (*,*) rams%RR%freq_range_rtp, rams%RR%framecount_rtp, rtp_freq_res
 !!!Calculate absorption spectra
 
         ALLOCATE (trace(sys%natom, dims, dir,  0:rams%RR%framecount_rtp - 1))

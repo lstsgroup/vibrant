@@ -70,7 +70,7 @@ MODULE constants
     REAL(kind=dp), PARAMETER                            :: const_permit = 8.8541878128e-12_dp
 
     ! Pi
-    REAL(kind=dp), PARAMETER                            :: pi = 3.14159_dp
+    REAL(kind=dp), PARAMETER                            :: pi = 3.141592653589793_dp !3.14159_dp
 
     ! Elementary charge [C] and [eV] -> [J]
     REAL(kind=dp), PARAMETER                            :: const_charge = 1.602176565e-19_dp
@@ -84,7 +84,7 @@ MODULE constants
     ! Conversion factors
 
     ! [Hartree] -> [J]
-    REAL(kind=dp), PARAMETER                            :: joule_unit = 4.359744722e-18
+    REAL(kind=dp), PARAMETER                            :: joule_unit = 4.359744722e-18_dp
 
     ! [a.u. of action] -> [J*s]
     REAL(kind=dp), PARAMETER                            :: action_unit = 1.054571817e-34_dp
@@ -129,7 +129,7 @@ MODULE constants
     REAL(kind=dp), PARAMETER                            :: fs2s = 1.0e-15_dp
 
     ! [1/cm] -> [eV]
-    REAL(kind=dp), PARAMETER                            :: reccm2ev = 0.000124_dp
+    REAL(kind=dp), PARAMETER                            :: reccm2ev = 0.000123984_dp
 
     ! [eV/(a.m.u*Ang^2)] -> [J/(kg*m^2)]
     REAL(kind=dp), PARAMETER                            :: hessian_factor = REAL(const_charge/(am_u*ang*ang), kind=dp)
