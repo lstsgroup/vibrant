@@ -293,7 +293,12 @@ CONTAINS
             END DO
 995         CONTINUE
             CLOSE (runit)
-
+        WRITE (*,*)  rams%pol(1, 1)%atom(1)%displacement(1)%XYZ(1)%frame(1),&
+                     rams%pol(2, 2)%atom(1)%displacement(1)%XYZ(1)%frame(1),&
+                     rams%pol(3, 3)%atom(1)%displacement(1)%XYZ(1)%frame(1)
+        WRITE (*,*)  rams%pol(1, 1)%atom(1)%displacement(1)%XYZ(2)%frame(1),&
+                     rams%pol(2, 2)%atom(1)%displacement(1)%XYZ(2)%frame(1),&
+                     rams%pol(3, 3)%atom(1)%displacement(1)%XYZ(2)%frame(1)
         !!If the user provided berry phase dipole moments:
         ELSEIF (dips%type_dipole=='berry') THEN
             OPEN (FILE=dips%dip_file, STATUS='old', ACTION='read', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)

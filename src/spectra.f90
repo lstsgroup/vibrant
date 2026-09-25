@@ -30,7 +30,8 @@ MODULE calc_spectra
     USE fin_diff, ONLY: central_diff, forward_diff
     USE vel_cor, ONLY: cvv, cvv_iso, cvv_aniso, cvv_resraman
     USE dipole_calc!, ONLY: compute_dipole, check_jumps
-    USE pade, ONLY: interpolate
+    USE pade, ONLY: interpolate, pade_timing_report
+    USE omp_lib, ONLY: omp_get_wtime
 
     USE, INTRINSIC                              :: ISO_C_BINDING
     USE OMP_LIB
@@ -898,6 +899,13 @@ CONTAINS
         REAL(KIND=dp), DIMENSION(:, :, :, :), ALLOCATABLE                   :: trace, abs_intens
         COMPLEX(KIND=dp), DIMENSION(:, :, :, :, :, :), ALLOCATABLE            :: y_out
 
+        INTEGER                                     :: n_half, n_spec, i_spec
+        CHARACTER(LEN=24)                           :: col_label
+        CHARACTER(LEN=40)                           :: row_fmt
+        CHARACTER(LEN=1), PARAMETER                 :: xyz(3) = ['x', 'y', 'z'], pm(2) = ['+', '-']
+        REAL(KIND=dp), DIMENSION(:, :), ALLOCATABLE :: abs_all
+        REAL(dp) :: t_wall
+
         !! Assign dimensions and displacement directions, if absorption spectrum is requested
         !! do not perform Pade or FFT for the all shifted structures.
         IF (gs%spectral_type%read_function=='RR') THEN
@@ -933,11 +941,31 @@ CONTAINS
             END DO
         END DO
 
+                !! ---- Diagnose A: Zeitsignal + N_e,eff (vor Pade) ----
+        BLOCK
+            INTEGER  :: iu, l, a
+            REAL(dp) :: dt_au
+            dt_au = rams%RR%dt_rtp*fs2s/at_u
+            OPEN (NEWUNIT=iu, FILE='delta_mu_t.txt', STATUS='replace', ACTION='write')
+            WRITE (iu, '(A)') '# t(fs)  dmu_xx  dmu_yy  dmu_zz  (Debye, gedaempft)'
+            DO l = 1, rams%RR%framecount_rtp
+                WRITE (iu, '(F12.5,3ES18.9)') (l - 1)*rams%RR%dt_rtp, &
+                    (rams%RR%pol_rtp(a, a)%atom(1)%displacement(1)%XYZ(1)%frame(l), a = 1, 3)
+            END DO
+            CLOSE (iu)
+            ! d(mu)/dt(0+) = kappa*N_e ; frame(2) liegt bei t = dt (nach deinem Fix)
+            WRITE (*, '(4X,A,3F10.3)') 'N_e,eff aus Anfangssteigung (x,y,z):', &
+                (rams%RR%pol_rtp(a, a)%atom(1)%displacement(1)%XYZ(1)%frame(2)*debye/(dips%e_field*dt_au), a = 1, 3)
+        END BLOCK
+
+        
+
         !!If Pade interpolation is requested
         IF (rams%RR%check_pade=='y') THEN
 
             ALLOCATE (y_out(sys%natom, dims, dir, 3, 3, 0:rams%RR%framecount_rtp_pade-1))
         !!Call Pade
+        t_wall = omp_get_wtime()
 !$OMP PARALLEL DO COLLAPSE(5)
             DO j = 1, sys%natom
                 DO i = 1, dims
@@ -952,6 +980,8 @@ CONTAINS
                 END DO
             END DO
 !$OMP END PARALLEL DO
+            WRITE(*,'(4X,A,F12.3,A)') 'Pade wall time: ', omp_get_wtime() - t_wall, ' s'
+            CALL pade_timing_report()
             !!Reassign the polarizability arrays
             rams%RR%framecount_rtp = rams%RR%framecount_rtp_pade
             rams%RR%zhat_pol_rtp = y_out
@@ -965,6 +995,23 @@ CONTAINS
         rams%RR%freq_range_rtp = REAL((1.0_dp/(rams%RR%dt_rtp*fs2s))/speed_light, kind=dp)
 !!!Finding frequency range
         rtp_freq_res = REAL(rams%RR%freq_range_rtp/rams%RR%framecount_rtp, kind=dp)
+        !! ---- Diagnose B: alpha_ab(omega) in a.u., alpha_ab = mu_a/kappa_b, Im > 0 = Absorption ----
+        BLOCK
+            INTEGER     :: iu, kf, a, b
+            COMPLEX(dp) :: al(3, 3)
+            OPEN (NEWUNIT=iu, FILE='alpha_omega.txt', STATUS='replace', ACTION='write')
+            WRITE (iu, '(A)') '# E(eV)  [Re Im] xx yy zz xy yx xz zx yz zy  (a.u.)'
+            DO kf = 0, rams%RR%framecount_rtp/2           ! nur bis Nyquist
+                DO a = 1, 3                                ! Kickrichtung (1. Index pol_rtp)
+                    DO b = 1, 3                            ! Dipolkomponente (2. Index)
+                        al(b, a) = CONJG(rams%RR%zhat_pol_rtp(1, 1, 1, a, b, kf))*debye
+                    END DO
+                END DO
+                WRITE (iu, '(F12.6,18ES16.7)') kf*rtp_freq_res*reccm2ev, al(1,1), al(2,2), al(3,3), &
+                    al(1,2), al(2,1), al(1,3), al(3,1), al(2,3), al(3,2)
+            END DO
+            CLOSE (iu)
+        END BLOCK
         WRITE (*,*) rams%RR%freq_range_rtp, rams%RR%framecount_rtp, rtp_freq_res
 !!!Calculate absorption spectra
 
@@ -980,23 +1027,79 @@ CONTAINS
       !! Conversion from cm-1 to a.u.
         freq_au = rtp_freq_res*(-1.0_dp)*reccm2au
 
-        ALLOCATE (freq( 0:rams%RR%framecount_rtp - 1))
-        ALLOCATE (abs_int( 0:rams%RR%framecount_rtp - 1))
+        !ALLOCATE (freq( 0:rams%RR%framecount_rtp - 1))
+        !ALLOCATE (abs_int( 0:rams%RR%framecount_rtp - 1))
 
-        freq = 0.0_dp; abs_int = 0.0_dp
-        !!Generate the absorption spectrum
-        DO i_freq = 0, rams%RR%framecount_rtp - 1 
-            freq(i_freq) =i_freq*rtp_freq_res*reccm2ev
-            abs_int(i_freq) = abs_intens(1, 1, 1, i_freq)*i_freq*freq_au
+        !freq = 0.0_dp; abs_int = 0.0_dp
+        !!!Generate the absorption spectrum
+        !DO i_freq = 0, rams%RR%framecount_rtp - 1 
+        !    freq(i_freq) =i_freq*rtp_freq_res*reccm2ev
+        !    abs_int(i_freq) = abs_intens(1, 1, 1, i_freq)*i_freq*freq_au
+        !END DO
+        !!!Write the results to a file
+        !c_label_1 = "# Energy (eV)"
+        !c_label_2 = "Int. (a.u.)"
+        !spectra_file_name = "absorption_spectrum.txt"
+        !CALL write_spectra_data(spectra_file_name, c_label_1, c_label_2, freq, abs_int, MAXVAL(freq) + 1)
+
+        !!CLOSE (runit)
+        !DEALLOCATE (trace, abs_intens)
+                !! r2c-FFT liefert nur die Bins 0 ... N/2, die obere Hälfte ist null
+        n_half = rams%RR%framecount_rtp/2
+        n_spec = sys%natom*dims*dir
+
+        ALLOCATE (freq(0:n_half), abs_all(0:n_half, n_spec))
+        freq = 0.0_dp; abs_all = 0.0_dp
+
+        DO i_freq = 0, n_half
+            freq(i_freq) = i_freq*rtp_freq_res*reccm2ev
         END DO
-        !!Write the results to a file
+
+        !! Absorptionsspektrum jeder ausgelenkten Struktur
+        !! Spaltenreihenfolge wie in der Dipoldatei: +/- -> Atom -> x, y, z
+        i_spec = 0
+        DO k = 1, dir
+            DO j = 1, sys%natom
+                DO i = 1, dims
+                    i_spec = i_spec + 1
+                    DO i_freq = 0, n_half
+                        abs_all(i_freq, i_spec) = abs_intens(j, i, k, i_freq)*i_freq*freq_au
+                    END DO
+                END DO
+            END DO
+        END DO
+
+        !! Einzelspektrum wie bisher (ABS: das einzige, RR: Atom 1, +x)
         c_label_1 = "# Energy (eV)"
         c_label_2 = "Int. (a.u.)"
         spectra_file_name = "absorption_spectrum.txt"
-        CALL write_spectra_data(spectra_file_name, c_label_1, c_label_2, freq, abs_int, MAXVAL(freq) + 1)
+        CALL write_spectra_data(spectra_file_name, c_label_1, c_label_2, freq, abs_all(:, 1), MAXVAL(freq) + 1)
 
-        !CLOSE (runit)
-        DEALLOCATE (trace, abs_intens)
+        !! RR: alle ausgelenkten Strukturen in eine Datei, je eine Spalte
+        IF (gs%spectral_type%read_function=='RR') THEN
+            spectra_file_name = "absorption_spectra_all.txt"
+            OPEN (FILE=spectra_file_name, STATUS='replace', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
+            CALL check_file_open(stat, msg, spectra_file_name)
+
+            WRITE (runit, '(A22)', ADVANCE='no') c_label_1
+            DO k = 1, dir
+                DO j = 1, sys%natom
+                    DO i = 1, dims
+                        WRITE (col_label, '(A,I0,"_",A1,A1)') TRIM(sys%element(j)), j, xyz(i), pm(k)
+                        WRITE (runit, '(1X,A24)', ADVANCE='no') TRIM(col_label)
+                    END DO
+                END DO
+            END DO
+            WRITE (runit, '(A)') ''
+
+            WRITE (row_fmt, '("(F22.16,",I0,"(1X,ES24.15E3))")') n_spec
+            DO i_freq = 0, n_half
+                WRITE (runit, row_fmt) freq(i_freq), abs_all(i_freq, :)
+            END DO
+            CLOSE (runit)
+        END IF
+
+        DEALLOCATE (trace, abs_intens, freq, abs_all)
 
     END SUBROUTINE spec_abs
 
