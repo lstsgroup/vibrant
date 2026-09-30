@@ -481,7 +481,7 @@ CONTAINS
                     sentinel = HUGE(1.0_dp)
                     buf = sentinel
 
-                    READ (line, *, iostat=ios) dummy, (buf(i), i=1, 4)
+                    READ (line, *, iostat=ios) dummy, (buf(i), i=1, 10)
                     m = COUNT(buf/=sentinel)
 
                     IF (m==0) THEN

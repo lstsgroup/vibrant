@@ -366,7 +366,6 @@ CONTAINS
                             READ (runit, *) chara, static_dip_rtp(1)%atom(i)%displacement(k)%XYZ(j)%frame(m), &
                                 static_dip_rtp(2)%atom(i)%displacement(k)%XYZ(j)%frame(m), &
                                 static_dip_rtp(3)%atom(i)%displacement(k)%XYZ(j)%frame(m)
-
                         END DO
                     END DO
                 END DO

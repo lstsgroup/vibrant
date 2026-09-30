@@ -1266,7 +1266,8 @@ CONTAINS
             outfile = 'result_static_resraman.txt'
             c_label_1 = '# Freq. (cm^{-1})'
             c_label_2 = "Int. (10^{-30} cm^2/(mol./system)) @"
-            WRITE(c_label_2(LEN_TRIM(c_label_2)+1:), '(F10.6, " eV")') rams%laser_in(i_laser)
+            WRITE (c_label_2(LEN_TRIM(c_label_2)+1:), '(F10.6," eV (grid ",F10.6," eV)")') &
+                rams%laser_in(i_laser), rtp_point*rtp_freq_res*reccm2ev
             IF (i_laser==1) THEN
                 CALL write_spectra_data(outfile, c_label_1, c_label_2, freq, data2(:))
                 IF (gs%spectra_verbosity=='high') THEN

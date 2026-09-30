@@ -222,62 +222,66 @@ CONTAINS
         REAL(dp), INTENT(in) :: freq(:)
         REAL(dp), INTENT(in), OPTIONAL :: cutoff
 
-        INTEGER :: runit, ios, n, i, stat, nlines
-        LOGICAL :: exists
-        CHARACTER(len=1024) :: line
-        CHARACTER(len=30)   :: VALUE, msg
-        CHARACTER(len=1024) :: buf
-        CHARACTER(len=str_len), ALLOCATABLE :: lines(:)
+        INTEGER :: runit, ios, i, nlines, nrows, linelen, maxlen, nread
+        CHARACTER(len=256) :: msg, chunk
+        CHARACTER(len=:), ALLOCATABLE :: lines(:)
         REAL(dp), ALLOCATABLE :: freq_in_file(:)
 
-        ! ---------- loop 1: read all data rows into lines(:) ----------
-        OPEN (file=filename, status="old", action="readwrite", IOMSG=msg, IOSTAT=stat, newunit=runit)
-        CALL check_file_open(stat, msg, filename)
-
-        nlines = 0
-        DO
-            READ (runit, '(A)', iostat=ios) buf
-            IF (ios/=0) EXIT
-            IF (LEN_TRIM(buf)==0) EXIT   ! stop at empty line if you want
+        ! ---- pass 1: count lines and find longest line (no length limit) ----
+        OPEN (newunit=runit, file=filename, status='old', action='read', iostat=ios, iomsg=msg)
+        CALL check_file_open(ios, msg, filename)
+        nlines = 0; maxlen = 0
+        outer: DO
+            linelen = 0
+            DO
+                READ (runit, '(A)', advance='no', size=nread, iostat=ios) chunk
+                linelen = linelen + nread
+                IF (IS_IOSTAT_EOR(ios)) EXIT
+                IF (ios /= 0) EXIT outer
+            END DO
+            IF (linelen == 0) EXIT        ! stop at empty line
             nlines = nlines + 1
-        END DO
+            maxlen = MAX(maxlen, linelen)
+        END DO outer
         REWIND (runit)
 
-        ! --- allocate after counting ---
-        ALLOCATE (lines(nlines))
-        ALLOCATE (freq_in_file(nlines - 1))
+        nrows = nlines - 1
+        IF (nrows < SIZE(freq)) THEN
+            WRITE (error_unit, '(4X,"[ERROR] ",A)') 'append_column: file has fewer rows than freq.'
+            CLOSE (runit); RETURN
+        END IF
 
-        ! --- pass 2: fill  lines and extract freq data---
+        ALLOCATE (CHARACTER(len=maxlen) :: lines(nlines))
+        ALLOCATE (freq_in_file(nrows))
+
+        ! ---- pass 2: store lines, extract frequencies ----
         DO i = 1, nlines
-            READ (runit, '(A)', iostat=ios) lines(i)
-            IF (i.GE.2) THEN
-                READ (lines(i), *) freq_in_file(i - 1)
+            READ (runit, '(A)') lines(i)
+            IF (i >= 2) READ (lines(i), *) freq_in_file(i - 1)
+        END DO
+        CLOSE (runit)
+
+        ! ---- check before touching the file ----
+        DO i = 1, SIZE(freq)
+            IF (PRESENT(cutoff)) THEN
+                IF (freq(i) >= cutoff) EXIT
+            END IF
+            IF (ABS(freq_in_file(i) - freq(i)) > 1.0e-6_dp*MAX(1.0_dp, ABS(freq(i)))) THEN
+                WRITE (error_unit, '(4X,"[ERROR] ",A)') 'append_column: freq in file not equal to given freq.'
+                RETURN                    ! file unchanged
             END IF
         END DO
-        REWIND (runit)
 
-        ! ---------- loop 2: write the updated file ----------
-        WRITE (runit, '(A,1X,A300)') TRIM(lines(1)), TRIM(header)
-       IF (PRESENT(cutoff)) THEN
-            DO i = 1, SIZE(lines) - 1
-                IF (freq(i).GE.cutoff) EXIT
-                IF (freq_in_file(i)==freq(i)) THEN
-                    WRITE (runit, '(A,1X,ES55.16E3)') TRIM(lines(i + 1)), intensities(i)
-                ELSE
-                    WRITE (error_unit, '(4X,"[ERROR] ",A)') "append_column: freq in file not equal to given freq."
-                    RETURN
-                END IF
-            END DO
-        ELSE
-            DO i = 1, SIZE(freq)
-                IF (freq_in_file(i)==freq(i)) THEN
-                    WRITE (runit, '(A,1X,ES55.16E3)') TRIM(lines(i + 1)), intensities(i)
-                ELSE
-                    WRITE (error_unit, '(4X,"[ERROR] ",A)') "append_column: freq in file not equal to given freq."
-                    RETURN
-                END IF
-            END DO
-        END IF
+        ! ---- pass 3: rewrite (replace -> no stale lines at the end) ----
+        OPEN (newunit=runit, file=filename, status='replace', action='write', iostat=ios, iomsg=msg)
+        CALL check_file_open(ios, msg, filename)
+        WRITE (runit, '(A,3X,A)') TRIM(lines(1)), TRIM(header)
+        DO i = 1, SIZE(freq)
+            IF (PRESENT(cutoff)) THEN
+                IF (freq(i) >= cutoff) EXIT
+            END IF
+            WRITE (runit, '(A,1X,ES24.16E3)') TRIM(lines(i + 1)), intensities(i)
+        END DO
         CLOSE (runit)
     END SUBROUTINE append_column
 
