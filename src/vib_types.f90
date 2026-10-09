@@ -91,6 +91,7 @@ MODULE vib_types
         INTEGER                                             :: framecount_rtp_pade !framecount after Pade interpolation
         REAL(kind=dp)                                       :: dt_rtp !RTP time step in fs
         REAL(kind=dp)                                       :: freq_range_rtp ! RTP freq range
+        REAL(kind=dp)                                       :: freq_res_rtp ! spacing of spectral points in cm^-1 (FFT or Pade)
         REAL(kind=dp)                                       :: damping_constant !damping constant
         TYPE(static_property), DIMENSION(3)  ::  static_dip_rtp ! static field-free dipoles
         TYPE(static_property), DIMENSION(3)  ::  static_dip_x_rtp !static dipoles under electric field in x-direction
@@ -428,6 +429,7 @@ CONTAINS
         this%framecount_rtp_pade = -1
         this%dt_rtp = -1.0_dp
         this%freq_range_rtp = -1.0_dp
+        this%freq_res_rtp = 0
         this%damping_constant = -1.0_dp
     END SUBROUTINE
 
@@ -522,6 +524,7 @@ CONTAINS
         TYPE(global_settings), INTENT(out) :: gs
         gs%spectra_verbosity = 'normal'
         gs%temp = -1.0_dp
+        gs%fwhm = -1.0_dp
         gs%spectral_type%read_function = ''
     END SUBROUTINE init_global_settings
 
@@ -597,8 +600,12 @@ CONTAINS
     !>
     SUBROUTINE init_dipoles(dip)
         TYPE(dipoles), INTENT(out) :: dip
-        dip%type_dipole = ''
+        dip%e_field = -1.0_dp
+        dip%type_dipole = ''    
         dip%dip_file = ''
+        dip%dip_X_file = ''
+        dip%dip_Y_file = ''
+        dip%dip_Z_file = ''
     END SUBROUTINE init_dipoles
 
     !**************************************************************************************!

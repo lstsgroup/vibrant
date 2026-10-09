@@ -86,8 +86,8 @@ CONTAINS
 
         OPEN (file=outfile, status='replace', action='write', iostat=stat, iomsg=msg, newunit=runit)
         CALL check_file_open(stat, msg, outfile)
-
-        WRITE (runit, '(A22,1X,A45)') TRIM(header_1), TRIM(header_2)
+        
+        WRITE (runit, '(A22,1X,A)') TRIM(header_1), TRIM(header_2)
 
         IF (PRESENT(freq_cutoff)) THEN
             DO i = 1, SIZE(freq)
@@ -203,16 +203,16 @@ CONTAINS
 !***************************************************************************************!
     !> @brief Appends a new data column to an existing spectra file.
     !>
-    !> This subroutine adds a column of intensity data to an existing text file
-    !> containing frequency values and previously written data columns.
-    !> If the file is newly created, the provided `header` is written as the
-    !> column label on the first line.
+    !> The number of data rows is taken from the existing file (defined by the first
+    !> column written via write_spectra_data). The frequencies in the file must match
+    !> the first rows of `freq`. If `cutoff` is given, the file must not contain more
+    !> rows than there are frequencies below `cutoff`.
     !>
     !> @param[in] filename         -- Name of the target file to append to
     !> @param[in] header           -- Header label for the new column
     !> @param[in] intensities      -- Array of intensity values to append
     !> @param[in] freq             -- Array of frequencies corresponding to the intensity values
-    !> @param[in, optional] cutoff -- Optional upper frequency limit for writing
+    !> @param[in, optional] cutoff -- Optional upper frequency limit (sanity check only)
     !>
     SUBROUTINE append_column(filename, header, intensities, freq, cutoff)
 
@@ -222,7 +222,7 @@ CONTAINS
         REAL(dp), INTENT(in) :: freq(:)
         REAL(dp), INTENT(in), OPTIONAL :: cutoff
 
-        INTEGER :: runit, ios, i, nlines, nrows, linelen, maxlen, nread
+        INTEGER :: runit, ios, i, nlines, nrows, nlimit, linelen, maxlen, nread
         CHARACTER(len=256) :: msg, chunk
         CHARACTER(len=:), ALLOCATABLE :: lines(:)
         REAL(dp), ALLOCATABLE :: freq_in_file(:)
@@ -237,7 +237,14 @@ CONTAINS
                 READ (runit, '(A)', advance='no', size=nread, iostat=ios) chunk
                 linelen = linelen + nread
                 IF (IS_IOSTAT_EOR(ios)) EXIT
-                IF (ios /= 0) EXIT outer
+                IF (ios /= 0) THEN
+                    ! EOF/error: count a final line that has no terminating newline
+                    IF (linelen > 0) THEN
+                        nlines = nlines + 1
+                        maxlen = MAX(maxlen, linelen)
+                    END IF
+                    EXIT outer
+                END IF
             END DO
             IF (linelen == 0) EXIT        ! stop at empty line
             nlines = nlines + 1
@@ -245,9 +252,19 @@ CONTAINS
         END DO outer
         REWIND (runit)
 
-        nrows = nlines - 1
-        IF (nrows < SIZE(freq)) THEN
-            WRITE (error_unit, '(4X,"[ERROR] ",A)') 'append_column: file has fewer rows than freq.'
+        ! ---- sanity checks on row count ----
+        nrows = nlines - 1                ! first line is the header
+        nlimit = SIZE(freq)
+        IF (PRESENT(cutoff)) nlimit = COUNT(freq < cutoff)
+
+        IF (nrows < 1) THEN
+            WRITE (error_unit, '(4X,"[ERROR] ",A)') 'append_column: file contains no data rows.'
+            CLOSE (runit); RETURN
+        END IF
+        IF (nrows > nlimit .OR. nrows > SIZE(intensities)) THEN
+            WRITE (error_unit, '(4X,"[ERROR] ",A,3(1X,I0))') &
+                'append_column: file has too many rows (file, allowed, intensities):', &
+                nrows, nlimit, SIZE(intensities)
             CLOSE (runit); RETURN
         END IF
 
@@ -262,12 +279,10 @@ CONTAINS
         CLOSE (runit)
 
         ! ---- check before touching the file ----
-        DO i = 1, SIZE(freq)
-            IF (PRESENT(cutoff)) THEN
-                IF (freq(i) >= cutoff) EXIT
-            END IF
+        DO i = 1, nrows
             IF (ABS(freq_in_file(i) - freq(i)) > 1.0e-6_dp*MAX(1.0_dp, ABS(freq(i)))) THEN
-                WRITE (error_unit, '(4X,"[ERROR] ",A)') 'append_column: freq in file not equal to given freq.'
+                WRITE (error_unit, '(4X,"[ERROR] ",A,I0)') &
+                    'append_column: freq in file not equal to given freq in row ', i
                 RETURN                    ! file unchanged
             END IF
         END DO
@@ -276,13 +291,9 @@ CONTAINS
         OPEN (newunit=runit, file=filename, status='replace', action='write', iostat=ios, iomsg=msg)
         CALL check_file_open(ios, msg, filename)
         WRITE (runit, '(A,3X,A)') TRIM(lines(1)), TRIM(header)
-        DO i = 1, SIZE(freq)
-            IF (PRESENT(cutoff)) THEN
-                IF (freq(i) >= cutoff) EXIT
-            END IF
+        DO i = 1, nrows
             WRITE (runit, '(A,1X,ES24.16E3)') TRIM(lines(i + 1)), intensities(i)
         END DO
         CLOSE (runit)
     END SUBROUTINE append_column
-
 END MODULE output_io

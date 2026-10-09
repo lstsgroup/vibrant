@@ -44,7 +44,7 @@ PROGRAM vib2d
                          hessian_factor, au2vm
     USE read_input, ONLY: parse_command_line, parse_input, check_input
     USE vib_types, ONLY: global_settings, systems, molecular_dynamics, static, dipoles, &
-                         raman, init_global_settings, init_systems, init_molecular_dynamics, init_static, init_raman, deallocate_types
+                         raman, init_global_settings, init_systems, init_molecular_dynamics, init_static, init_raman, init_dipoles, deallocate_types
     USE setup, ONLY: masses_charges
     USE cell_types, ONLY: build_hmat, pbc, invert3x3, determinant3x3
     USE read_traj, ONLY: read_coord, read_coord_frame, read_normal_modes, read_static, read_static_resraman
@@ -83,6 +83,7 @@ PROGRAM vib2d
     CALL init_global_settings(gs)
     CALL init_systems(sys)
     CALL init_molecular_dynamics(md)
+    CALL init_dipoles(dips)
     CALL init_static(stats)
     CALL init_raman(rams)
     CALL output_config_info()

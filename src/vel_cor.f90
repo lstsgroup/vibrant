@@ -104,16 +104,17 @@ CONTAINS
             END IF
         END IF
 
+        !! Hann Window function
+        DO i = 0, md%t_cor - 1
+            md%z(i) = md%z(i)*((COS(i/(md%t_cor - 1.0_dp)/2.0_dp*pi))**2)
+        END DO
+        
         !! Data mirroring
         md%z(md%t_cor) = 0.0_dp
         DO i = 1, md%t_cor - 1
             md%z(md%t_cor + i) = md%z(md%t_cor - i)
         END DO
 
-        !! Hann Window function
-        DO i = 0, 2*md%t_cor - 1
-            md%z(i) = md%z(i)*((COS(i/(md%t_cor - 1.0_dp)/2.0_dp*pi))**2)
-        END DO
 
         DEALLOCATE (norm)
 
@@ -259,7 +260,7 @@ CONTAINS
         !! Normalization
         z_aniso(:) = z_aniso(:)/norm(:)
 
-      !!Unit conversion of Debye^2/(E^2*fs^2) into C^4*s^2/kg^2
+      !!Unit conversion of Debye^2/(E^2*fs^2) into Debye^2/(E^2*s^2)
         z_aniso(:) = z_aniso(:)/(fs2s*fs2s)
 
         !! Hann Window function
