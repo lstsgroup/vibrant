@@ -22,6 +22,10 @@ MODULE pade
     USE iso_fortran_env, ONLY: output_unit, error_unit
     IMPLICIT NONE
 
+    ! Laufzeit-Zaehler (Summe ueber alle Aufrufe und Threads), in SYSTEM_CLOCK-Ticks
+    INTEGER(8), SAVE :: t_pade_build = 0, t_pade_grid = 0, t_pade_eval = 0, n_pade_calls = 0
+    INTEGER, SAVE    :: n_par_last = 0, n_points_last = 0
+
 CONTAINS
 
 !****************************************************************************!
@@ -49,6 +53,7 @@ CONTAINS
         REAL(kind=dp) :: first, last, step, x_last_important
         COMPLEX(kind=dp), DIMENSION(:), ALLOCATABLE :: x_ref_complx, x_ref_complx_tmp, y_ref_tmp
         COMPLEX(kind=dp), DIMENSION(:), ALLOCATABLE :: x_out_complx
+        INTEGER(8)   :: c0, c1, c2, c3
         ! convert x to complex type
         ! use only half of the array (other half filled with zeros)
         num_ref_points = SIZE(y_ref)
@@ -59,6 +64,7 @@ CONTAINS
         DO i = 1, num_ref_points
             x_ref_complx(i) = COMPLEX(first + (i - 1.0_dp)*step, 0.0_dp)
         END DO
+        CALL SYSTEM_CLOCK(c0)
         last_important = num_ref_points
         DO i = num_ref_points, 1, -1
             IF (y_ref(i).EQ.COMPLEX(0.0_dp, 0.0_dp) .AND. i>INT(num_ref_points/2)) THEN
@@ -73,6 +79,7 @@ CONTAINS
         pade_params = create_thiele_pade(n_par, x_ref_complx_tmp, &
                                          y_ref_tmp, &
                                          do_greedy=.FALSE., PRECISION=64)
+        CALL SYSTEM_CLOCK(c1)
 
         ! create points where function is interpolated
         ALLOCATE (x_out_complx(n_points))
@@ -85,9 +92,23 @@ CONTAINS
             END IF
         END DO
 
+        CALL SYSTEM_CLOCK(c2)
+
         ! evaluate model at given x for half the points (other half zero)
         y_out = evaluate_thiele_pade_at(pade_params, x_out_complx)
         y_out(last_important_out:) = COMPLEX(0.0_dp, 0.0_dp)
+        CALL SYSTEM_CLOCK(c3)
+
+        !$OMP ATOMIC
+        t_pade_build = t_pade_build + (c1 - c0)
+        !$OMP ATOMIC
+        t_pade_grid = t_pade_grid + (c2 - c1)
+        !$OMP ATOMIC
+        t_pade_eval = t_pade_eval + (c3 - c2)
+        !$OMP ATOMIC
+        n_pade_calls = n_pade_calls + 1
+        n_par_last = n_par
+        n_points_last = n_points
 
         ! deallocation
         CALL free_params(pade_params)
@@ -130,4 +151,19 @@ CONTAINS
             selected(i) = points(step)
         END DO
     END SUBROUTINE select_points_evenly
+!****************************************************************************!
+!****************************************************************************!
+
+    !> @brief Prints the accumulated Pade timings (call once, outside the parallel region).
+    SUBROUTINE pade_timing_report()
+        INTEGER(8) :: rate
+        CALL SYSTEM_CLOCK(count_rate=rate)
+        WRITE(output_unit,'(/,4X,A)') 'Pade timing (CPU time summed over all calls and threads):'
+        WRITE(output_unit,'(6X,A,T48,I0)') 'calls:', n_pade_calls
+        WRITE(output_unit,'(6X,A,T48,I0)') 'support points n_par (last call):', n_par_last
+        WRITE(output_unit,'(6X,A,T48,I0)') 'output points n_points:', n_points_last
+        WRITE(output_unit,'(6X,A,T48,F12.3," s")') 'build (create_thiele_pade):', DBLE(t_pade_build)/DBLE(rate)
+        WRITE(output_unit,'(6X,A,T48,F12.3," s")') 'output grid (x_out_complx):', DBLE(t_pade_grid)/DBLE(rate)
+        WRITE(output_unit,'(6X,A,T48,F12.3," s")') 'evaluate (evaluate_thiele_pade_at):', DBLE(t_pade_eval)/DBLE(rate)
+    END SUBROUTINE pade_timing_report
 END MODULE pade

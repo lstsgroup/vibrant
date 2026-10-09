@@ -232,7 +232,7 @@ CONTAINS
         REAL(kind=dp)                        :: damping_factor, conv_unit
 
         !! Allocate
-        CALL rams%RR%init_rr_pol(sys%natom, rams%RR%framecount_rtp)
+        CALL rams%RR%init_rr_pol(sys%natom, rams%RR%framecount_rtp+1)
 
         !! Calculation of the damping constant
         conv_unit = rams%RR%damping_constant*joule_unit/ev_unit !! J
@@ -243,14 +243,14 @@ CONTAINS
             DO i = 1, sys%natom
                 DO j = 1, 3
                     DO j_pol = 1, 3
-                        DO l = 2, rams%RR%framecount_rtp + 1
-                            rams%RR%pol_rtp(1, j_pol)%atom(i)%displacement(k)%XYZ(j)%frame(l - 1) = &
+                        DO l = 1, rams%RR%framecount_rtp + 1
+                            rams%RR%pol_rtp(1, j_pol)%atom(i)%displacement(k)%XYZ(j)%frame(l) = &
                                 (rams%RR%static_dip_x_rtp(j_pol)%atom(i)%displacement(k)%XYZ(j)%frame(l) - &
                                  rams%RR%static_dip_x_rtp(j_pol)%atom(i)%displacement(k)%XYZ(j)%frame(1))
-                            rams%RR%pol_rtp(2, j_pol)%atom(i)%displacement(k)%XYZ(j)%frame(l - 1) = &
+                            rams%RR%pol_rtp(2, j_pol)%atom(i)%displacement(k)%XYZ(j)%frame(l) = &
                                 (rams%RR%static_dip_y_rtp(j_pol)%atom(i)%displacement(k)%XYZ(j)%frame(l) - &
                                  rams%RR%static_dip_y_rtp(j_pol)%atom(i)%displacement(k)%XYZ(j)%frame(1))
-                            rams%RR%pol_rtp(3, j_pol)%atom(i)%displacement(k)%XYZ(j)%frame(l - 1) = &
+                            rams%RR%pol_rtp(3, j_pol)%atom(i)%displacement(k)%XYZ(j)%frame(l) = &
                                 (rams%RR%static_dip_z_rtp(j_pol)%atom(i)%displacement(k)%XYZ(j)%frame(l) - &
                                  rams%RR%static_dip_z_rtp(j_pol)%atom(i)%displacement(k)%XYZ(j)%frame(1))
                         END DO
@@ -264,13 +264,13 @@ CONTAINS
             DO i = 1, sys%natom
                 DO j = 1, 3
                     DO j_pol = 1, 3
-                        DO l = 1, rams%RR%framecount_rtp
+                        DO l = 1, rams%RR%framecount_rtp+1
                             rams%RR%pol_rtp(1, j_pol)%atom(i)%displacement(k)%XYZ(j)%frame(l) = &
-                                rams%RR%pol_rtp(1, j_pol)%atom(i)%displacement(k)%XYZ(j)%frame(l)*EXP(-1.0_dp*damping_factor*l)
+                                rams%RR%pol_rtp(1, j_pol)%atom(i)%displacement(k)%XYZ(j)%frame(l)*EXP(-1.0_dp*damping_factor*(l-1))
                             rams%RR%pol_rtp(2, j_pol)%atom(i)%displacement(k)%XYZ(j)%frame(l) = &
-                                rams%RR%pol_rtp(2, j_pol)%atom(i)%displacement(k)%XYZ(j)%frame(l)*EXP(-1.0_dp*damping_factor*l)
+                                rams%RR%pol_rtp(2, j_pol)%atom(i)%displacement(k)%XYZ(j)%frame(l)*EXP(-1.0_dp*damping_factor*(l-1))
                             rams%RR%pol_rtp(3, j_pol)%atom(i)%displacement(k)%XYZ(j)%frame(l) = &
-                                rams%RR%pol_rtp(3, j_pol)%atom(i)%displacement(k)%XYZ(j)%frame(l)*EXP(-1.0_dp*damping_factor*l)
+                                rams%RR%pol_rtp(3, j_pol)%atom(i)%displacement(k)%XYZ(j)%frame(l)*EXP(-1.0_dp*damping_factor*(l-1))
                         END DO
                     END DO
                 END DO

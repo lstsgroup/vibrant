@@ -481,7 +481,7 @@ CONTAINS
                     sentinel = HUGE(1.0_dp)
                     buf = sentinel
 
-                    READ (line, *, iostat=ios) dummy, (buf(i), i=1, 4)
+                    READ (line, *, iostat=ios) dummy, (buf(i), i=1, 10)
                     m = COUNT(buf/=sentinel)
 
                     IF (m==0) THEN
@@ -723,6 +723,20 @@ CONTAINS
                 WRITE (error_unit, '(4X,"[WARN]  ",A)') 'type_pol not defined in the input, setting it to "analytical"'
                 rams%type_pol = 'analytical'
             END IF
+
+            !Static Raman currently only supports DFPT polarizabilities
+            IF (TRIM(rams%type_pol)/='analytical') THEN
+                IF (TRIM(rams%type_pol)=='induced') THEN
+                    WRITE (error_unit, '(4X,"[ERROR] ",A)') 'type_pol "induced" is not supported for static Raman.'
+                    WRITE (error_unit, '(4X,"        ",A)') 'Computing static Raman spectra from finite-field (induced) dipoles is possible in principle,'
+                    WRITE (error_unit, '(4X,"        ",A)') 'but is not implemented yet. Please provide polarizabilities and use "type_pol analytical".'
+                ELSE
+                    WRITE (error_unit, '(4X,"[ERROR] ",A)') 'Unknown type_pol "'//TRIM(rams%type_pol)// &
+                        '". Allowed for static Raman: analytical'
+                END IF
+                ERROR STOP
+            END IF
+            
             !check for the electric field strength
             IF (rams%type_pol.NE.'analytical' .AND. dips%e_field<0) THEN
                 WRITE (error_unit, '(4X,"[ERROR] ",A)') 'Electric field strength not defined!'
@@ -952,7 +966,7 @@ CONTAINS
                 STOP
             END IF
             !check for type_dipole
-            IF (TRIM(dips%type_dipole)=='') THEN
+            IF (dips%type_dipole == '' .AND. rams%type_pol == 'induced') THEN
                 WRITE (error_unit, '(4X,"[WARN]  ",A)') 'type_dipole not defined in the input setting it to "berry"'
                 dips%type_dipole = 'berry'
             END IF
@@ -962,22 +976,22 @@ CONTAINS
                 STOP
             END IF
             !check for dipole file
-            IF (TRIM(dips%dip_file)=='') THEN
+            IF (TRIM(dips%dip_file)==''.AND. rams%type_pol == 'induced') THEN
                 WRITE (error_unit, '(4X,"[ERROR] ",A)') 'Dipole filename not defined in the input'
                 STOP
             END IF
             !check for the file containing perturbed dipole moments under x_field
-            IF (TRIM(dips%dip_x_file)=='') THEN
+            IF (TRIM(dips%dip_x_file)==''.AND. rams%type_pol == 'induced') THEN
                 WRITE (error_unit, '(4X,"[ERROR] ",A)') 'X-field dipole file name not defined in the input'
                 STOP
             END IF
             !check for the file containing perturbed dipole moments under y_field
-            IF (TRIM(dips%dip_y_file)=='') THEN
+            IF (TRIM(dips%dip_y_file)==''.AND. rams%type_pol == 'induced') THEN
                 WRITE (error_unit, '(4X,"[ERROR] ",A)') 'Y-field dipole file name not defined in the input'
                 STOP
             END IF
             !check for the file containing perturbed dipole moments under z_field
-            IF (TRIM(dips%dip_z_file)=='') THEN
+            IF (TRIM(dips%dip_z_file)==''.AND. rams%type_pol == 'induced') THEN
                 WRITE (error_unit, '(4X,"[ERROR] ",A)') 'Z-field dipole file name not defined in the input'
                 STOP
             END IF
@@ -1061,7 +1075,7 @@ CONTAINS
             END IF
             !check for the number of frames after the Pade interpolation
             IF (TRIM(rams%RR%check_pade)=='y' .AND. rams%RR%framecount_rtp_pade<0) THEN !this can also be adjusted
-                WRITE (error_unit, '(4X,"[WARN]  ",A)') 'Pade framecount is set to 80000!'
+                WRITE (error_unit, '(4X,"[WARN]  ",A)') 'Pade framecount is set to 20000!'
                 rams%RR%framecount_rtp_pade = 20000
             END IF
             !****************************************************************************************************!
@@ -1160,7 +1174,7 @@ CONTAINS
             END IF
             !check for the number of frames after the Pade interpolation
             IF (TRIM(rams%RR%check_pade)=='y' .AND. rams%RR%framecount_rtp_pade<0) THEN !this can also be adjusted
-                WRITE (error_unit, '(4X,"[WARN]  ",A)') 'Pade framecount is set to 80000!'
+                WRITE (error_unit, '(4X,"[WARN]  ",A)') 'Pade framecount is set to 20000!'
                 rams%RR%framecount_rtp_pade = 20000
             END IF
         END IF

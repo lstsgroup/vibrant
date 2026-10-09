@@ -30,7 +30,8 @@ MODULE calc_spectra
     USE fin_diff, ONLY: central_diff, forward_diff
     USE vel_cor, ONLY: cvv, cvv_iso, cvv_aniso, cvv_resraman
     USE dipole_calc!, ONLY: compute_dipole, check_jumps
-    USE pade, ONLY: interpolate
+    USE pade, ONLY: interpolate, pade_timing_report
+    USE omp_lib, ONLY: omp_get_wtime
 
     USE, INTRINSIC                              :: ISO_C_BINDING
     USE OMP_LIB
@@ -63,7 +64,7 @@ CONTAINS
         INTEGER                                                  :: stat, i, runit
         INTEGER(kind=dp)                                          :: plan
         CHARACTER(LEN=str_len)                                          :: msg, spectra_file_name, c_label_1, c_label_2
-        REAL(kind=dp)                               :: freq_range, freq_res, power_const
+        REAL(kind=dp)                               :: freq_range, freq_res, power_const, sinc_const,corr,x
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE      :: power_int, freq, time_step
 
         !Allocate
@@ -90,6 +91,8 @@ CONTAINS
         freq_range = REAL((1.0_dp/(md%dt*fs2s))/speed_light, kind=dp)
         !Determine the frequency resolution
         freq_res = REAL(freq_range/(2.0_dp*md%t_cor), kind=dp)
+        !Apply sinc function
+        sinc_const = freq_res*md%dt*fs2s*2._dp*pi*speed_light
 
         !!Call FFT
         CALL dfftw_plan_dft_r2c_1d(plan, 2*md%t_cor, md%z, md%zhat, FFTW_ESTIMATE) !!!FFT
@@ -102,7 +105,12 @@ CONTAINS
         !Generate power spectrum
         DO i = 0, 2*md%t_cor - 1
             freq(i) = i*freq_res
-            power_int(i) = REAL(md%zhat(i), KIND=dp)*power_const
+            corr = 1.0_dp
+            IF (sys%type_traj == "pos") THEN
+                x = sinc_const*REAL(i, dp)     
+                IF (ABS(x) > 1.0E-8_dp) corr = (x/SIN(x))**2
+            END IF
+            power_int(i) = REAL(md%zhat(i), KIND=dp)*power_const*corr
             IF (freq(i).GE.5000_dp) CYCLE
         END DO
 
@@ -227,7 +235,7 @@ CONTAINS
 
             !!Write the results to a file
             c_label_1 = "# Freq. (cm^{-1})"
-            c_label_2 = "Int. (K cm km mol^{-1})"
+            c_label_2 = "-Int. (K cm km mol^{-1})"
             !!If there are no fragments
             IF (.NOT. sys%fragments%frag) THEN
                 spectra_file_name = "IR_spectrum.txt"
@@ -704,7 +712,7 @@ CONTAINS
                 broad = broad + (ir_int(x)*(1.0_dp/(gs%fwhm*SQRT(2.0_dp*pi)))*EXP(-0.50_dp*((i - stats%freq(x))/gs%fwhm)**2.0_dp))
             END DO
             data2(i) = data2(i) + broad
-            freq(:) = i
+            freq(i) = i
         END DO
 
         !!Write the results to a file
@@ -749,7 +757,7 @@ CONTAINS
         CHARACTER(len=str_len)                                      :: msg, fname, outfile, c_label_1
         CHARACTER(len=250)                                      :: c_label_2
         LOGICAL                                                   :: first_column
-        INTEGER                                                  :: stat, i, j, x, freq_res, runit, i_laser 
+        INTEGER                                                  :: stat, i, j, x, freq_res, runit, i_laser, k
         INTEGER                                                  :: start_freq, end_freq!, recl
         REAL(kind=dp)                                             :: broad, broad_para, broad_ortho
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE                    :: r_int_para, r_int_ortho, iso_sq, aniso_sq, ram_const, data2, spec_broad_para, spec_broad_ortho, freq!,broad
@@ -772,6 +780,11 @@ CONTAINS
         END IF
         ALLOCATE (freq(freq_res + 1))
         data2 = 0.0_dp
+        
+        !!!Symmetrize the polarizability derivative tensor!!
+        DO k = 1, SIZE(rams%pol_dq, 1)
+            rams%pol_dq(k, :, :) = 0.5_dp*(rams%pol_dq(k, :, :) + TRANSPOSE(rams%pol_dq(k, :, :)))
+        END DO
 
         !!!Isotropic and anisotropic contributions!!
         iso_sq(:) = REAL((rams%pol_dq(:, 1, 1) + rams%pol_dq(:, 2, 2) + rams%pol_dq(:, 3, 3))/3.0_dp, kind=dp)**2.0_dp
@@ -790,7 +803,7 @@ CONTAINS
         DO i_laser = 1, SIZE(rams%laser_in)
             !!! Conversion of static Raman units into 10^{-30}*cm^2/sr
             ram_const(:) = (const_planck/(8.0_dp*speed_light*cm2m*const_permit*const_permit)*1.e+30* &
-                            REAL(((rams%laser_in(i_laser)/reccm2ev - stats%freq(:))**4.0_dp)/(stats%freq(:)*cm2m**3.0_dp), kind=dp)* &
+                            REAL(((rams%laser_in(i_laser)/reccm2ev - stats%freq(:))**4)/(stats%freq(:)*cm2m**3.0_dp), kind=dp)* &
                             (1.0_dp/(1.0_dp - EXP(-1._dp*const_planck*speed_light*stats%freq(:)/ &
                                                   (const_boltz*gs%temp)))))/(cm2m**2._dp)
 
@@ -891,12 +904,19 @@ CONTAINS
         TYPE(raman), INTENT(INOUT)        :: rams
 
         CHARACTER(LEN=256)                          :: filename, msg, c_label_1, c_label_2, spectra_file_name
-        INTEGER                                                       :: stat, i, j, k, m, x, o, dims, dir, runit, i_freq
+        INTEGER                                                       :: stat, i, j, k, m, x, o, dims, dir, runit, i_freq, n_ref
         INTEGER(KIND=dp)                                               :: plan
-        REAL(KIND=dp)                                                  :: rtp_freq_res, freq_au
+        REAL(KIND=dp)                                                  ::  freq_au, df_fft
         REAL(KIND=dp), DIMENSION(:), ALLOCATABLE                            :: freq, abs_int
         REAL(KIND=dp), DIMENSION(:, :, :, :), ALLOCATABLE                   :: trace, abs_intens
         COMPLEX(KIND=dp), DIMENSION(:, :, :, :, :, :), ALLOCATABLE            :: y_out
+
+        INTEGER                                     :: n_half, n_spec, i_spec
+        CHARACTER(LEN=24)                           :: col_label
+        CHARACTER(LEN=40)                           :: row_fmt
+        CHARACTER(LEN=1), PARAMETER                 :: xyz(3) = ['x', 'y', 'z'], pm(2) = ['+', '-']
+        REAL(KIND=dp), DIMENSION(:, :), ALLOCATABLE :: abs_all
+        REAL(dp) :: t_wall
 
         !! Assign dimensions and displacement directions, if absorption spectrum is requested
         !! do not perform Pade or FFT for the all shifted structures.
@@ -933,11 +953,17 @@ CONTAINS
             END DO
         END DO
 
+        !!Find the maximum frequency range in cm^{-1} based on rams%RR%dt_rtp
+        rams%RR%freq_range_rtp = REAL((1.0_dp/(rams%RR%dt_rtp*fs2s))/speed_light, kind=dp)
+        n_ref        = rams%RR%framecount_rtp                     
+        df_fft       = rams%RR%freq_range_rtp / REAL(n_ref, dp)    ! 1/(N*dt) in cm^-1
+        rams%RR%freq_res_rtp = df_fft                                      
         !!If Pade interpolation is requested
         IF (rams%RR%check_pade=='y') THEN
 
             ALLOCATE (y_out(sys%natom, dims, dir, 3, 3, 0:rams%RR%framecount_rtp_pade-1))
         !!Call Pade
+        t_wall = omp_get_wtime()
 !$OMP PARALLEL DO COLLAPSE(5)
             DO j = 1, sys%natom
                 DO i = 1, dims
@@ -952,6 +978,10 @@ CONTAINS
                 END DO
             END DO
 !$OMP END PARALLEL DO
+            WRITE(*,'(4X,A,F12.3,A)') 'Pade wall time: ', omp_get_wtime() - t_wall, ' s'
+            CALL pade_timing_report()
+            !! Pade-Gitter: n Punkte auf [0, (N-1)*df_fft] -> Schritt (N-1)/(n-1)*df_fft
+            rams%RR%freq_res_rtp = df_fft*REAL(n_ref - 1, dp)/REAL(rams%RR%framecount_rtp_pade - 1, dp)
             !!Reassign the polarizability arrays
             rams%RR%framecount_rtp = rams%RR%framecount_rtp_pade
             rams%RR%zhat_pol_rtp = y_out
@@ -961,13 +991,7 @@ CONTAINS
 !!!Dividing by electric field and multiplying by rams%RR%dt_rtp which is coming from FFT
         rams%RR%zhat_pol_rtp = rams%RR%zhat_pol_rtp*(rams%RR%dt_rtp*fs2s/at_u)/dips%e_field
 
-        !!Find the maximum frequency range in cm^{-1} based on rams%RR%dt_rtp
-        rams%RR%freq_range_rtp = REAL((1.0_dp/(rams%RR%dt_rtp*fs2s))/speed_light, kind=dp)
-!!!Finding frequency range
-        rtp_freq_res = REAL(rams%RR%freq_range_rtp/rams%RR%framecount_rtp, kind=dp)
-
 !!!Calculate absorption spectra
-
         ALLOCATE (trace(sys%natom, dims, dir,  0:rams%RR%framecount_rtp - 1))
         ALLOCATE (abs_intens(sys%natom, dims, dir,  0:rams%RR%framecount_rtp - 1))
         trace = 0.0_dp
@@ -978,25 +1002,93 @@ CONTAINS
         abs_intens(:, :, :, :) = (4.0_dp*pi*debye*trace(:, :, :, :))/(3.0_dp*speed_light_au)
 
       !! Conversion from cm-1 to a.u.
-        freq_au = rtp_freq_res*(-1.0_dp)*reccm2au
+        freq_au = rams%RR%freq_res_rtp*(-1.0_dp)*reccm2au
 
-        ALLOCATE (freq( 0:rams%RR%framecount_rtp - 1))
-        ALLOCATE (abs_int( 0:rams%RR%framecount_rtp - 1))
+        !ALLOCATE (freq( 0:rams%RR%framecount_rtp - 1))
+        !ALLOCATE (abs_int( 0:rams%RR%framecount_rtp - 1))
 
-        freq = 0.0_dp; abs_int = 0.0_dp
-        !!Generate the absorption spectrum
-        DO i_freq = 0, rams%RR%framecount_rtp - 1 
-            freq(i_freq) =i_freq*rtp_freq_res*reccm2ev
-            abs_int(i_freq) = abs_intens(1, 1, 1, i_freq)*i_freq*freq_au
+        !freq = 0.0_dp; abs_int = 0.0_dp
+        !!!Generate the absorption spectrum
+        !DO i_freq = 0, rams%RR%framecount_rtp - 1 
+        !    freq(i_freq) =i_freq*rtp_freq_res*reccm2ev
+        !    abs_int(i_freq) = abs_intens(1, 1, 1, i_freq)*i_freq*freq_au
+        !END DO
+        !!!Write the results to a file
+        !c_label_1 = "# Energy (eV)"
+        !c_label_2 = "Int. (a.u.)"
+        !spectra_file_name = "absorption_spectrum.txt"
+        !CALL write_spectra_data(spectra_file_name, c_label_1, c_label_2, freq, abs_int, MAXVAL(freq) + 1)
+
+        !!CLOSE (runit)
+        !DEALLOCATE (trace, abs_intens)
+                !! r2c-FFT liefert nur die Bins 0 ... N/2, die obere Hälfte ist null
+        n_half = rams%RR%framecount_rtp/2
+        n_spec = sys%natom*dims*dir
+
+        ALLOCATE (freq(0:n_half), abs_all(0:n_half, n_spec))
+        freq = 0.0_dp; abs_all = 0.0_dp
+
+        DO i_freq = 0, n_half
+            freq(i_freq) = i_freq*rams%RR%freq_res_rtp*reccm2ev
         END DO
-        !!Write the results to a file
-        c_label_1 = "# Energy (eV)"
-        c_label_2 = "Int. (a.u.)"
-        spectra_file_name = "absorption_spectrum.txt"
-        CALL write_spectra_data(spectra_file_name, c_label_1, c_label_2, freq, abs_int, MAXVAL(freq) + 1)
 
-        !CLOSE (runit)
-        DEALLOCATE (trace, abs_intens)
+        !! Absorptionsspektrum jeder ausgelenkten Struktur
+        !! Spaltenreihenfolge wie in der Dipoldatei: +/- -> Atom -> x, y, z
+        i_spec = 0
+        DO k = 1, dir
+            DO j = 1, sys%natom
+                DO i = 1, dims
+                    i_spec = i_spec + 1
+                    DO i_freq = 0, n_half
+                        abs_all(i_freq, i_spec) = abs_intens(j, i, k, i_freq)*i_freq*freq_au
+                    END DO
+                END DO
+            END DO
+        END DO
+
+        !! Single spectrum (ABS: the only one; RR: displaced structure atom 1, +x)
+        c_label_1 = "# Energy (eV)"
+        IF (gs%spectral_type%read_function=='RR') THEN
+            WRITE (c_label_2, '(A,A,A)') "Int. (a.u.) [displaced structure ", TRIM(sys%element(1)), "1 x+]"
+        ELSE
+            c_label_2 = "Int. (a.u.)"
+        END IF
+        spectra_file_name = "absorption_spectrum.txt"
+        CALL write_spectra_data(spectra_file_name, c_label_1, c_label_2, freq, abs_all(:, 1), MAXVAL(freq) + 1)
+
+        !! RR: spectra of all displaced structures only on request
+        IF (gs%spectral_type%read_function=='RR') THEN
+            IF (gs%spectra_verbosity=='high') THEN
+                spectra_file_name = "absorption_spectra_all.txt"
+                OPEN (FILE=spectra_file_name, STATUS='replace', ACTION='write', IOSTAT=stat, IOMSG=msg, NEWUNIT=runit)
+                CALL check_file_open(stat, msg, spectra_file_name)
+
+                WRITE (runit, '(A22)', ADVANCE='no') c_label_1
+                DO k = 1, dir
+                    DO j = 1, sys%natom
+                        DO i = 1, dims
+                            WRITE (col_label, '(A,I0,"_",A1,A1)') TRIM(sys%element(j)), j, xyz(i), pm(k)
+                            WRITE (runit, '(1X,A24)', ADVANCE='no') TRIM(col_label)
+                        END DO
+                    END DO
+                END DO
+                WRITE (runit, '(A)') ''
+
+                WRITE (row_fmt, '("(F22.16,",I0,"(1X,ES24.15E3))")') n_spec
+                DO i_freq = 0, n_half
+                    WRITE (runit, row_fmt) freq(i_freq), abs_all(i_freq, :)
+                END DO
+                CLOSE (runit)
+                WRITE (*, '(4X,A)') 'Absorption spectra of all displaced structures written to absorption_spectra_all.txt'
+            ELSE
+                WRITE (*, '(4X,"[INFO]  ",A)') 'absorption_spectrum.txt contains the spectrum of the displaced structure '// &
+                    'atom 1, +x only.'
+                WRITE (*, '(4X,"        ",A)') 'Set "spectra_verbosity high" to write all 6N displaced structures '// &
+                    'to absorption_spectra_all.txt.'
+            END IF
+        END IF
+
+        DEALLOCATE (trace, abs_intens, freq, abs_all)
 
     END SUBROUTINE spec_abs
 
@@ -1028,7 +1120,7 @@ CONTAINS
         INTEGER(kind=dp)                                               :: plan
         CHARACTER(len=str_len)                                         :: msg, fname, outfile, c_label_1
         CHARACTER(len=200)                                         :: c_label_2
-        REAL(kind=dp)                                                  :: rtp_freq_res, pade_freq_res, fin_diff_factor, broad, broad_para, broad_ortho
+        REAL(kind=dp)                                                  ::  fin_diff_factor, broad, broad_para, broad_ortho
         REAL(kind=dp), DIMENSION(:), ALLOCATABLE                         :: data2, spec_broad_para, spec_broad_ortho, ram_const, freq
         REAL(kind=dp), DIMENSION(:, :), ALLOCATABLE                       :: iso_sq, aniso_sq, raman_int, r_int_para, r_int_ortho
         COMPLEX(kind=dp), DIMENSION(:, :, :, :), ALLOCATABLE                   :: zhat_pol_dq_rtp
@@ -1059,9 +1151,9 @@ CONTAINS
         data2 = 0.0_dp; freq = 0.0_dp; broad = 0.0_dp
 
         !!Find the maximum frequency range in cm^{-1} based on rams%RR%dt_rtp
-        rams%RR%freq_range_rtp = REAL((1.0_dp/(rams%RR%dt_rtp*fs2s))/speed_light, kind=dp)
+        !!rams%RR%freq_range_rtp = REAL((1.0_dp/(rams%RR%dt_rtp*fs2s))/speed_light, kind=dp)
 !!!Finding laser frequency
-        rtp_freq_res = REAL(rams%RR%freq_range_rtp/rams%RR%framecount_rtp, kind=dp)
+        !!rtp_freq_res = REAL(rams%RR%freq_range_rtp/rams%RR%framecount_rtp, kind=dp)
 
 !!!Finite differences
         zhat_pol_dxyz_rtp(:, :, :, :, :) = (rams%RR%zhat_pol_rtp(:, :, 2, :, :, :) &
@@ -1076,6 +1168,13 @@ CONTAINS
                                                   + (zhat_pol_dxyz_rtp(j, 2, :, :, o)*stats%disp(i, j, 2)*sys%atom_mass_inv_sqrt(j)) &
                                                   + (zhat_pol_dxyz_rtp(j, 3, :, :, o)*stats%disp(i, j, 3)*sys%atom_mass_inv_sqrt(j))
                 END DO
+            END DO
+        END DO
+
+        !!!Symmetrize the polarizability derivative tensor (alpha_ij = alpha_ji in linear response)
+        DO o = 0, rams%RR%framecount_rtp - 1
+            DO i = 1, stats%nmodes
+                zhat_pol_dq_rtp(i, :, :, o) = 0.5_dp*(zhat_pol_dq_rtp(i, :, :, o) + TRANSPOSE(zhat_pol_dq_rtp(i, :, :, o)))
             END DO
         END DO
 
@@ -1098,27 +1197,30 @@ CONTAINS
         aniso_sq = aniso_sq*(4.0_dp*pi*const_permit)**2*(ang**4._dp)/am_u
 
         !!!Finding laser frequency
-        rtp_freq_res = REAL(rams%RR%freq_range_rtp/rams%RR%framecount_rtp, kind=dp)
+        !!rtp_freq_res = REAL(rams%RR%freq_range_rtp/rams%RR%framecount_rtp, kind=dp)
+
+        IF (rams%RR%freq_res_rtp <= 0.0_dp) ERROR STOP 'freq_res_rtp not set (spec_abs must run first)'
+
+        WRITE (*, '(4X,"RTP energy resolution (eV)", T60, F10.6)') rams%RR%freq_res_rtp*reccm2ev
 
         DO i_laser = 1, SIZE(rams%laser_in)
 
-            rtp_point = ANINT(rams%laser_in(i_laser)/(rtp_freq_res*reccm2ev), kind=dp)
+            rtp_point = NINT(rams%laser_in(i_laser)/(rams%RR%freq_res_rtp*reccm2ev))
 
             IF (rtp_point < 1 .OR. rtp_point > rams%RR%framecount_rtp/2) THEN
                 WRITE (error_unit, '(4X,"[ERROR] ",A)') 'laser_in lies outside the RT-TDDFT energy range'
                 WRITE (error_unit, '(6X,A,F12.4," eV")') 'requested: ', rams%laser_in(i_laser)
                 WRITE (error_unit, '(6X,A,F12.4," eV ... ",F12.4," eV")') 'available: ', &
-                    rtp_freq_res*reccm2ev, (rams%RR%framecount_rtp/2)*rtp_freq_res*reccm2ev
+                    rams%RR%freq_res_rtp*reccm2ev, (rams%RR%framecount_rtp/2)*rams%RR%freq_res_rtp*reccm2ev
                 WRITE (error_unit, '(6X,A)') 'decrease rtp_time_step to reach higher energies'
-                STOP
+                ERROR STOP
             END IF
 
-            WRITE (*, '(4X,"Laser energy requested (eV)", T60, G0)') rams%laser_in(i_laser)
-            WRITE (*, '(4X,"Laser energy used (RTP grid point, eV)", T60, G0)') rtp_point*rtp_freq_res*reccm2ev
-            WRITE (*, '(4X,"RTP energy resolution (eV)", T60, G0)') rtp_freq_res*reccm2ev
+            WRITE (*, '(4X,"Laser energy (eV): requested ",F10.6," -> used ",F10.6, " (grid point ",I0,")")') &
+                rams%laser_in(i_laser), rtp_point*rams%RR%freq_res_rtp*reccm2ev, rtp_point
             !!! Conversion of static resonance Raman units into 10^{-30}*cm^2/sr
             ram_const(:) = (const_planck/(8.0_dp*speed_light*cm2m*const_permit*const_permit)*1.e+30* &
-                            REAL(((rams%laser_in(i_laser)/reccm2ev - stats%freq(:))**4.0_dp)/(stats%freq(:)*cm2m**3.0_dp), kind=dp)* &
+                            REAL(((rams%laser_in(i_laser)/reccm2ev - stats%freq(:))**4)/(stats%freq(:)*cm2m**3), kind=dp)* &
                             (1.0_dp/(1.0_dp - EXP(-1._dp*const_planck*speed_light*stats%freq(:)/ &
                                                   (const_boltz*gs%temp)))))/(cm2m**2._dp)
 
@@ -1162,8 +1264,8 @@ CONTAINS
             !!Writing out the results
             outfile = 'result_static_resraman.txt'
             c_label_1 = '# Freq. (cm^{-1})'
-            c_label_2 = "Int. (10^{-30} cm^2/(mol./system)) @"
-            WRITE(c_label_2(LEN_TRIM(c_label_2)+1:), '(F10.6, " eV")') rams%laser_in(i_laser)
+            WRITE (c_label_2, '(A,F5.2,A)') "Int. (10^{-30} cm^2/(mol./system)) @", &
+                rtp_point*rams%RR%freq_res_rtp*reccm2ev, " eV"
             IF (i_laser==1) THEN
                 CALL write_spectra_data(outfile, c_label_1, c_label_2, freq, data2(:))
                 IF (gs%spectra_verbosity=='high') THEN
